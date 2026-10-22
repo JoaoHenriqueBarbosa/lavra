@@ -186,6 +186,32 @@ função: o argumento é copiado na ida e, se confiado, na volta. O nativo passa
 não tem esse custo. Com a pilha na máquina, o empréstimo pode virar referência ao quadro
 do chamador; é o próximo passo dessa conta.
 
+## Releases
+
+Cada tag `v*` gera a release no GitHub (`.github/workflows/release.yml`):
+
+- o `lavrac` estático (musl) para x86_64 e aarch64, com o sha256, compilado no próprio runner
+  pelo compilador cruzado da taiki-e (o `build.rs` compila o runtime para o mesmo alvo, e o
+  `--version` traz o commit);
+- a extensão do VS Code de cada plataforma (`lavra-vscode-<versão>-linux-x64.vsix` e
+  `-linux-arm64.vsix`), com aquele `lavrac` dentro;
+- a conferência do que se baixa (job `verify`): o checksum e todos os samples com a saída
+  esperada, o aarch64 pelo QEMU e o x86_64 também compilado para nativo.
+
+O `lavrac` musl roda em qualquer Linux. O `lavrac build` liga o programa com o `cc` do sistema
+(gcc ou clang), e o runtime compilado para musl liga tanto com a glibc quanto com a musl:
+conferido em Debian e Alpine limpos, com o corpus e os samples, antes da primeira release.
+
+O release-plz (`.github/workflows/release-plz.yml`, `release-plz.toml`) mantém o PR de
+release, com o CHANGELOG em português; só o merge publica (`release_always = false`), cria a
+tag e a release e chama os binários. Enquanto a crate não está no crates.io, as versões vêm das
+tags (`git_only = true`), porque no modo do registro o release-plz recusa a tag que o
+registro não tem. Para passar a publicar no crates.io: o token como secret
+`CARGO_REGISTRY_TOKEN`, um `cargo publish` da versão da última tag, e então
+`git_only = false` com `semver_check = true`. As lojas de extensão publicam a cada release
+quando os secrets `VSCE_PAT` (Visual Studio Marketplace, publisher `joaohenriquebarbosa`) e
+`OVSX_PAT` (Open VSX) existem.
+
 ## Testes
 
 - `cargo test`: unitários de morfologia e léxico; golden (`tests/golden.rs`) sobre
