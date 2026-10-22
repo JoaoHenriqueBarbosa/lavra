@@ -60,6 +60,23 @@ contêiner tem de ser a do host, onde o `lavrac` foi compilado) e tira uma captu
 com `LAVRA_SHOT`; no CI, com o `xvfb-run` do runner. Os arquivos que o contêiner cria ficam
 com o dono do mapeamento de usuários do Docker Desktop: apague `out/` com um contêiner.
 
+## Formatador (`lavrac fmt`)
+
+`src/format.rs`, conservador por desenho porque os poemas são programas: nunca muda quebra
+de linha nem linha em branco, nem o interior de um token. Refaz o recuo das linhas que
+abrem linha lógica (quatro espaços por bloco aberto, pelo papel de cada linha física que o
+léxico informa em `lexer::layout`), leva as linhas de continuação junto mantendo a
+distância que tinham, deixa um espaço entre tokens (nenhum antes de `.`, `,`, `:`, `;` e `)`
+nem depois de `(`; dentro das locuções também), tira espaço do fim da linha e garante a
+quebra final. Dois números vizinhos guardam o espaço original, porque um só os juntaria
+num número com milhar. Texto com erro léxico não se formata.
+
+`lavrac fmt arquivos ou pastas` formata no lugar; `--check` só diz o que mudaria (o CI
+confere samples e programas certos). O servidor de linguagem responde
+`textDocument/formatting`. Testes (`tests/format.rs`): o corpus já está na forma; versões
+estragadas (recuo com tab, espaços a mais, espaço no fim) voltam byte a byte, com os mesmos
+tokens e comentários; formatar de novo não muda nada.
+
 ## Servidor de linguagem (`lavrac lsp`)
 
 `src/lsp/` (feature `lsp`, padrão), síncrono sobre stdio com `lsp-server` e `lsp-types`.

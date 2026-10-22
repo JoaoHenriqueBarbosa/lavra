@@ -81,6 +81,7 @@ pub fn run(conn: &Connection) -> Fallible<()> {
         document_highlight_provider: Some(lsp::OneOf::Left(true)),
         document_symbol_provider: Some(lsp::OneOf::Left(true)),
         workspace_symbol_provider: Some(lsp::OneOf::Left(true)),
+        document_formatting_provider: Some(lsp::OneOf::Left(true)),
         semantic_tokens_provider: Some(lsp::SemanticTokensServerCapabilities::SemanticTokensOptions(lsp::SemanticTokensOptions {
             legend: semantic::legend(),
             full: Some(lsp::SemanticTokensFullOptions::Bool(true)),
@@ -170,6 +171,21 @@ impl Server {
                 let p: lsp::SemanticTokensParams = params(&req)?;
                 let doc = self.doc(&p.text_document.uri)?;
                 json!(lsp::SemanticTokens { result_id: None, data: semantic::tokens(&doc.analysis, &self.text(doc)) })
+            }
+            "textDocument/formatting" => {
+                let p: lsp::DocumentFormattingParams = params(&req)?;
+                let doc = self.doc(&p.text_document.uri)?;
+                // Texto com erro léxico não se formata (o formatador não mexe no que não entendeu).
+                let edits = match crate::format::format(&doc.text) {
+                    Ok(f) if f != doc.text => {
+                        let text = self.text(doc);
+                        let range =
+                            lsp::Range { start: lsp::Position { line: 0, character: 0 }, end: text.position(doc.text.len() as u32) };
+                        vec![lsp::TextEdit { range, new_text: f }]
+                    }
+                    _ => Vec::new(),
+                };
+                json!(edits)
             }
             "workspace/symbol" => {
                 let p: lsp::WorkspaceSymbolParams = params(&req)?;

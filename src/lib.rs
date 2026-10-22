@@ -7,6 +7,7 @@ pub mod codegen;
 pub mod codes;
 pub mod diagnostics;
 pub mod explain;
+pub mod format;
 pub mod hir;
 pub mod interp;
 pub mod lexer;

@@ -372,7 +372,7 @@ Cada item termina com a suíte verde, um commit e um push.
 | 0.7 | F5, tabelas e não uso **(feito)** | testes de tabela sobre fixtures |
 | 0.8 | F8, CLI própria em português, versão, panic hook **(feito)** | `cargo check --lib --no-default-features --target wasm32-unknown-unknown` |
 | 1 | Servidor (diagnósticos, tokens, hover, navegação, símbolos) e cliente **(feito)** | teste de integração e captura no VS Code |
-| 2 | Formatador | `fmt --check` no corpus sem alterar os poemas |
+| 2 | Formatador **(feito)** | `fmt --check` no corpus sem alterar os poemas |
 | 3 | Completar pelo parser, signature help, inlay, code actions, folding | fixtures em `tests/lsp` |
 | 4 | Rename com morfologia e `lavrac fix` | rename de verbo num sample, com a suíte verde |
 | 5 | Depurador e F5 | sessão roteirizada; captura parado num breakpoint |

@@ -95,6 +95,25 @@ pub fn tokenize(src: &str, diags: &mut Diagnostics) -> Vec<Token> {
     tokenize_at(src, 0, diags)
 }
 
+/// O papel de cada linha física do texto, para o formatador.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LineRole {
+    Blank,
+    /// Comentário de linha inteira ("Nota:" ou "--").
+    Comment,
+    /// Começo de linha lógica, na profundidade dada (quantos blocos abertos).
+    Start(usize),
+    /// Continuação de uma linha lógica que não terminou na linha de cima (enjambement).
+    Continuation,
+}
+
+/// O papel de cada linha física (na ordem de `src.split_inclusive('\n')`).
+pub fn layout(src: &str) -> Vec<LineRole> {
+    let mut roles = Vec::new();
+    scan_with(src, 0, &mut Diagnostics::default(), Some(&mut roles));
+    roles
+}
+
 /// Como `tokenize`, com as posições a partir de `base` (a base do arquivo no
 /// `SourceMap`, quando a compilação tiver vários arquivos).
 pub fn tokenize_at(src: &str, base: usize, diags: &mut Diagnostics) -> Vec<Token> {
@@ -124,6 +143,15 @@ fn is_word_char(c: char) -> bool {
 }
 
 fn scan(src: &str, base: usize, diags: &mut Diagnostics) -> Vec<Token> {
+    scan_with(src, base, diags, None)
+}
+
+fn scan_with(src: &str, base: usize, diags: &mut Diagnostics, mut roles: Option<&mut Vec<LineRole>>) -> Vec<Token> {
+    let mut role = |r: LineRole| {
+        if let Some(v) = roles.as_mut() {
+            v.push(r);
+        }
+    };
     let mut out: Vec<Token> = Vec::new();
     let mut indents: Vec<usize> = vec![0];
     // Verdadeiro quando a próxima linha física começa uma linha lógica nova.
@@ -135,11 +163,16 @@ fn scan(src: &str, base: usize, diags: &mut Diagnostics) -> Vec<Token> {
         let line = raw_line.trim_end_matches(['\n', '\r']);
         let content = line.trim_start_matches([' ', '\t']);
         if content.is_empty() {
+            role(LineRole::Blank);
             continue;
         }
         let lower = content.to_lowercase();
         if lower.starts_with("nota:") || content.starts_with("--") {
+            role(LineRole::Comment);
             continue;
+        }
+        if !at_logical_start {
+            role(LineRole::Continuation);
         }
         let indent_bytes = line.len() - content.len();
         if at_logical_start {
@@ -178,6 +211,9 @@ fn scan(src: &str, base: usize, diags: &mut Diagnostics) -> Vec<Token> {
                     );
                 }
             }
+        }
+        if at_logical_start {
+            role(LineRole::Start(indents.len() - 1));
         }
         let before = out.len();
         let cut = scan_line(line, line_start, &mut out, diags);

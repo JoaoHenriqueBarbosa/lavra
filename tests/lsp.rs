@@ -130,9 +130,20 @@ fn diagnostics_hover_definition_references_symbols() {
     assert!(mods & (1 << 4) != 0, "quantia é confiada");
     assert_eq!(at(5, 4).map(|t| t.0), Some("function"), "Rendo");
 
+    // Formatação: o texto já está na forma, nada a mudar; estragado, volta inteiro.
+    let fmt =
+        c.request("textDocument/formatting", json!({ "textDocument": { "uri": URI }, "options": { "tabSize": 4, "insertSpaces": true } }));
+    assert_eq!(fmt, json!([]));
+    let spoiled = PROGRAM.replace("    O saldo começa em 100.", "\tO saldo   começa em 100 .");
+    c.notify("textDocument/didChange", json!({ "textDocument": { "uri": URI, "version": 2 }, "contentChanges": [{ "text": spoiled }] }));
+    c.diagnostics();
+    let fmt =
+        c.request("textDocument/formatting", json!({ "textDocument": { "uri": URI }, "options": { "tabSize": 4, "insertSpaces": true } }));
+    assert_eq!(fmt[0]["newText"], PROGRAM);
+
     // Corrigir o erro limpa os diagnósticos.
     let fixed = PROGRAM.replace("o sald.", "o saldo.");
-    c.notify("textDocument/didChange", json!({ "textDocument": { "uri": URI, "version": 2 }, "contentChanges": [{ "text": fixed }] }));
+    c.notify("textDocument/didChange", json!({ "textDocument": { "uri": URI, "version": 3 }, "contentChanges": [{ "text": fixed }] }));
     assert!(c.diagnostics().is_empty());
     c.stop(handle);
 }

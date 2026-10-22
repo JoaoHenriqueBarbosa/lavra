@@ -31,6 +31,8 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Testes (unitários, golden e paridade com o nativo)
         run: cargo test
+      - name: Programas e poemas na forma do formatador
+        run: cargo run -q -- fmt --check samples tests/programs/ok
 
   wasm:
     name: Biblioteca em wasm32 (playground)

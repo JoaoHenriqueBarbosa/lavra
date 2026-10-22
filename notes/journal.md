@@ -132,7 +132,7 @@ Próximo: a fase 1, o servidor de linguagem (lavrac lsp) e o cliente do VS Code.
 
 ----------------------------------------------------------------------------------------
 
-Dia 22/10/2026, fim da fase 1 do roadmap (o servidor de linguagem), registro do Claude às 17h20, cerca de 2 horas depois do começo:
+Dia 22/10/2026, fim da fase 1 do roadmap (o servidor de linguagem), registro do Claude às 17h17, cerca de 2 horas depois do começo:
 
 O VS Code agora fala com o próprio compilador. lavrac lsp mostra todos os erros ao digitar, com o código e o link para a explicação; pinta os verbos do programa (também nos predicados), os parâmetros emprestados e confiados, o que é fixo e o que muda, campos, tipos e casos; mostra no hover o tipo por extenso, o modo de posse e a regência de cada verbo; e leva à definição, às referências e aos símbolos. A extensão ganhou os comandos de rodar, compilar e verificar, o botão de rodar, tarefas com os erros no painel Problemas e snippets dos blocos; a versão 0.2.0 está instalada no seu VS Code, com o lavrac dentro.
 

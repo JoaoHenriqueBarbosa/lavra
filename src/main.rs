@@ -19,6 +19,9 @@ uso:
                                         (ex.: lavrac explain L0334)
   lavrac lexicon --json                 exporta o léxico da língua
   lavrac lsp                            o servidor de linguagem, para editores (stdio)
+  lavrac fmt [--check] <arquivos ou pastas>
+                                        formata os .lav (só recuo e espaços; nunca muda
+                                        quebra de linha); com --check, só diz quais mudariam
   lavrac --version                      a versão e o commit
   lavrac --help                         esta ajuda
 
@@ -36,6 +39,7 @@ enum Command {
     Explain { code: String },
     Lexicon,
     Lsp,
+    Fmt { paths: Vec<String>, check: bool },
     Version,
     Help,
 }
@@ -79,6 +83,14 @@ fn parse_args(args: &[String]) -> Result<Command, String> {
             _ => Err("\"explain\" pede um código, como L0334".into()),
         },
         Some("lsp") => Ok(Command::Lsp),
+        Some("fmt") => {
+            let check = rest(1).iter().any(|x| x == "--check");
+            let paths: Vec<String> = rest(1).iter().filter(|x| *x != "--check").cloned().collect();
+            if paths.is_empty() {
+                return Err("\"fmt\" pede os arquivos ou as pastas".into());
+            }
+            Ok(Command::Fmt { paths, check })
+        }
         Some("lexicon") => match rest(1) {
             [flag] if flag == "--json" => Ok(Command::Lexicon),
             _ => Err("\"lexicon\" só exporta em JSON: lavrac lexicon --json".into()),
@@ -136,6 +148,7 @@ fn main() -> ExitCode {
             print!("{}", lavra::lexicon::to_json());
             return ExitCode::SUCCESS;
         }
+        Command::Fmt { paths, check } => return fmt(&paths, check),
         Command::Lsp => {
             return match lavra::lsp::run_stdio() {
                 Ok(()) => ExitCode::SUCCESS,
@@ -303,4 +316,69 @@ fn json_report(diags: &[Diagnostic], src: &SourceFile) -> String {
         "diagnostics": list,
     }))
     .expect("diagnósticos viram JSON")
+}
+
+/// Os `.lav` dos caminhos dados (pastas são percorridas, sem entrar nas ocultas e em `target`).
+fn lav_files(path: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+    if path.is_dir() {
+        let mut entries: Vec<_> = std::fs::read_dir(path).into_iter().flatten().flatten().map(|e| e.path()).collect();
+        entries.sort();
+        for p in entries {
+            let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            if !name.starts_with('.') && name != "target" && name != "node_modules" {
+                lav_files(&p, out);
+            }
+        }
+    } else if path.extension().is_some_and(|e| e == "lav") {
+        out.push(path.to_path_buf());
+    }
+}
+
+/// `lavrac fmt`: formata no lugar, ou só confere com `--check`.
+fn fmt(paths: &[String], check: bool) -> ExitCode {
+    let mut files = Vec::new();
+    for p in paths {
+        let path = std::path::Path::new(p);
+        if !path.exists() {
+            eprintln!("lavrac: {p} não existe");
+            return ExitCode::from(2);
+        }
+        lav_files(path, &mut files);
+    }
+    let style = Style { color: std::io::stderr().is_terminal() && std::env::var_os("NO_COLOR").is_none() };
+    let (mut changed, mut failed) = (0, 0);
+    for file in &files {
+        let name = file.display().to_string();
+        let text = match std::fs::read_to_string(file) {
+            Ok(t) => t,
+            Err(e) => {
+                eprintln!("lavrac: não consegui ler {name}: {e}");
+                failed += 1;
+                continue;
+            }
+        };
+        match lavra::format::format(&text) {
+            Ok(f) if f == text => {}
+            Ok(f) => {
+                changed += 1;
+                if check {
+                    println!("{name} precisa de formatação");
+                } else if let Err(e) = std::fs::write(file, f) {
+                    eprintln!("lavrac: não consegui escrever {name}: {e}");
+                    failed += 1;
+                } else {
+                    println!("formatei {name}");
+                }
+            }
+            Err(diags) => {
+                failed += 1;
+                let src = SourceFile::new(&name, text);
+                eprintln!("lavrac: {name} tem erro léxico e ficou como estava:");
+                for d in &diags {
+                    eprint!("{}", render(d, &src, style));
+                }
+            }
+        }
+    }
+    if failed > 0 || (check && changed > 0) { ExitCode::from(1) } else { ExitCode::SUCCESS }
 }
