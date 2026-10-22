@@ -46,4 +46,5 @@ O que sustenta todas: a Lavra junta três coisas que outras linguagens não junt
 
 ## Ideias de poema pendentes
 
-- Crivo de Eratóstenes: os números passam pela peneira e o que sobra são os primos.
+Nenhuma no momento. O crivo de Eratóstenes virou *O joio e o trigo* (ver
+[poems.md](poems.md)).

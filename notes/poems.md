@@ -3,7 +3,7 @@
 A proposta do user: programas que sejam ao mesmo tempo **úteis, que compilem e que
 sejam poesia**. Os versos funcionam porque o vocabulário técnico da Lavra (registro,
 resto, resultado, cópia, emprestado, confiado) também é vocabulário comum, e o poema usa
-as duas leituras ao mesmo tempo. Os quatro estão em `samples/`, com entrada e saída
+as duas leituras ao mesmo tempo. Os cinco estão em `samples/`, com entrada e saída
 esperadas, na suíte golden e na de paridade entre interpretador e nativo.
 
 ## Lavra dos dias (`samples/lavra-dos-dias.lav`)
@@ -97,6 +97,30 @@ da origem mais 1" se lê de dois jeitos (e um deles dá 689). Misturar operaçã
 extenso com infixa sem parênteses é erro de compilação
 (`tests/programs/err/ab_urbe_ambiguidade.lav`); a forma certa é `1 mais a diferença do
 ano da data e do ano da origem`.
+
+## O joio e o trigo (`samples/o-joio-e-o-trigo.lav`)
+
+Crivo de Eratóstenes: pergunta até onde vai o campo, lista os primos até lá e diz quantos
+grãos de trigo ficaram.
+
+```
+Separo o joio do trigo.
+Colho o trigo.
+```
+
+- **`Para separar o joio do trigo, sendo o trigo uma lista de lógicos confiada:`**: "o
+  joio" é complemento fixo e "do trigo" é a regência, então a parábola (Mateus 13) é a
+  própria chamada. O trigo vai confiado porque a separação risca os múltiplos nele.
+- **`Colho o trigo.`**: a colheita só lê, e o trigo vai emprestado.
+- O campo nasce todo trigo (`O trigo ganha verdadeiro.`, uma vez por grão); o joio é o
+  que a peneira risca (`O item m do trigo vira falso.`), e "o item 1 do trigo" é joio
+  desde o começo.
+- Fecha o ciclo da lavoura dos outros poemas: a terra repartida em *A partilha*, a foice
+  dos Foiceiros, e agora a colheita.
+
+Conferido contra Python de 0 a 100 000 (9 592 primos), com paridade entre interpretador e
+nativo. Este programa revelou que `o tamanho de` copiava a coleção no interpretador
+(ver [compiler.md](compiler.md)).
 
 ## Padrões emergentes
 

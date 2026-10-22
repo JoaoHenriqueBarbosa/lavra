@@ -1,0 +1,41 @@
+Nota: O joio e o trigo.
+
+Para começar:
+    Escrevo "Até onde vai o campo? " e leio um inteiro, e o limite é o resultado.
+    Se o limite for menor que 2:
+        Escrevo "Num campo tão pequeno não nasce trigo.".
+    Senão:
+        O trigo, uma lista de lógicos, começa vazio.
+        Repito o limite vezes:
+            O trigo ganha verdadeiro.
+
+        Separo o joio do trigo.
+        Colho o trigo.
+
+Para separar o joio do trigo, sendo o trigo uma lista de lógicos confiada:
+    O item 1 do trigo vira falso.
+    P começa em 2.
+    Enquanto p vezes p for no máximo o tamanho do trigo:
+        Se o item p do trigo for verdadeiro:
+            M começa em p vezes p.
+            Enquanto m for no máximo o tamanho do trigo:
+                O item m do trigo vira falso.
+                M cresce p.
+        P cresce 1.
+
+Para colher o trigo, sendo o trigo uma lista de lógicos emprestada:
+    A colheita começa em 0.
+    Para cada i de 1 até o tamanho do trigo:
+        Se o item i do trigo for verdadeiro:
+            Escrevo i seguido de " " sem quebrar a linha.
+            A colheita cresce 1.
+    Escrevo "".
+    Escrevo "Separado o joio, ficam "
+        seguido do resultado de flexionar a colheita entre "grão" e "grãos"
+        seguido de " de trigo.".
+
+Para flexionar a quantidade entre o singular e o plural,
+        sendo a quantidade um inteiro e o singular e o plural textos emprestados,
+        devolvendo um texto:
+    Se a quantidade for igual a 1: devolvo "1 " seguido do singular.
+    Devolvo a quantidade como texto seguido de " " seguido do plural.
