@@ -484,6 +484,7 @@ impl Parser {
 
     /// Lê um substantivo de tipo no número pedido. Devolve o tipo e o gênero.
     pub(super) fn type_word(&mut self, number: Number) -> Result<(TypeExpr, Gender)> {
+        self.expect_here(|| super::Expect::Type { plural: number == Number::Plural });
         let t = self.bump();
         let w = t.word().unwrap_or_default().to_string();
         let sing = match number {
@@ -567,6 +568,7 @@ impl Parser {
                     }
                 }
                 Slot::Object => {
+                    self.expect_here(|| super::Expect::Value);
                     if objects > 0 && !(self.eat_word("e") || self.eat_punct(',')) {
                         return Err(self.regency_error(&sig, "faltou um objeto"));
                     }
@@ -585,8 +587,7 @@ impl Parser {
                     self.bump();
                 }
                 Slot::Prep { prep, count } => {
-                    let t = self.peek().clone();
-                    if !t.is_word(prep) {
+                    if !self.at_word(prep) {
                         return Err(self.regency_error(&sig, &format!("aqui vem \"{prep}\"")));
                     }
                     self.bump();

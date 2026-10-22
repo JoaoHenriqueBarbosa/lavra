@@ -58,6 +58,15 @@ impl Text<'_> {
 }
 
 /// O link da explicação de um código.
+/// Uma edição de workspace sobre um documento só.
+// O `lsp-types` define `changes` com `Uri` como chave, e o `Uri` guarda um cache interno
+// (mutabilidade interior); a chave nunca muda depois de entrar no mapa.
+#[allow(clippy::mutable_key_type)]
+pub fn workspace_edit(uri: &lsp::Uri, edits: Vec<lsp::TextEdit>) -> lsp::WorkspaceEdit {
+    let changes = std::collections::HashMap::from([(uri.clone(), edits)]);
+    lsp::WorkspaceEdit { changes: Some(changes), ..Default::default() }
+}
+
 pub fn explain_url(code: &str) -> Option<lsp::Uri> {
     format!("https://github.com/JoaoHenriqueBarbosa/lavra/blob/main/src/explain/{code}.md").parse().ok()
 }

@@ -5,6 +5,7 @@
 //! pequenos, e `lavra::analyze` não para no primeiro erro); cada requisição roda isolada,
 //! e um defeito numa delas vira erro só dela, sem derrubar o servidor.
 
+mod assist;
 mod convert;
 mod features;
 pub mod semantic;
@@ -82,6 +83,16 @@ pub fn run(conn: &Connection) -> Fallible<()> {
         document_symbol_provider: Some(lsp::OneOf::Left(true)),
         workspace_symbol_provider: Some(lsp::OneOf::Left(true)),
         document_formatting_provider: Some(lsp::OneOf::Left(true)),
+        completion_provider: Some(lsp::CompletionOptions { trigger_characters: Some(vec![" ".into()]), ..Default::default() }),
+        signature_help_provider: Some(lsp::SignatureHelpOptions {
+            trigger_characters: Some(vec![" ".into()]),
+            retrigger_characters: None,
+            work_done_progress_options: Default::default(),
+        }),
+        inlay_hint_provider: Some(lsp::OneOf::Left(true)),
+        code_action_provider: Some(lsp::CodeActionProviderCapability::Simple(true)),
+        folding_range_provider: Some(lsp::FoldingRangeProviderCapability::Simple(true)),
+        selection_range_provider: Some(lsp::SelectionRangeProviderCapability::Simple(true)),
         semantic_tokens_provider: Some(lsp::SemanticTokensServerCapabilities::SemanticTokensOptions(lsp::SemanticTokensOptions {
             legend: semantic::legend(),
             full: Some(lsp::SemanticTokensFullOptions::Bool(true)),
@@ -186,6 +197,38 @@ impl Server {
                     _ => Vec::new(),
                 };
                 json!(edits)
+            }
+            "textDocument/completion" => {
+                let p: lsp::CompletionParams = params(&req)?;
+                let (doc, offset) = self.at(&p.text_document_position)?;
+                json!(assist::completion(&doc.analysis, &doc.text, offset))
+            }
+            "textDocument/signatureHelp" => {
+                let p: lsp::SignatureHelpParams = params(&req)?;
+                let (doc, offset) = self.at(&p.text_document_position_params)?;
+                json!(assist::signature_help(&doc.analysis, offset))
+            }
+            "textDocument/inlayHint" => {
+                let p: lsp::InlayHintParams = params(&req)?;
+                let doc = self.doc(&p.text_document.uri)?;
+                json!(assist::inlay_hints(&doc.analysis, &doc.text, &self.text(doc), p.range))
+            }
+            "textDocument/codeAction" => {
+                let p: lsp::CodeActionParams = params(&req)?;
+                json!(assist::code_actions(&p.text_document.uri, &p.context.diagnostics))
+            }
+            "textDocument/foldingRange" => {
+                let p: lsp::FoldingRangeParams = params(&req)?;
+                let doc = self.doc(&p.text_document.uri)?;
+                json!(assist::folding(&doc.text))
+            }
+            "textDocument/selectionRange" => {
+                let p: lsp::SelectionRangeParams = params(&req)?;
+                let doc = self.doc(&p.text_document.uri)?;
+                let text = self.text(doc);
+                let v: Vec<lsp::SelectionRange> =
+                    p.positions.iter().map(|&pos| assist::selection(&doc.analysis, &doc.text, &text, text.offset(pos))).collect();
+                json!(v)
             }
             "workspace/symbol" => {
                 let p: lsp::WorkspaceSymbolParams = params(&req)?;

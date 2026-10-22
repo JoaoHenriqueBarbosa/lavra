@@ -174,3 +174,89 @@ fn unknown_request_does_not_take_the_server_down() {
     }
     c.stop(handle);
 }
+
+const URI2: &str = "file:///tmp/mover.lav";
+
+const PROGRAM2: &str = "\
+Para mover a quantia para o destino, sendo a quantia um inteiro e o destino um inteiro confiado:
+    O destino cresce a quantia.
+
+Para começar:
+    O saldo começa em 100.
+    A taxa, um inteiro, é 3.
+    Movo 5 para o saldo.
+    Escrevo o saldo
+    Escrevo o saldo mais a taxa.
+";
+
+fn at2(line: u32, character: u32) -> Value {
+    json!({ "textDocument": { "uri": URI2 }, "position": { "line": line, "character": character } })
+}
+
+fn labels(v: &Value) -> Vec<String> {
+    v.as_array().unwrap().iter().map(|i| i["label"].as_str().unwrap().to_string()).collect()
+}
+
+#[test]
+fn writing_assistance() {
+    let (mut c, handle) = Client::start();
+    c.notify("textDocument/didOpen", json!({ "textDocument": { "uri": URI2, "languageId": "lavra", "version": 1, "text": PROGRAM2 } }));
+    let diags = c.diagnostics();
+    assert_eq!(diags.len(), 1, "{diags:?}");
+
+    // Completar no começo da oração: verbos da língua, o verbo do programa com a regência,
+    // as orações de controle e o dado como sujeito, em maiúscula.
+    let items = c.request("textDocument/completion", at2(6, 4));
+    let l = labels(&items);
+    for want in ["Escrevo", "Movo", "Se", "Enquanto", "O saldo"] {
+        assert!(l.contains(&want.to_string()), "falta {want}: {l:?}");
+    }
+    let movo = items.as_array().unwrap().iter().find(|i| i["label"] == "Movo").unwrap();
+    assert_eq!(movo["insertText"], "Movo ${1:quantia} para ${2:destino}");
+    // Depois de "o": os nomes masculinos singulares, as posições e "o resultado".
+    let l = labels(&c.request("textDocument/completion", at2(8, 19)));
+    assert!(l.contains(&"saldo".to_string()) && l.contains(&"resultado".to_string()) && l.contains(&"primeiro".to_string()), "{l:?}");
+    assert!(!l.contains(&"taxa".to_string()), "a taxa é feminina: {l:?}");
+    // Na posição de tipo.
+    let l = labels(&c.request("textDocument/completion", at2(5, 22)));
+    assert!(l.contains(&"inteiro".to_string()) && l.contains(&"real".to_string()) && l.contains(&"texto".to_string()), "{l:?}");
+
+    // Ajuda de assinatura: depois de "para", o parâmetro ativo é o destino.
+    let sig = c.request("textDocument/signatureHelp", at2(6, 16));
+    assert_eq!(sig["signatures"][0]["label"], "movo QUANTIA para DESTINO");
+    assert_eq!(sig["activeParameter"], 1);
+
+    // Inlay hint: o tipo da declaração sem aposto.
+    let hints = c.request("textDocument/inlayHint", json!({ "textDocument": { "uri": URI2 }, "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 9, "character": 0 } } }));
+    let texts: Vec<&str> = hints.as_array().unwrap().iter().map(|h| h["label"].as_str().unwrap()).collect();
+    assert!(texts.contains(&", um inteiro,"), "{texts:?}");
+    assert!(texts.contains(&"confiado:"), "o argumento confiado: {texts:?}");
+
+    // Ação rápida: o ponto final que faltou.
+    let actions = c.request(
+        "textDocument/codeAction",
+        json!({ "textDocument": { "uri": URI2 }, "range": diags[0]["range"], "context": { "diagnostics": diags } }),
+    );
+    let a = &actions.as_array().unwrap()[0];
+    assert_eq!(a["title"], "Pôr o ponto final");
+    let edit = &a["edit"]["changes"][URI2][0];
+    assert_eq!((edit["newText"].as_str(), &edit["range"]["start"]), (Some("."), &json!({ "line": 7, "character": 19 })));
+
+    // Dobra: o corpo da função e o de "Para começar".
+    let folds = c.request("textDocument/foldingRange", json!({ "textDocument": { "uri": URI2 } }));
+    let spans: Vec<(u64, u64)> =
+        folds.as_array().unwrap().iter().map(|f| (f["startLine"].as_u64().unwrap(), f["endLine"].as_u64().unwrap())).collect();
+    assert!(spans.contains(&(0, 1)) && spans.contains(&(3, 8)), "{spans:?}");
+
+    // Seleção crescente: a palavra, a oração, o bloco, o texto.
+    let sel =
+        c.request("textDocument/selectionRange", json!({ "textDocument": { "uri": URI2 }, "positions": [{ "line": 6, "character": 18 }] }));
+    let mut depth = 0;
+    let mut r = &sel[0];
+    while !r.is_null() {
+        depth += 1;
+        r = &r["parent"];
+    }
+    assert!(depth >= 4, "{sel}");
+    c.stop(handle);
+}

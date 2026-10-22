@@ -12,28 +12,76 @@ use crate::span::Span;
 mod data;
 mod header;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+
+/// A palavra que o servidor de linguagem põe no lugar do cursor para perguntar ao parser o
+/// que caberia ali (não termina como infinitivo nem é símbolo).
+pub const CURSOR: &str = "lavracursorx";
+
+/// O que o parser aceitaria numa posição: a base do completar do editor. Construção nova
+/// escrita com os auxiliares (`at_word`, `eat_word`, `expect_word`) já aparece aqui.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Expect {
+    /// Uma palavra da língua.
+    Word(String),
+    /// O começo de uma oração: um verbo na 1ª pessoa ou um sujeito.
+    ClauseStart,
+    /// Um nome, depois de um artigo do gênero e do número dados.
+    Name { gender: Gender, number: Number },
+    /// Um valor (objeto de uma chamada).
+    Value,
+    /// Um tipo, no singular ou no plural.
+    Type { plural: bool },
+}
+
+/// O que caberia no token `cursor` (o marcador `CURSOR`).
+pub fn expectations(tokens: Vec<Token>, cursor: usize) -> Vec<Expect> {
+    let mut p = Parser::new(tokens);
+    p.cursor = Some(cursor);
+    p.prescan_records();
+    p.prescan();
+    p.program();
+    let mut v = p.expected.into_inner();
+    let mut seen = Vec::new();
+    v.retain(|e| {
+        let new = !seen.contains(e);
+        if new {
+            seen.push(e.clone());
+        }
+        new
+    });
+    v
+}
 
 /// Lê o programa inteiro. Um erro numa oração vira diagnóstico e uma `Stmt::Error`; a
 /// leitura continua na oração seguinte.
 pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> Program {
-    let mut p = Parser {
-        toks: tokens,
-        pos: 0,
-        prog: Program::default(),
-        headers: HashMap::new(),
-        vocab: Vocabulary::default(),
-        allow_uncontracted: false,
-        skip_spans: HashMap::new(),
-        last_nominal: false,
-        diags: Vec::new(),
-    };
+    let mut p = Parser::new(tokens);
     p.prescan_records();
     p.prescan();
     p.program();
     p.prog.vocab = std::mem::take(&mut p.vocab);
     diags.list.extend(p.diags);
     p.prog
+}
+
+impl Parser {
+    fn new(tokens: Vec<Token>) -> Parser {
+        Parser {
+            toks: tokens,
+            pos: 0,
+            prog: Program::default(),
+            headers: HashMap::new(),
+            vocab: Vocabulary::default(),
+            allow_uncontracted: false,
+            skip_spans: HashMap::new(),
+            last_nominal: false,
+            diags: Vec::new(),
+            cursor: None,
+            expected: RefCell::new(Vec::new()),
+        }
+    }
 }
 
 struct Parser {
@@ -51,6 +99,9 @@ struct Parser {
     /// O último termo lido foi uma operação por extenso (para a regra dos parênteses).
     last_nominal: bool,
     diags: Vec<Diagnostic>,
+    /// O token do marcador, quando o servidor pergunta o que caberia ali.
+    cursor: Option<usize>,
+    expected: RefCell<Vec<Expect>>,
 }
 
 impl Parser {
@@ -85,7 +136,15 @@ impl Parser {
     }
 
     fn at_word(&self, w: &str) -> bool {
+        self.expect_here(|| Expect::Word(w.to_string()));
         self.peek().is_word(w)
+    }
+
+    /// Registra o que caberia aqui, se aqui é o marcador do cursor.
+    fn expect_here(&self, e: impl FnOnce() -> Expect) {
+        if self.cursor == Some(self.pos) {
+            self.expected.borrow_mut().push(e());
+        }
     }
 
     fn eat_word(&mut self, w: &str) -> bool {
@@ -1026,6 +1085,7 @@ impl Parser {
     }
 
     fn clause(&mut self) -> Result<Clause> {
+        self.expect_here(|| Expect::ClauseStart);
         let t = self.peek().clone();
         let start = t.span;
         let Some(w) = t.word().map(str::to_string) else {
@@ -1324,6 +1384,7 @@ impl Parser {
         if let Some(a) = self.definite_article_at(0) {
             self.check_contraction()?;
             self.bump();
+            self.expect_here(|| Expect::Name { gender: a.gender, number: a.number });
             let w = self.bump();
             let Some(word) = w.word().map(str::to_string) else {
                 return Err(Box::new(Diagnostic::new(

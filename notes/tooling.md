@@ -54,10 +54,12 @@ blocos.
 
 Teste de integração (`npm run test:integration`): um VS Code de verdade, baixado pelo
 `@vscode/test-electron`, abre um programa com erro e confere pela API do editor os
-diagnósticos (com código e link), o hover, os tokens semânticos e a definição. Aqui roda
-num contêiner `node:22-trixie` com xvfb (como root, com `--no-sandbox`; a glibc do
-contêiner tem de ser a do host, onde o `lavrac` foi compilado) e tira uma captura da tela
-com `LAVRA_SHOT`; no CI, com o `xvfb-run` do runner. Os arquivos que o contêiner cria ficam
+diagnósticos (com código e link), o hover, os tokens semânticos, o completar e a definição.
+Aqui roda num contêiner `node:22-trixie` com xvfb (como root, com `--no-sandbox`; a glibc
+do contêiner tem de ser a do host, onde o `lavrac` foi compilado) e, com
+`LAVRA_SHOT=caminho.png`, tira três capturas da tela: o hover, uma oração nova com o
+completar aberto e os inlay hints, e a ajuda de assinatura (`-completar.png`,
+`-assinatura.png`); no CI, com o `xvfb-run` do runner. Os arquivos que o contêiner cria ficam
 com o dono do mapeamento de usuários do Docker Desktop: apague `out/` com um contêiner.
 
 ## Formatador (`lavrac fmt`)
@@ -98,6 +100,22 @@ erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro s�
 - **Navegação**: definição, referências (com leitura e escrita), destaque, símbolos do
   documento (funções com a regência, registros com campos, enumerações com casos,
   constantes) e do workspace (documentos abertos e `.lav` das pastas).
+- **Completar guiado pelo parser**: o servidor põe a palavra `lavracursorx` no lugar da
+  palavra em que está o cursor e roda o parser com ela marcada; os auxiliares do parser
+  (`at_word`, `eat_word`, `expect_word`), o começo de oração, o nome depois do artigo, o
+  objeto de uma chamada e a posição de tipo registram o que aceitariam ali
+  (`parser::expectations`). O servidor só preenche essas classes: verbos da língua e do
+  programa (o do programa vira snippet com a regência), o dado como sujeito, nomes visíveis
+  do gênero e do número do artigo, campos, operações por extenso, posições, tipos. Construção
+  nova escrita com os auxiliares já aparece no completar, sem mexer no servidor.
+- **Ajuda de assinatura**: a regência do verbo da oração, com o parâmetro ativo pela última
+  preposição da regência já escrita.
+- **Inlay hints**: o tipo das declarações sem aposto (", um inteiro,"), "confiado:" e
+  "emprestado:" antes dos argumentos, e o tipo de "o resultado".
+- **Ações rápidas**: as correções que vêm nos diagnósticos (contração, concordância, ponto
+  final...), a segura como preferida.
+- **Dobra e seleção**: pelo papel das linhas que o léxico informa (blocos recuados,
+  sequências de comentários; palavra, oração, blocos em volta, texto).
 - **Testes**: `tests/lsp.rs` roda o servidor em processo (`Connection::memory()`).
 
 ## Próximos passos

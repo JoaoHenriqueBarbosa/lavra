@@ -58,16 +58,45 @@ export async function run(): Promise<void> {
     assert.ok(kinds.has(k), `falta o token ${k}: ${[...kinds]}`);
   }
 
+  // Completar no começo da oração: o verbo do programa com a regência.
+  const list = await vscode.commands.executeCommand<vscode.CompletionList>("vscode.executeCompletionItemProvider", uri, new vscode.Position(5, 4));
+  const rendo = list.items.find((i) => i.label === "Rendo");
+  assert.ok(rendo, `sem "Rendo" no completar: ${list.items.map((i) => i.label).join(", ")}`);
+
+  // Ajuda de assinatura depois do verbo, e os inlay hints: o tipo da declaração sem aposto
+  // e o argumento confiado.
+  const help = await vscode.commands.executeCommand<vscode.SignatureHelp>("vscode.executeSignatureHelpProvider", uri, new vscode.Position(5, 10));
+  assert.strictEqual(help?.signatures[0]?.label, "rendo QUANTIA");
+  const hints = await vscode.commands.executeCommand<vscode.InlayHint[]>("vscode.executeInlayHintProvider", uri, new vscode.Range(0, 0, 8, 0));
+  const labels = hints.map((h) => (typeof h.label === "string" ? h.label : h.label.map((p) => p.value).join("")));
+  for (const want of [", um inteiro,", "confiado:"]) {
+    assert.ok(labels.includes(want), `falta o inlay hint "${want}": ${labels.join(" | ")}`);
+  }
+
   // Definição: do uso à declaração.
   const defs = await vscode.commands.executeCommand<vscode.Location[]>("vscode.executeDefinitionProvider", uri, new vscode.Position(6, 15));
   assert.strictEqual(defs[0].range.start.line, 4);
 
-  // A captura da janela, com o realce semântico aplicado, quando pedida.
+  // As capturas da janela, quando pedidas: o hover com o realce semântico; uma oração nova
+  // com o completar aberto e os inlay hints no texto; a ajuda de assinatura.
   const shot = process.env.LAVRA_SHOT;
   if (shot) {
+    const named = (what: string) => shot.replace(/\.png$/, `-${what}.png`);
     editor.selection = new vscode.Selection(6, 15, 6, 15);
     await vscode.commands.executeCommand("editor.action.showHover");
     await sleep(2500);
     execFileSync("import", ["-window", "root", shot]);
+    await vscode.commands.executeCommand("editor.action.hideHover");
+    await editor.edit((e) => e.insert(new vscode.Position(5, 18), "\n    "));
+    editor.selection = new vscode.Selection(6, 4, 6, 4);
+    await vscode.commands.executeCommand("editor.action.triggerSuggest");
+    await sleep(2500);
+    execFileSync("import", ["-window", "root", named("completar")]);
+    await vscode.commands.executeCommand("hideSuggestWidget");
+    await editor.edit((e) => e.insert(new vscode.Position(6, 4), "Rendo "));
+    editor.selection = new vscode.Selection(6, 10, 6, 10);
+    await vscode.commands.executeCommand("editor.action.triggerParameterHints");
+    await sleep(2500);
+    execFileSync("import", ["-window", "root", named("assinatura")]);
   }
 }

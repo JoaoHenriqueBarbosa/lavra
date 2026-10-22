@@ -1,5 +1,13 @@
 # Mudanças
 
+## 0.3.0
+
+- Completar guiado pelo parser do compilador, com os verbos do programa como snippet da
+  regência e os nomes do gênero e do número do artigo.
+- Ajuda de assinatura com o parâmetro ativo, inlay hints de tipo e de modo de posse, ações
+  rápidas com as correções do compilador, dobra e seleção crescente pelos blocos.
+- Formatação do documento pelo `lavrac fmt`.
+
 ## 0.2.0
 
 - Servidor de linguagem (`lavrac lsp`): diagnósticos ao digitar, com código e explicação;

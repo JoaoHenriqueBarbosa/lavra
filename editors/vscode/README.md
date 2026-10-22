@@ -14,11 +14,21 @@ em que cada instrução é uma oração em português.
   a explicação das palavras da língua.
 - **Navegação**: ir para a definição, referências, destaque das ocorrências, símbolos do
   arquivo e do workspace.
+- **Completar** guiado pelo próprio parser: as palavras que cabem ali, os verbos do
+  programa com a regência como snippet, os nomes visíveis do gênero e do número do artigo
+  que você escreveu, os campos e os tipos.
+- **Ajuda de assinatura**: a regência do verbo da oração, com o parâmetro ativo.
+- **Inlay hints**: o tipo das declarações sem aposto, "confiado:" e "emprestado:" antes dos
+  argumentos, e o tipo de "o resultado".
+- **Ações rápidas**: as correções que o compilador já sabe fazer (contração, concordância,
+  ponto final, acento...).
+- **Formatação** (`lavrac fmt`): recuo e espaços, sem nunca mexer em quebra de linha, porque
+  os poemas também são programas.
 - **Rodar, compilar e verificar**: botão de rodar no título do editor, comandos na paleta
   ("Lavra: Rodar o arquivo") e tarefas com os erros no painel Problemas.
 - **Snippets** dos blocos: `para começar`, `se`, `para cada`, `conforme`, `registro`.
 - **Edição**: comentário com `--`, pares e aspas, recuo depois de `:`, `Senão` volta o
-  recuo, dobra por indentação.
+  recuo; dobra dos blocos e dos comentários, e seleção crescente (palavra, oração, bloco).
 
 O servidor de linguagem é o próprio compilador (`lavrac lsp`). A extensão procura o
 `lavrac` no setting `lavra.server.path`, depois o que vem dentro dela, depois o do PATH.
