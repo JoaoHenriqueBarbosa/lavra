@@ -92,6 +92,13 @@ impl Parser {
             .hint("Escolha outro verbo para a sua função."));
         }
         if sig.kind == SigKind::Action {
+            if Self::is_core_verb(&sig.first_person) {
+                return err(Diagnostic::new(
+                    L0153,
+                    format!("A 1ª pessoa de \"{}\" é \"{}\", que já é verbo da língua.", sig.infinitive, sig.first_person),
+                    sig.name_span,
+                ));
+            }
             if lexicon::reserved(&sig.first_person).is_some() {
                 return err(Diagnostic::new(
                     L0152,
@@ -102,13 +109,6 @@ impl Parser {
                     sig.name_span,
                 )
                 .hint("Escolha outro verbo."));
-            }
-            if Self::is_core_verb(&sig.first_person) {
-                return err(Diagnostic::new(
-                    L0153,
-                    format!("A 1ª pessoa de \"{}\" é \"{}\", que já é verbo da língua.", sig.infinitive, sig.first_person),
-                    sig.name_span,
-                ));
             }
             if let Some(&other) = self.vocab.by_first_person.get(&sig.first_person) {
                 let o = &self.prog.sigs[other];
@@ -490,7 +490,7 @@ impl Parser {
             Number::Singular => w.clone(),
             Number::Plural => match lexicon::type_noun_by_plural(&w) {
                 Some(t) => t.singular.to_string(),
-                None if self.vocab.record_plurals.contains_key(&w) => w.clone(),
+                None if self.vocab.record_plurals.contains_key(&w) || self.vocab.enum_plurals.contains_key(&w) => w.clone(),
                 None => {
                     let plurals: Vec<&str> = lexicon::TYPE_NOUNS.iter().filter(|t| t.singular != "lista").map(|t| t.plural).collect();
                     return err(Diagnostic::new(L0168, format!("Tipo desconhecido: \"{}\".", t.orig), t.span)
@@ -498,7 +498,11 @@ impl Parser {
                 }
             },
         };
-        if number == Number::Singular && (lexicon::type_noun_by_plural(&w).is_some() || self.vocab.record_plurals.contains_key(&w)) {
+        if number == Number::Singular
+            && (lexicon::type_noun_by_plural(&w).is_some()
+                || self.vocab.record_plurals.contains_key(&w)
+                || self.vocab.enum_plurals.contains_key(&w))
+        {
             return err(Diagnostic::new(L0169, format!("Depois do artigo singular, o tipo vai no singular: não \"{w}\"."), t.span));
         }
         if sing == "lista" {

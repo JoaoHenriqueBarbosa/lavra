@@ -262,7 +262,10 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>, diags: &mut Diagnost
             let mut s = String::new();
             loop {
                 if j >= n {
-                    diags.push(lex_error(L0002, "Texto sem aspas de fechamento.", pos(start), pos(n)));
+                    // A barra no fim da linha já foi acusada (L0005), e é ela que deixou o texto aberto.
+                    if !(n > start + 1 && chars[n - 1].1 == '\\') {
+                        diags.push(lex_error(L0002, "Texto sem aspas de fechamento.", pos(start), pos(n)));
+                    }
                     out.push(error_token(line, base, pos(start), pos(n)));
                     return true;
                 }
@@ -304,6 +307,11 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>, diags: &mut Diagnost
                 j += 1;
                 chars[j - 1].1
             };
+            if j >= n && chars[n - 1].1 == '\\' {
+                // A barra no fim da linha já foi acusada (L0005).
+                out.push(error_token(line, base, pos(start), pos(n)));
+                return true;
+            }
             if j >= n || !matches!(chars[j].1, '\'' | '’' | '‘') {
                 diags.push(
                     Diagnostic::new(L0004, "Caractere entre aspas simples tem uma letra só.", Span::new(pos(start), pos(j.min(n))))
@@ -463,7 +471,10 @@ fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str, d
     let span = Span::new(pos(start), pos(i));
     let sign = if negative { "-" } else { "" };
     let kind = if !frac.is_empty() {
-        match format!("{sign}{digits}.{frac}").parse() {
+        match format!("{sign}{digits}.{frac}").parse::<f64>() {
+            Ok(v) if !v.is_finite() => {
+                return fail(lex_error(L0007, "Número grande demais: nenhum tipo da Lavra guarda esse valor.", pos(start), pos(i)), i);
+            }
             Ok(v) => TokenKind::Real(v),
             Err(_) => return fail(lex_error(L0010, "Número real malformado.", pos(start), pos(i)), i),
         }

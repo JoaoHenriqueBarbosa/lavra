@@ -94,6 +94,9 @@ impl Parser {
             if is_enum && (self.vocab.records.contains_key(&name) || self.vocab.enums.contains_key(&name)) {
                 return err(Diagnostic::new(L0202, format!("O tipo \"{name}\" já foi definido."), name_tok.span));
             }
+            if !is_enum && self.vocab.enums.contains_key(&name) {
+                return err(Diagnostic::new(L0202, format!("O tipo \"{name}\" já foi definido."), name_tok.span));
+            }
             if !is_enum && self.vocab.records.contains_key(&name) {
                 return err(Diagnostic::new(L0202, format!("O registro \"{name}\" já foi definido."), name_tok.span));
             }
@@ -533,6 +536,18 @@ impl Parser {
 
     /// "um círculo", "uma estrela": caso de enumeração, com o gênero conferido.
     pub(super) fn variant_pattern(&mut self) -> Result<Pattern> {
+        if let Some(w) = self.peek().word().map(str::to_string)
+            && let Some(&(e, v)) = self.vocab.variants.get(&w)
+        {
+            let var = &self.prog.enums[e].variants[v];
+            let right = morphology::indefinite_article(var.gender, Number::Singular);
+            let t = self.peek().clone();
+            return err(Diagnostic::new(L0219, format!("O caso se diz com artigo indefinido: \"{right} {w}\"."), t.span).fix(
+                format!("Escrever \"{right} {w}\""),
+                t.span,
+                format!("{right} {w}"),
+            ));
+        }
         let at = self.bump();
         let wt = self.bump();
         let w = wt.word().unwrap_or_default().to_string();

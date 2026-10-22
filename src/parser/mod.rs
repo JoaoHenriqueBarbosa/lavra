@@ -319,7 +319,11 @@ impl Parser {
         }
         let end = self.pos;
         self.report_in(at, end.max(at + 1), d);
-        let names = self.declared_names(at, end);
+        let (names, block_names) = if self.toks[at].is_word("para") && self.peek_at_abs(at + 1).is_word("cada") {
+            (Vec::new(), self.declared_names(at, end))
+        } else {
+            (self.declared_names(at, end), Vec::new())
+        };
         let span = first.span.to(self.toks[end.saturating_sub(1).max(at)].span);
         let mut blocks = Vec::new();
         let compound = first.word().is_some_and(|w| matches!(w, "se" | "enquanto" | "repito" | "para" | "conforme"));
@@ -358,7 +362,11 @@ impl Parser {
         if self.pos == at && !matches!(self.peek().kind, TokenKind::Dedent | TokenKind::Eof) {
             self.bump();
         }
-        Stmt::Error { span, names, blocks }
+        Stmt::Error { span, names, block_names, blocks }
+    }
+
+    fn peek_at_abs(&self, k: usize) -> &Token {
+        &self.toks[k.min(self.toks.len() - 1)]
     }
 
     /// Bloco recuado começando no `Indent`, sem os dois-pontos antes.
@@ -383,7 +391,9 @@ impl Parser {
     fn declared_names(&self, at: usize, end: usize) -> Vec<NameRef> {
         let tok = |k: usize| &self.toks[k.min(self.toks.len() - 1)];
         if tok(at).is_word("para") && tok(at + 1).is_word("cada") {
-            let t = tok(at + 2);
+            // "Para cada a nota": o artigo indevido já foi acusado; o item é a palavra depois.
+            let k = if tok(at + 2).word().and_then(morphology::article).is_some() { at + 3 } else { at + 2 };
+            let t = tok(k);
             if let Some(w) = t.word().filter(|w| morphology::article(w).is_none()) {
                 let article = (!morphology::is_symbol(w)).then(|| ArticleUse {
                     gender: morphology::guess_gender(w),
@@ -964,6 +974,19 @@ impl Parser {
         Period { clauses, span }
     }
 
+    /// O texto escrito de um trecho, pelos tokens (a contração conta uma vez).
+    fn span_text(&self, span: Span) -> String {
+        let mut words: Vec<&str> = Vec::new();
+        let mut last = None;
+        for t in &self.toks {
+            if t.span.start >= span.start && t.span.end <= span.end && !t.orig.is_empty() && last != Some(t.span) {
+                words.push(&t.orig);
+                last = Some(t.span);
+            }
+        }
+        words.join(" ")
+    }
+
     fn is_core_verb(w: &str) -> bool {
         lexicon::is_clause_verb(w)
     }
@@ -1160,8 +1183,9 @@ impl Parser {
         }
         let declares = matches!(inf, "ser" | "começar");
         if (declares || ann.is_some()) && !place.proj.is_empty() {
+            let written = capitalize_first(&self.span_text(place.span));
             return err(Diagnostic::new(L0124, "Só se declara um nome novo; um campo ou item já existe.", vt.span)
-                .hint(format!("Para mudar o valor, use \"vira\": \"{} vira ...\".", describe_place(&place))));
+                .hint(format!("Para mudar o valor, use \"vira\": \"{written} vira ...\".")));
         }
         if ann.is_some() && !declares {
             return err(Diagnostic::new(L0125, "O aposto com o tipo só cabe na declaração (\"é\" ou \"começa em\").", vt.span));
@@ -1223,7 +1247,6 @@ impl Parser {
     fn type_noun(&mut self, art: morphology::Article, art_span: Span) -> Result<TypeExpr> {
         let (ty, gender) = self.type_word(Number::Singular)?;
         if gender != art.gender {
-            let w = self.toks[self.pos - 1].orig.clone();
             let right = morphology::indefinite_article(gender, Number::Singular);
             return err(Diagnostic::new(
                 L0128,
@@ -1231,7 +1254,7 @@ impl Parser {
                 art_span.to(self.prev_span()),
             )
             .fix(format!("Escrever \"{right}\""), art_span, right)
-            .hint(format!("O artigo concorda com o tipo (\"{w}\").")));
+            .hint(format!("O artigo concorda com o tipo (\"{}\").", self.toks[art_span_index(self, art_span) + 1].orig)));
         }
         Ok(ty)
     }
@@ -1292,7 +1315,8 @@ impl Parser {
                 }
             }
         }
-        Ok(first)
+        // Nenhuma preposição da regência aparece: vale a definição que não pede nenhuma.
+        Ok(cands.iter().copied().find(|&c| !self.prog.sigs[c].slots.iter().any(|s| matches!(s, Slot::Prep { .. }))).unwrap_or(first))
     }
 
     fn name_ref(&mut self) -> Result<NameRef> {
@@ -1494,6 +1518,19 @@ impl Parser {
             TokenKind::Word(w) if w == "o" && self.peek_at(1).is_word("resultado") && t.contraction.is_none_or(|c| c.part == 2) => {
                 self.bump();
                 let r = self.bump();
+                // "o resultado do dobrar": o "de" contraído engole o artigo, e o verbo vem um
+                // token adiante.
+                if self.at_word("de")
+                    && self.peek().contraction.is_some_and(|c| c.part == 1)
+                    && self.peek_at(2).word().is_some_and(|w| self.vocab.by_infinitive.contains_key(w))
+                {
+                    let de = self.peek().clone();
+                    return err(Diagnostic::new(L0134, "Antes do verbo, \"de\" não contrai.", de.span).fix(
+                        "Escrever \"de\"",
+                        de.span,
+                        "de",
+                    ));
+                }
                 if self.at_word("de")
                     && let Some(inf) = self.peek_at(1).word()
                     && let Some(&sig) = self.vocab.by_infinitive.get(inf).and_then(|v| v.first())
@@ -1608,4 +1645,13 @@ fn expr_number(e: &Expr) -> Number {
 
 pub fn describe_place(p: &Place) -> String {
     format!("\"{}\"", p.root.display())
+}
+
+/// A primeira letra em maiúscula.
+fn capitalize_first(s: &str) -> String {
+    let mut c = s.chars();
+    match c.next() {
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+        None => String::new(),
+    }
 }

@@ -117,13 +117,6 @@ impl LoanKind {
         }
     }
 
-    fn label(self) -> &'static str {
-        match self {
-            LoanKind::Loop => "emprestado ao laço aqui",
-            LoanKind::Match => "emprestado ao \"Conforme\" aqui",
-        }
-    }
-
     fn hint(self) -> &'static str {
         match self {
             LoanKind::Loop => "Junte as mudanças numa lista nova e aplique depois do laço.",
@@ -471,7 +464,7 @@ impl<'a> Checker<'a> {
                     ),
                     place.span,
                 )
-                .label(l.span, l.what.label())
+                .label(l.span, format!("{} {} aqui", agree("emprestado", &name), l.what.to_whom()))
                 .hint(l.what.hint()),
             );
         }
@@ -581,14 +574,15 @@ impl<'a> Checker<'a> {
                 Diagnostic::new(
                     L0405,
                     format!(
-                        "{} {are} {} ao laço \"Para cada\" e não se {} enquanto ele durar.",
+                        "{} {are} {} {} e não se {} enquanto ele durar.",
                         capitalize(&name),
                         agree("emprestado", &name),
+                        l.what.to_whom(),
                         verb3("entregar", &name)
                     ),
                     span,
                 )
-                .label(l.span, "emprestado ao laço aqui"),
+                .label(l.span, format!("{} {} aqui", agree("emprestado", &name), l.what.to_whom())),
             );
         }
         if let (Var::Local(id), Some(st)) = (p.root, &mut self.state) {
@@ -694,12 +688,17 @@ fn place_display(c: &Checker, p: &Place) -> String {
                     _ => None,
                 };
             }
-            PlaceProj::Index(..) => {
-                name = format!("o item {}", of_name(&name));
+            PlaceProj::Index(e, _) => {
+                let at = match e.kind {
+                    ExprKind::Int(n) => format!("o item {n}"),
+                    _ => "o item".to_string(),
+                };
+                name = format!("{at} {}", of_name(&name));
                 ty_rec = None;
             }
             PlaceProj::Last(_) => {
-                name = format!("o último {}", of_name(&name));
+                let last = if gn(&name).0 == Gender::Feminine { "a última" } else { "o último" };
+                name = format!("{last} {}", of_name(&name));
                 ty_rec = None;
             }
         }

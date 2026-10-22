@@ -7,6 +7,7 @@ use crate::diagnostics::{Diagnostic, Diagnostics, Result, err};
 use crate::hir::{self, PushStmt, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
+use crate::tables::{Def, DefKind, Ref, Scope, Tables, Use};
 use crate::types::{EnumTy, IntTy, RecordTy, Ty, VariantTy};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -14,7 +15,7 @@ use std::sync::Arc;
 /// Confere o programa e baixa para a HIR. Erros e avisos vão para `diags`; a análise
 /// segue depois de cada erro (o nome que a oração quebrada declararia existe com tipo
 /// de erro, que não gera mais erros), e a HIR de um programa com erro só serve ao editor.
-pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> hir::Program {
+pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tables) {
     let mut env = Env {
         prog,
         globals: Vec::new(),
@@ -23,7 +24,14 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> hir::Program {
         diags: Vec::new(),
         records: HashMap::new(),
         enums: HashMap::new(),
+        tables: Tables::default(),
+        cycles: std::collections::HashSet::new(),
+        sig_defs: Vec::new(),
+        global_defs: Vec::new(),
+        field_defs: HashMap::new(),
+        variant_defs: HashMap::new(),
     };
+    env.tables.scopes.push(Scope { parent: None, span: Span::new(0, u32::MAX as usize) });
     for (i, f) in prog.funcs.iter().enumerate() {
         env.sig_func[f.sig] = i;
     }
@@ -38,6 +46,7 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> hir::Program {
         let ret = sig.ret.as_ref().map(|t| env.type_or_error(t)).unwrap_or(Ty::Unit);
         env.sig_types.push(SigTypes { params, ret });
     }
+    env.program_defs();
 
     // Nível de fora: só constantes.
     let mut init = FnCx::new(&mut env, None, Span::default());
@@ -53,6 +62,9 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> hir::Program {
         let sig = &prog.sigs[f.sig];
         let ret = env.sig_types[f.sig].ret.clone();
         let mut cx = FnCx::new(&mut env, Some(f.sig), sig.span);
+        let fscope = cx.env.tables.scopes.len();
+        cx.env.tables.scopes.push(Scope { parent: Some(0), span: sig.span.to(f.body.span) });
+        cx.scope_ids = vec![fscope];
         // Cabeçalho quebrado já foi acusado: o corpo é conferido, mas sem os avisos e sem
         // a conferência do retorno, que dependem do cabeçalho.
         cx.tainted = sig.broken;
@@ -61,6 +73,12 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> hir::Program {
             match cx.declare(&p.name, ty, p.mode == ParamMode::Lent) {
                 Ok(id) => {
                     cx.locals[id].mutated = true;
+                    let d = cx.local_defs[id];
+                    let owner = cx.env.sig_defs[f.sig];
+                    let def = &mut cx.env.tables.defs[d];
+                    def.kind = DefKind::Param;
+                    def.mode = Some(p.mode);
+                    def.owner = Some(owner);
                     params.push((id, p.mode));
                 }
                 Err(d) => cx.report(d),
@@ -100,7 +118,8 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> hir::Program {
     let mut enums: Vec<Arc<EnumTy>> = env.enums.values().cloned().collect();
     enums.sort_by_key(|e| e.id);
     diags.list.extend(env.diags);
-    hir::Program { funcs, globals, init, main: prog.main.map(|m| env.sig_func[m]), records, enums }
+    env.tables.dedupe();
+    (hir::Program { funcs, globals, init, main: prog.main.map(|m| env.sig_func[m]), records, enums }, env.tables)
 }
 
 fn env_param_types(cx: &FnCx, sig: usize) -> Vec<Ty> {
@@ -128,9 +147,124 @@ struct Env<'a> {
     diags: Vec<Diagnostic>,
     records: HashMap<String, Arc<RecordTy>>,
     enums: HashMap<String, Arc<EnumTy>>,
+    tables: Tables,
+    /// Tipos cujo laço infinito já foi relatado.
+    cycles: std::collections::HashSet<usize>,
+    /// O `Def` de cada assinatura, constante, campo de registro e caso.
+    sig_defs: Vec<usize>,
+    global_defs: Vec<usize>,
+    field_defs: HashMap<(usize, usize), usize>,
+    variant_defs: HashMap<(usize, usize), usize>,
 }
 
 impl Env<'_> {
+    fn def(&mut self, d: Def) -> usize {
+        self.tables.defs.push(d);
+        self.tables.defs.len() - 1
+    }
+
+    fn use_def(&mut self, def: usize, span: Span, use_: Use) {
+        if def != usize::MAX {
+            self.tables.refs.push(Ref { def, span, use_ });
+        }
+    }
+
+    /// Os nomes do programa que não dependem de função: funções, registros e campos,
+    /// enumerações e casos.
+    fn program_defs(&mut self) {
+        let prog = self.prog;
+        for (i, r) in prog.records.iter().enumerate() {
+            let ty = self.records.get(&r.word).cloned();
+            let d = self.def(Def {
+                kind: DefKind::Record,
+                name: r.word.clone(),
+                display: format!("{} {}", morphology::indefinite_article(r.gender, Number::Singular), r.word),
+                gender: r.gender,
+                number: Number::Singular,
+                ty: ty.clone().map(Ty::Record),
+                span: r.span,
+                scope: 0,
+                mutable: false,
+                mode: None,
+                owner: None,
+            });
+            for (fi, f) in r.fields.iter().enumerate() {
+                let fty = ty.as_ref().and_then(|t| t.fields.get(fi)).map(|f| f.1.clone());
+                let fd = self.def(Def {
+                    kind: DefKind::Field,
+                    name: f.name.word.clone(),
+                    display: f.name.display(),
+                    gender: f.name.gender(),
+                    number: f.name.number(),
+                    ty: fty,
+                    span: f.name.span,
+                    scope: 0,
+                    mutable: true,
+                    mode: None,
+                    owner: Some(d),
+                });
+                self.field_defs.insert((i, fi), fd);
+            }
+        }
+        for (i, e) in prog.enums.iter().enumerate() {
+            let ty = self.enums.get(&e.word).cloned();
+            let d = self.def(Def {
+                kind: DefKind::Enum,
+                name: e.word.clone(),
+                display: format!("{} {}", morphology::indefinite_article(e.gender, Number::Singular), e.word),
+                gender: e.gender,
+                number: Number::Singular,
+                ty: ty.clone().map(Ty::Enum),
+                span: e.span,
+                scope: 0,
+                mutable: false,
+                mode: None,
+                owner: None,
+            });
+            for (vi, v) in e.variants.iter().enumerate() {
+                let vd = self.def(Def {
+                    kind: DefKind::Variant,
+                    name: v.word.clone(),
+                    display: format!("{} {}", morphology::indefinite_article(v.gender, Number::Singular), v.word),
+                    gender: v.gender,
+                    number: Number::Singular,
+                    ty: ty.clone().map(Ty::Enum),
+                    span: v.span,
+                    scope: 0,
+                    mutable: false,
+                    mode: None,
+                    owner: Some(d),
+                });
+                self.variant_defs.insert((i, vi), vd);
+            }
+        }
+        for (si, sig) in prog.sigs.iter().enumerate() {
+            if sig.is_main {
+                self.sig_defs.push(usize::MAX);
+                continue;
+            }
+            let ret = self.sig_types.get(si).map(|t| t.ret.clone());
+            let name = match &sig.kind {
+                ast::SigKind::Adjective { adjective, .. } => adjective.clone(),
+                _ => sig.infinitive.clone(),
+            };
+            let d = self.def(Def {
+                kind: DefKind::Function,
+                name,
+                display: sig.usage(),
+                gender: Gender::Masculine,
+                number: Number::Singular,
+                ty: ret,
+                span: sig.name_span,
+                scope: 0,
+                mutable: false,
+                mode: None,
+                owner: None,
+            });
+            self.sig_defs.push(d);
+        }
+    }
+
     /// Monta o tipo do registro `i` depois dos registros de que ele depende. Um
     /// registro que contém a si mesmo teria tamanho infinito: o erro é relatado e o
     /// campo fica com tipo de erro.
@@ -140,10 +274,20 @@ impl Env<'_> {
             return r.clone();
         }
         if stack.contains(&i) {
-            self.diags.push(
-                Diagnostic::new(L0302, format!("\"{}\" contém a si mesmo e teria tamanho infinito.", def.word), def.span)
-                    .hint("Para guardar outros do mesmo tipo, use uma lista: \"os filhos, uma lista de nós\"."),
-            );
+            if self.cycles.insert(i) {
+                self.diags.push(
+                    Diagnostic::new(
+                        L0302,
+                        format!(
+                            "\"{}\" contém a si {} e teria tamanho infinito.",
+                            def.word,
+                            if def.gender == Gender::Feminine { "mesma" } else { "mesmo" }
+                        ),
+                        def.span,
+                    )
+                    .hint("Guarde o que identifica o outro (o nome, a posição numa lista do programa), e não ele inteiro."),
+                );
+            }
             return Arc::new(RecordTy {
                 id: i,
                 name: def.word.clone(),
@@ -183,10 +327,18 @@ impl Env<'_> {
         }
         let key = self.prog.records.len() + i;
         let cyclic = stack.contains(&key);
-        if cyclic {
+        if cyclic && self.cycles.insert(key) {
             self.diags.push(
-                Diagnostic::new(L0302, format!("\"{}\" contém a si mesma e teria tamanho infinito.", def.word), def.span)
-                    .hint("Para guardar outros do mesmo tipo, use uma lista."),
+                Diagnostic::new(
+                    L0302,
+                    format!(
+                        "\"{}\" contém a si {} e teria tamanho infinito.",
+                        def.word,
+                        if def.gender == Gender::Feminine { "mesma" } else { "mesmo" }
+                    ),
+                    def.span,
+                )
+                .hint("Guarde o que identifica o outro (o nome, a posição numa lista do programa), e não ele inteiro."),
             );
         }
         stack.push(key);
@@ -327,10 +479,17 @@ struct FnCx<'e, 'a> {
     tainted: bool,
     /// Avisos da função, que só saem se ela não teve erro.
     warnings: Vec<Diagnostic>,
+    /// Os escopos abertos, pelo índice em `Tables::scopes` (o primeiro é o da função).
+    scope_ids: Vec<usize>,
+    /// O `Def` de cada local.
+    local_defs: Vec<usize>,
+    /// (trecho, tipo) das expressões, resolvidos no fim da função.
+    expr_types: Vec<(Span, Ty)>,
 }
 
 /// O que se sabe de um nome resolvido.
 struct NameInfo {
+    def: usize,
     var: Var,
     ty: Ty,
     mutable: bool,
@@ -353,7 +512,61 @@ impl<'e, 'a> FnCx<'e, 'a> {
             handled: false,
             tainted: false,
             warnings: Vec::new(),
+            scope_ids: vec![0],
+            local_defs: Vec::new(),
+            expr_types: Vec::new(),
         }
+    }
+
+    fn open_scope(&mut self, span: Span) {
+        let parent = self.scope_ids.last().copied();
+        self.env.tables.scopes.push(Scope { parent, span });
+        self.scope_ids.push(self.env.tables.scopes.len() - 1);
+        self.scopes.push(Vec::new());
+    }
+
+    fn close_scope(&mut self) {
+        self.scope_ids.pop();
+        self.scopes.pop();
+    }
+
+    /// Acrescenta um local e o `Def` dele.
+    fn add_local(&mut self, info: LocalInfo) {
+        let kind = if info.hidden { DefKind::Result } else { DefKind::Local };
+        let d = self.env.def(Def {
+            kind,
+            name: info.local.name.clone(),
+            display: info.local.display.clone(),
+            gender: info.gender,
+            number: info.number,
+            ty: Some(info.local.ty.clone()),
+            span: info.decl_span,
+            scope: *self.scope_ids.last().unwrap(),
+            mutable: info.local.mutable,
+            mode: None,
+            owner: None,
+        });
+        self.local_defs.push(d);
+        self.locals.push(info);
+    }
+
+    /// Acrescenta uma constante do programa e o `Def` dela.
+    fn add_global(&mut self, g: GlobalInfo) {
+        let d = self.env.def(Def {
+            kind: DefKind::Constant,
+            name: g.name.clone(),
+            display: format!("{} {}", morphology::definite_article(g.gender, g.number), g.name),
+            gender: g.gender,
+            number: g.number,
+            ty: Some(g.ty.clone()),
+            span: g.span,
+            scope: 0,
+            mutable: false,
+            mode: None,
+            owner: None,
+        });
+        self.env.global_defs.push(d);
+        self.env.globals.push(g);
     }
 
     // Recebe o erro como ele sai do `Result` das etapas.
@@ -382,6 +595,13 @@ impl<'e, 'a> FnCx<'e, 'a> {
         }
         let subst = std::mem::take(&mut self.subst);
         resolve_block(&mut body, &subst);
+        // As tabelas levam os tipos já resolvidos.
+        for (span, ty) in std::mem::take(&mut self.expr_types) {
+            self.env.tables.expr_types.push((span, resolve(&ty, &subst)));
+        }
+        for (i, l) in self.locals.iter().enumerate() {
+            self.env.tables.defs[self.local_defs[i]].ty = Some(l.local.ty.clone());
+        }
         if !self.tainted {
             for l in &self.locals {
                 if l.local.mutable && !l.mutated && !l.hidden {
@@ -436,6 +656,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         if let Some(id) = self.scopes.iter().rev().find_map(|s| s.iter().rev().find(|(w, _)| w == word).map(|(_, id)| *id)) {
             let l = &self.locals[id];
             return Some(NameInfo {
+                def: self.local_defs[id],
                 var: Var::Local(id),
                 ty: l.local.ty.clone(),
                 mutable: l.local.mutable,
@@ -445,16 +666,24 @@ impl<'e, 'a> FnCx<'e, 'a> {
             });
         }
         let (id, g) = self.env.globals.iter().enumerate().find(|(_, g)| g.name == word)?;
-        Some(NameInfo { var: Var::Global(id), ty: g.ty.clone(), mutable: false, gender: g.gender, number: g.number, decl_span: g.span })
+        Some(NameInfo {
+            def: self.env.global_defs[id],
+            var: Var::Global(id),
+            ty: g.ty.clone(),
+            mutable: false,
+            gender: g.gender,
+            number: g.number,
+            decl_span: g.span,
+        })
     }
 
     fn block(&mut self, b: &ast::Block) -> hir::Block {
-        self.scopes.push(Vec::new());
+        self.open_scope(b.span);
         let mut out = Vec::new();
         for s in &b.stmts {
             self.stmt_or_report(s, &mut out);
         }
-        self.scopes.pop();
+        self.close_scope();
         hir::Block(out)
     }
 
@@ -491,13 +720,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
     fn declare_quiet(&mut self, name: &ast::NameRef, ty: Ty, mutable: bool) -> Option<hir::LocalId> {
         if self.top {
             if !self.env.globals.iter().any(|g| g.name == name.word) {
-                self.env.globals.push(GlobalInfo {
-                    name: name.word.clone(),
-                    ty,
-                    gender: name.gender(),
-                    number: name.number(),
-                    span: name.span,
-                });
+                self.add_global(GlobalInfo { name: name.word.clone(), ty, gender: name.gender(), number: name.number(), span: name.span });
             }
             return None;
         }
@@ -505,7 +728,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             return None;
         }
         let id = self.locals.len();
-        self.locals.push(LocalInfo {
+        self.add_local(LocalInfo {
             local: hir::Local {
                 name: name.word.clone(),
                 display: name.display(),
@@ -535,7 +758,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             self.declare_quiet(name, Ty::Error, *mutable);
         }
         let id = self.locals.len();
-        self.locals.push(LocalInfo {
+        self.add_local(LocalInfo {
             local: hir::Local {
                 name: "resultado".into(),
                 display: "o resultado".into(),
@@ -562,16 +785,21 @@ impl<'e, 'a> FnCx<'e, 'a> {
             return Err(top_level_error(stmt_span(s)));
         }
         match s {
-            ast::Stmt::Error { span, names, blocks } => {
+            ast::Stmt::Error { span, names, block_names, blocks } => {
                 // O parser já relatou; os nomes que a oração declararia passam a existir, e
                 // os blocos dela são conferidos para os erros de dentro aparecerem.
                 self.tainted = true;
                 for n in names {
                     self.declare_quiet(n, Ty::Error, true);
                 }
+                self.open_scope(*span);
+                for n in block_names {
+                    self.declare_quiet(n, Ty::Error, true);
+                }
                 for b in blocks {
                     let _ = self.block(b);
                 }
+                self.close_scope();
                 out.push_at(*span, hir::StmtKind::Error);
             }
             ast::Stmt::Period(p) => {
@@ -603,7 +831,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     };
                     let body = match (exists, &hc) {
                         (Some((word, word_span)), Ok(hir::Cond::IsSome(src))) => {
-                            self.scopes.push(Vec::new());
+                            self.open_scope(span);
                             let inner = match self.resolve_ty(&src.ty) {
                                 Ty::Maybe(inner) => *inner,
                                 _ => Ty::Error,
@@ -618,22 +846,24 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             };
                             let id = self.declare(&name, inner.clone(), false)?;
                             self.locals[id].local.borrowed = true;
+                            // O nome do "houver" já é o uso do valor presente dentro do bloco.
+                            self.env.use_def(self.local_defs[id], *word_span, Use::Read);
                             self.locals[id].local.display = name.display();
                             let unwrap = hir::Expr { kind: hir::ExprKind::Unwrap(Box::new(src.clone())), ty: inner, span: *word_span };
                             let mut inner_block = self.block(b);
                             inner_block
                                 .0
                                 .insert(0, hir::Stmt { kind: hir::StmtKind::Let { var: Var::Local(id), value: unwrap }, span: *word_span });
-                            self.scopes.pop();
+                            self.close_scope();
                             inner_block
                         }
                         (Some((word, word_span)), Err(_)) => {
                             // A condição quebrada não diz o tipo: o nome existe com tipo de erro.
-                            self.scopes.push(Vec::new());
+                            self.open_scope(span);
                             let name = ast::NameRef { word: word.clone(), span: *word_span, word_span: *word_span, article: None };
                             self.declare_quiet(&name, Ty::Error, false);
                             let b = self.block(b);
-                            self.scopes.pop();
+                            self.close_scope();
                             b
                         }
                         _ => self.block(b),
@@ -683,7 +913,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     )));
                 }
                 let to = self.expr_or_error(to, Some(&from.ty));
-                self.scopes.push(Vec::new());
+                self.open_scope(span);
                 let id = match self.declare(var, from.ty.clone(), false) {
                     Ok(id) => Some(id),
                     Err(d) => {
@@ -692,7 +922,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     }
                 };
                 let body = self.loop_body(body);
-                self.scopes.pop();
+                self.close_scope();
                 if let Some(id) = id {
                     out.push_at(span, hir::StmtKind::ForRange { var: id, from, to, body });
                 }
@@ -736,7 +966,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 {
                     a.gender = p.root.gender();
                 }
-                self.scopes.push(Vec::new());
+                self.open_scope(span);
                 let id = match self.declare(&item, elem, false) {
                     Ok(id) => {
                         self.locals[id].local.borrowed = true;
@@ -748,7 +978,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     }
                 };
                 let body = self.loop_body(body);
-                self.scopes.pop();
+                self.close_scope();
                 if let Some(id) = id {
                     out.push_at(span, hir::StmtKind::ForEach { var: id, source: src, body });
                 }
@@ -780,6 +1010,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let ast::Pattern::Variant { word, span, .. } = pat else { unreachable!() };
                         match self.variant_of(&e, word, *span) {
                             Ok(tag) => {
+                                let vd = self.env.variant_defs.get(&(e.id, tag)).copied().unwrap_or(usize::MAX);
+                                self.env.use_def(vd, *span, Use::Read);
                                 if let Some(prev) = seen[tag] {
                                     let art = if e.variants[tag].feminine { "uma" } else { "um" };
                                     self.report(Box::new(
@@ -799,7 +1031,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     if !ok {
                         continue;
                     }
-                    self.scopes.push(Vec::new());
+                    self.open_scope(span);
                     let mut binds = Vec::new();
                     // Com um caso só, os campos dele viram nomes dentro do braço.
                     if let [tag] = tags.as_slice() {
@@ -809,6 +1041,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             match self.declare(&f.name, ty, false) {
                                 Ok(id) => {
                                     self.locals[id].local.borrowed = true;
+                                    // O caso nomeado já expõe o campo: não conta como nome sem uso.
+                                    self.env.use_def(self.local_defs[id], arm.span, Use::Read);
                                     binds.push((id, i));
                                 }
                                 Err(d) => self.report(d),
@@ -816,7 +1050,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         }
                     }
                     let body = self.block(&arm.body);
-                    self.scopes.pop();
+                    self.close_scope();
                     harms.push(hir::Arm { tags, binds, body });
                 }
                 let missing: Vec<String> = e
@@ -862,7 +1096,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         }
         self.check_name(name)?;
         let id = self.locals.len();
-        self.locals.push(LocalInfo {
+        self.add_local(LocalInfo {
             local: hir::Local {
                 name: name.word.clone(),
                 display: name.display(),
@@ -899,7 +1133,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
     fn set_result(&mut self, value: hir::Expr, out: &mut Vec<hir::Stmt>) {
         let span = value.span;
         let id = self.locals.len();
-        self.locals.push(LocalInfo {
+        self.add_local(LocalInfo {
             local: hir::Local {
                 name: "resultado".into(),
                 display: "o resultado".into(),
@@ -1014,7 +1248,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if self.top {
                     self.check_name(name)?;
                     let id = self.env.globals.len();
-                    self.env.globals.push(GlobalInfo {
+                    self.add_global(GlobalInfo {
                         name: name.word.clone(),
                         ty,
                         gender: name.gender(),
@@ -1210,6 +1444,11 @@ impl<'e, 'a> FnCx<'e, 'a> {
             .label(sig.name_span, "definido com \"salvo uma falha\"")
             .hint(format!("Passe a falha adiante (\"{usage}, ou desisto.\") ou dê um valor de reserva (\"..., ou 0\").")));
         }
+        let d = self.env.sig_defs[call.sig];
+        self.env.use_def(d, call.verb_span, Use::Call);
+        for (a, p) in call.args.iter().zip(&sig.params) {
+            self.env.tables.args.push((a.span, p.mode));
+        }
         let types = self.env.sig_types[call.sig].params.clone();
         let ret = self.env.sig_types[call.sig].ret.clone();
         let mut args = Vec::new();
@@ -1272,6 +1511,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             ));
                         };
                         let tag = self.variant_of(&e, word, *word_span)?;
+                        let vd = self.env.variant_defs.get(&(e.id, tag)).copied().unwrap_or(usize::MAX);
+                        self.env.use_def(vd, *word_span, Use::Read);
                         hir::Cond::IsVariant(v, tag)
                     }
                     ast::CondKind::Exists { word, word_span } => {
@@ -1318,6 +1559,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         let Some(info) = self.lookup(word) else {
             return err(Diagnostic::new(L0334, format!("\"{word}\" não foi declarado."), span));
         };
+        self.env.use_def(info.def, span, Use::Read);
         let ty = self.resolve_ty(&info.ty);
         if !matches!(ty, Ty::Maybe(_) | Ty::Error) {
             let name = format!("{} {word}", morphology::definite_article(info.gender, info.number));
@@ -1330,7 +1572,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         Ok(hir::Expr { kind: hir::ExprKind::Read(hir::Place::var(info.var, ty.clone(), span)), ty, span })
     }
 
-    fn resolve(&self, name: &ast::NameRef) -> Result<NameInfo> {
+    fn resolve(&mut self, name: &ast::NameRef) -> Result<NameInfo> {
         let Some(info) = self.lookup(&name.word) else {
             let mut d = Diagnostic::new(L0334, format!("\"{}\" não foi declarado.", name.display()), name.span);
             let near = self
@@ -1376,6 +1618,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             .fix(format!("Escrever \"{fixed}\""), name.span, fixed.clone())
             .label(info.decl_span, "declarado aqui"));
         }
+        self.env.use_def(info.def, name.span, Use::Read);
         Ok(info)
     }
 
@@ -1417,8 +1660,10 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             n.span,
                         ));
                     }
-                    owner = format!("{} de {owner}", n.display());
+                    owner = format!("{} {}", n.display(), of_phrase(&owner));
                     let fty = r.fields[i].1.clone();
+                    let fd = self.env.field_defs.get(&(r.id, i)).copied().unwrap_or(usize::MAX);
+                    self.env.use_def(fd, n.word_span, Use::Read);
                     proj.push(hir::PlaceProj::Field(i));
                     ty = fty;
                 }
@@ -1459,8 +1704,14 @@ impl<'e, 'a> FnCx<'e, 'a> {
     }
 
     fn place_mut_for(&mut self, p: &ast::Place, what: impl FnOnce() -> String) -> Result<hir::Place> {
+        let first_ref = self.env.tables.refs.len();
         let (hp, info) = self.place_read(p)?;
-        if !info.mutable {
+        if let Some(r) = self.env.tables.refs.get_mut(first_ref)
+            && r.def == info.def
+        {
+            r.use_ = Use::Write;
+        }
+        if !info.mutable && !self.resolve_ty(&info.ty).is_error() {
             let name = place_name(p);
             let be = morphology::third_person("ser", info.number).unwrap_or_default();
             let fixed = morphology::inflect_adjective("fixo", Gender::Masculine, info.gender, info.number);
@@ -1704,6 +1955,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
             }
             ExprKind::Construct { word, word_span, fields, .. } if !self.env.records.contains_key(word) => {
                 let (e, tag) = self.find_variant(word);
+                let vd = self.env.variant_defs.get(&(e.id, tag)).copied().unwrap_or(usize::MAX);
+                self.env.use_def(vd, *word_span, Use::Read);
                 let v = &e.variants[tag];
                 let def = &self.env.prog.enums[e.id].variants[tag];
                 let mut values: Vec<Option<hir::Expr>> = vec![None; v.fields.len()];
@@ -1756,6 +2009,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     if values[i].is_some() {
                         return err(Diagnostic::new(L0351, format!("O campo \"{fname}\" aparece duas vezes."), *fspan));
                     }
+                    let fd = self.env.field_defs.get(&(r.id, i)).copied().unwrap_or(usize::MAX);
+                    self.env.use_def(fd, *fspan, Use::Write);
                     let fty = r.fields[i].1.clone();
                     let plural_field = self.env.prog.records[r.id].fields[i].name.number() == Number::Plural;
                     values[i] = Some(match (&fty, plural_field) {
@@ -1798,6 +2053,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             _ => return err(Diagnostic::new(L0353, "Expressão ainda não suportada.", e.span)),
         };
         let mut out = hir::Expr { kind, ty, span: e.span };
+        self.expr_types.push((out.span, out.ty.clone()));
         // Um valor onde se espera "talvez": é o valor presente.
         if let Some(Ty::Maybe(inner)) = expected.map(|t| self.resolve_ty(t))
             && !matches!(self.resolve_ty(&out.ty), Ty::Maybe(_))
@@ -1885,6 +2141,53 @@ impl<'e, 'a> FnCx<'e, 'a> {
             .hint("Converta um dos lados com \"como\": \"o total como real\"."));
         }
         Ok(l.ty.clone())
+    }
+}
+
+/// Avisos do que se declara e nunca se usa. Só valem num programa sem erro nenhum (com
+/// erro, o uso pode estar justamente na oração que não se leu): quem chama confere.
+pub fn unused_warnings(tables: &Tables) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    let mut used = vec![false; tables.defs.len()];
+    for r in &tables.refs {
+        used[r.def] = true;
+    }
+    for (i, d) in tables.defs.iter().enumerate() {
+        if used[i] {
+            continue;
+        }
+        let be = morphology::third_person("ser", d.number).unwrap_or_default();
+        let agree = |w: &str| morphology::inflect_adjective(w, Gender::Masculine, d.gender, d.number);
+        let warning = match d.kind {
+            DefKind::Function => Diagnostic::new(L0502, format!("\"{}\" é definido e nunca é chamado.", d.name), d.span)
+                .hint("Chame a função em algum lugar, ou apague a definição."),
+            DefKind::Local | DefKind::Constant => Diagnostic::new(
+                L0503,
+                format!("{} {be} {} e nunca {be} {}.", capitalize(&d.display), agree("declarado"), agree("usado")),
+                d.span,
+            )
+            .hint("Use o valor, ou apague a declaração."),
+            DefKind::Param => {
+                let func = d.owner.map(|o| tables.defs[o].name.clone()).unwrap_or_default();
+                Diagnostic::new(
+                    L0503,
+                    format!("{} {be} parâmetro de \"{func}\" e nunca {be} {}.", capitalize(&d.display), agree("usado")),
+                    d.span,
+                )
+                .hint("Se a regência pede a palavra mas a função não usa o valor, escreva sem tipo: vira complemento fixo.")
+            }
+            _ => continue,
+        };
+        out.push(warning);
+    }
+    out
+}
+
+/// "de" com o nome que segue, contraindo com o artigo: "da carteira", "de x".
+fn of_phrase(name: &str) -> String {
+    match name.split_once(' ') {
+        Some((art, rest)) if morphology::article(art).is_some() => format!("{} {rest}", morphology::join_prep("de", art)),
+        _ => format!("de {name}"),
     }
 }
 

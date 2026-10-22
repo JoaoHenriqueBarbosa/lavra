@@ -5,6 +5,7 @@ pub mod ast;
 pub mod codegen;
 pub mod codes;
 pub mod diagnostics;
+pub mod explain;
 pub mod hir;
 pub mod interp;
 pub mod lexer;
@@ -14,6 +15,7 @@ pub mod ownership;
 pub mod parser;
 pub mod sema;
 pub mod span;
+pub mod tables;
 pub mod textfmt;
 pub mod types;
 
@@ -26,6 +28,8 @@ pub struct Analysis {
     pub tokens: Vec<lexer::Token>,
     pub ast: ast::Program,
     pub hir: hir::Program,
+    /// Cada nome declarado e usado, os escopos e o tipo de cada expressão.
+    pub tables: tables::Tables,
 }
 
 impl Analysis {
@@ -39,9 +43,12 @@ pub fn analyze(text: &str) -> Analysis {
     let mut diags = Diagnostics::default();
     let tokens = lexer::tokenize(text, &mut diags);
     let ast = parser::parse(tokens.clone(), &mut diags);
-    let hir = sema::check(&ast, &mut diags);
+    let (hir, tables) = sema::check(&ast, &mut diags);
     ownership::check(&hir, text, &mut diags);
-    Analysis { diagnostics: diags.sorted(), tokens, ast, hir }
+    if !diags.has_errors() {
+        diags.list.extend(sema::unused_warnings(&tables));
+    }
+    Analysis { diagnostics: diags.sorted(), tokens, ast, hir, tables }
 }
 
 /// Compila o texto até a HIR, pronta para os back-ends, e devolve os avisos junto. Com

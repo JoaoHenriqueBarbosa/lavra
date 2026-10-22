@@ -71,7 +71,7 @@ pub fn abs_overflow(x: i128, bits: u8, signed: bool) -> String {
 }
 
 pub fn shift_range(y: i128, bits: u8, signed: bool) -> String {
-    format!("Deslocamento de {y} bits num {} de {bits} bits.", int_noun(bits, signed))
+    format!("Deslocamento de {y} bits num {}, que tem {bits} bits.", int_noun(bits, signed))
 }
 
 pub fn convert_error(shown: &str, bits: u8, signed: bool) -> String {

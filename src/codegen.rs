@@ -1532,8 +1532,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                 let ok = self.b.create_block();
                 self.b.ins().brif(bad, fail, &[], ok, &[]);
                 self.b.switch_to_block(fail);
-                let x = self.b.ins().sextend(types::I64, v);
-                let x = if it.bits == 64 { v } else { x };
+                let x = if it.bits == 64 { v } else { self.b.ins().sextend(types::I64, v) };
                 let bits = self.b.ins().iconst(types::I32, it.bits as i64);
                 let signed = self.b.ins().iconst(types::I32, 1);
                 let (lo, hi) = self.span_vals(span);

@@ -40,6 +40,8 @@ cargo build                                  # compila o lavrac (o build.rs comp
 ./target/debug/lavrac build samples/lavra-dos-dias.lav -o /tmp/dias && /tmp/dias
 cargo test                                   # unitários, golden e paridade interpretador/nativo
 LAVRA_BLESS=1 cargo test --test golden       # regrava as expectativas (revise o diff)
+./target/debug/lavrac check --json arquivo.lav   # diagnósticos em JSON, com correções
+./target/debug/lavrac explain L0334             # explicação de um código de erro
 cargo clippy --all-targets -- -D warnings && cargo fmt
 tools/memcheck.sh                            # valgrind sobre toda a suíte (contêiner se o host não tem)
 ```
@@ -72,6 +74,11 @@ reinstale.
 - Toda mudança na gramática precisa de programa certo e programa errado de teste, com
   a mensagem de erro esperada (`tests/programs/ok` e `tests/programs/err`).
 - Mensagens de erro concordam em gênero e número com o nome de que falam.
+- Todo diagnóstico tem código (`Diagnostic::new(L0334, ...)`, registro em `src/codes.rs`).
+  Erro novo ganha código novo (nunca se reaproveita um) e o texto em
+  `src/explain/LXXXX.md`, com exemplo errado e certo que `tests/explain.rs` confere.
+- A análise não para no primeiro erro: erro novo não pode gerar cascata (o tipo de erro
+  passa calado; nome de declaração quebrada continua existindo).
 - Paridade entre interpretador e nativo é o critério de correção do backend: mesma
   saída byte a byte.
 - Mudança no realce de sintaxe: renderize com `editors/vscode/scripts/preview.mjs` e

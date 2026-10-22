@@ -206,16 +206,18 @@ codes! {
 
     // Posse e empréstimo.
     L0400 = Ownership, "Valor usado depois de entregue";
-    L0401 = Borrow, "Valor mudado ou entregue enquanto está emprestado";
+    L0401 = Borrow, "Valor mudado enquanto está emprestado";
     L0402 = Ownership, "Constante entregue";
     L0403 = Ownership, "Valor tirado de dentro de registro ou lista";
     L0404 = Ownership, "Vista emprestada entregue";
-    L0405 = Borrow, "Coleção mudada dentro do próprio \"Para cada\"";
+    L0405 = Borrow, "Valor entregue enquanto está emprestado";
     L0406 = Borrow, "O mesmo valor duas vezes na mesma chamada";
 
     // Avisos.
     L0500 = Warning, "\"começa\" que nunca muda";
     L0501 = Warning, "\"Senão\" que nunca acontece";
+    L0502 = Warning, "Função que nunca é chamada";
+    L0503 = Warning, "Nome que nunca é usado";
 
     // Execução.
     L0900 = Runtime, "Estouro de inteiro";

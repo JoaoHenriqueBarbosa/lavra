@@ -48,6 +48,25 @@ impl Category {
     pub fn is_error(self) -> bool {
         self != Category::Warning
     }
+
+    /// Identificador estável, para o JSON e para os editores.
+    pub fn id(self) -> &'static str {
+        match self {
+            Category::Lexical => "lexical",
+            Category::Morphology => "morphology",
+            Category::Agreement => "agreement",
+            Category::Regency => "regency",
+            Category::Syntax => "syntax",
+            Category::Scope => "scope",
+            Category::Type => "type",
+            Category::Mutability => "mutability",
+            Category::Ownership => "ownership",
+            Category::Borrow => "borrow",
+            Category::Runtime => "runtime",
+            Category::Failure => "failure",
+            Category::Warning => "warning",
+        }
+    }
 }
 
 /// Um rótulo secundário: aponta outro lugar do código com uma explicação curta.

@@ -233,3 +233,11 @@ A Lavra ainda não tem versão estável; mudança incompatível entra quando o c
   locuções, menos as formas recusadas com dica ("guardo", "seja", "há"), que continuam
   livres para o usuário. Conferido contra os 15 267 verbos do Verbiste: passam a ser
   proibidos só "emprestadar" (dá "emprestado") e "vaziar" (dá "vazio").
+- **2026-10-22, avisos de não uso.** Função definida e nunca chamada (L0502) e nome
+  declarado e nunca usado (L0503) viram avisos, só em programa sem erro. Os samples não
+  têm nenhum; o "Se houver" e os campos que um "Conforme" expõe contam como uso.
+- **2026-10-22, consertos achados pelas explicações dos erros.** Lista de enumeração
+  ("uma lista de figuras") passa a ser tipo; registro e enumeração com o mesmo nome dão
+  erro; a chamada sem preposição escolhe a definição que não pede preposição; "o resultado
+  do dobrar" acusa o "de" contraído antes do verbo (L0134); predicado com "ir" dá o erro
+  próprio (L0150); real grande demais para o tipo é erro (L0007), e não infinito.

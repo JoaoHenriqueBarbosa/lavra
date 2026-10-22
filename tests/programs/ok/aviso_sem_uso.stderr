@@ -1,0 +1,12 @@
+Aviso [L0502]: "dobrar" é definido e nunca é chamado.
+ --> tests/programs/ok/aviso_sem_uso.lav:3:6
+  |
+3 | Para dobrar o valor, sendo o valor um inteiro, devolvendo um inteiro:
+  |      ^^^^^^
+  = dica: Chame a função em algum lugar, ou apague a definição.
+Aviso [L0503]: A sobra é declarada e nunca é usada.
+ --> tests/programs/ok/aviso_sem_uso.lav:7:5
+  |
+7 |     A sobra é 3.
+  |     ^^^^^^^
+  = dica: Use o valor, ou apague a declaração.

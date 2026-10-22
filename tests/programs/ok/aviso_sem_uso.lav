@@ -1,0 +1,8 @@
+Nota: o que se declara e nunca se usa vira aviso.
+
+Para dobrar o valor, sendo o valor um inteiro, devolvendo um inteiro:
+    Devolvo o valor vezes 2.
+
+Para começar:
+    A sobra é 3.
+    Escrevo "pronto".

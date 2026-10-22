@@ -1,3 +1,9 @@
+Aviso [L0503]: O pequeno é declarado e nunca é usado.
+ --> tests/programs/err/conversao_faixa.lav:3:5
+  |
+3 |     O pequeno é o valor como byte.
+  |     ^^^^^^^^^
+  = dica: Use o valor, ou apague a declaração.
 Erro de execução [L0908]: Conversão impossível: 300 não cabe num byte.
  --> tests/programs/err/conversao_faixa.lav:3:17
   |

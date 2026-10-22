@@ -76,6 +76,16 @@ do arquivo (`tokenize_at`). Toda oração da HIR leva o trecho de onde veio
 (`hir::Stmt { kind, span }`), e a HIR leva também o trecho das constantes, os registros e
 as enumerações, e o índice da assinatura de cada função.
 
+## Tabelas de símbolos
+
+`tables.rs`: a sema registra, nas próprias passadas, cada nome declarado (`Def`: função,
+parâmetro, local, constante, registro, campo, enumeração, caso, "o resultado"), cada uso
+(`Ref`: leitura, escrita, chamada), os escopos (um por bloco), o tipo de cada expressão e o
+modo de cada argumento. O servidor de linguagem consulta essas tabelas (`def_at`,
+`refs_of`, `type_at`, `visible_at`) e nunca resolve nomes de novo. Delas saem os avisos de
+não uso (função nunca chamada, L0502; nome nunca usado, L0503), calculados depois da posse
+e só num programa sem erro nenhum.
+
 ## Análise tolerante a erro
 
 `lavra::analyze(texto)` não para no primeiro erro; devolve todos os diagnósticos (na ordem

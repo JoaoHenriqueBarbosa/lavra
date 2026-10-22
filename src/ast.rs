@@ -262,10 +262,12 @@ pub enum Stmt {
     },
     /// Oração que não se leu. O erro já foi relatado; `names` são os nomes que ela
     /// declararia (para não virarem "não declarado" adiante) e `blocks` os blocos recuados
-    /// que pertenciam a ela, lidos para os erros de dentro aparecerem.
+    /// que pertenciam a ela, lidos para os erros de dentro aparecerem. `block_names` valem
+    /// só dentro dos blocos (o item de um "Para cada" quebrado).
     Error {
         span: Span,
         names: Vec<NameRef>,
+        block_names: Vec<NameRef>,
         blocks: Vec<Block>,
     },
 }

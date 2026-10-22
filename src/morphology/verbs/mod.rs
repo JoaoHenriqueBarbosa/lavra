@@ -10,7 +10,8 @@ use super::Number;
 pub use first_person::first_person;
 
 pub fn is_infinitive(w: &str) -> bool {
-    w.chars().count() > 2 && (w.ends_with("ar") || w.ends_with("er") || w.ends_with("ir") || w.ends_with("or") || w.ends_with("ôr"))
+    w == "ir"
+        || w.chars().count() > 2 && (w.ends_with("ar") || w.ends_with("er") || w.ends_with("ir") || w.ends_with("or") || w.ends_with("ôr"))
 }
 
 /// Futuro do subjuntivo ("ver" → "vir"; "vierem" no plural).

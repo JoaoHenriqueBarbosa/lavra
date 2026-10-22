@@ -1,0 +1,8 @@
+Nota: o módulo de um inteiro de 64 bits (o nativo estendia o sinal de quem já tinha 64 bits).
+
+Para começar:
+    O saldo é -5.
+    Escrevo o módulo do saldo.
+    Escrevo o módulo de 7.
+    A dívida, um inteiro de 16 bits, é -300.
+    Escrevo o módulo da dívida.
