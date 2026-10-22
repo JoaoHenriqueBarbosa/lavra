@@ -318,3 +318,17 @@ Decisões para revisar:
 - O plano dizia que o valor entregue aparece apagado. O VS Code não dá opacidade a token semântico, e apagado é como ele já mostra o que não se usa. O nome sai em itálico, com a cor do tema.
 - O itálico vem de uma regra padrão que a extensão contribui às customizações de token semântico, e que só liga o itálico. O caminho comum, mapear para o escopo markup.italic, trocava a cor do nome: os temas padrão pintam esse escopo (roxo no Dark+, verde no Abyss).
 - O hover não repete o estado de posse nos usos depois da entrega, porque ali o erro já diz a mesma coisa.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, duas pendências anotadas pelo caminho, registro do Claude às 20h48, cerca de 5 horas e 35 minutos depois do começo:
+
+As pendências de mensagem que os agentes tinham anotado estão resolvidas:
+- "sendo p e q um real" dava um erro genérico de sintaxe no "e". Agora dá o L0165: vários parâmetros pedem o tipo no plural. A dica oferece dar a cada parâmetro o seu, e vale também para "sendo ambos um real".
+- "Uns dados são um registro de:" e "Umas formas são uma destas:" não eram reconhecidos como definição. A linha virava oração, com uma cascata de erros nos campos. Agora dá só o L0201: o tipo se define no singular.
+
+A definição de um verbo de biblioteca, que eu tinha deixado para quando o site publicasse as bibliotecas, agora leva ao texto da biblioteca. No VS Code, ele abre só para leitura, no cabeçalho do verbo. O servidor só manda esse endereço ao editor que avisa que sabe abri-lo; nos outros, o hover continua dizendo de que biblioteca o verbo vem. O site ganhou a página das bibliotecas.
+
+Um defeito antigo do site apareceu na captura do tema escuro: cada trecho realçado pintava o próprio fundo com a cor do tema do VS Code, e isso deixava retângulos sobre o fundo dos blocos de código. Corrigido em todas as páginas.
+
+Decisão para revisar: o endereço da biblioteca no editor é "lavra-library:/textos.lav", e a aba mostra "textos.lav".
