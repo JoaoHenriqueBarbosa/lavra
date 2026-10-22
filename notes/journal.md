@@ -141,3 +141,22 @@ Conferido de duas formas: o servidor em processo, por uma conexão em memória, 
 Ainda não estão no hover o estado de posse naquele ponto ("entregue a arquivar na linha 6") e o modificador de valor já entregue: a análise de posse ainda não guarda o estado por uso. Fica para quando o depurador mexer no interpretador e nas tabelas.
 
 Próximo: a fase 2, o formatador (lavrac fmt), que não mexe em quebra de linha nenhuma, por causa dos poemas.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim das fases 2 e 3 do roadmap (formatador e ajuda à escrita), registro do Claude às 17h48, cerca de 2 horas e 25 minutos depois do começo:
+
+O formatador (lavrac fmt) acerta o recuo, os espaços entre os tokens e o fim das linhas, e nunca muda quebra de linha, linha em branco ou o interior de um token, porque os poemas também são programas. O corpus inteiro já estava na forma; estragado de três jeitos (tabs, espaços sobrando, espaço no fim), volta byte a byte ao original, com os mesmos tokens e comentários, e formatar de novo não muda nada. O CI confere os samples e os programas certos com fmt --check, e o editor formata pelo servidor.
+
+A ajuda à escrita sai do próprio compilador:
+- O completar roda o parser com um marcador no lugar da palavra do cursor, e o parser diz o que aceitaria ali. O servidor só preenche: verbos da língua e do programa (o do programa entra com a regência para preencher), nomes do gênero e do número do artigo que você escreveu, campos, posições e tipos. Construção nova escrita com os auxiliares do parser já aparece no completar, sem mexer no servidor.
+- Ajuda de assinatura com o parâmetro ativo, inlay hints de tipo e de modo de posse, ações rápidas com as correções do compilador, dobra e seleção crescente.
+
+Conferido no VS Code de verdade, sob xvfb, pela API do editor e por três capturas. A captura do completar mostrou um espaço duplo depois do inlay hint de tipo, já corrigido. A integração do editor no CI falhava porque o cliente não era compilado antes do teste; passou a ser, e o CI ficou verde. Um commit da fase 2 entrou com um aviso do clippy porque encadeei as conferências com ";" em vez de "&&"; corrigi no commit seguinte e agora as conferências vão sempre encadeadas com "&&".
+
+Decisões para revisar:
+- O inlay hint de tipo usa a forma do aposto (", um inteiro,"), então o que o editor mostra é Lavra válida.
+- Depois de um artigo, o completar só oferece nomes daquele gênero e número.
+- A extensão foi a 0.3.0.
+
+Próximo: a fase 4, o rename com morfologia e o lavrac fix.
