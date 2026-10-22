@@ -9,4 +9,5 @@
 | [origin.md](origin.md) | Como a Lavra surgiu: o pedido original, a tese de design e as decisões que a definiram. |
 | [poems.md](poems.md) | Os programas-poema de `samples/`: sentidos duplos, recursos formais e padrões emergentes. |
 | [applications.md](applications.md) | As oito aplicações discutidas e as ideias pendentes. |
+| [roadmap.md](roadmap.md) | **O plano em curso**: tooling maduro (servidor de linguagem, formatador, depurador, extensão, tree-sitter, CI, site) e as fundações para a língua crescer sem retrabalho. |
 | [journal.md](journal.md) | Diário do user. |

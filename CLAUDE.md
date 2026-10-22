@@ -24,6 +24,7 @@ Leia antes de mexer em qualquer coisa: [`notes/README.md`](notes/README.md).
 - `notes/compiler.md`: o compilador, o nativo e os testes.
 - `notes/morphology.md`: tabelas conferidas contra o dicionário e decisões de borda.
 - `notes/tooling.md`: extensão do VS Code e o caminho para o servidor de linguagem.
+- `notes/roadmap.md`: o plano em curso (tooling maduro e fundações para crescer a língua).
 - `notes/origin.md`: o pedido, a tese de design, as decisões que definiram a língua.
 - `notes/applications.md`: as aplicações discutidas.
 - `notes/poems.md`: os programas-poema e o que eles exigem da gramática.
@@ -40,7 +41,7 @@ cargo build                                  # compila o lavrac (o build.rs comp
 cargo test                                   # unitários, golden e paridade interpretador/nativo
 LAVRA_BLESS=1 cargo test --test golden       # regrava as expectativas (revise o diff)
 cargo clippy --all-targets -- -D warnings && cargo fmt
-tools/memcheck.sh                            # valgrind em contêiner sobre toda a suíte
+tools/memcheck.sh                            # valgrind sobre toda a suíte (contêiner se o host não tem)
 ```
 
 Verificar as tabelas de morfologia contra o dicionário: `tools/morphology/README.md`.
