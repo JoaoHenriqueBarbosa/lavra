@@ -215,3 +215,32 @@ Decisões para revisar:
 - Avaliar aceita só nomes, com ou sem artigo, e não expressões inteiras.
 
 Próximo: a fase 6, as operações embutidas declaradas em sintaxe Lavra e a primeira biblioteca, "Uso a biblioteca de textos.".
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim da fase 6 do roadmap (operações embutidas e bibliotecas), registro do Claude às 19h26, cerca de 4 horas depois do começo:
+
+A Lavra tem bibliotecas. "Uso a biblioteca de textos." traz quatro verbos: "dividir o texto pelo separador", "juntar os textos com o separador", "o texto conter o trecho" ("Se a frase contiver ...") e "aparar o texto". A biblioteca é escrita em Lavra: cada operação é um cabeçalho comum que termina em ponto, sem corpo, e o próprio parser o lê. A regência, os tipos e a posse saem do cabeçalho. O interpretador e o nativo fazem a operação com a mesma saída, e o valgrind não acha vazamento.
+
+O que isso garante para o futuro: uma operação nova toca quatro lugares:
+- o cabeçalho na biblioteca;
+- a linha na tabela de operações;
+- a implementação no interpretador;
+- a função no runtime.
+
+Antes, uma operação embutida tocava nove. O servidor de linguagem atende a biblioteca sem nenhuma linha que saiba dela, e esse era o aceite da fase: completar com a regência, hover dizendo "Vem da biblioteca de textos.", assinatura e cores saem do vocabulário e das tabelas. A única regra nova do servidor é genérica: o que fica fora do documento não vira lugar nele.
+
+Os testes acharam dois defeitos antes do commit:
+- um diagnóstico com rótulo apontando para dentro da biblioteca derrubava o compilador ao ser mostrado; agora nada do programa aponta para lá;
+- o rename confundia a posição da definição da biblioteca, que fica fora do texto e não se move com as edições.
+
+Uma mudança na língua, registrada em "Mudanças": "uso" passou a ser palavra da língua, então o programa não define mais "Para usar ...". O teste do léxico exige que toda palavra que o parser consulta esteja nele, e "usar" virou um verbo da própria língua, narrado na 1ª pessoa como "Escrevo" e "Leio".
+
+A extensão foi a 0.6.0, com o realce de "Uso a biblioteca de", e está instalada no seu VS Code. Recarregue a janela.
+
+Decisões para revisar:
+- "uso" reservado: "usar" deixa de estar disponível como verbo do programa.
+- Dividir com o separador vazio dá cada caractere, em vez de falhar.
+- Ir para a definição de um verbo de biblioteca não leva a lugar nenhum por enquanto. Mostrar o cabeçalho dela pede um documento virtual no editor, e fica para quando o site da fase 9 publicar as bibliotecas.
+
+Próximo: a fase 7, as releases: binários, VSIX por plataforma, README, LICENSE e CHANGELOG na raiz.
