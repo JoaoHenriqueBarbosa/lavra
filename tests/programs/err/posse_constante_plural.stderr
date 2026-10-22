@@ -1,0 +1,6 @@
+Erro de posse [L0402]: As saudações são constantes do programa e não se entregam.
+ --> tests/programs/err/posse_constante_plural.lav:4:19
+  |
+4 |     As frases são as saudações.
+  |                   ^^^^^^^^^^^^
+  = dica: Entregue uma cópia: "uma cópia das saudações".

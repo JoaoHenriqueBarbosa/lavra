@@ -87,7 +87,13 @@ pub fn describe(a: &Analysis, text: &Text, def: usize) -> String {
 
 pub fn hover(a: &Analysis, text: &Text, offset: u32) -> Option<lsp::Hover> {
     let value = if let Some(def) = a.tables.def_at(offset) {
-        describe(a, text, def)
+        let mut s = describe(a, text, def);
+        // O estado de posse naquele ponto: o valor é entregue ali, ou volta.
+        if let Some(o) = a.tables.ownership_at(offset) {
+            s.push_str("\n\n");
+            s.push_str(&o.note);
+        }
+        s
     } else if let Some((_, ty)) = a.tables.type_at(offset) {
         format!("{}.", crate::sema::capitalize(&ty.describe()))
     } else {

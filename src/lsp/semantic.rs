@@ -1,7 +1,7 @@
 //! Tokens semânticos: o que só o compilador sabe pintar. Verbos do programa (também nos
 //! predicados e depois de "o resultado de"), parâmetros, variáveis, campos, tipos e casos,
-//! com os modificadores de posse. As palavras da língua ficam com a gramática TextMate,
-//! que já as pinta pela forma.
+//! com os modificadores de posse (e o `moved` no nome que entrega o valor). As palavras da
+//! língua ficam com a gramática TextMate, que já as pinta pela forma.
 
 use super::convert::Text;
 use crate::Analysis;
@@ -13,7 +13,7 @@ use lsp_types as lsp;
 use std::collections::BTreeMap;
 
 pub const TYPES: &[&str] = &["function", "parameter", "variable", "property", "type", "enumMember"];
-pub const MODIFIERS: &[&str] = &["declaration", "readonly", "modification", "borrowed", "lent"];
+pub const MODIFIERS: &[&str] = &["declaration", "readonly", "modification", "borrowed", "lent", "moved"];
 
 const FUNCTION: u32 = 0;
 const PARAMETER: u32 = 1;
@@ -27,6 +27,7 @@ const READONLY: u32 = 1 << 1;
 const MODIFICATION: u32 = 1 << 2;
 const BORROWED: u32 = 1 << 3;
 const LENT: u32 = 1 << 4;
+const MOVED: u32 = 1 << 5;
 
 pub fn legend() -> lsp::SemanticTokensLegend {
     lsp::SemanticTokensLegend {
@@ -81,6 +82,12 @@ pub fn classify_all(a: &Analysis) -> Vec<(Span, u32, u32)> {
         if let (Some((ty, mods)), Some(ws)) = (classify(d), word_span(a, r.span)) {
             let extra = if r.use_ == Use::Write { MODIFICATION } else { 0 };
             put(&mut out, ws, ty, mods | extra);
+        }
+    }
+    // O nome no ponto em que entrega o valor: dali em diante, não se usa mais.
+    for o in t.ownership.iter().filter(|o| o.moved) {
+        if let Some(e) = word_span(a, o.span).and_then(|ws| out.get_mut(&ws.start)) {
+            e.2 |= MOVED;
         }
     }
     // Tipos e casos citados (aposto, tipagem, construção) que não passaram por um uso.

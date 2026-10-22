@@ -53,8 +53,8 @@ pub fn analyze(text: &str) -> Analysis {
     let mut diags = Diagnostics::default();
     let tokens = lexer::tokenize(text, &mut diags);
     let ast = parser::parse(tokens.clone(), &mut diags);
-    let (hir, tables) = sema::check(&ast, &mut diags);
-    ownership::check(&hir, text, &mut diags);
+    let (hir, mut tables) = sema::check(&ast, &mut diags);
+    ownership::check(&hir, text, &mut diags, &mut tables);
     if !diags.has_errors() {
         diags.list.extend(sema::unused_warnings(&tables));
     }

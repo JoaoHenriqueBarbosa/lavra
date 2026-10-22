@@ -1,0 +1,9 @@
+Erro de posse [L0400]: As cartas podem já ter sido entregues a "arquivar" na linha 9, num dos caminhos até aqui.
+  --> tests/programs/err/posse_plural_talvez.lav:10:13
+   |
+ 9 |         Arquivo as cartas.
+   |                 --------- entregues aqui
+10 |     Escrevo as cartas.
+   |             ^^^^^^^^^ usadas aqui depois de entregues
+   = Depois de entregues, "as cartas" não se usam mais.
+   = dica: Se "arquivar" só precisa ler, peça emprestado no cabeçalho ("sendo as cartas uma lista de textos emprestada"), ou entregue uma cópia das cartas: "Arquivo uma cópia das cartas."

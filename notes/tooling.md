@@ -49,8 +49,11 @@ por plataforma leva o binário), depois no PATH. Comandos "Lavra: Rodar o arquiv
 "Compilar para nativo", "Verificar" e "Reiniciar o servidor de linguagem"; botão de rodar no
 título do editor; tarefas do tipo `lavra` com os casadores de problema `$lavrac` (erros) e
 `$lavrac-aviso` (avisos), separados porque "Erro" e "Aviso" não são as severidades em
-inglês que o VS Code entende; modificadores semânticos `borrowed` e `lent`; snippets dos
-blocos.
+inglês que o VS Code entende; modificadores semânticos `borrowed`, `lent` e `moved`; o `moved`
+sai em itálico por uma regra em `configurationDefaults` (`editor.semanticTokenColorCustomizations`,
+`"*.moved:lavra": {"italic": true}`), que só liga o itálico e deixa a cor com o tema. Um
+mapeamento para o escopo `markup.italic` trocaria a cor: os temas padrão pintam esse escopo
+(roxo no Dark+, verde no Abyss). Snippets dos blocos.
 
 Teste de integração (`npm run test:integration`): um VS Code de verdade, baixado pelo
 `@vscode/test-electron`, abre um programa com erro e confere pela API do editor os
@@ -92,11 +95,15 @@ erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro s�
   no "Senão" que nunca acontece, e as correções em `data` (para as ações rápidas).
 - **Tokens semânticos**: das tabelas da análise (funções, também nos predicados e depois de
   "o resultado de"; parâmetros com `borrowed` e `lent`; variáveis, `readonly` para o que "é";
-  campos, tipos e casos; `declaration` e `modification`) e do vocabulário (tipos e casos
-  citados). As palavras da língua ficam com a gramática TextMate. A contração conta um token.
+  campos, tipos e casos; `declaration` e `modification`; `moved` no nome que entrega o valor)
+  e do vocabulário (tipos e casos citados). As palavras da língua ficam com a gramática
+  TextMate. A contração conta um token.
 - **Hover**: nome com artigo, fixo ou variável, o tipo por extenso, o modo de posse e a linha
   da declaração; verbo com a regência, o retorno e se pode falhar; palavra da língua com a
-  documentação do léxico.
+  documentação do léxico. O estado de posse naquele ponto vem da própria análise de posse
+  (`Tables.ownership`): onde o valor é entregue ("As cartas são entregues a \"arquivar\"
+  aqui: daqui em diante, não se usam mais.") e onde o nome que o entregou ganha um valor
+  novo ("foram entregues a \"arquivar\" na linha 8; aqui ganham um valor novo").
 - **Navegação**: definição, referências (com leitura e escrita), destaque, símbolos do
   documento (funções com a regência, registros com campos, enumerações com casos,
   constantes) e do workspace (documentos abertos e `.lav` das pastas).

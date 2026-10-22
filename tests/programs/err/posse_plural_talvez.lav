@@ -1,0 +1,10 @@
+Para arquivar as cartas, sendo as cartas uma lista de textos:
+    Escrevo as cartas.
+
+Para começar:
+    As cartas começam vazias.
+    As cartas ganham "Querida Ana".
+    O dia é 3.
+    Se o dia for maior que 2:
+        Arquivo as cartas.
+    Escrevo as cartas.

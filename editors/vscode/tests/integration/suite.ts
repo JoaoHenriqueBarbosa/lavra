@@ -81,6 +81,44 @@ async function debugSession(folder: string, shot: ((what: string) => string) | u
   tracker.dispose();
 }
 
+/** A posse no editor: o hover no nome que entrega o valor diz a quem, e o nome leva o
+ * modificador `moved` (em itálico). Com a captura, o hover aberto sobre ele. */
+async function ownership(folder: string, shot: string | undefined): Promise<void> {
+  const uri = vscode.Uri.file(path.join(folder, "posse.lav"));
+  const doc = await vscode.workspace.openTextDocument(uri);
+  const editor = await vscode.window.showTextDocument(doc);
+  const given = new vscode.Position(7, 16);
+  const text = await until("o hover da posse", async () => {
+    const hovers = await vscode.commands.executeCommand<vscode.Hover[]>("vscode.executeHoverProvider", uri, given);
+    const t = hovers.map((h) => h.contents.map((c) => (c as vscode.MarkdownString).value).join("")).join("");
+    return t.includes("entregues") ? t : undefined;
+  });
+  assert.ok(text.includes('As cartas são entregues a "arquivar" aqui: daqui em diante, não se usam mais.'), text);
+  const legend = await vscode.commands.executeCommand<vscode.SemanticTokensLegend>("vscode.provideDocumentSemanticTokensLegend", uri);
+  const tokens = await vscode.commands.executeCommand<vscode.SemanticTokens>("vscode.provideDocumentSemanticTokens", uri);
+  const moved = 1 << legend.tokenModifiers.indexOf("moved");
+  const at: Array<[number, number, number]> = [];
+  let line = 0;
+  let col = 0;
+  for (let i = 0; i < tokens.data.length; i += 5) {
+    if (tokens.data[i] > 0) {
+      col = 0;
+    }
+    line += tokens.data[i];
+    col += tokens.data[i + 1];
+    at.push([line, col, tokens.data[i + 4]]);
+  }
+  const cartas = at.find(([l, c]) => l === 7 && c === 15);
+  assert.ok(cartas && (cartas[2] & moved) !== 0, `"cartas" sem o modificador moved: ${JSON.stringify(at)}`);
+  if (shot) {
+    editor.selection = new vscode.Selection(given, given);
+    await vscode.commands.executeCommand("editor.action.showHover");
+    await sleep(2500);
+    execFileSync("import", ["-window", "root", shot]);
+    await vscode.commands.executeCommand("editor.action.hideHover");
+  }
+}
+
 export async function run(): Promise<void> {
   const folder = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const uri = vscode.Uri.file(path.join(folder, "conta.lav"));
@@ -146,8 +184,11 @@ export async function run(): Promise<void> {
   const defs = await vscode.commands.executeCommand<vscode.Location[]>("vscode.executeDefinitionProvider", uri, new vscode.Position(6, 15));
   assert.strictEqual(defs[0].range.start.line, 4);
 
-  // A depuração, num programa sem erro (o de cima tem um, de propósito).
+  // A posse: o hover e o itálico no nome que entrega o valor.
   const shotOf = process.env.LAVRA_SHOT;
+  await ownership(folder, shotOf ? shotOf.replace(/\.png$/, "-posse.png") : undefined);
+
+  // A depuração, num programa sem erro (o de cima tem um, de propósito).
   await debugSession(folder, shotOf ? (what) => shotOf.replace(/\.png$/, `-${what}.png`) : undefined);
   editor = await vscode.window.showTextDocument(doc);
 

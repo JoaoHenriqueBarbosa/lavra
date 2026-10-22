@@ -5,7 +5,8 @@
 //! emprestada ao laço e não muda.
 //!
 //! A análise corre sobre a HIR de cada função, acompanhando o estado de cada local pelos
-//! caminhos do programa (Se, laços, Paro).
+//! caminhos do programa (Se, laços, Paro). O que ela descobre de cada nome (onde o valor
+//! sai das mãos dele, e onde ele volta a ter um) vai para as tabelas, para o editor.
 
 use crate::ast::ParamMode;
 use crate::codes::*;
@@ -14,17 +15,23 @@ use crate::hir::{self, Cond, ExprKind, Place, PlaceProj, Stmt, StmtKind, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::sema::capitalize;
 use crate::span::{LineIndex, Span};
+use crate::tables::{Ownership, Tables};
 use std::collections::HashSet;
 
 /// Confere posse e empréstimo em cada função sem erro (numa função com erro, a HIR está
 /// incompleta e acusaria o que não é). Cada erro é relatado uma vez e a análise segue.
-pub fn check(prog: &hir::Program, src: &str, diags: &mut Diagnostics) {
+pub fn check(prog: &hir::Program, src: &str, diags: &mut Diagnostics, tables: &mut Tables) {
     let lines = Lines { index: LineIndex::new(src), text: src };
     for f in std::iter::once(&prog.init).chain(&prog.funcs) {
         if !f.has_errors {
-            diags.list.extend(Checker::new(prog, f, &lines).run());
+            let (found, notes) = Checker::new(prog, f, &lines).run();
+            diags.list.extend(found);
+            tables.ownership.extend(notes);
         }
     }
+    // Os laços passam duas vezes pelo corpo: cada trecho fica com a nota da primeira.
+    tables.ownership.sort_by_key(|o| (o.span.start, o.span.end));
+    tables.ownership.dedup_by_key(|o| (o.span.start, o.span.end));
 }
 
 /// Linha (a partir de 1) de um trecho, para as mensagens ("na linha 6").
@@ -52,22 +59,44 @@ enum How {
 }
 
 impl How {
-    /// "foi entregue a \"arquivar\"", com o particípio concordando com o nome.
-    fn finite(&self, name: &str) -> String {
+    /// O particípio com o complemento: "entregue a \"arquivar\"", "guardadas em \"as
+    /// caixas\"" (na passiva, concorda com o nome); "passado para \"o texto\"" (na ativa,
+    /// não varia).
+    fn participle(&self, name: &str) -> String {
         match self {
-            How::Given(f) => format!("foi entregue a \"{f}\""),
-            How::Passed(to) => format!("passou para \"{to}\""),
-            How::Stored(to) => format!("foi {} em \"{to}\"", agree("guardado", name)),
-            How::Returned => format!("foi {}", agree("devolvido", name)),
-            How::Other => "foi entregue".to_string(),
+            How::Given(f) => format!("{} a \"{f}\"", agree("entregue", name)),
+            How::Passed(to) => format!("passado para \"{to}\""),
+            How::Stored(to) => format!("{} em \"{to}\"", agree("guardado", name)),
+            How::Returned => agree("devolvido", name),
+            How::Other => agree("entregue", name),
         }
     }
 
-    /// "pode já ter sido entregue a \"arquivar\"".
-    fn maybe(&self, name: &str) -> String {
+    /// No pretérito, concordando com o nome: "foi entregue a \"arquivar\"", "as cartas
+    /// foram entregues", "passaram para \"os textos\"".
+    fn finite(&self, name: &str) -> String {
+        let plural = gn(name).1 == Number::Plural;
         match self {
-            How::Passed(to) => format!("pode já ter passado para \"{to}\""),
-            other => other.finite(name).replacen("foi ", "pode já ter sido ", 1),
+            How::Passed(to) => format!("{} para \"{to}\"", if plural { "passaram" } else { "passou" }),
+            _ => format!("{} {}", if plural { "foram" } else { "foi" }, self.participle(name)),
+        }
+    }
+
+    /// O que pode ter acontecido num dos caminhos: "pode já ter sido entregue a
+    /// \"arquivar\"", "podem já ter passado para \"os textos\"".
+    fn maybe(&self, name: &str) -> String {
+        let can = verb3("poder", name);
+        match self {
+            How::Passed(_) => format!("{can} já ter {}", self.participle(name)),
+            _ => format!("{can} já ter sido {}", self.participle(name)),
+        }
+    }
+
+    /// No ponto em que acontece: "é entregue a \"arquivar\"", "passam para \"os textos\"".
+    fn present(&self, name: &str) -> String {
+        match self {
+            How::Passed(to) => format!("{} para \"{to}\"", verb3("passar", name)),
+            _ => format!("{} {}", verb3("ser", name), self.participle(name)),
         }
     }
 }
@@ -136,6 +165,8 @@ struct Checker<'a> {
     diags: Vec<Diagnostic>,
     /// Trechos já acusados: a segunda passada dos laços não repete o erro.
     reported: HashSet<(u32, u32)>,
+    /// O que o editor mostra: onde cada valor é entregue, e onde o nome volta a ter um.
+    notes: Vec<Ownership>,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -172,12 +203,13 @@ impl<'a> Checker<'a> {
             breaks: Vec::new(),
             diags: Vec::new(),
             reported: HashSet::new(),
+            notes: Vec::new(),
         }
     }
 
-    fn run(mut self) -> Vec<Diagnostic> {
+    fn run(mut self) -> (Vec<Diagnostic>, Vec<Ownership>) {
         let _ = self.block(&self.func.body);
-        self.diags
+        (self.diags, self.notes)
     }
 
     /// Relata o erro (uma vez por trecho) e deixa a análise seguir.
@@ -219,9 +251,9 @@ impl<'a> Checker<'a> {
                 self.expr(value, Use::Move, &how)?;
                 self.mutate(place, "mudar")?;
                 if place.proj.is_empty()
-                    && let (Var::Local(id), Some(st)) = (place.root, &mut self.state)
+                    && let Var::Local(id) = place.root
                 {
-                    st[id] = St::Live;
+                    self.revive(id, place.span);
                 }
             }
             StmtKind::Compound { place, value, .. } => {
@@ -403,20 +435,18 @@ impl<'a> Checker<'a> {
             St::Maybe(m) => (m, true),
         };
         let name = self.display(place.root);
-        let line = self.lines.line(m.span);
-        let message = if m.from_loop {
-            format!("{} {} numa volta anterior do laço e não volta.", capitalize(&name), m.how.finite(&name))
-        } else if maybe {
-            format!("{} {} na linha {line}, num dos caminhos até aqui.", capitalize(&name), m.how.maybe(&name))
+        let whence = self.whence(m, maybe, &name);
+        let message = if maybe && !m.from_loop {
+            format!("{} {whence}.", capitalize(&name))
         } else {
-            format!("{} {} na linha {line} e não volta.", capitalize(&name), m.how.finite(&name))
+            format!("{} {whence} e não {}.", capitalize(&name), verb3("voltar", &name))
         };
         let given = agree("entregue", &name);
         let mut d = Diagnostic::new(L0400, message, span).primary(format!("{} aqui depois de {given}", agree("usado", &name)));
         if m.span != span {
             d = d.label(m.span, format!("{given} aqui"));
         }
-        d = d.note(format!("Depois de {given}, \"{name}\" não se usa mais."));
+        d = d.note(format!("Depois de {given}, \"{name}\" não se {} mais.", verb3("usar", &name)));
         let copy = format!("uma cópia {}", of_name(&name));
         d = match &m.callee {
             Some((verb, param, ty)) => d.hint(format!(
@@ -437,12 +467,42 @@ impl<'a> Checker<'a> {
         Ok(())
     }
 
-    /// Mudança no lugar: precisa ter dono e não estar emprestado a um laço. `what` é o
-    /// verbo no infinitivo com o complemento ("ganhar itens").
+    /// Onde o valor foi entregue, com o verbo: "foi entregue a \"arquivar\" na linha 6",
+    /// "pode já ter sido entregue a \"arquivar\" na linha 6, num dos caminhos até aqui",
+    /// "foi entregue a \"arquivar\" numa volta anterior do laço".
+    fn whence(&self, m: &Move, maybe: bool, name: &str) -> String {
+        if m.from_loop {
+            format!("{} numa volta anterior do laço", m.how.finite(name))
+        } else if maybe {
+            format!("{} na linha {}, num dos caminhos até aqui", m.how.maybe(name), self.lines.line(m.span))
+        } else {
+            format!("{} na linha {}", m.how.finite(name), self.lines.line(m.span))
+        }
+    }
+
+    /// O nome ganha um valor inteiro de novo e volta a ter dono. Se tinha entregado o
+    /// dele, a nota do editor diz onde.
+    fn revive(&mut self, id: usize, span: Span) {
+        let Some(st) = &self.state else { return };
+        let (m, maybe) = match &st[id] {
+            St::Live => return,
+            St::Moved(m) => (m, false),
+            St::Maybe(m) => (m, true),
+        };
+        let name = self.func.locals[id].display.clone();
+        let note = format!("{} {}; aqui {} um valor novo.", capitalize(&name), self.whence(m, maybe, &name), verb3("ganhar", &name));
+        self.notes.push(Ownership { span, moved: false, note });
+        if let Some(st) = &mut self.state {
+            st[id] = St::Live;
+        }
+    }
+
     fn first_person_of(&self, infinitive: &str) -> String {
         morphology::first_person(infinitive).unwrap_or_else(|| infinitive.to_string())
     }
 
+    /// Mudança no lugar: precisa ter dono e não estar emprestado a um laço. `what` é o
+    /// verbo no infinitivo com o complemento ("ganhar itens").
     fn mutate(&mut self, place: &Place, what: &str) -> Result<()> {
         if !place.proj.is_empty() {
             self.usable(place, place.span)?;
@@ -539,8 +599,18 @@ impl<'a> Checker<'a> {
         let name = self.display(p.root);
         if let Var::Global(_) = p.root {
             return self.fail(
-                Diagnostic::new(L0402, format!("{} é constante do programa e não se entrega.", capitalize(&name)), span)
-                    .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))),
+                Diagnostic::new(
+                    L0402,
+                    format!(
+                        "{} {} {} do programa e não se {}.",
+                        capitalize(&name),
+                        verb3("ser", &name),
+                        agree("constante", &name),
+                        verb3("entregar", &name)
+                    ),
+                    span,
+                )
+                .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))),
             );
         }
         if !p.proj.is_empty() {
@@ -552,8 +622,12 @@ impl<'a> Checker<'a> {
                 format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&whole))
             };
             return self.fail(
-                Diagnostic::new(L0403, format!("Não se tira \"{whole}\" de dentro de \"{name}\" entregando: o valor tem dono."), span)
-                    .hint(hint),
+                Diagnostic::new(
+                    L0403,
+                    format!("Não se {} \"{whole}\" de dentro de \"{name}\" entregando: o valor tem dono.", verb3("tirar", &whole)),
+                    span,
+                )
+                .hint(hint),
             );
         }
         if let Var::Local(id) = p.root
@@ -562,7 +636,13 @@ impl<'a> Checker<'a> {
             return self.fail(
                 Diagnostic::new(
                     L0404,
-                    format!("{} aqui é só uma vista emprestada do valor de fora e não se entrega.", capitalize(&name)),
+                    format!(
+                        "{} aqui {} só {} do valor de fora e não se {}.",
+                        capitalize(&name),
+                        verb3("ser", &name),
+                        if gn(&name).1 == Number::Plural { "vistas emprestadas" } else { "uma vista emprestada" },
+                        verb3("entregar", &name)
+                    ),
                     span,
                 )
                 .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))),
@@ -587,6 +667,8 @@ impl<'a> Checker<'a> {
         }
         if let (Var::Local(id), Some(st)) = (p.root, &mut self.state) {
             st[id] = St::Moved(Move { span, how: how.clone(), callee, from_loop: false });
+            let note = format!("{} {} aqui: daqui em diante, não se {} mais.", capitalize(&name), how.present(&name), verb3("usar", &name));
+            self.notes.push(Ownership { span, moved: true, note });
         }
         Ok(())
     }
@@ -638,20 +720,24 @@ impl<'a> Checker<'a> {
                             } else {
                                 "Passe uma cópia no lugar do emprestado: \"uma cópia ...\"."
                             };
-                            return self.fail(Diagnostic::new(
-                                L0406,
-                                format!(
-                                    "{} já vai {first} a \"{}\" como \"{}\" e não pode ir {again} de novo, como \"{}\", na mesma chamada.",
-                                    capitalize(&root_name),
-                                    name,
-                                    param0,
-                                    a.param
-                                ),
-                                a.value.span,
-                            )
-                            .label(*span0, format!("{first} aqui"))
-                            .note("Quem é confiado a uma função fica só com ela até a chamada terminar.")
-                            .hint(hint));
+                            return self.fail(
+                                Diagnostic::new(
+                                    L0406,
+                                    format!(
+                                        "{} já {} {first} a \"{}\" como \"{}\" e não {} ir {again} de novo, como \"{}\", na mesma chamada.",
+                                        capitalize(&root_name),
+                                        verb3("ir", &root_name),
+                                        name,
+                                        param0,
+                                        verb3("poder", &root_name),
+                                        a.param
+                                    ),
+                                    a.value.span,
+                                )
+                                .label(*span0, format!("{first} aqui"))
+                                .note("Quem é confiado a uma função fica só com ela até a chamada terminar.")
+                                .hint(hint),
+                            );
                         }
                         lent.push((root, a.mode, &a.param, a.value.span));
                     }

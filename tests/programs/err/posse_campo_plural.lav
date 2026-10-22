@@ -1,0 +1,8 @@
+Um aluno é um registro de:
+    o nome, um texto;
+    as notas, uma lista de inteiros.
+
+Para começar:
+    As provas são 7 e 9.
+    O aluno é um aluno com o nome "Ana" e as notas as provas.
+    As médias são as notas do aluno.

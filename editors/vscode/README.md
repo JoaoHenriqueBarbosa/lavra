@@ -9,9 +9,10 @@ em que cada instrução é uma oração em português.
   com o código (`L0334`) e o link para a explicação, a dica e os trechos relacionados.
 - **Realce semântico**: verbos do programa (também nos predicados), parâmetros emprestados
   e confiados, o que é fixo e o que muda, campos, tipos e casos, por cima da gramática
-  TextMate.
-- **Hover**: o tipo por extenso e o modo de posse de cada nome, a regência de cada verbo, e
-  a explicação das palavras da língua.
+  TextMate. O nome que entrega o valor ("Arquivo a carta.") sai em itálico: dali em diante,
+  ele não se usa mais.
+- **Hover**: o tipo por extenso e o modo de posse de cada nome, a quem o valor é entregue
+  ali, a regência de cada verbo, e a explicação das palavras da língua.
 - **Navegação**: ir para a definição, referências, destaque das ocorrências, símbolos do
   arquivo e do workspace.
 - **Completar** guiado pelo próprio parser: as palavras que cabem ali, os verbos do

@@ -1,0 +1,6 @@
+Erro de posse [L0403]: Não se tiram "as notas do aluno" de dentro de "o aluno" entregando: o valor tem dono.
+ --> tests/programs/err/posse_campo_plural.lav:8:19
+  |
+8 |     As médias são as notas do aluno.
+  |                   ^^^^^^^^^^^^^^^^^
+  = dica: Entregue uma cópia: "uma cópia das notas do aluno".

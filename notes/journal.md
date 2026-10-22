@@ -298,3 +298,23 @@ Decisões para revisar:
 - O último programa escrito fica guardado no navegador de quem usa.
 
 Falta a fase 8, a gramática tree-sitter com as configurações de Helix, Neovim e Zed. Um agente a está fazendo em paralelo, numa branch própria, e eu integro quando ele terminar.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, a parte adiada da fase 1 (a posse no editor), registro do Claude às 20h36, cerca de 5 horas e 15 minutos depois do começo:
+
+O editor agora mostra a posse.
+- O hover sobre o nome que entrega o valor diz a quem, e o que vale dali em diante: "As cartas são entregues a "arquivar" aqui: daqui em diante, não se usam mais."
+- Onde o nome ganha um valor novo, o hover diz onde o antigo foi parar: "As cartas foram entregues a "arquivar" na linha 8; aqui ganham um valor novo."
+- O nome que entrega o valor sai em itálico, pelo modificador semântico moved.
+
+Tudo sai da própria análise de posse, que agora deixa essas notas nas tabelas. A extensão 0.7.0 está instalada no seu VS Code.
+
+No caminho, as mensagens de posse passaram a concordar em número. Antes, um nome no plural saía "As cartas foi entregue ... e não volta". Agora sai "As cartas foram entregues ... e não voltam", "As saudações são constantes do programa e não se entregam" e "As notas já vão confiadas ... e não podem ir". Cinco programas errados no plural travam isso.
+
+Conferido no servidor em processo e num VS Code de verdade, com a captura.
+
+Decisões para revisar:
+- O plano dizia que o valor entregue aparece apagado. O VS Code não dá opacidade a token semântico, e apagado é como ele já mostra o que não se usa. O nome sai em itálico, com a cor do tema.
+- O itálico vem de uma regra padrão que a extensão contribui às customizações de token semântico, e que só liga o itálico. O caminho comum, mapear para o escopo markup.italic, trocava a cor do nome: os temas padrão pintam esse escopo (roxo no Dark+, verde no Abyss).
+- O hover não repete o estado de posse nos usos depois da entrega, porque ali o erro já diz a mesma coisa.

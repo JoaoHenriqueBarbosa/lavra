@@ -1,0 +1,8 @@
+Erro de empréstimo [L0406]: As notas já vão confiadas a "trocar" como "as entradas" e não podem ir confiadas de novo, como "as saídas", na mesma chamada.
+ --> tests/programs/err/emprestimo_duplo_plural.lav:8:20
+  |
+8 |     Troco as notas pelas notas.
+  |           -------- confiadas aqui
+  |                    ^^^^^^^^^^^
+  = Quem é confiado a uma função fica só com ela até a chamada terminar.
+  = dica: Cada parâmetro confiado precisa de um lugar diferente.

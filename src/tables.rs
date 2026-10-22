@@ -1,7 +1,8 @@
 //! As tabelas de símbolos de uma análise: cada nome declarado (`Def`), cada uso dele
 //! (`Ref`), os escopos, o tipo de cada expressão e o modo de cada argumento. Saem das
-//! próprias passadas do compilador (a sema registra onde declara e onde resolve), nunca
-//! de uma segunda resolução de nomes: o que o editor mostra é o que o compilador entendeu.
+//! próprias passadas do compilador (a sema registra onde declara e onde resolve, a posse
+//! registra onde cada valor é entregue), nunca de uma segunda resolução de nomes: o que o
+//! editor mostra é o que o compilador entendeu.
 
 use crate::ast::{ParamMode, VerbForm};
 use crate::morphology::{Gender, Number};
@@ -75,6 +76,18 @@ pub struct Ref {
     pub form: Form,
 }
 
+/// O que a posse diz de um trecho: o nome entrega o valor ali (e dali em diante não se
+/// usa), ou ganha um valor novo depois de ter entregado o dele.
+#[derive(Clone, Debug)]
+pub struct Ownership {
+    pub span: Span,
+    /// O valor sai das mãos do nome aqui.
+    pub moved: bool,
+    /// A frase do hover: "A carta é entregue a \"arquivar\" aqui: daqui em diante, não se
+    /// usa mais."
+    pub note: String,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Scope {
     pub parent: Option<usize>,
@@ -90,6 +103,8 @@ pub struct Tables {
     pub expr_types: Vec<(Span, Ty)>,
     /// O modo de cada argumento de chamada: dono, emprestado ou confiado.
     pub args: Vec<(Span, ParamMode)>,
+    /// Onde cada valor é entregue, e onde o nome volta a ter um; na ordem do texto.
+    pub ownership: Vec<Ownership>,
 }
 
 fn contains(span: Span, offset: u32) -> bool {
@@ -142,6 +157,11 @@ impl Tables {
     /// O tipo da menor expressão que contém a posição.
     pub fn type_at(&self, offset: u32) -> Option<(Span, &Ty)> {
         self.expr_types.iter().filter(|(s, _)| contains(*s, offset)).min_by_key(|(s, _)| s.end - s.start).map(|(s, t)| (*s, t))
+    }
+
+    /// O que a posse diz do menor trecho que contém a posição.
+    pub fn ownership_at(&self, offset: u32) -> Option<&Ownership> {
+        self.ownership.iter().filter(|o| contains(o.span, offset)).min_by_key(|o| o.span.end - o.span.start)
     }
 
     /// O escopo mais interno que contém a posição.

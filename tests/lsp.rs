@@ -75,6 +75,23 @@ Para começar:
     Escrevo o sald.
 ";
 
+/// Os tokens semânticos em posições absolutas: (linha, coluna, tipo, modificadores).
+fn semantic_tokens(c: &mut Client, uri: &str) -> Vec<(u64, u64, &'static str, u64)> {
+    let toks = c.request("textDocument/semanticTokens/full", json!({ "textDocument": { "uri": uri } }));
+    let data: Vec<u64> = toks["data"].as_array().unwrap().iter().map(|v| v.as_u64().unwrap()).collect();
+    let (mut line, mut col) = (0, 0);
+    let mut out = Vec::new();
+    for t in data.chunks(5) {
+        if t[0] > 0 {
+            col = 0;
+        }
+        line += t[0];
+        col += t[1];
+        out.push((line, col, lavra::lsp::semantic::TYPES[t[3] as usize], t[4]));
+    }
+    out
+}
+
 fn pos(line: u32, character: u32) -> Value {
     json!({ "textDocument": { "uri": URI }, "position": { "line": line, "character": character } })
 }
@@ -115,20 +132,8 @@ fn diagnostics_hover_definition_references_symbols() {
     assert_eq!((s["name"].as_str(), s["detail"].as_str()), (Some("render"), Some("rendo QUANTIA")));
 
     // Tokens semânticos: o verbo da definição é função; "quantia" é parâmetro confiado.
-    let toks = c.request("textDocument/semanticTokens/full", json!({ "textDocument": { "uri": URI } }));
-    let data: Vec<u64> = toks["data"].as_array().unwrap().iter().map(|v| v.as_u64().unwrap()).collect();
-    let (mut line, mut col) = (0, 0);
-    let mut decoded = Vec::new();
-    for t in data.chunks(5) {
-        if t[0] > 0 {
-            col = 0;
-        }
-        line += t[0];
-        col += t[1];
-        decoded.push((line, col, t[2], t[3], t[4]));
-    }
-    let types = lavra::lsp::semantic::TYPES;
-    let at = |l: u64, c0: u64| decoded.iter().find(|t| t.0 == l && t.1 == c0).map(|t| (types[t.3 as usize], t.4));
+    let decoded = semantic_tokens(&mut c, URI);
+    let at = |l: u64, c0: u64| decoded.iter().find(|t| t.0 == l && t.1 == c0).map(|t| (t.2, t.3));
     assert_eq!(at(0, 5).map(|t| t.0), Some("function"));
     let (kind, mods) = at(0, 14).expect("quantia no cabeçalho");
     assert_eq!(kind, "parameter");
@@ -387,23 +392,61 @@ fn a_library_is_served_like_the_program() {
     // A definição fica na biblioteca: nada no documento.
     assert!(c.request("textDocument/definition", at3(4, 5)).is_null());
     // Tokens semânticos: o verbo e o predicado da biblioteca são funções.
-    let toks = c.request("textDocument/semanticTokens/full", json!({ "textDocument": { "uri": URI3 } }));
-    let data: Vec<u64> = toks["data"].as_array().unwrap().iter().map(|v| v.as_u64().unwrap()).collect();
-    let (mut line, mut col) = (0, 0);
-    let mut found = Vec::new();
-    for t in data.chunks(5) {
-        if t[0] > 0 {
-            col = 0;
-        }
-        line += t[0];
-        col += t[1];
-        found.push((line, col, lavra::lsp::semantic::TYPES[t[3] as usize]));
-    }
+    let found: Vec<(u64, u64, &str)> = semantic_tokens(&mut c, URI3).into_iter().map(|t| (t.0, t.1, t.2)).collect();
     assert!(found.contains(&(4, 4, "function")) && found.contains(&(5, 15, "function")), "{found:?}");
     // O rename de um verbo da biblioteca é recusado, com o motivo.
     let mut params = at3(4, 5);
     params["newName"] = json!("partir");
     let e = c.try_request("textDocument/rename", params).unwrap_err();
     assert!(e.contains("vem da biblioteca de textos"), "{e}");
+    c.stop(handle);
+}
+
+const URI4: &str = "file:///tmp/posse.lav";
+
+const PROGRAM4: &str = "\
+Para arquivar as cartas, sendo as cartas uma lista de textos:
+    Escrevo as cartas.
+
+Para começar:
+    As cartas começam vazias.
+    As cartas ganham \"Querida Ana\".
+    Os rascunhos são \"nova\" e \"outra\".
+    Arquivo as cartas.
+    As cartas viram os rascunhos.
+    Escrevo as cartas.
+";
+
+fn at4(line: u32, character: u32) -> Value {
+    json!({ "textDocument": { "uri": URI4 }, "position": { "line": line, "character": character } })
+}
+
+fn hover_text(c: &mut Client, at: Value) -> String {
+    c.request("textDocument/hover", at)["contents"]["value"].as_str().unwrap_or_default().to_string()
+}
+
+/// A posse no editor: o hover diz onde o valor é entregue e onde o nome volta a ter um, e
+/// o nome que entrega o valor leva o modificador `moved`.
+#[test]
+fn ownership_in_hover_and_tokens() {
+    let (mut c, handle) = Client::start();
+    c.notify("textDocument/didOpen", json!({ "textDocument": { "uri": URI4, "languageId": "lavra", "version": 1, "text": PROGRAM4 } }));
+    assert!(c.diagnostics().is_empty());
+    let given = hover_text(&mut c, at4(7, 16));
+    assert!(given.contains("As cartas são entregues a \"arquivar\" aqui: daqui em diante, não se usam mais."), "{given}");
+    let back = hover_text(&mut c, at4(8, 8));
+    assert!(back.contains("As cartas foram entregues a \"arquivar\" na linha 8; aqui ganham um valor novo."), "{back}");
+    let passed = hover_text(&mut c, at4(8, 24));
+    assert!(passed.contains("Os rascunhos passam para \"as cartas\" aqui: daqui em diante, não se usam mais."), "{passed}");
+    let later = hover_text(&mut c, at4(9, 16));
+    assert!(later.contains("**as cartas**") && !later.contains("entregue"), "{later}");
+
+    let moved = 1u64 << lavra::lsp::semantic::MODIFIERS.iter().position(|m| *m == "moved").unwrap();
+    let toks = semantic_tokens(&mut c, URI4);
+    let mods =
+        |l: u64, col: u64| toks.iter().find(|t| t.0 == l && t.1 == col).map(|t| t.3).unwrap_or_else(|| panic!("sem token em {l}:{col}"));
+    assert!(mods(7, 15) & moved != 0, "\"cartas\" entrega o valor em \"Arquivo as cartas.\"");
+    assert!(mods(8, 23) & moved != 0, "\"rascunhos\" passa o valor para \"as cartas\"");
+    assert!(mods(8, 7) & moved == 0 && mods(9, 15) & moved == 0, "só o ponto da entrega leva o modificador");
     c.stop(handle);
 }

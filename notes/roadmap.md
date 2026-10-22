@@ -59,10 +59,10 @@ As gramáticas externas (TextMate, tree-sitter) são rasas e geradas. O corpus (
 - **Tokens semânticos**
   - Tipos: verbos, parâmetros, variáveis, campos, tipos e casos.
   - Modificadores padrão: `declaration`, `readonly` ("é") e `modification`.
-  - Modificadores próprios: `borrowed`, `lent` e `moved`. O valor já entregue aparece apagado.
+  - Modificadores próprios: `borrowed`, `lent` e `moved`. O valor já entregue aparece apagado. **(feito: no VS Code, o `moved` sai em itálico, porque o tema não dá opacidade por escopo)**
   - As palavras da língua vêm dos papéis do léxico.
 - **Hover**
-  - Nomes: nome com artigo, fixo ou variável, o tipo por extenso, o modo de posse, onde foi declarado, e o estado naquele ponto ("entregue a arquivar na linha 6").
+  - Nomes: nome com artigo, fixo ou variável, o tipo por extenso, o modo de posse, onde foi declarado, e o estado naquele ponto ("entregue a arquivar na linha 6"). **(feito)**
   - Verbos: a regência, por `FuncSig::usage()`, e se pode falhar.
   - Palavras da língua: a linha de documentação do léxico.
 - **Navegação:** definição, referências, realce de leitura e escrita, símbolos do documento e do workspace.

@@ -1,5 +1,11 @@
 # Mudanças
 
+## 0.7.0
+
+- A posse no editor: o nome que entrega o valor sai em itálico (modificador semântico
+  `moved`), e o hover diz a quem ele foi entregue e, onde o nome ganha um valor novo, de
+  onde vinha.
+
 ## 0.6.0
 
 - "Uso a biblioteca de textos." com o realce de definição; os verbos das bibliotecas
