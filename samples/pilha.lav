@@ -1,0 +1,17 @@
+Nota: uma pilha de números; a lista é dona dos itens e os libera sozinha.
+
+Para somar a pilha, sendo a pilha uma lista de inteiros emprestada, devolvendo um inteiro:
+    O total começa em 0.
+    Para cada número da pilha: o total cresce o número.
+    Devolvo o total.
+
+Para esvaziar a pilha, sendo a pilha uma lista de inteiros confiada:
+    Enquanto o tamanho da pilha for maior que 0:
+        Tomo o último da pilha.
+
+Para começar:
+    A pilha, uma lista de inteiros, começa vazia.
+    Para cada i de 1 até 10: a pilha ganha i vezes i.
+    Escrevo "Soma dos quadrados de 1 a 10: " seguido do resultado de somar a pilha.
+    Esvazio a pilha.
+    Escrevo "Restam " seguido do tamanho da pilha seguido de " itens.".

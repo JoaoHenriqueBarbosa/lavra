@@ -1110,7 +1110,7 @@ impl Parser {
         Ok(Expr { kind: ExprKind::Concat(parts), span })
     }
 
-    fn additive(&mut self) -> Result<Expr> {
+    pub(super) fn additive(&mut self) -> Result<Expr> {
         let mut lhs = self.multiplicative()?;
         loop {
             if self.last_nominal && self.at_infix() {

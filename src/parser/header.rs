@@ -385,10 +385,16 @@ impl Parser {
         let t = self.peek().clone();
         if t.is_word("ambos") || t.is_word("ambas") {
             self.bump();
-            if params.len() != 2 {
+            // Com mais de dois nomes, "ambos" são os regidos (o objeto pode ser complemento fixo).
+            let pair: Vec<&NameRef> = if params.len() == 2 {
+                params.iter().map(|(n, _)| n).collect()
+            } else {
+                params.iter().filter(|(_, s)| !matches!(s, Slot::Object)).map(|(n, _)| n).collect()
+            };
+            if pair.len() != 2 {
                 return err(Diagnostic::new(Category::Syntax, "\"Ambos\" só cabe quando o cabeçalho tem dois parâmetros.", t.span));
             }
-            let fem = params.iter().all(|(n, _)| n.gender() == Gender::Feminine && !n.is_symbol());
+            let fem = pair.iter().all(|n| n.gender() == Gender::Feminine && !n.is_symbol());
             if t.is_word("ambas") != fem {
                 let right = if fem { "ambas" } else { "ambos" };
                 return err(Diagnostic::new(
@@ -397,7 +403,7 @@ impl Parser {
                     t.span,
                 ));
             }
-            for (n, _) in params {
+            for n in pair {
                 names.push((n.word.clone(), n.gender(), t.span));
             }
         } else {
@@ -563,7 +569,7 @@ impl Parser {
             match slot {
                 Slot::Subject => {
                     if !skip_subject {
-                        args.push(self.expr()?);
+                        args.push(self.additive()?);
                     }
                 }
                 Slot::Object => {
@@ -573,7 +579,7 @@ impl Parser {
                     if !self.starts_value(0) {
                         return Err(self.regency_error(&sig, "faltou um objeto"));
                     }
-                    args.push(self.expr()?);
+                    args.push(self.additive()?);
                     objects += 1;
                 }
                 Slot::Fixed { article, word } => {
@@ -590,12 +596,12 @@ impl Parser {
                         return Err(self.regency_error(&sig, &format!("aqui vem \"{prep}\"")));
                     }
                     self.bump();
-                    args.push(self.expr()?);
+                    args.push(self.additive()?);
                     if *count == 2 {
                         if !self.eat_word("e") {
                             return Err(self.regency_error(&sig, &format!("\"{prep}\" rege dois termos ligados por \"e\"")));
                         }
-                        args.push(self.expr()?);
+                        args.push(self.additive()?);
                     }
                 }
             }

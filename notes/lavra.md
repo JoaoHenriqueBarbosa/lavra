@@ -73,7 +73,8 @@ Uma conta é um registro de:
 A carteira começa em uma conta com o titular "Ana", o saldo 100,0 e as movimentações 100,0.
 ```
 
-Construção exige todos os campos. Campo no plural com um valor só vira coleção de um item.
+Campo pode ser símbolo (`x, um real;`), lido como `o x de p`. Construção exige todos
+os campos. Campo no plural com um valor só vira coleção de um item.
 Registro que contém a si mesmo é erro (tamanho infinito). A escrita de um registro sai
 por extenso: `uma conta com o titular Ana, o saldo 150 e as movimentações [100; 50]`.
 
@@ -113,7 +114,8 @@ Para trovejar (trovejo) ...:          forma da 1ª pessoa declarada (defectivos)
   valor (`o resultado de elevar 2 a 10`). Preposição e ordem são as do cabeçalho; senão,
   **Erro de regência** com a forma certa.
 - Objeto com artigo e sem tipo é **complemento fixo**: faz parte do verbo
-  (`contar os dias até`).
+  (`contar os dias até`). Com complemento fixo no cabeçalho, `ambos`/`ambas` são os dois
+  regidos (`Para medir o tempo desde a origem até a data, sendo ambas datas emprestadas`).
 - Predicado (sujeito antes do verbo) vira condição no futuro do subjuntivo
   (`Se o saldo exceder o teto`); predicado adjetivo flexiona (`Se o pino for aceso`).
 - `o fato de X ser ...` dá um lógico (infinitivo pessoal: "serem"); antes do sujeito de
@@ -197,6 +199,10 @@ execução ("Conversão impossível: 300 não cabe num byte."), nunca truncament
 Os dois lados de uma conta têm o mesmo tipo; número escrito toma o tipo do outro lado
 (`2 vezes a taxa`), nome não (`o total vezes a taxa` pede `o total como real`). `o resultado` retoma o valor da oração anterior do
 mesmo período.
+
+`seguido de` liga mais frouxo que tudo: num argumento de chamada ele não entra, então
+`seguido do resultado de flexionar 3 entre "quadrado" e "quadrados" seguido de " de lado."`
+junta o resultado ao resto da frase. Para juntar texto dentro de um argumento, parênteses.
 
 ## Entrada e saída
 

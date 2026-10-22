@@ -1,0 +1,28 @@
+10! = 3628800
+chamadas: 10
+fib(20) = 6765
+distância: 5
+pontos: um ponto com o x 0 e o y 0 → um ponto com o x 3 e o y 4
+Ana Lúcia (21 anos)
+  notas: [9,5; 8; 7,25]
+original: Ana Lúcia, cópia: Outra
+registro inteiro: um aluno com o nome Ana Lúcia, a idade 21, as notas [9,5; 8; 7,25] e a matrícula 4000000000
+pares até 14: 56
+5 4 3 2 1 
+real32 0,1 = 0,10000000149
+real64 0,1 mais 0,2 = 0,3
+-7 dividido por 2 = -3; resto: -1
+-16 deslocado 2 à direita = 4611686018427387900
+união 5|2 = 7, disjunção 7^2 = 5, inverso de 0 = -1
+potência 2^62 = 4611686018427387904, 2^0,5 = 1,41421356237
+3,99 como inteiro = 3
+texto: 10 e 2,5 e verdadeiro
+tamanho de "ação": 4
+"abc" menor que "abd": verdadeiro
+lógica ok
+negativo de 2,5 = -2,5
+Seu nome: Olá, Maria!
+contador: 15
+caractere lido: ç
+lógico lido: verdadeiro
+16 bits: [32000; 7; 7; 7]

@@ -1,0 +1,8 @@
+Erro de concordância: "o prova" não concorda: "prova" é feminino singular. Escreva "a prova".
+ --> samples/tropeco.lav:7:8
+  |
+5 |     A prova é 8,5.
+  |     ------- declarado aqui
+...
+7 |     Se o prova for maior que o trabalho:
+  |        ^^^^^^^

@@ -1,0 +1,6 @@
+Erro de sintaxe: Dentro de uma operação por extenso, a conta infixa precisa de parênteses.
+ --> tests/programs/err/ab_urbe_ambiguidade.lav:6:44
+  |
+6 |     Escrevo a diferença do ano e da origem mais 1.
+  |                                            ^^^^
+  = dica: Escreva "a diferença de 10 e (3 mais 1)" ou "(a diferença de 10 e 3) mais 1", conforme o que quer dizer.

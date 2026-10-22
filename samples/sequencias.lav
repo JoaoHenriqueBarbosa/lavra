@@ -1,0 +1,21 @@
+Nota: listas, posições, contas por extenso.
+
+Para começar:
+    As notas são 7, 8,5, 6, 9,25 e 10.
+    A soma-total começa em 0,0.
+    Para cada nota: a soma-total cresce a nota.
+    Escrevo "Notas: " seguido das notas.
+    Escrevo "Primeira: " seguido da primeira das notas seguido de ", última: " seguido da última das notas.
+    Escrevo "Média: " seguido da soma-total dividido por (o tamanho das notas) como real.
+
+    As dobradas começam vazias.
+    Para cada nota das notas: as dobradas ganham a nota vezes 2.
+    Escrevo "Dobradas: " seguido das dobradas.
+    Para cada i de 1 até o tamanho das dobradas:
+        Se o item i das dobradas for maior que 15:
+            Escrevo "posição " seguido de i seguido de " passou de 15".
+
+    Escrevo "13 módulo 4 = " seguido de 13 módulo 4
+        seguido de "; deslocamento: " seguido do deslocamento de 1 por 10 à esquerda.
+    Escrevo "interseção de 12 e 10 = " seguido da interseção de 12 e 10.
+    Escrevo "raiz de 2 = " seguido da raiz de 2.

@@ -1,0 +1,10 @@
+Nota: este programa tem um erro de concordância de propósito.
+Nota: o compilador sublinha a palavra e diz como corrigir. Conserte e veja rodar.
+
+Para começar:
+    A prova é 8,5.
+    O trabalho é 6,0.
+    Se o prova for maior que o trabalho:
+        Escrevo "A prova foi melhor".
+    Senão:
+        Escrevo "O trabalho foi melhor".

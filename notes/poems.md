@@ -113,3 +113,28 @@ com 13/05/1990 a 22/10/2026 e com 29/02/2000 a 29/02/2024) e roda igual no nativ
   em 1; a regra dos parênteses não pesa, porque a forma por extenso fica no fim.
 - `Para a data rimar com a outra, sendo ambas datas emprestadas`: o empréstimo entrou no
   verso; "emprestadas" concorda com "datas".
+
+## A partilha, a Catilinária e Ab urbe condita na língua nova (`samples/`, 2026-10-22)
+
+As duas reescritas saem idênticas ao protótipo (A partilha com 13 por 21 braças e três
+herdeiros; a Catilinária nos dois desfechos). Ab urbe condita foi reconstruído a partir
+do cabeçalho, da chamada e da saída registrados acima, e reproduz a saída exatamente.
+
+O que a língua nova mudou no texto:
+
+- **Sem globais que mudam.** O estado viaja por parâmetros confiados, e isso entrou nos
+  versos. Na Partilha, `Corto os quadrados da sobra no dia.` (antes "Corto os
+  quadrados."). Na Catilinária, os oradores passam pela regência, em espelho:
+  `Acuso o réu pelo cônsul com ...` / `Respondo ao cônsul pelo réu com ...`, e
+  `Consulto o senado sobre o cônsul e o réu.`; no fim, `Ameaço a cidade pelo réu e deixo
+  a cidade com o réu.`, `Retiro a acusação pelo cônsul e permaneço com o réu.`
+- **"virar" é verbo da língua** (`A mensagem vira ...`), então "Viro a sobra" passou a
+  `Giro a sobra.`
+- **Sem memória reservada.** "Reservo a prole pessoas" e "Libero a descendência" saíram;
+  os herdeiros são uma lista que ganha uma pessoa por nome lido e se libera sozinha.
+- `A sobra começa numa cópia da herança.`: a cópia, antes implícita no "Guardo", agora é
+  dita.
+- Ab urbe condita: o rascunho que deu 689 ("a diferença ... mais 1") não compila mais
+  (`tests/programs/err/ab_urbe_ambiguidade.lav`); a versão certa é `1 mais a diferença do
+  ano da data e do ano da origem`. Os nomes da conta repetem os de Lavra dos dias:
+  a era, a lua, o sol.

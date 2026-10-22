@@ -1,0 +1,22 @@
+Nota: média de prova e trabalho, até a pessoa dizer que basta.
+
+Para avaliar x e y, sendo ambos reais, devolvendo um real:
+    Devolvo o quociente da soma de x e y e 2.
+
+Para começar:
+    Repito sempre:
+        Escrevo "Nota da prova: " e leio um real, e a prova é o resultado.
+        Escrevo "Nota do trabalho: " e leio um real, e o trabalho é o resultado.
+
+        A média é o resultado de avaliar a prova e o trabalho.
+        Escrevo "Média: " seguido da média.
+
+        Se a média for pelo menos 7:
+            Escrevo "Aprovado".
+        Senão, se a média for pelo menos 5:
+            Escrevo "Recuperação".
+        Senão:
+            Escrevo "Reprovado".
+
+        Escrevo "Outra? (s/n) " e leio um caractere, e a resposta é o resultado.
+        Se a resposta for igual a 'n': paro.

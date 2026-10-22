@@ -1,0 +1,40 @@
+Nota: Ab urbe condita.
+Nota: o tempo desde a fundação de Roma (21 de abril de 753 a.C., data de Varrão)
+Nota: até a reunião na casa de Marco Leca, na rua dos Foiceiros.
+Nota: os anos antes de Cristo contam para trás: 753 a.C. é o ano -752.
+
+Uma data é um registro de:
+    o dia, um inteiro;
+    o mês, um inteiro;
+    o ano, um inteiro.
+
+Os meses são 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 e 31.
+
+A fundação é uma data com o dia 21, o mês 4 e o ano -752.
+
+Para começar:
+    A reunião é uma data com o dia 7, o mês 11 e o ano -62.
+    Escrevo "Casa de Leca, rua dos Foiceiros, 63 a.C.:".
+    Meço o tempo desde a fundação até a reunião.
+
+    A lembrança é uma data com o dia 7, o mês 11 e o ano -67.
+    Escrevo "O mesmo dia, em 68 a.C.:".
+    Meço o tempo desde a fundação até a lembrança.
+
+    O agora é uma data com o dia 21, o mês 10 e o ano 2026.
+    Escrevo "Hoje:".
+    Meço o tempo desde a fundação até o agora.
+
+Para medir o tempo desde a origem até a data, sendo ambas datas emprestadas:
+    A era começa na diferença do ano da data e do ano da origem.
+    A lua começa na diferença do mês da data e do mês da origem.
+    O sol começa na diferença do dia da data e do dia da origem.
+    Se o sol for menor que 0:
+        A lua diminui 1,
+            e o sol cresce o item ((o mês da data mais 10) módulo 12 mais 1) dos meses.
+    Se a lua for menor que 0:
+        A era diminui 1, e a lua cresce 12.
+    Escrevo "    " seguido da era seguido de " anos, " seguido da lua seguido de " meses e "
+        seguido do sol seguido de " dias desde a fundação;".
+    Escrevo "    é o ano " seguido de 1 mais a diferença do ano da data e do ano da origem
+        seguido de " ab urbe condita.".

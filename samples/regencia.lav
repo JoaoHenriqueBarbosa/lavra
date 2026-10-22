@@ -1,0 +1,27 @@
+Nota: a regência é a assinatura do verbo.
+
+Para elevar x a n, sendo x um real e n um natural, devolvendo um real:
+    R começa em 1,0.
+    Repito n vezes: r vira r vezes x.
+    Devolvo r.
+
+Para o valor exceder o limite, sendo ambos inteiros, devolvendo um lógico:
+    Devolvo o fato de o valor ser maior que o limite.
+
+Para transferir a quantia da origem para o destino,
+        sendo a quantia um real e a origem e o destino reais confiados:
+    A origem diminui a quantia.
+    O destino cresce a quantia.
+
+Para começar:
+    Escrevo "2 elevado a 10 = " seguido do resultado de elevar 2 a 10.
+    Elevo 1,5 a 2 e escrevo o resultado.
+    A conta, um real, começa em 1000.
+    A poupança, um real, começa em 250.
+    Transfiro 300 da conta para a poupança.
+    Escrevo "conta: " seguido da conta seguido de " | poupança: " seguido da poupança.
+    O saldo é 120.
+    O teto é 100.
+    Se o saldo exceder o teto:
+        Escrevo "Estourou o teto".
+    Se o teto não exceder o saldo: escrevo "teto não excede saldo".

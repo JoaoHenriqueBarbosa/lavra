@@ -1,0 +1,91 @@
+Nota: teste amplo da linguagem.
+
+Um ponto é um registro de:
+    x, um real;
+    y, um real.
+
+Um aluno é um registro de:
+    o nome, um texto;
+    a idade, um byte;
+    as notas, uma lista de reais;
+    a matrícula, um natural de 32 bits.
+
+Para fatorar n no contador, sendo n um natural e o contador um inteiro confiado, devolvendo um natural:
+    O contador cresce 1.
+    Se n for no máximo 1: devolvo 1.
+    Devolvo n vezes o resultado de fatorar n menos 1 no contador.
+
+Para fibonar n, sendo n um inteiro, devolvendo um inteiro:
+    Se n for menor que 2: devolvo n.
+    Devolvo a soma do resultado de fibonar n menos 1 e do resultado de fibonar n menos 2.
+
+Para medir a distância entre p e q, sendo p e q pontos emprestados, devolvendo um real:
+    O dx é a diferença do x de p e do x de q.
+    O dy é a diferença do y de p e do y de q.
+    Devolvo a raiz da soma de (o dx vezes o dx) e (o dy vezes o dy).
+
+Para apresentar o aluno, sendo o aluno um aluno emprestado:
+    Escrevo o nome do aluno seguido de " (" seguido da idade do aluno seguido de " anos)".
+    Escrevo "  notas: " seguido das notas do aluno.
+
+Para o número ser par, sendo o número um inteiro, devolvendo um lógico:
+    Devolvo o fato de o resto do número e 2 ser igual a 0.
+
+Para começar:
+    O contador começa em 0.
+    Escrevo "10! = " seguido do resultado de fatorar 10 no contador.
+    Escrevo "chamadas: " seguido do contador.
+    Escrevo "fib(20) = " seguido do resultado de fibonar 20.
+
+    A origem é um ponto com x 0,0 e y 0,0.
+    O destino é um ponto com x 3,0 e y 4,0.
+    Escrevo "distância: " seguido do resultado de medir a distância entre a origem e o destino.
+    Escrevo "pontos: " seguido da origem seguido de " → " seguido do destino.
+
+    A ana começa em um aluno com o nome "Ana Lúcia", a idade 21, as notas 9,5
+        e a matrícula 4 000 000 000.
+    As notas da ana ganham 8,0, e as notas da ana ganham 7,25.
+    Apresento a ana.
+    A cópia começa numa cópia da ana.
+    O nome da cópia vira "Outra".
+    Escrevo "original: " seguido do nome da ana seguido de ", cópia: " seguido do nome da cópia.
+    Escrevo "registro inteiro: " seguido da ana.
+
+    A soma-pares começa em 0.
+    Para cada i de 1 até 20:
+        Se i não for par: pulo.
+        Se i for maior que 14: paro.
+        A soma-pares cresce i.
+    Escrevo "pares até 14: " seguido da soma-pares.
+    Para cada i de 5 até 1:
+        Escrevo i seguido de " " sem quebrar a linha.
+    Escrevo "".
+
+    O meio, um real de 32 bits, é 0,1.
+    Escrevo "real32 0,1 = " seguido do meio.
+    Escrevo "real64 0,1 mais 0,2 = " seguido de 0,1 mais 0,2.
+    Escrevo "-7 dividido por 2 = " seguido de -7 dividido por 2 seguido de "; resto: " seguido do resto de -7 e 2.
+    Escrevo "-16 deslocado 2 à direita = " seguido do deslocamento de -16 por 2 à direita.
+    Escrevo "união 5|2 = " seguido da união de 5 e 2 seguido de ", disjunção 7^2 = " seguido da disjunção de 7 e 2
+        seguido de ", inverso de 0 = " seguido do inverso de 0.
+    Escrevo "potência 2^62 = " seguido da potência de 2 e 62 seguido de ", 2^0,5 = " seguido da potência de 2 e 0,5.
+    Escrevo "3,99 como inteiro = " seguido de 3,99 como inteiro.
+    Escrevo "texto: " seguido de 10 seguido de " e " seguido de 2,5 seguido de " e " seguido de verdadeiro.
+    Escrevo "tamanho de \"ação\": " seguido do tamanho de "ação".
+    Escrevo "\"abc\" menor que \"abd\": " seguido do fato de "abc" ser menor que "abd".
+    O achado é falso.
+    Se o achado for falso e 3 for maior que 2 ou 1 for igual a 5: escrevo "lógica ok".
+    Escrevo "negativo de 2,5 = " seguido do negativo de 2,5.
+
+    O texto-lido começa em "".
+    Escrevo "Seu nome: " e leio o texto-lido.
+    Escrevo "Olá, " seguido do texto-lido seguido de "!".
+    Leio um inteiro e o contador cresce o resultado.
+    Escrevo "contador: " seguido do contador.
+    Leio um caractere e escrevo "caractere lido: " seguido do resultado.
+    Leio um lógico e escrevo "lógico lido: " seguido do resultado.
+
+    Os valores, uma lista de inteiros de 16 bits, começam com 7, 7, 7 e 7.
+    O item 1 dos valores vira 30000.
+    O item 1 dos valores cresce 2000.
+    Escrevo "16 bits: " seguido dos valores.

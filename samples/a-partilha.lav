@@ -1,0 +1,97 @@
+Nota: A partilha.
+
+Uma pessoa é um registro de:
+    o nome, um texto;
+    a parte, um inteiro.
+
+Um terreno é um registro de:
+    a largura, um inteiro;
+    o comprimento, um inteiro.
+
+Para começar:
+    Escrevo "Chamaram-me para partir a terra de um morto.".
+
+    A viúva começa em uma pessoa com o nome "" e a parte 0.
+    A herança começa em um terreno com a largura 0 e o comprimento 0.
+    Escrevo "Como se chama a viúva? " e leio o nome da viúva.
+    Escrevo "Quantas braças tem a terra de largura? " e leio a largura da herança.
+    Escrevo "E de comprimento? " e leio o comprimento da herança.
+
+    Se a herança for vazia:
+        Escrevo "Não há terra nenhuma. Volto para casa.".
+    Senão:
+        A sobra começa numa cópia da herança.
+        O dia começa em 0.
+        Se o comprimento da sobra for menor que a largura da sobra: giro a sobra.
+        Enquanto a sobra não for quadrada:
+            Corto os quadrados da sobra no dia.
+
+        O lado é a largura da sobra.
+        Se o dia for igual a 0:
+            Escrevo "A terra já é um quadrado de "
+                seguido do resultado de flexionar o lado entre "braça" e "braças"
+                seguido de ". Não há o que cortar.".
+        Senão:
+            Escrevo "No " seguido do dia mais 1 seguido de "º dia, o que sobra é um quadrado de "
+                seguido do resultado de flexionar o lado entre "braça" e "braças"
+                seguido de ". É a medida do lote.".
+
+        O loteamento é
+            (a largura da herança dividido pelo lado)
+            vezes (o comprimento da herança dividido pelo lado).
+        Escrevo "A terra dá " seguido do resultado de flexionar o loteamento entre "lote" e "lotes"
+            seguido de ".".
+
+        Escrevo "Quantos são os herdeiros? " e leio um inteiro, e a prole é o resultado.
+        A parte da viúva vira o loteamento.
+
+        Os herdeiros começam vazios.
+        Para cada i de 1 até a prole:
+            Escrevo "Nome do " seguido de i seguido de "º herdeiro: " e leio um texto,
+                e os herdeiros ganham uma pessoa com o nome o resultado
+                    e a parte o loteamento dividido pela prole.
+            A parte da viúva diminui o loteamento dividido pela prole.
+        Para cada herdeiro dos herdeiros:
+            Escrevo o nome do herdeiro seguido de " recebe "
+                seguido do resultado de flexionar a parte do herdeiro entre "lote" e "lotes"
+                seguido de ".".
+
+        Se a parte da viúva for igual a 0:
+            Escrevo o nome da viúva
+                seguido de " não fica com lote nenhum. Diz que a parte dela foi com ele.".
+        Senão:
+            Escrevo o nome da viúva seguido de " fica com "
+                seguido do resultado de flexionar a parte da viúva entre "lote" e "lotes"
+                seguido de ", o que não se deixou partir.".
+        Escrevo "Enrolo a corrente e volto para casa.".
+
+Para cortar os quadrados da sobra no dia,
+        sendo a sobra um terreno confiado e o dia um inteiro confiado:
+    O dia cresce 1.
+    A quantidade é (o comprimento da sobra menos 1) dividido pela largura da sobra.
+    O comprimento da sobra diminui a quantidade vezes a largura da sobra.
+    Escrevo "No " seguido do dia seguido de "º dia, corto "
+        seguido do resultado de flexionar a quantidade entre "quadrado" e "quadrados"
+        seguido de " de " seguido do resultado de flexionar a largura da sobra entre "braça" e "braças"
+        seguido de " de lado.".
+    Se o comprimento da sobra for menor que a largura da sobra: giro a sobra.
+    Escrevo "    Sobra um terreno de " seguido da largura da sobra
+        seguido de " por " seguido do comprimento da sobra seguido de ".".
+
+Para girar a sobra, sendo a sobra um terreno confiado:
+    A medida é a largura da sobra.
+    A largura da sobra vira o comprimento da sobra.
+    O comprimento da sobra vira a medida.
+
+Para o terreno ser quadrado, sendo o terreno um terreno emprestado, devolvendo um lógico:
+    Devolvo o fato de a largura do terreno ser igual ao comprimento do terreno.
+
+Para o terreno ser vazio, sendo o terreno um terreno emprestado, devolvendo um lógico:
+    Se a largura do terreno for no máximo 0: devolvo verdadeiro.
+    Devolvo o fato de o comprimento do terreno ser no máximo 0.
+
+Para flexionar a quantidade entre o singular e o plural,
+        sendo a quantidade um inteiro e o singular e o plural textos emprestados,
+        devolvendo um texto:
+    Se a quantidade for igual a 1: devolvo "1 " seguido do singular.
+    Devolvo a quantidade como texto seguido de " " seguido do plural.

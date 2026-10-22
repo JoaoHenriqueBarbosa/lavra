@@ -1,0 +1,13 @@
+Nota: "seguido de" liga mais frouxo que um argumento de chamada.
+
+Para flexionar a quantidade entre o singular e o plural,
+        sendo a quantidade um inteiro e o singular e o plural textos emprestados,
+        devolvendo um texto:
+    Se a quantidade for igual a 1: devolvo "1 " seguido do singular.
+    Devolvo a quantidade como texto seguido de " " seguido do plural.
+
+Para começar:
+    Escrevo "corto " seguido do resultado de flexionar 3 entre "quadrado" e "quadrados"
+        seguido de " de lado.".
+    Escrevo "e " seguido do resultado de flexionar 1 entre "lote" e ("lote" seguido de "s")
+        seguido de ".".

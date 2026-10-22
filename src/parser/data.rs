@@ -146,9 +146,6 @@ impl Parser {
             let mut fields: Vec<FieldDef> = Vec::new();
             loop {
                 let name = self.name_ref()?;
-                if name.is_symbol() {
-                    return err(Diagnostic::new(Category::Syntax, "Campo de registro leva nome com artigo (\"o saldo\").", name.span));
-                }
                 if fields.iter().any(|f| f.name.word == name.word) {
                     return err(Diagnostic::new(Category::Scope, format!("O campo \"{}\" aparece duas vezes.", name.word), name.span));
                 }
@@ -601,8 +598,8 @@ impl Parser {
                 let value = self.expr()?;
                 fields.push((n.word.clone(), n.span, value));
                 if (self.at_word("e") || self.at_punct(','))
-                    && self.definite_article_at(1).is_some()
-                    && self.peek_at(2).word().is_some_and(|w| self.field_names.contains(w))
+                    && ((self.definite_article_at(1).is_some() && self.peek_at(2).word().is_some_and(|w| self.field_names.contains(w)))
+                        || self.peek_at(1).word().is_some_and(|w| morphology::is_symbol(w) && self.field_names.contains(w)))
                 {
                     self.bump();
                     continue;

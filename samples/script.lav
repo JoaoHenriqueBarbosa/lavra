@@ -1,0 +1,14 @@
+Nota: um script curto: laço, condição, coleção de caracteres.
+
+Para começar:
+    O total começa em 0.
+    Repito 5 vezes: o total cresce 2.
+    Escrevo "total: " seguido do total.
+    N começa em 10.
+    Enquanto n for maior que 0: n diminui 3.
+    Escrevo "n: " seguido de n.
+    As letras são 'a', 'b' e 'ç'.
+    Para cada letra:
+        Escrevo a letra seguido de "-" sem quebrar a linha.
+    Escrevo "".
+    Escrevo as letras.

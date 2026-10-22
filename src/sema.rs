@@ -815,7 +815,10 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 out.push(hir::Stmt::Assign { place: p.clone(), value });
                 let span = p.span;
                 let ty = p.ty.clone();
-                self.set_result(hir::Expr { kind: hir::ExprKind::Read(p), ty, span }, out);
+                let read = hir::Expr { kind: hir::ExprKind::Read(p), ty: ty.clone(), span };
+                // "O resultado" da leitura é o valor lido; o lugar continua dono do dele.
+                let read = if ty.is_copy() { read } else { hir::Expr { kind: hir::ExprKind::Copy(Box::new(read)), ty, span } };
+                self.set_result(read, out);
             }
             ClauseKind::ReadValue { ty } => {
                 let ty = self.env.type_of(ty)?;
@@ -1244,6 +1247,11 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 // de tipo sozinho, e a mistura cai na mensagem com a dica de "como".
                 let literal = |x: &ast::Expr| matches!(x.kind, ExprKind::Int(_) | ExprKind::Real(_));
                 let shift = matches!(op, BinOp::Shl | BinOp::Shr);
+                let real_lit = |x: &ast::Expr| matches!(x.kind, ExprKind::Real(_));
+                if !shift && literal(lhs) && real_lit(rhs) && !matches!(l.ty, Ty::Real(_)) {
+                    // "a potência de 2 e 0,5": havendo real escrito, o inteiro escrito vira real.
+                    l = self.expr(lhs, Some(&Ty::Real(64)))?;
+                }
                 let r_hint = if !shift && literal(rhs) { Some(l.ty.clone()).filter(|t| t.is_numeric()) } else { None };
                 let r = self.expr(rhs, r_hint.as_ref())?;
                 if !shift && literal(lhs) && !literal(rhs) && r.ty.is_numeric() && r.ty != l.ty {
