@@ -562,11 +562,7 @@ impl Parser {
         let (ty, ty_gender, plural) = if let Some(art) = self.peek().word().and_then(morphology::article).filter(|a| !a.definite) {
             let at = self.bump();
             if names.len() > 1 {
-                return err(Diagnostic::new(
-                    L0165,
-                    "Vários parâmetros pedem o tipo no plural, sem artigo: \"sendo p e q inteiros\".",
-                    at.span,
-                ));
+                return Err(several_in_singular(at.span));
             }
             let (ty, g) = self.type_word(Number::Singular)?;
             if g != art.gender {
@@ -581,6 +577,14 @@ impl Parser {
             (ty, g, false)
         } else {
             if names.len() < 2 {
+                // "sendo p e q um real": o nome seguinte já traz o tipo no singular, e o
+                // tipo valeria para os dois.
+                if (self.at_word("e") || self.at_punct(','))
+                    && let Some(k) = self.after_next_name()
+                    && self.indefinite_at(k)
+                {
+                    return Err(several_in_singular(self.peek_at(k).span));
+                }
                 return Err(self.expected("o tipo com artigo indefinido (\"um real\")"));
             }
             let (ty, g) = self.type_word(Number::Plural)?;
@@ -612,19 +616,29 @@ impl Parser {
     /// Depois de "e"/"," na tipagem: o nome seguinte é do mesmo grupo plural
     /// ("p e q inteiros") ou abre um grupo novo ("x um real e n um natural")?
     fn continues_group(&self) -> bool {
+        self.after_next_name().is_some_and(|k| !self.indefinite_at(k))
+    }
+
+    /// Depois do "e" ou da vírgula, o próximo nome ("q", "a origem"): a distância, a partir
+    /// do token atual, do que vem logo depois dele.
+    fn after_next_name(&self) -> Option<usize> {
         let mut k = 1;
         if self.peek_at(k).is_word("e") {
             k += 1;
         }
         let t = self.peek_at(k);
-        let len = if t.word().is_some_and(morphology::is_symbol) {
-            1
+        if t.word().is_some_and(morphology::is_symbol) {
+            Some(k + 1)
         } else if t.word().and_then(morphology::article).is_some_and(|a| a.definite) {
-            2
+            Some(k + 2)
         } else {
-            return false;
-        };
-        !self.peek_at(k + len).word().and_then(morphology::article).is_some_and(|a| !a.definite)
+            None
+        }
+    }
+
+    /// Um artigo indefinido ("um", "uma") a `k` tokens daqui.
+    fn indefinite_at(&self, k: usize) -> bool {
+        self.peek_at(k).word().and_then(morphology::article).is_some_and(|a| !a.definite)
     }
 
     /// Lê um substantivo de tipo no número pedido. Devolve o tipo e o gênero.
@@ -827,4 +841,13 @@ impl Draft {
             builtin: None,
         })
     }
+}
+
+/// Vários nomes com o tipo no singular ("sendo ambos um real", "sendo p e q um real"); o
+/// trecho é o do artigo.
+fn several_in_singular(article: Span) -> Box<Diagnostic> {
+    Box::new(
+        Diagnostic::new(L0165, "Vários parâmetros pedem o tipo no plural, sem artigo: \"sendo p e q inteiros\".", article)
+            .hint("Ou dê a cada parâmetro o seu: \"sendo p um inteiro e q um inteiro\"."),
+    )
 }

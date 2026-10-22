@@ -1,0 +1,6 @@
+Erro de concordância [L0165]: Vários parâmetros pedem o tipo no plural, sem artigo: "sendo p e q inteiros".
+ --> tests/programs/err/tipagem_nomes_singular.lav:1:49
+  |
+1 | Para medir a distância entre p e q, sendo p e q um real, devolvendo um real:
+  |                                                 ^^
+  = dica: Ou dê a cada parâmetro o seu: "sendo p um inteiro e q um inteiro".

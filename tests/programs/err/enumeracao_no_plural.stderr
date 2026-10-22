@@ -1,0 +1,5 @@
+Erro de concordância [L0201]: Um tipo se define no singular: "Uma forma é uma destas:".
+ --> tests/programs/err/enumeracao_no_plural.lav:1:1
+  |
+1 | Umas formas são uma destas:
+  | ^^^^

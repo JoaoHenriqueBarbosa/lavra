@@ -28,6 +28,10 @@ impl Parser {
         let mut enum_starts = Vec::new();
         let mut depth = 0usize;
         let mut at_start = true;
+        // "Uma conta é um registro de:". No plural ("Uns dados são um registro de:") a
+        // definição também é reconhecida, para o erro dizer que o tipo se define no singular
+        // em vez de ler a linha como oração.
+        let is_definition_verb = |t: Option<&crate::lexer::Token>| t.is_some_and(|n| n.is_word("é") || n.is_word("são"));
         for k in 0..self.toks.len() {
             let t = &self.toks[k];
             match t.kind {
@@ -38,14 +42,14 @@ impl Parser {
             if depth == 0
                 && at_start
                 && t.word().and_then(morphology::article).is_some_and(|a| !a.definite)
-                && self.toks.get(k + 2).is_some_and(|n| n.is_word("é"))
+                && is_definition_verb(self.toks.get(k + 2))
                 && self.toks.get(k + 4).is_some_and(|n| n.is_word("registro"))
             {
                 starts.push(k);
             } else if depth == 0
                 && at_start
                 && t.word().and_then(morphology::article).is_some_and(|a| !a.definite)
-                && self.toks.get(k + 2).is_some_and(|n| n.is_word("é"))
+                && is_definition_verb(self.toks.get(k + 2))
                 && self.toks.get(k + 4).is_some_and(|n| n.is_word("destas") || n.is_word("destes"))
             {
                 enum_starts.push(k);

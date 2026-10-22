@@ -1,0 +1,5 @@
+Erro de concordância [L0201]: Um tipo de registro se define no singular: "Uma conta é um registro de:".
+ --> tests/programs/err/registro_no_plural.lav:1:1
+  |
+1 | Uns dados são um registro de:
+  | ^^^
