@@ -1,0 +1,57 @@
+{
+  "name": "lavra",
+  "displayName": "Lavra",
+  "description": "Suporte à linguagem Lavra: realce de sintaxe, recuo, dobra e comentários.",
+  "version": "0.1.0",
+  "publisher": "joaohenriquebarbosa",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoaoHenriqueBarbosa/lavra"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "lavra",
+    "português",
+    "linguagem"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "lavra",
+        "aliases": [
+          "Lavra",
+          "lavra"
+        ],
+        "extensions": [
+          ".lav"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lavra",
+        "scopeName": "source.lavra",
+        "path": "./syntaxes/lavra.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "build:grammar": "python3 -I syntaxes/build.py",
+    "test": "npm run build:grammar && vscode-tmgrammar-test -g syntaxes/lavra.tmLanguage.json 'tests/syntax/*.lav' && vscode-tmgrammar-snap -g syntaxes/lavra.tmLanguage.json 'tests/snap/*.lav'",
+    "test:update-snapshots": "vscode-tmgrammar-snap -g syntaxes/lavra.tmLanguage.json --updateSnapshot 'tests/snap/*.lav'",
+    "preview": "node scripts/preview.mjs",
+    "package": "npm run build:grammar && vsce package --out lavra.vsix"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "4.0.0",
+    "shiki": "4.5.0",
+    "vscode-tmgrammar-test": "0.1.3"
+  }
+}

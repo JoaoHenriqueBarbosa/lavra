@@ -1,0 +1,18 @@
+-- SYNTAX TEST "source.lavra" "tipos"
+Uma conta é um registro de:
+--<--- keyword.other.article.lavra
+--  ^^^^^ entity.name.type.lavra
+--          ^^^^^^^^^^^^^^ keyword.other.definition.lavra
+    o titular, um texto;
+--    ^^^^^^^ variable.other.lavra
+--                ^^^^^ storage.type.primitive.lavra
+--                     ^ punctuation.separator.lavra
+    as movimentações, uma lista de reais.
+--                        ^^^^^ storage.type.primitive.lavra
+--                                 ^^^^^ storage.type.primitive.lavra
+Uma forma é uma destas:
+--  ^^^^^ entity.name.type.lavra
+--          ^^^^^^^^^^ keyword.other.definition.lavra
+A carteira é uma conta com o titular "Ana" e o saldo 0,5.
+--               ^^^^^ entity.name.type.lavra
+--                           ^^^^^^^ variable.other.lavra

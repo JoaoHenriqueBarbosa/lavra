@@ -1,0 +1,67 @@
+>Nota: este programa tem um erro de concordância de propósito.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>Nota: o compilador sublinha a palavra e diz como corrigir. Conserte e veja rodar.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    A prova é 8,5.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra
+#            ^ source.lavra storage.type.declaration.lavra
+#             ^ source.lavra
+#              ^^^ source.lavra constant.numeric.decimal.lavra
+#                 ^ source.lavra punctuation.terminator.period.lavra
+>    O trabalho é 6,0.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^^ source.lavra variable.other.lavra
+#              ^ source.lavra
+#               ^ source.lavra storage.type.declaration.lavra
+#                ^ source.lavra
+#                 ^^^ source.lavra constant.numeric.decimal.lavra
+#                    ^ source.lavra punctuation.terminator.period.lavra
+>    Se o prova for maior que o trabalho:
+#^^^^ source.lavra
+#    ^^ source.lavra keyword.control.conditional.lavra
+#      ^ source.lavra
+#       ^ source.lavra variable.other.article.lavra
+#        ^ source.lavra
+#         ^^^^^ source.lavra variable.other.lavra
+#              ^ source.lavra
+#               ^^^ source.lavra keyword.operator.copula.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                            ^ source.lavra
+#                             ^ source.lavra variable.other.article.lavra
+#                              ^ source.lavra
+#                               ^^^^^^^^ source.lavra variable.other.lavra
+#                                       ^ source.lavra punctuation.section.block.lavra
+>        Escrevo "A prova foi melhor".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                    ^ source.lavra punctuation.terminator.period.lavra
+>    Senão:
+#^^^^ source.lavra
+#    ^^^^^ source.lavra keyword.control.conditional.lavra
+#         ^ source.lavra punctuation.section.block.lavra
+>        Escrevo "O trabalho foi melhor".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                      ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                       ^ source.lavra punctuation.terminator.period.lavra
+>

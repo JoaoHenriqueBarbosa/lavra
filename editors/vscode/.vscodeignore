@@ -1,0 +1,6 @@
+node_modules/**
+tests/**
+syntaxes/build.py
+scripts/**
+*.vsix
+.gitignore

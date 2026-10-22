@@ -1,0 +1,253 @@
+>Nota: média de prova e trabalho, até a pessoa dizer que basta.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>Para avaliar x e y, sendo ambos reais, devolvendo um real:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#            ^ source.lavra meta.function.header.lavra
+#             ^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#              ^ source.lavra meta.function.header.lavra
+#               ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                ^ source.lavra meta.function.header.lavra
+#                 ^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                  ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                   ^ source.lavra meta.function.header.lavra
+#                    ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                         ^ source.lavra meta.function.header.lavra
+#                          ^^^^^ source.lavra meta.function.header.lavra keyword.other.both.lavra
+#                               ^ source.lavra meta.function.header.lavra
+#                                ^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                     ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                                      ^ source.lavra meta.function.header.lavra
+#                                       ^^^^^^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                                 ^ source.lavra meta.function.header.lavra
+#                                                  ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                    ^ source.lavra meta.function.header.lavra
+#                                                     ^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                         ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Devolvo o quociente da soma de x e y e 2.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra keyword.control.flow.lavra
+#           ^ source.lavra
+#            ^ source.lavra keyword.operator.word.preposition.lavra
+#             ^ source.lavra
+#              ^^^^^^^^^ source.lavra support.function.nominal.lavra
+#                       ^ source.lavra
+#                        ^^ source.lavra keyword.operator.word.preposition.lavra
+#                          ^ source.lavra
+#                           ^^^^ source.lavra support.function.nominal.lavra
+#                               ^ source.lavra
+#                                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                  ^ source.lavra
+#                                   ^ source.lavra variable.other.symbol.lavra
+#                                    ^^^ source.lavra
+#                                       ^ source.lavra variable.other.symbol.lavra
+#                                        ^^^ source.lavra
+#                                           ^ source.lavra constant.numeric.decimal.lavra
+#                                            ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    Repito sempre:
+#^^^^ source.lavra
+#    ^^^^^^ source.lavra keyword.control.loop.lavra
+#          ^ source.lavra
+#           ^^^^^^ source.lavra keyword.control.loop.lavra
+#                 ^ source.lavra punctuation.section.block.lavra
+>        Escrevo "Nota da prova: " e leio um real, e a prova é o resultado.
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                 ^^^ source.lavra
+#                                    ^^^^ source.lavra support.function.builtin.lavra
+#                                        ^ source.lavra
+#                                         ^^ source.lavra keyword.other.article.lavra
+#                                           ^ source.lavra
+#                                            ^^^^ source.lavra storage.type.primitive.lavra
+#                                                ^ source.lavra punctuation.separator.lavra
+#                                                 ^^^ source.lavra
+#                                                    ^ source.lavra variable.other.article.lavra
+#                                                     ^ source.lavra
+#                                                      ^^^^^ source.lavra variable.other.lavra
+#                                                           ^ source.lavra
+#                                                            ^ source.lavra storage.type.declaration.lavra
+#                                                             ^ source.lavra
+#                                                              ^ source.lavra variable.language.article.lavra
+#                                                               ^ source.lavra
+#                                                                ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                                                                         ^ source.lavra punctuation.terminator.period.lavra
+>        Escrevo "Nota do trabalho: " e leio um real, e o trabalho é o resultado.
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                    ^^^ source.lavra
+#                                       ^^^^ source.lavra support.function.builtin.lavra
+#                                           ^ source.lavra
+#                                            ^^ source.lavra keyword.other.article.lavra
+#                                              ^ source.lavra
+#                                               ^^^^ source.lavra storage.type.primitive.lavra
+#                                                   ^ source.lavra punctuation.separator.lavra
+#                                                    ^^^ source.lavra
+#                                                       ^ source.lavra variable.other.article.lavra
+#                                                        ^ source.lavra
+#                                                         ^^^^^^^^ source.lavra variable.other.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^ source.lavra storage.type.declaration.lavra
+#                                                                   ^ source.lavra
+#                                                                    ^ source.lavra variable.language.article.lavra
+#                                                                     ^ source.lavra
+#                                                                      ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                                                                               ^ source.lavra punctuation.terminator.period.lavra
+>
+>        A média é o resultado de avaliar a prova e o trabalho.
+#^^^^^^^^ source.lavra
+#        ^ source.lavra variable.other.article.lavra
+#         ^ source.lavra
+#          ^^^^^ source.lavra variable.other.lavra
+#               ^ source.lavra
+#                ^ source.lavra storage.type.declaration.lavra
+#                 ^ source.lavra
+#                  ^ source.lavra variable.language.article.lavra
+#                   ^ source.lavra
+#                    ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                             ^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^^ source.lavra entity.name.function.call.lavra
+#                                        ^ source.lavra
+#                                         ^ source.lavra variable.other.article.lavra
+#                                          ^ source.lavra
+#                                           ^^^^^ source.lavra variable.other.lavra
+#                                                ^^^ source.lavra
+#                                                   ^ source.lavra variable.other.article.lavra
+#                                                    ^ source.lavra
+#                                                     ^^^^^^^^ source.lavra variable.other.lavra
+#                                                             ^ source.lavra punctuation.terminator.period.lavra
+>        Escrevo "Média: " seguido da média.
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^^^^^^^ source.lavra string.quoted.double.lavra
+#                        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                         ^ source.lavra
+#                          ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                 ^ source.lavra
+#                                  ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                    ^ source.lavra
+#                                     ^^^^^ source.lavra variable.other.lavra
+#                                          ^ source.lavra punctuation.terminator.period.lavra
+>
+>        Se a média for pelo menos 7:
+#^^^^^^^^ source.lavra
+#        ^^ source.lavra keyword.control.conditional.lavra
+#          ^ source.lavra
+#           ^ source.lavra variable.other.article.lavra
+#            ^ source.lavra
+#             ^^^^^ source.lavra variable.other.lavra
+#                  ^ source.lavra
+#                   ^^^ source.lavra keyword.operator.copula.lavra
+#                      ^ source.lavra
+#                       ^^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                 ^ source.lavra
+#                                  ^ source.lavra constant.numeric.decimal.lavra
+#                                   ^ source.lavra punctuation.section.block.lavra
+>            Escrevo "Aprovado".
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^ source.lavra support.function.builtin.lavra
+#                   ^ source.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                     ^^^^^^^^ source.lavra string.quoted.double.lavra
+#                             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                              ^ source.lavra punctuation.terminator.period.lavra
+>        Senão, se a média for pelo menos 5:
+#^^^^^^^^ source.lavra
+#        ^^^^^ source.lavra keyword.control.conditional.lavra
+#             ^ source.lavra punctuation.separator.lavra
+#              ^ source.lavra
+#               ^^ source.lavra keyword.control.conditional.lavra
+#                 ^ source.lavra
+#                  ^ source.lavra variable.other.article.lavra
+#                   ^ source.lavra
+#                    ^^^^^ source.lavra variable.other.lavra
+#                         ^ source.lavra
+#                          ^^^ source.lavra keyword.operator.copula.lavra
+#                             ^ source.lavra
+#                              ^^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                        ^ source.lavra
+#                                         ^ source.lavra constant.numeric.decimal.lavra
+#                                          ^ source.lavra punctuation.section.block.lavra
+>            Escrevo "Recuperação".
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^ source.lavra support.function.builtin.lavra
+#                   ^ source.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                     ^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                 ^ source.lavra punctuation.terminator.period.lavra
+>        Senão:
+#^^^^^^^^ source.lavra
+#        ^^^^^ source.lavra keyword.control.conditional.lavra
+#             ^ source.lavra punctuation.section.block.lavra
+>            Escrevo "Reprovado".
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^ source.lavra support.function.builtin.lavra
+#                   ^ source.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                     ^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                              ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                               ^ source.lavra punctuation.terminator.period.lavra
+>
+>        Escrevo "Outra? (s/n) " e leio um caractere, e a resposta é o resultado.
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                              ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                               ^^^ source.lavra
+#                                  ^^^^ source.lavra support.function.builtin.lavra
+#                                      ^ source.lavra
+#                                       ^^ source.lavra keyword.other.article.lavra
+#                                         ^ source.lavra
+#                                          ^^^^^^^^^ source.lavra storage.type.primitive.lavra
+#                                                   ^ source.lavra punctuation.separator.lavra
+#                                                    ^^^ source.lavra
+#                                                       ^ source.lavra variable.other.article.lavra
+#                                                        ^ source.lavra
+#                                                         ^^^^^^^^ source.lavra variable.other.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^ source.lavra storage.type.declaration.lavra
+#                                                                   ^ source.lavra
+#                                                                    ^ source.lavra variable.language.article.lavra
+#                                                                     ^ source.lavra
+#                                                                      ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                                                                               ^ source.lavra punctuation.terminator.period.lavra
+>        Se a resposta for igual a 'n': paro.
+#^^^^^^^^ source.lavra
+#        ^^ source.lavra keyword.control.conditional.lavra
+#          ^ source.lavra
+#           ^ source.lavra variable.other.article.lavra
+#            ^ source.lavra
+#             ^^^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra
+#                      ^^^ source.lavra keyword.operator.copula.lavra
+#                         ^ source.lavra
+#                          ^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                 ^ source.lavra
+#                                  ^^^ source.lavra constant.character.lavra
+#                                     ^ source.lavra punctuation.section.block.lavra
+#                                      ^ source.lavra
+#                                       ^^^^ source.lavra keyword.control.flow.lavra
+#                                           ^ source.lavra punctuation.terminator.period.lavra
+>

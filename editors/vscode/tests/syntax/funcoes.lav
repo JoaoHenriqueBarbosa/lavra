@@ -1,0 +1,49 @@
+-- SYNTAX TEST "source.lavra" "funcoes"
+Para começar:
+--<---- keyword.other.definition.lavra
+--   ^^^^^^^ entity.name.function.main.lavra
+Para render o saldo, sendo o saldo um real confiado:
+--<---- keyword.other.definition.lavra
+--   ^^^^^^ entity.name.function.lavra
+--            ^^^^^ variable.parameter.lavra
+--                   ^^^^^ keyword.other.signature.lavra
+--                                    ^^^^ storage.type.primitive.lavra
+--                                         ^^^^^^^^ storage.modifier.lent.lavra
+Para medir a carta, sendo a carta um texto emprestado, devolvendo um inteiro:
+--   ^^^^^ entity.name.function.lavra
+--                                         ^^^^^^^^^^ storage.modifier.borrowed.lavra
+--                                                     ^^^^^^^^^^ keyword.other.signature.lavra
+Para o valor exceder o limite, sendo ambos inteiros, devolvendo um lógico:
+--     ^^^^^ variable.parameter.lavra
+--           ^^^^^^^ entity.name.function.lavra
+--                     ^^^^^^ variable.parameter.lavra
+--                                   ^^^^^ keyword.other.both.lavra
+--                                         ^^^^^^^^ storage.type.primitive.lavra
+Para o terreno ser quadrado, sendo o terreno um terreno emprestado, devolvendo um lógico:
+--             ^^^ entity.name.function.lavra
+--                 ^^^^^^^^ entity.name.function.adjective.lavra
+--                                   ^^^^^^^ variable.parameter.lavra
+Para trovejar (trovejo) a nuvem, sendo a nuvem um texto:
+--   ^^^^^^^^ entity.name.function.lavra
+--             ^^^^^^^ entity.name.function.lavra
+Para dividir a conta entre as pessoas, sendo a conta e as pessoas inteiros, devolvendo um inteiro, salvo uma falha:
+--   ^^^^^^^ entity.name.function.lavra
+--                   ^^^^^ keyword.operator.word.preposition.lavra
+--                                                                                                 ^^^^^^^^^^^^^^^ keyword.other.fallible.lavra
+    Transfiro 300 da conta para a poupança.
+--  ^^^^^^^^^ entity.name.function.call.lavra
+--                ^^ keyword.operator.word.preposition.lavra
+--                         ^^^^ keyword.operator.word.preposition.lavra
+    Ameaço a cidade pelo réu e deixo a cidade com o réu.
+--  ^^^^^^ entity.name.function.call.lavra
+--                  ^^^^ keyword.operator.word.preposition.lavra
+--                             ^^^^^ entity.name.function.call.lavra
+    A parte é o resultado de dividir a conta entre 3, ou desisto.
+--              ^^^^^^^^^ variable.language.result.lavra
+--                           ^^^^^^^ entity.name.function.call.lavra
+--                                                  ^^^^^^^^^^^^ keyword.control.flow.lavra
+    Desisto com "ninguém".
+--  ^^^^^^^ keyword.control.flow.lavra
+    Devolvo o fato de o valor ser maior que o limite.
+--  ^^^^^^^ keyword.control.flow.lavra
+--            ^^^^ keyword.other.fact.lavra

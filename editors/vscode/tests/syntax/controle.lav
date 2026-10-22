@@ -1,0 +1,39 @@
+-- SYNTAX TEST "source.lavra" "controle"
+    Se o saldo for maior que o teto: paro.
+--  ^^ keyword.control.conditional.lavra
+--             ^^^ keyword.operator.copula.lavra
+--                 ^^^^^^^^^ keyword.operator.comparison.lavra
+--                                   ^^^^ keyword.control.flow.lavra
+    Senão, se a nota for igual ao teto: pulo.
+--  ^^^^^ keyword.control.conditional.lavra
+--         ^^ keyword.control.conditional.lavra
+--                       ^^^^^ keyword.operator.comparison.lavra
+--                             ^^ keyword.operator.word.preposition.lavra
+--                                ^^^^ variable.other.lavra
+    Enquanto o senado for paciente e n for no máximo 4:
+--  ^^^^^^^^ keyword.control.loop.lavra
+--                        ^^^^^^^^ entity.name.function.adjective.lavra
+--                                   ^ variable.other.symbol.lavra
+--                                         ^^^^^^^^^ keyword.operator.comparison.lavra
+    Repito sempre:
+--  ^^^^^^ keyword.control.loop.lavra
+--         ^^^^^^ keyword.control.loop.lavra
+    Para cada nota das notas:
+--  ^^^^ keyword.control.loop.lavra
+--       ^^^^ keyword.control.loop.lavra
+--            ^^^^ variable.other.lavra
+--                     ^^^^^ variable.other.lavra
+    Para cada i de 1 até 10:
+--            ^ variable.other.symbol.lavra
+--                   ^^^ keyword.control.loop.lavra
+    Se não houver apelido: escrevo "sem".
+--     ^^^ keyword.operator.logical.lavra
+--         ^^^^^^ keyword.operator.copula.lavra
+    Conforme a figura:
+--  ^^^^^^^^ keyword.control.conditional.lavra
+--             ^^^^^^ variable.other.lavra
+        Sendo um círculo: devolvo o raio.
+--      ^^^^^ keyword.control.conditional.lavra
+--            ^^ keyword.other.article.lavra
+--               ^^^^^^^ entity.name.type.lavra
+--                        ^^^^^^^ keyword.control.flow.lavra

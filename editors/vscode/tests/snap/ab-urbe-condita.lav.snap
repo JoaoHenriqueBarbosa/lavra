@@ -1,0 +1,610 @@
+>Nota: Ab urbe condita.
+#^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>Nota: o tempo desde a fundação de Roma (21 de abril de 753 a.C., data de Varrão)
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>Nota: até a reunião na casa de Marco Leca, na rua dos Foiceiros.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>Nota: os anos antes de Cristo contam para trás: 753 a.C. é o ano -752.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>Uma data é um registro de:
+#^^^ source.lavra keyword.other.article.lavra
+#   ^ source.lavra
+#    ^^^^ source.lavra entity.name.type.lavra
+#        ^ source.lavra
+#         ^ source.lavra storage.type.declaration.lavra
+#          ^ source.lavra
+#           ^^^^^^^^^^^^^^ source.lavra keyword.other.definition.lavra
+#                         ^ source.lavra punctuation.section.block.lavra
+>    o dia, um inteiro;
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^ source.lavra variable.other.lavra
+#         ^ source.lavra punctuation.separator.lavra
+#          ^ source.lavra
+#           ^^ source.lavra keyword.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra storage.type.primitive.lavra
+#                     ^ source.lavra punctuation.separator.lavra
+>    o mês, um inteiro;
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^ source.lavra variable.other.lavra
+#         ^ source.lavra punctuation.separator.lavra
+#          ^ source.lavra
+#           ^^ source.lavra keyword.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra storage.type.primitive.lavra
+#                     ^ source.lavra punctuation.separator.lavra
+>    o ano, um inteiro.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^ source.lavra variable.other.lavra
+#         ^ source.lavra punctuation.separator.lavra
+#          ^ source.lavra
+#           ^^ source.lavra keyword.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra storage.type.primitive.lavra
+#                     ^ source.lavra punctuation.terminator.period.lavra
+>
+>Os meses são 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 e 31.
+#^^ source.lavra variable.other.article.lavra
+#  ^ source.lavra
+#   ^^^^^ source.lavra variable.other.lavra
+#        ^ source.lavra
+#         ^^^ source.lavra storage.type.declaration.lavra
+#            ^ source.lavra
+#             ^^ source.lavra constant.numeric.decimal.lavra
+#               ^ source.lavra punctuation.separator.lavra
+#                ^ source.lavra
+#                 ^^ source.lavra constant.numeric.decimal.lavra
+#                   ^ source.lavra punctuation.separator.lavra
+#                    ^ source.lavra
+#                     ^^ source.lavra constant.numeric.decimal.lavra
+#                       ^ source.lavra punctuation.separator.lavra
+#                        ^ source.lavra
+#                         ^^ source.lavra constant.numeric.decimal.lavra
+#                           ^ source.lavra punctuation.separator.lavra
+#                            ^ source.lavra
+#                             ^^ source.lavra constant.numeric.decimal.lavra
+#                               ^ source.lavra punctuation.separator.lavra
+#                                ^ source.lavra
+#                                 ^^ source.lavra constant.numeric.decimal.lavra
+#                                   ^ source.lavra punctuation.separator.lavra
+#                                    ^ source.lavra
+#                                     ^^ source.lavra constant.numeric.decimal.lavra
+#                                       ^ source.lavra punctuation.separator.lavra
+#                                        ^ source.lavra
+#                                         ^^ source.lavra constant.numeric.decimal.lavra
+#                                           ^ source.lavra punctuation.separator.lavra
+#                                            ^ source.lavra
+#                                             ^^ source.lavra constant.numeric.decimal.lavra
+#                                               ^ source.lavra punctuation.separator.lavra
+#                                                ^ source.lavra
+#                                                 ^^ source.lavra constant.numeric.decimal.lavra
+#                                                   ^ source.lavra punctuation.separator.lavra
+#                                                    ^ source.lavra
+#                                                     ^^ source.lavra constant.numeric.decimal.lavra
+#                                                       ^^^ source.lavra
+#                                                          ^^ source.lavra constant.numeric.decimal.lavra
+#                                                            ^ source.lavra punctuation.terminator.period.lavra
+>
+>A fundação é uma data com o dia 21, o mês 4 e o ano -752.
+#^ source.lavra variable.other.article.lavra
+# ^ source.lavra
+#  ^^^^^^^^ source.lavra variable.other.lavra
+#          ^ source.lavra
+#           ^ source.lavra storage.type.declaration.lavra
+#            ^ source.lavra
+#             ^^^ source.lavra keyword.other.article.lavra
+#                ^ source.lavra
+#                 ^^^^ source.lavra entity.name.type.lavra
+#                     ^ source.lavra
+#                      ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                         ^ source.lavra
+#                          ^ source.lavra variable.other.article.lavra
+#                           ^ source.lavra
+#                            ^^^ source.lavra variable.other.lavra
+#                               ^ source.lavra
+#                                ^^ source.lavra constant.numeric.decimal.lavra
+#                                  ^ source.lavra punctuation.separator.lavra
+#                                   ^ source.lavra
+#                                    ^ source.lavra variable.other.article.lavra
+#                                     ^ source.lavra
+#                                      ^^^ source.lavra variable.other.lavra
+#                                         ^ source.lavra
+#                                          ^ source.lavra constant.numeric.decimal.lavra
+#                                           ^^^ source.lavra
+#                                              ^ source.lavra variable.other.article.lavra
+#                                               ^ source.lavra
+#                                                ^^^ source.lavra variable.other.lavra
+#                                                   ^ source.lavra
+#                                                    ^^^^ source.lavra constant.numeric.decimal.lavra
+#                                                        ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    A reunião é uma data com o dia 7, o mês 11 e o ano -62.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^ source.lavra variable.other.lavra
+#             ^ source.lavra
+#              ^ source.lavra storage.type.declaration.lavra
+#               ^ source.lavra
+#                ^^^ source.lavra keyword.other.article.lavra
+#                   ^ source.lavra
+#                    ^^^^ source.lavra entity.name.type.lavra
+#                        ^ source.lavra
+#                         ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                            ^ source.lavra
+#                             ^ source.lavra variable.other.article.lavra
+#                              ^ source.lavra
+#                               ^^^ source.lavra variable.other.lavra
+#                                  ^ source.lavra
+#                                   ^ source.lavra constant.numeric.decimal.lavra
+#                                    ^ source.lavra punctuation.separator.lavra
+#                                     ^ source.lavra
+#                                      ^ source.lavra variable.other.article.lavra
+#                                       ^ source.lavra
+#                                        ^^^ source.lavra variable.other.lavra
+#                                           ^ source.lavra
+#                                            ^^ source.lavra constant.numeric.decimal.lavra
+#                                              ^^^ source.lavra
+#                                                 ^ source.lavra variable.other.article.lavra
+#                                                  ^ source.lavra
+#                                                   ^^^ source.lavra variable.other.lavra
+#                                                      ^ source.lavra
+#                                                       ^^^ source.lavra constant.numeric.decimal.lavra
+#                                                          ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Casa de Leca, rua dos Foiceiros, 63 a.C.:".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                      ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                       ^ source.lavra punctuation.terminator.period.lavra
+>    Meço o tempo desde a fundação até a reunião.
+#^^^^ source.lavra
+#    ^^^^ source.lavra entity.name.function.call.lavra
+#        ^ source.lavra
+#         ^ source.lavra variable.other.article.lavra
+#          ^ source.lavra
+#           ^^^^^ source.lavra variable.other.lavra
+#                ^ source.lavra
+#                 ^^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra
+#                       ^ source.lavra variable.other.article.lavra
+#                        ^ source.lavra
+#                         ^^^^^^^^ source.lavra variable.other.lavra
+#                                 ^ source.lavra
+#                                  ^^^ source.lavra keyword.control.loop.lavra
+#                                     ^ source.lavra
+#                                      ^ source.lavra variable.other.article.lavra
+#                                       ^ source.lavra
+#                                        ^^^^^^^ source.lavra variable.other.lavra
+#                                               ^ source.lavra punctuation.terminator.period.lavra
+>
+>    A lembrança é uma data com o dia 7, o mês 11 e o ano -67.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^^^ source.lavra variable.other.lavra
+#               ^ source.lavra
+#                ^ source.lavra storage.type.declaration.lavra
+#                 ^ source.lavra
+#                  ^^^ source.lavra keyword.other.article.lavra
+#                     ^ source.lavra
+#                      ^^^^ source.lavra entity.name.type.lavra
+#                          ^ source.lavra
+#                           ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                              ^ source.lavra
+#                               ^ source.lavra variable.other.article.lavra
+#                                ^ source.lavra
+#                                 ^^^ source.lavra variable.other.lavra
+#                                    ^ source.lavra
+#                                     ^ source.lavra constant.numeric.decimal.lavra
+#                                      ^ source.lavra punctuation.separator.lavra
+#                                       ^ source.lavra
+#                                        ^ source.lavra variable.other.article.lavra
+#                                         ^ source.lavra
+#                                          ^^^ source.lavra variable.other.lavra
+#                                             ^ source.lavra
+#                                              ^^ source.lavra constant.numeric.decimal.lavra
+#                                                ^^^ source.lavra
+#                                                   ^ source.lavra variable.other.article.lavra
+#                                                    ^ source.lavra
+#                                                     ^^^ source.lavra variable.other.lavra
+#                                                        ^ source.lavra
+#                                                         ^^^ source.lavra constant.numeric.decimal.lavra
+#                                                            ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "O mesmo dia, em 68 a.C.:".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                      ^ source.lavra punctuation.terminator.period.lavra
+>    Meço o tempo desde a fundação até a lembrança.
+#^^^^ source.lavra
+#    ^^^^ source.lavra entity.name.function.call.lavra
+#        ^ source.lavra
+#         ^ source.lavra variable.other.article.lavra
+#          ^ source.lavra
+#           ^^^^^ source.lavra variable.other.lavra
+#                ^ source.lavra
+#                 ^^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra
+#                       ^ source.lavra variable.other.article.lavra
+#                        ^ source.lavra
+#                         ^^^^^^^^ source.lavra variable.other.lavra
+#                                 ^ source.lavra
+#                                  ^^^ source.lavra keyword.control.loop.lavra
+#                                     ^ source.lavra
+#                                      ^ source.lavra variable.other.article.lavra
+#                                       ^ source.lavra
+#                                        ^^^^^^^^^ source.lavra variable.other.lavra
+#                                                 ^ source.lavra punctuation.terminator.period.lavra
+>
+>    O agora é uma data com o dia 21, o mês 10 e o ano 2026.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra
+#            ^ source.lavra storage.type.declaration.lavra
+#             ^ source.lavra
+#              ^^^ source.lavra keyword.other.article.lavra
+#                 ^ source.lavra
+#                  ^^^^ source.lavra entity.name.type.lavra
+#                      ^ source.lavra
+#                       ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                          ^ source.lavra
+#                           ^ source.lavra variable.other.article.lavra
+#                            ^ source.lavra
+#                             ^^^ source.lavra variable.other.lavra
+#                                ^ source.lavra
+#                                 ^^ source.lavra constant.numeric.decimal.lavra
+#                                   ^ source.lavra punctuation.separator.lavra
+#                                    ^ source.lavra
+#                                     ^ source.lavra variable.other.article.lavra
+#                                      ^ source.lavra
+#                                       ^^^ source.lavra variable.other.lavra
+#                                          ^ source.lavra
+#                                           ^^ source.lavra constant.numeric.decimal.lavra
+#                                             ^^^ source.lavra
+#                                                ^ source.lavra variable.other.article.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^ source.lavra variable.other.lavra
+#                                                     ^ source.lavra
+#                                                      ^^^^ source.lavra constant.numeric.decimal.lavra
+#                                                          ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Hoje:".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^ source.lavra string.quoted.double.lavra
+#                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                   ^ source.lavra punctuation.terminator.period.lavra
+>    Meço o tempo desde a fundação até o agora.
+#^^^^ source.lavra
+#    ^^^^ source.lavra entity.name.function.call.lavra
+#        ^ source.lavra
+#         ^ source.lavra variable.other.article.lavra
+#          ^ source.lavra
+#           ^^^^^ source.lavra variable.other.lavra
+#                ^ source.lavra
+#                 ^^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra
+#                       ^ source.lavra variable.other.article.lavra
+#                        ^ source.lavra
+#                         ^^^^^^^^ source.lavra variable.other.lavra
+#                                 ^ source.lavra
+#                                  ^^^ source.lavra keyword.control.loop.lavra
+#                                     ^ source.lavra
+#                                      ^ source.lavra variable.other.article.lavra
+#                                       ^ source.lavra
+#                                        ^^^^^ source.lavra variable.other.lavra
+#                                             ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para medir o tempo desde a origem até a data, sendo ambas datas emprestadas:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#          ^ source.lavra meta.function.header.lavra
+#           ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#            ^ source.lavra meta.function.header.lavra
+#             ^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                  ^ source.lavra meta.function.header.lavra
+#                   ^^^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra meta.function.header.lavra
+#                         ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                 ^ source.lavra meta.function.header.lavra
+#                                  ^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                                     ^ source.lavra meta.function.header.lavra
+#                                      ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                       ^ source.lavra meta.function.header.lavra
+#                                        ^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                            ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                                             ^ source.lavra meta.function.header.lavra
+#                                              ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                                   ^ source.lavra meta.function.header.lavra
+#                                                    ^^^^^ source.lavra meta.function.header.lavra keyword.other.both.lavra
+#                                                         ^ source.lavra meta.function.header.lavra
+#                                                          ^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                                               ^ source.lavra meta.function.header.lavra
+#                                                                ^^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                           ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    A era começa na diferença do ano da data e do ano da origem.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^ source.lavra variable.other.lavra
+#         ^ source.lavra
+#          ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                ^ source.lavra
+#                 ^^ source.lavra keyword.operator.word.preposition.lavra
+#                   ^^^^^^^^^^^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^ source.lavra variable.other.lavra
+#                                    ^ source.lavra
+#                                     ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                       ^ source.lavra
+#                                        ^^^^ source.lavra variable.other.lavra
+#                                            ^^^ source.lavra
+#                                               ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^ source.lavra variable.other.lavra
+#                                                     ^ source.lavra
+#                                                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                        ^ source.lavra
+#                                                         ^^^^^^ source.lavra variable.other.lavra
+#                                                               ^ source.lavra punctuation.terminator.period.lavra
+>    A lua começa na diferença do mês da data e do mês da origem.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^ source.lavra variable.other.lavra
+#         ^ source.lavra
+#          ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                ^ source.lavra
+#                 ^^ source.lavra keyword.operator.word.preposition.lavra
+#                   ^^^^^^^^^^^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^ source.lavra variable.other.lavra
+#                                    ^ source.lavra
+#                                     ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                       ^ source.lavra
+#                                        ^^^^ source.lavra variable.other.lavra
+#                                            ^^^ source.lavra
+#                                               ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^ source.lavra variable.other.lavra
+#                                                     ^ source.lavra
+#                                                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                        ^ source.lavra
+#                                                         ^^^^^^ source.lavra variable.other.lavra
+#                                                               ^ source.lavra punctuation.terminator.period.lavra
+>    O sol começa na diferença do dia da data e do dia da origem.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^ source.lavra variable.other.lavra
+#         ^ source.lavra
+#          ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                ^ source.lavra
+#                 ^^ source.lavra keyword.operator.word.preposition.lavra
+#                   ^^^^^^^^^^^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^ source.lavra variable.other.lavra
+#                                    ^ source.lavra
+#                                     ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                       ^ source.lavra
+#                                        ^^^^ source.lavra variable.other.lavra
+#                                            ^^^ source.lavra
+#                                               ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^ source.lavra variable.other.lavra
+#                                                     ^ source.lavra
+#                                                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                        ^ source.lavra
+#                                                         ^^^^^^ source.lavra variable.other.lavra
+#                                                               ^ source.lavra punctuation.terminator.period.lavra
+>    Se o sol for menor que 0:
+#^^^^ source.lavra
+#    ^^ source.lavra keyword.control.conditional.lavra
+#      ^ source.lavra
+#       ^ source.lavra variable.other.article.lavra
+#        ^ source.lavra
+#         ^^^ source.lavra variable.other.lavra
+#            ^ source.lavra
+#             ^^^ source.lavra keyword.operator.copula.lavra
+#                ^ source.lavra
+#                 ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                          ^ source.lavra
+#                           ^ source.lavra constant.numeric.decimal.lavra
+#                            ^ source.lavra punctuation.section.block.lavra
+>        A lua diminui 1,
+#^^^^^^^^ source.lavra
+#        ^ source.lavra variable.other.article.lavra
+#         ^ source.lavra
+#          ^^^ source.lavra variable.other.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra keyword.other.mutation.lavra
+#                     ^ source.lavra
+#                      ^ source.lavra constant.numeric.decimal.lavra
+#                       ^ source.lavra punctuation.separator.lavra
+>            e o sol cresce o item ((o mês da data mais 10) módulo 12 mais 1) dos meses.
+#^^^^^^^^^^^^^^ source.lavra
+#              ^ source.lavra variable.other.article.lavra
+#               ^ source.lavra
+#                ^^^ source.lavra variable.other.lavra
+#                   ^ source.lavra
+#                    ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                          ^ source.lavra
+#                           ^ source.lavra keyword.other.position.lavra
+#                            ^ source.lavra
+#                             ^^^^ source.lavra keyword.other.position.lavra
+#                                 ^ source.lavra
+#                                  ^ source.lavra punctuation.section.parens.lavra
+#                                   ^ source.lavra punctuation.section.parens.lavra
+#                                    ^ source.lavra variable.other.article.lavra
+#                                     ^ source.lavra
+#                                      ^^^ source.lavra variable.other.lavra
+#                                         ^ source.lavra
+#                                          ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                            ^ source.lavra
+#                                             ^^^^ source.lavra variable.other.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                                      ^ source.lavra
+#                                                       ^^ source.lavra constant.numeric.decimal.lavra
+#                                                         ^ source.lavra punctuation.section.parens.lavra
+#                                                          ^ source.lavra
+#                                                           ^^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^^ source.lavra constant.numeric.decimal.lavra
+#                                                                    ^ source.lavra
+#                                                                     ^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                                                         ^ source.lavra
+#                                                                          ^ source.lavra constant.numeric.decimal.lavra
+#                                                                           ^ source.lavra punctuation.section.parens.lavra
+#                                                                            ^ source.lavra
+#                                                                             ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                                ^ source.lavra
+#                                                                                 ^^^^^ source.lavra variable.other.lavra
+#                                                                                      ^ source.lavra punctuation.terminator.period.lavra
+>    Se a lua for menor que 0:
+#^^^^ source.lavra
+#    ^^ source.lavra keyword.control.conditional.lavra
+#      ^ source.lavra
+#       ^ source.lavra variable.other.article.lavra
+#        ^ source.lavra
+#         ^^^ source.lavra variable.other.lavra
+#            ^ source.lavra
+#             ^^^ source.lavra keyword.operator.copula.lavra
+#                ^ source.lavra
+#                 ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                          ^ source.lavra
+#                           ^ source.lavra constant.numeric.decimal.lavra
+#                            ^ source.lavra punctuation.section.block.lavra
+>        A era diminui 1, e a lua cresce 12.
+#^^^^^^^^ source.lavra
+#        ^ source.lavra variable.other.article.lavra
+#         ^ source.lavra
+#          ^^^ source.lavra variable.other.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra keyword.other.mutation.lavra
+#                     ^ source.lavra
+#                      ^ source.lavra constant.numeric.decimal.lavra
+#                       ^ source.lavra punctuation.separator.lavra
+#                        ^^^ source.lavra
+#                           ^ source.lavra variable.other.article.lavra
+#                            ^ source.lavra
+#                             ^^^ source.lavra variable.other.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                       ^ source.lavra
+#                                        ^^ source.lavra constant.numeric.decimal.lavra
+#                                          ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "    " seguido da era seguido de " anos, " seguido da lua seguido de " meses e "
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^ source.lavra string.quoted.double.lavra
+#                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                          ^ source.lavra
+#                           ^^ source.lavra keyword.operator.word.preposition.lavra
+#                             ^ source.lavra
+#                              ^^^ source.lavra variable.other.lavra
+#                                 ^ source.lavra
+#                                  ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                            ^ source.lavra
+#                                             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                              ^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                      ^ source.lavra
+#                                                       ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                              ^ source.lavra
+#                                                               ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^^^ source.lavra variable.other.lavra
+#                                                                     ^ source.lavra
+#                                                                      ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                                                ^ source.lavra
+#                                                                                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                                  ^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido do sol seguido de " dias desde a fundação;".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#               ^ source.lavra
+#                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                  ^ source.lavra
+#                   ^^^ source.lavra variable.other.lavra
+#                      ^ source.lavra
+#                       ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                 ^ source.lavra
+#                                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                   ^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                          ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                           ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "    é o ano " seguido de 1 mais a diferença do ano da data e do ano da origem
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                         ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                          ^ source.lavra
+#                           ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                     ^ source.lavra
+#                                      ^ source.lavra constant.numeric.decimal.lavra
+#                                       ^ source.lavra
+#                                        ^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                            ^ source.lavra
+#                                             ^ source.lavra keyword.operator.word.preposition.lavra
+#                                              ^ source.lavra
+#                                               ^^^^^^^^^ source.lavra support.function.nominal.lavra
+#                                                        ^ source.lavra
+#                                                         ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                           ^ source.lavra
+#                                                            ^^^ source.lavra variable.other.lavra
+#                                                               ^ source.lavra
+#                                                                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                  ^ source.lavra
+#                                                                   ^^^^ source.lavra variable.other.lavra
+#                                                                       ^^^ source.lavra
+#                                                                          ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                            ^ source.lavra
+#                                                                             ^^^ source.lavra variable.other.lavra
+#                                                                                ^ source.lavra
+#                                                                                 ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                                   ^ source.lavra
+#                                                                                    ^^^^^^ source.lavra variable.other.lavra
+>        seguido de " ab urbe condita.".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                    ^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                      ^ source.lavra punctuation.terminator.period.lavra
+>

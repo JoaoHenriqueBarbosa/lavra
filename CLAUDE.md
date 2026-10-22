@@ -26,6 +26,7 @@ Leia antes de mexer em qualquer coisa: [`notes/README.md`](notes/README.md).
 - `notes/lavra.md`: **a língua como está implementada** (referência completa).
 - `notes/compiler.md`: o compilador, o nativo e os testes.
 - `notes/morphology.md`: tabelas conferidas contra o dicionário e decisões de borda.
+- `notes/tooling.md`: extensão do VS Code e o caminho para o servidor de linguagem.
 - `notes/origin.md`: o pedido, a tese de design, a ordem dos fatos.
 - `notes/language.md`: a linguagem como estava no protótipo.
 - `notes/draft-architecture.md`: como o draft é construído.
@@ -49,6 +50,18 @@ tools/memcheck.sh                            # valgrind em contêiner sobre toda
 ```
 
 Verificar as tabelas de morfologia contra o dicionário: `tools/morphology/README.md`.
+
+Extensão do VS Code (`editors/vscode`, ver `notes/tooling.md`):
+
+```bash
+cd editors/vscode && npm install
+npm test                                     # escopos e snapshots da gramática
+npm run package && code --install-extension lavra.vsix --force
+```
+
+Mudou a gramática? Edite `syntaxes/build.py` (nunca o JSON), rode `npm test`, revise e
+atualize os snapshots (`npm run test:update-snapshots`), confira a renderização com
+`scripts/preview.mjs` e reinstale.
 
 ## Rodar o draft
 

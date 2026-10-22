@@ -1,0 +1,22 @@
+-- SYNTAX TEST "source.lavra" "expressoes"
+    Escrevo (a diferença de 10 e 3) mais 1.
+--             ^^^^^^^^^ support.function.nominal.lavra
+--                                  ^^^^ keyword.operator.arithmetic.lavra
+    Escrevo o tamanho das notas seguido de " itens".
+--            ^^^^^^^ support.function.nominal.lavra
+--                              ^^^^^^^^^^ keyword.operator.concatenation.lavra
+    Escrevo o total como real dividido pelo lado.
+--                  ^^^^ keyword.operator.conversion.lavra
+--                       ^^^^ storage.type.primitive.lavra
+--                            ^^^^^^^^ keyword.operator.arithmetic.lavra
+--                                          ^^^^ variable.other.lavra
+    Escrevo o deslocamento de 1 por 4 à esquerda.
+--            ^^^^^^^^^^^^ support.function.nominal.lavra
+--                                    ^^^^^^^^^^ keyword.operator.direction.lavra
+    Escrevo 'ç' seguido de "a\nb" seguido de verdadeiro.
+--          ^^^ constant.character.lavra
+--                           ^^ constant.character.escape.lavra
+--                                           ^^^^^^^^^^ constant.language.boolean.lavra
+    Escrevo 0xFF sem quebrar a linha.
+--          ^^^^ constant.numeric.hex.lavra
+--               ^^^^^^^^^^^^^^^^^^^ keyword.other.newline.lavra

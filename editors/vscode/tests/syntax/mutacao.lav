@@ -1,0 +1,18 @@
+-- SYNTAX TEST "source.lavra" "mutacao"
+    O saldo cresce o saldo vezes a taxa.
+--          ^^^^^^ keyword.other.mutation.lavra
+--                         ^^^^^ keyword.operator.arithmetic.lavra
+--                                 ^^^^ variable.other.lavra
+    As notas ganham 7, e a mensagem vira "pago".
+--           ^^^^^^ keyword.other.mutation.lavra
+--                  ^ constant.numeric.decimal.lavra
+--                                  ^^^^ keyword.other.mutation.lavra
+--                                       ^ string.quoted.double.lavra
+    Tomo a última das notas e escrevo o resultado.
+--  ^^^^ support.function.builtin.lavra
+--         ^^^^^^ keyword.other.position.lavra
+--                            ^^^^^^^ support.function.builtin.lavra
+--                                      ^^^^^^^^^ variable.language.result.lavra
+    O item 2 das notas vira 9.
+--    ^^^^ keyword.other.position.lavra
+--               ^^^^^ variable.other.lavra

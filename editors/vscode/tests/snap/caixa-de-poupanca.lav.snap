@@ -1,0 +1,108 @@
+>Nota: caixa de poupança.
+#^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>A taxa é 0,05.
+#^ source.lavra variable.other.article.lavra
+# ^ source.lavra
+#  ^^^^ source.lavra variable.other.lavra
+#      ^ source.lavra
+#       ^ source.lavra storage.type.declaration.lavra
+#        ^ source.lavra
+#         ^^^^ source.lavra constant.numeric.decimal.lavra
+#             ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para render o saldo, sendo o saldo um real confiado:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#           ^ source.lavra meta.function.header.lavra
+#            ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                   ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                    ^ source.lavra meta.function.header.lavra
+#                     ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                            ^ source.lavra meta.function.header.lavra
+#                             ^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                  ^ source.lavra meta.function.header.lavra
+#                                   ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                     ^ source.lavra meta.function.header.lavra
+#                                      ^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                          ^ source.lavra meta.function.header.lavra
+#                                           ^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.lent.lavra
+#                                                   ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    O saldo cresce o saldo vezes a taxa.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra
+#            ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra variable.other.article.lavra
+#                    ^ source.lavra
+#                     ^^^^^ source.lavra variable.other.lavra
+#                          ^ source.lavra
+#                           ^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                ^ source.lavra
+#                                 ^ source.lavra variable.other.article.lavra
+#                                  ^ source.lavra
+#                                   ^^^^ source.lavra variable.other.lavra
+#                                       ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    O saldo, um real, começa em 1000.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra punctuation.separator.lavra
+#            ^ source.lavra
+#             ^^ source.lavra keyword.other.article.lavra
+#               ^ source.lavra
+#                ^^^^ source.lavra storage.type.primitive.lavra
+#                    ^ source.lavra punctuation.separator.lavra
+#                     ^ source.lavra
+#                      ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                            ^ source.lavra
+#                             ^^ source.lavra keyword.operator.word.preposition.lavra
+#                               ^ source.lavra
+#                                ^^^^ source.lavra constant.numeric.decimal.lavra
+#                                    ^ source.lavra punctuation.terminator.period.lavra
+>    Repito 12 vezes:
+#^^^^ source.lavra
+#    ^^^^^^ source.lavra keyword.control.loop.lavra
+#          ^ source.lavra
+#           ^^ source.lavra constant.numeric.decimal.lavra
+#             ^ source.lavra
+#              ^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                   ^ source.lavra punctuation.section.block.lavra
+>        Rendo o saldo.
+#^^^^^^^^ source.lavra
+#        ^^^^^ source.lavra entity.name.function.call.lavra
+#             ^ source.lavra
+#              ^ source.lavra variable.other.article.lavra
+#               ^ source.lavra
+#                ^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Depois de um ano: " seguido do saldo.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                        ^ source.lavra
+#                                         ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                           ^ source.lavra
+#                                            ^^^^^ source.lavra variable.other.lavra
+#                                                 ^ source.lavra punctuation.terminator.period.lavra
+>

@@ -1,0 +1,1450 @@
+>Nota: Primeira Catilinária.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>Um orador é um registro de:
+#^^ source.lavra keyword.other.article.lavra
+#  ^ source.lavra
+#   ^^^^^^ source.lavra entity.name.type.lavra
+#         ^ source.lavra
+#          ^ source.lavra storage.type.declaration.lavra
+#           ^ source.lavra
+#            ^^^^^^^^^^^^^^ source.lavra keyword.other.definition.lavra
+#                          ^ source.lavra punctuation.section.block.lavra
+>    o nome, um texto;
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^ source.lavra variable.other.lavra
+#          ^ source.lavra punctuation.separator.lavra
+#           ^ source.lavra
+#            ^^ source.lavra keyword.other.article.lavra
+#              ^ source.lavra
+#               ^^^^^ source.lavra storage.type.primitive.lavra
+#                    ^ source.lavra punctuation.separator.lavra
+>    o cognome, um texto;
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^ source.lavra variable.other.lavra
+#             ^ source.lavra punctuation.separator.lavra
+#              ^ source.lavra
+#               ^^ source.lavra keyword.other.article.lavra
+#                 ^ source.lavra
+#                  ^^^^^ source.lavra storage.type.primitive.lavra
+#                       ^ source.lavra punctuation.separator.lavra
+>    a origem, um texto;
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^ source.lavra variable.other.lavra
+#            ^ source.lavra punctuation.separator.lavra
+#             ^ source.lavra
+#              ^^ source.lavra keyword.other.article.lavra
+#                ^ source.lavra
+#                 ^^^^^ source.lavra storage.type.primitive.lavra
+#                      ^ source.lavra punctuation.separator.lavra
+>    a credibilidade, um inteiro.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^^^^^^^ source.lavra variable.other.lavra
+#                   ^ source.lavra punctuation.separator.lavra
+#                    ^ source.lavra
+#                     ^^ source.lavra keyword.other.article.lavra
+#                       ^ source.lavra
+#                        ^^^^^^^ source.lavra storage.type.primitive.lavra
+#                               ^ source.lavra punctuation.terminator.period.lavra
+>
+>Uma assembleia é um registro de:
+#^^^ source.lavra keyword.other.article.lavra
+#   ^ source.lavra
+#    ^^^^^^^^^^ source.lavra entity.name.type.lavra
+#              ^ source.lavra
+#               ^ source.lavra storage.type.declaration.lavra
+#                ^ source.lavra
+#                 ^^^^^^^^^^^^^^ source.lavra keyword.other.definition.lavra
+#                               ^ source.lavra punctuation.section.block.lavra
+>    a paciência, um inteiro;
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^^^ source.lavra variable.other.lavra
+#               ^ source.lavra punctuation.separator.lavra
+#                ^ source.lavra
+#                 ^^ source.lavra keyword.other.article.lavra
+#                   ^ source.lavra
+#                    ^^^^^^^ source.lavra storage.type.primitive.lavra
+#                           ^ source.lavra punctuation.separator.lavra
+>    o juízo, um caractere.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra punctuation.separator.lavra
+#            ^ source.lavra
+#             ^^ source.lavra keyword.other.article.lavra
+#               ^ source.lavra
+#                ^^^^^^^^^ source.lavra storage.type.primitive.lavra
+#                         ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    O cônsul começa em um orador com o nome "Marco Túlio Cícero", o cognome "Cícero",
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^ source.lavra variable.other.lavra
+#            ^ source.lavra
+#             ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                   ^ source.lavra
+#                    ^^ source.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra
+#                       ^^ source.lavra keyword.other.article.lavra
+#                         ^ source.lavra
+#                          ^^^^^^ source.lavra entity.name.type.lavra
+#                                ^ source.lavra
+#                                 ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                    ^ source.lavra
+#                                     ^ source.lavra variable.other.article.lavra
+#                                      ^ source.lavra
+#                                       ^^^^ source.lavra variable.other.lavra
+#                                           ^ source.lavra
+#                                            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                             ^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                ^ source.lavra punctuation.separator.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^ source.lavra variable.other.article.lavra
+#                                                                   ^ source.lavra
+#                                                                    ^^^^^^^ source.lavra variable.other.lavra
+#                                                                           ^ source.lavra
+#                                                                            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                             ^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                                    ^ source.lavra punctuation.separator.lavra
+>        a origem "Arpino" e a credibilidade 0.
+#^^^^^^^^ source.lavra
+#        ^ source.lavra variable.other.article.lavra
+#         ^ source.lavra
+#          ^^^^^^ source.lavra variable.other.lavra
+#                ^ source.lavra
+#                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                  ^^^^^^ source.lavra string.quoted.double.lavra
+#                        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                         ^^^ source.lavra
+#                            ^ source.lavra variable.other.article.lavra
+#                             ^ source.lavra
+#                              ^^^^^^^^^^^^^ source.lavra variable.other.lavra
+#                                           ^ source.lavra
+#                                            ^ source.lavra constant.numeric.decimal.lavra
+#                                             ^ source.lavra punctuation.terminator.period.lavra
+>    O réu começa em um orador com o nome "Lúcio Sérgio Catilina", o cognome "Catilina",
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^ source.lavra variable.other.lavra
+#         ^ source.lavra
+#          ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                ^ source.lavra
+#                 ^^ source.lavra keyword.operator.word.preposition.lavra
+#                   ^ source.lavra
+#                    ^^ source.lavra keyword.other.article.lavra
+#                      ^ source.lavra
+#                       ^^^^^^ source.lavra entity.name.type.lavra
+#                             ^ source.lavra
+#                              ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                 ^ source.lavra
+#                                  ^ source.lavra variable.other.article.lavra
+#                                   ^ source.lavra
+#                                    ^^^^ source.lavra variable.other.lavra
+#                                        ^ source.lavra
+#                                         ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                          ^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                ^ source.lavra punctuation.separator.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^ source.lavra variable.other.article.lavra
+#                                                                   ^ source.lavra
+#                                                                    ^^^^^^^ source.lavra variable.other.lavra
+#                                                                           ^ source.lavra
+#                                                                            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                             ^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                                      ^ source.lavra punctuation.separator.lavra
+>        a origem "Roma" e a credibilidade 0.
+#^^^^^^^^ source.lavra
+#        ^ source.lavra variable.other.article.lavra
+#         ^ source.lavra
+#          ^^^^^^ source.lavra variable.other.lavra
+#                ^ source.lavra
+#                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                  ^^^^ source.lavra string.quoted.double.lavra
+#                      ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                       ^^^ source.lavra
+#                          ^ source.lavra variable.other.article.lavra
+#                           ^ source.lavra
+#                            ^^^^^^^^^^^^^ source.lavra variable.other.lavra
+#                                         ^ source.lavra
+#                                          ^ source.lavra constant.numeric.decimal.lavra
+#                                           ^ source.lavra punctuation.terminator.period.lavra
+>    O senado começa em uma assembleia com a paciência 3 e o juízo ' '.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^ source.lavra variable.other.lavra
+#            ^ source.lavra
+#             ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                   ^ source.lavra
+#                    ^^ source.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra
+#                       ^^^ source.lavra keyword.other.article.lavra
+#                          ^ source.lavra
+#                           ^^^^^^^^^^ source.lavra entity.name.type.lavra
+#                                     ^ source.lavra
+#                                      ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                         ^ source.lavra
+#                                          ^ source.lavra variable.other.article.lavra
+#                                           ^ source.lavra
+#                                            ^^^^^^^^^ source.lavra variable.other.lavra
+#                                                     ^ source.lavra
+#                                                      ^ source.lavra constant.numeric.decimal.lavra
+#                                                       ^^^ source.lavra
+#                                                          ^ source.lavra variable.other.article.lavra
+#                                                           ^ source.lavra
+#                                                            ^^^^^ source.lavra variable.other.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^^^ source.lavra constant.character.lavra
+#                                                                     ^ source.lavra punctuation.terminator.period.lavra
+>
+>    As acusações são
+#^^^^ source.lavra
+#    ^^ source.lavra variable.other.article.lavra
+#      ^ source.lavra
+#       ^^^^^^^^^ source.lavra variable.other.lavra
+#                ^ source.lavra
+#                 ^^^ source.lavra storage.type.declaration.lavra
+>        "Até quando, Catilina, abusarás da nossa paciência? "
+#^^^^^^^^ source.lavra
+#        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>            seguido de "Por quanto tempo ainda esse teu furor vai zombar de nós?",
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                      ^ source.lavra
+#                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                                 ^ source.lavra punctuation.separator.lavra
+>        "Ó tempos, ó costumes! O senado sabe disto, o cônsul vê, e este homem ainda vive.",
+#^^^^^^^^ source.lavra
+#        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                         ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                                          ^ source.lavra punctuation.separator.lavra
+>        "Digo que na noite anterior foste à rua dos Foiceiros, à casa de Marco Leca, "
+#^^^^^^^^ source.lavra
+#        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>            seguido de "e lá repartiste a Itália entre os teus."
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                      ^ source.lavra
+#                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        e "Naquela mesma noite, dois cavaleiros romanos prometeram matar-me na minha cama, "
+#^^^^^^^^^^ source.lavra
+#          ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>            seguido de "pouco antes do amanhecer.".
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                      ^ source.lavra
+#                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                        ^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                  ^ source.lavra punctuation.terminator.period.lavra
+>
+>    As defesas são
+#^^^^ source.lavra
+#    ^^ source.lavra variable.other.article.lavra
+#      ^ source.lavra
+#       ^^^^^^^ source.lavra variable.other.lavra
+#              ^ source.lavra
+#               ^^^ source.lavra storage.type.declaration.lavra
+>        "Pais conscritos, não acrediteis às pressas em nada que se diga de mim.",
+#^^^^^^^^ source.lavra
+#        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                                ^ source.lavra punctuation.separator.lavra
+>        "Nasci de tal família, e vivi desde a juventude de tal modo, que só tenho o bem a esperar.",
+#^^^^^^^^ source.lavra
+#        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                                                   ^ source.lavra punctuation.separator.lavra
+>        "Eu e os meus antepassados fizemos muito bem à plebe romana."
+#^^^^^^^^ source.lavra
+#        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        e "E quereis crer que eu, um patrício, preciso da ruína da república, "
+#^^^^^^^^^^ source.lavra
+#          ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                              ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>            seguido de "enquanto quem a salva é Marco Túlio, um inquilino de Roma vindo de "
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                      ^ source.lavra
+#                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>            seguido da origem do cônsul seguido de "?".
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                   ^ source.lavra
+#                    ^^ source.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra
+#                       ^^^^^^ source.lavra variable.other.lavra
+#                             ^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^ source.lavra variable.other.lavra
+#                                       ^ source.lavra
+#                                        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                  ^ source.lavra
+#                                                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                    ^ source.lavra string.quoted.double.lavra
+#                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                      ^ source.lavra punctuation.terminator.period.lavra
+>
+>    Escrevo "Templo de Júpiter Estator, 8 de novembro de 63 a.C.".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                 ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Catilina entra. Os bancos ao redor dele se esvaziam.".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                  ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#              ^ source.lavra punctuation.terminator.period.lavra
+>
+>    N começa em 1.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.symbol.lavra
+#     ^ source.lavra
+#      ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#            ^ source.lavra
+#             ^^ source.lavra keyword.operator.word.preposition.lavra
+#               ^ source.lavra
+#                ^ source.lavra constant.numeric.decimal.lavra
+#                 ^ source.lavra punctuation.terminator.period.lavra
+>    Enquanto o senado for paciente e n for no máximo 4:
+#^^^^ source.lavra
+#    ^^^^^^^^ source.lavra keyword.control.loop.lavra
+#            ^ source.lavra
+#             ^ source.lavra variable.other.article.lavra
+#              ^ source.lavra
+#               ^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra
+#                      ^^^ source.lavra keyword.operator.copula.lavra
+#                         ^ source.lavra
+#                          ^^^^^^^^ source.lavra entity.name.function.adjective.lavra
+#                                  ^^^ source.lavra
+#                                     ^ source.lavra variable.other.symbol.lavra
+#                                      ^ source.lavra
+#                                       ^^^ source.lavra keyword.operator.copula.lavra
+#                                          ^ source.lavra
+#                                           ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                                    ^ source.lavra
+#                                                     ^ source.lavra constant.numeric.decimal.lavra
+#                                                      ^ source.lavra punctuation.section.block.lavra
+>        Acuso o réu pelo cônsul com o item n das acusações.
+#^^^^^^^^ source.lavra
+#        ^^^^^ source.lavra entity.name.function.call.lavra
+#             ^ source.lavra
+#              ^ source.lavra variable.other.article.lavra
+#               ^ source.lavra
+#                ^^^ source.lavra variable.other.lavra
+#                   ^ source.lavra
+#                    ^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra
+#                         ^^^^^^ source.lavra variable.other.lavra
+#                               ^ source.lavra
+#                                ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                   ^ source.lavra
+#                                    ^ source.lavra keyword.other.position.lavra
+#                                     ^ source.lavra
+#                                      ^^^^ source.lavra keyword.other.position.lavra
+#                                          ^ source.lavra
+#                                           ^ source.lavra variable.other.symbol.lavra
+#                                            ^ source.lavra
+#                                             ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                ^ source.lavra
+#                                                 ^^^^^^^^^ source.lavra variable.other.lavra
+#                                                          ^ source.lavra punctuation.terminator.period.lavra
+>        Respondo ao cônsul pelo réu com o item n das defesas.
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^ source.lavra entity.name.function.call.lavra
+#                ^ source.lavra
+#                 ^^ source.lavra keyword.operator.word.preposition.lavra
+#                   ^ source.lavra
+#                    ^^^^^^ source.lavra variable.other.lavra
+#                          ^ source.lavra
+#                           ^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                               ^ source.lavra
+#                                ^^^ source.lavra variable.other.lavra
+#                                   ^ source.lavra
+#                                    ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                       ^ source.lavra
+#                                        ^ source.lavra keyword.other.position.lavra
+#                                         ^ source.lavra
+#                                          ^^^^ source.lavra keyword.other.position.lavra
+#                                              ^ source.lavra
+#                                               ^ source.lavra variable.other.symbol.lavra
+#                                                ^ source.lavra
+#                                                 ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                    ^ source.lavra
+#                                                     ^^^^^^^ source.lavra variable.other.lavra
+#                                                            ^ source.lavra punctuation.terminator.period.lavra
+>        Consulto o senado sobre o cônsul e o réu.
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^ source.lavra entity.name.function.call.lavra
+#                ^ source.lavra
+#                 ^ source.lavra variable.other.article.lavra
+#                  ^ source.lavra
+#                   ^^^^^^ source.lavra variable.other.lavra
+#                         ^ source.lavra
+#                          ^^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                               ^ source.lavra
+#                                ^ source.lavra variable.other.article.lavra
+#                                 ^ source.lavra
+#                                  ^^^^^^ source.lavra variable.other.lavra
+#                                        ^^^ source.lavra
+#                                           ^ source.lavra variable.other.article.lavra
+#                                            ^ source.lavra
+#                                             ^^^ source.lavra variable.other.lavra
+#                                                ^ source.lavra punctuation.terminator.period.lavra
+>        N cresce 1.
+#^^^^^^^^ source.lavra
+#        ^ source.lavra variable.other.symbol.lavra
+#         ^ source.lavra
+#          ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                ^ source.lavra
+#                 ^ source.lavra constant.numeric.decimal.lavra
+#                  ^ source.lavra punctuation.terminator.period.lavra
+>
+>    Se o senado não for paciente:
+#^^^^ source.lavra
+#    ^^ source.lavra keyword.control.conditional.lavra
+#      ^ source.lavra
+#       ^ source.lavra variable.other.article.lavra
+#        ^ source.lavra
+#         ^^^^^^ source.lavra variable.other.lavra
+#               ^ source.lavra
+#                ^^^ source.lavra keyword.operator.logical.lavra
+#                   ^ source.lavra
+#                    ^^^ source.lavra keyword.operator.copula.lavra
+#                       ^ source.lavra
+#                        ^^^^^^^^ source.lavra entity.name.function.adjective.lavra
+#                                ^ source.lavra punctuation.section.block.lavra
+>        Abro as portas com o cônsul.
+#^^^^^^^^ source.lavra
+#        ^^^^ source.lavra entity.name.function.call.lavra
+#            ^ source.lavra
+#             ^^ source.lavra variable.other.article.lavra
+#               ^ source.lavra
+#                ^^^^^^ source.lavra variable.other.lavra
+#                      ^ source.lavra
+#                       ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                          ^ source.lavra
+#                           ^ source.lavra variable.other.article.lavra
+#                            ^ source.lavra
+#                             ^^^^^^ source.lavra variable.other.lavra
+#                                   ^ source.lavra punctuation.terminator.period.lavra
+>        Escrevo "Os senadores gritam: inimigo! parricida!".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                         ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                          ^ source.lavra punctuation.terminator.period.lavra
+>        Escrevo "".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                  ^ source.lavra punctuation.terminator.period.lavra
+>        Ameaço a cidade pelo réu e deixo a cidade com o réu.
+#^^^^^^^^ source.lavra
+#        ^^^^^^ source.lavra entity.name.function.call.lavra
+#              ^ source.lavra
+#               ^ source.lavra variable.other.article.lavra
+#                ^ source.lavra
+#                 ^^^^^^ source.lavra variable.other.lavra
+#                       ^ source.lavra
+#                        ^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                            ^ source.lavra
+#                             ^^^ source.lavra variable.other.lavra
+#                                ^^^ source.lavra
+#                                   ^^^^^ source.lavra entity.name.function.call.lavra
+#                                        ^ source.lavra
+#                                         ^ source.lavra variable.other.article.lavra
+#                                          ^ source.lavra
+#                                           ^^^^^^ source.lavra variable.other.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                     ^ source.lavra
+#                                                      ^ source.lavra variable.other.article.lavra
+#                                                       ^ source.lavra
+#                                                        ^^^ source.lavra variable.other.lavra
+#                                                           ^ source.lavra punctuation.terminator.period.lavra
+>    Senão:
+#^^^^ source.lavra
+#    ^^^^^ source.lavra keyword.control.conditional.lavra
+#         ^ source.lavra punctuation.section.block.lavra
+>        Retiro a acusação pelo cônsul e permaneço com o réu.
+#^^^^^^^^ source.lavra
+#        ^^^^^^ source.lavra entity.name.function.call.lavra
+#              ^ source.lavra
+#               ^ source.lavra variable.other.article.lavra
+#                ^ source.lavra
+#                 ^^^^^^^^ source.lavra variable.other.lavra
+#                         ^ source.lavra
+#                          ^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                              ^ source.lavra
+#                               ^^^^^^ source.lavra variable.other.lavra
+#                                     ^^^ source.lavra
+#                                        ^^^^^^^^^ source.lavra entity.name.function.call.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                     ^ source.lavra
+#                                                      ^ source.lavra variable.other.article.lavra
+#                                                       ^ source.lavra
+#                                                        ^^^ source.lavra variable.other.lavra
+#                                                           ^ source.lavra punctuation.terminator.period.lavra
+>
+>    Escrevo "".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#              ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "O senado acreditou em " seguido do cognome do cônsul seguido de " "
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                    ^ source.lavra
+#                                     ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                            ^ source.lavra
+#                                             ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                               ^ source.lavra
+#                                                ^^^^^^^ source.lavra variable.other.lavra
+#                                                       ^ source.lavra
+#                                                        ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                          ^ source.lavra
+#                                                           ^^^^^^ source.lavra variable.other.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                                            ^ source.lavra
+#                                                                             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                              ^ source.lavra string.quoted.double.lavra
+#                                                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido do resultado de flexionar a credibilidade do cônsul entre "vez" e "vezes"
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#               ^ source.lavra
+#                ^^ source.lavra variable.language.article.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                            ^ source.lavra
+#                             ^^ source.lavra keyword.operator.word.preposition.lavra
+#                               ^ source.lavra
+#                                ^^^^^^^^^ source.lavra entity.name.function.call.lavra
+#                                         ^ source.lavra
+#                                          ^ source.lavra variable.other.article.lavra
+#                                           ^ source.lavra
+#                                            ^^^^^^^^^^^^^ source.lavra variable.other.lavra
+#                                                         ^ source.lavra
+#                                                          ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                            ^ source.lavra
+#                                                             ^^^^^^ source.lavra variable.other.lavra
+#                                                                   ^ source.lavra
+#                                                                    ^^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                         ^ source.lavra
+#                                                                          ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                           ^^^ source.lavra string.quoted.double.lavra
+#                                                                              ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                               ^^^ source.lavra
+#                                                                                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                                   ^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido de ", e em " seguido do cognome do réu seguido de " "
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                    ^^^^^^^ source.lavra string.quoted.double.lavra
+#                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                            ^ source.lavra
+#                             ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                    ^ source.lavra
+#                                     ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                       ^ source.lavra
+#                                        ^^^^^^^ source.lavra variable.other.lavra
+#                                               ^ source.lavra
+#                                                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                  ^ source.lavra
+#                                                   ^^^ source.lavra variable.other.lavra
+#                                                      ^ source.lavra
+#                                                       ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                   ^ source.lavra string.quoted.double.lavra
+#                                                                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido do resultado de flexionar a credibilidade do réu entre "vez" e "vezes"
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#               ^ source.lavra
+#                ^^ source.lavra variable.language.article.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                            ^ source.lavra
+#                             ^^ source.lavra keyword.operator.word.preposition.lavra
+#                               ^ source.lavra
+#                                ^^^^^^^^^ source.lavra entity.name.function.call.lavra
+#                                         ^ source.lavra
+#                                          ^ source.lavra variable.other.article.lavra
+#                                           ^ source.lavra
+#                                            ^^^^^^^^^^^^^ source.lavra variable.other.lavra
+#                                                         ^ source.lavra
+#                                                          ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                            ^ source.lavra
+#                                                             ^^^ source.lavra variable.other.lavra
+#                                                                ^ source.lavra
+#                                                                 ^^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                      ^ source.lavra
+#                                                                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                        ^^^ source.lavra string.quoted.double.lavra
+#                                                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                            ^^^ source.lavra
+#                                                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                                ^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido de ".".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                    ^ source.lavra string.quoted.double.lavra
+#                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                      ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para acusar o réu pelo cônsul com a acusação,
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#           ^ source.lavra meta.function.header.lavra
+#            ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                 ^ source.lavra meta.function.header.lavra
+#                  ^^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra meta.function.header.lavra
+#                       ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                             ^ source.lavra meta.function.header.lavra
+#                              ^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                                 ^ source.lavra meta.function.header.lavra
+#                                  ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                   ^ source.lavra meta.function.header.lavra
+#                                    ^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                            ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+>        sendo o réu e o cônsul oradores emprestados e a acusação um texto emprestado:
+#^^^^^^^^ source.lavra meta.function.header.lavra
+#        ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#               ^ source.lavra meta.function.header.lavra
+#                ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                   ^ source.lavra meta.function.header.lavra
+#                    ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                     ^ source.lavra meta.function.header.lavra
+#                      ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                       ^ source.lavra meta.function.header.lavra
+#                        ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                              ^ source.lavra meta.function.header.lavra
+#                               ^^^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                       ^ source.lavra meta.function.header.lavra
+#                                        ^^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                   ^ source.lavra meta.function.header.lavra
+#                                                    ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                                     ^ source.lavra meta.function.header.lavra
+#                                                      ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                                       ^ source.lavra meta.function.header.lavra
+#                                                        ^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                                ^ source.lavra meta.function.header.lavra
+#                                                                 ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                                   ^ source.lavra meta.function.header.lavra
+#                                                                    ^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                                         ^ source.lavra meta.function.header.lavra
+#                                                                          ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                                    ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Escrevo o cognome do cônsul seguido de ", de pé, voltado para "
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra
+#                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra
+#                         ^^^^^^ source.lavra variable.other.lavra
+#                               ^ source.lavra
+#                                ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                          ^ source.lavra
+#                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                            ^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido do cognome do réu seguido de ":".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#               ^ source.lavra
+#                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^ source.lavra variable.other.lavra
+#                          ^ source.lavra
+#                           ^^ source.lavra keyword.operator.word.preposition.lavra
+#                             ^ source.lavra
+#                              ^^^ source.lavra variable.other.lavra
+#                                 ^ source.lavra
+#                                  ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                            ^ source.lavra
+#                                             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                              ^ source.lavra string.quoted.double.lavra
+#                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "    " seguido da acusação.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^ source.lavra string.quoted.double.lavra
+#                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                          ^ source.lavra
+#                           ^^ source.lavra keyword.operator.word.preposition.lavra
+#                             ^ source.lavra
+#                              ^^^^^^^^ source.lavra variable.other.lavra
+#                                      ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para responder ao cônsul pelo réu com a defesa,
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#              ^ source.lavra meta.function.header.lavra
+#               ^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                 ^ source.lavra meta.function.header.lavra
+#                  ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                        ^ source.lavra meta.function.header.lavra
+#                         ^^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                             ^ source.lavra meta.function.header.lavra
+#                              ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                 ^ source.lavra meta.function.header.lavra
+#                                  ^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                                     ^ source.lavra meta.function.header.lavra
+#                                      ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                       ^ source.lavra meta.function.header.lavra
+#                                        ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                              ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+>        sendo o cônsul e o réu oradores emprestados e a defesa um texto emprestado:
+#^^^^^^^^ source.lavra meta.function.header.lavra
+#        ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#               ^ source.lavra meta.function.header.lavra
+#                ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                      ^ source.lavra meta.function.header.lavra
+#                       ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                        ^ source.lavra meta.function.header.lavra
+#                         ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                              ^ source.lavra meta.function.header.lavra
+#                               ^^^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                       ^ source.lavra meta.function.header.lavra
+#                                        ^^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                   ^ source.lavra meta.function.header.lavra
+#                                                    ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                                     ^ source.lavra meta.function.header.lavra
+#                                                      ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                                       ^ source.lavra meta.function.header.lavra
+#                                                        ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                              ^ source.lavra meta.function.header.lavra
+#                                                               ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                                 ^ source.lavra meta.function.header.lavra
+#                                                                  ^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                                       ^ source.lavra meta.function.header.lavra
+#                                                                        ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                                  ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Escrevo o cognome do réu seguido de ", de olhos baixos, responde a "
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra
+#                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra
+#                         ^^^ source.lavra variable.other.lavra
+#                            ^ source.lavra
+#                             ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                       ^ source.lavra
+#                                        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido do cognome do cônsul seguido de ":".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#               ^ source.lavra
+#                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^ source.lavra variable.other.lavra
+#                          ^ source.lavra
+#                           ^^ source.lavra keyword.operator.word.preposition.lavra
+#                             ^ source.lavra
+#                              ^^^^^^ source.lavra variable.other.lavra
+#                                    ^ source.lavra
+#                                     ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                               ^ source.lavra
+#                                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                 ^ source.lavra string.quoted.double.lavra
+#                                                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                   ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "    " seguido da defesa.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^ source.lavra string.quoted.double.lavra
+#                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                          ^ source.lavra
+#                           ^^ source.lavra keyword.operator.word.preposition.lavra
+#                             ^ source.lavra
+#                              ^^^^^^ source.lavra variable.other.lavra
+#                                    ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para consultar os senadores sobre o cônsul e o réu,
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#              ^ source.lavra meta.function.header.lavra
+#               ^^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                 ^ source.lavra meta.function.header.lavra
+#                  ^^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                           ^ source.lavra meta.function.header.lavra
+#                            ^^^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                                 ^ source.lavra meta.function.header.lavra
+#                                  ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                   ^ source.lavra meta.function.header.lavra
+#                                    ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                          ^ source.lavra meta.function.header.lavra
+#                                           ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                            ^ source.lavra meta.function.header.lavra
+#                                             ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                              ^ source.lavra meta.function.header.lavra
+#                                               ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                  ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+>        sendo os senadores uma assembleia confiada e o cônsul e o réu oradores confiados:
+#^^^^^^^^ source.lavra meta.function.header.lavra
+#        ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                ^ source.lavra meta.function.header.lavra
+#                 ^^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                              ^ source.lavra meta.function.header.lavra
+#                               ^^^^^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                         ^ source.lavra meta.function.header.lavra
+#                                          ^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.lent.lavra
+#                                                  ^ source.lavra meta.function.header.lavra
+#                                                   ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                                    ^ source.lavra meta.function.header.lavra
+#                                                     ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                                      ^ source.lavra meta.function.header.lavra
+#                                                       ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                             ^ source.lavra meta.function.header.lavra
+#                                                              ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                                               ^ source.lavra meta.function.header.lavra
+#                                                                ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                                                 ^ source.lavra meta.function.header.lavra
+#                                                                  ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                                     ^ source.lavra meta.function.header.lavra
+#                                                                      ^^^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                                                              ^ source.lavra meta.function.header.lavra
+#                                                                               ^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.lent.lavra
+#                                                                                        ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Escrevo "    Pais conscritos, credes no cônsul? (s/n) " e leio o juízo dos senadores.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                          ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                           ^^^ source.lavra
+#                                                              ^^^^ source.lavra support.function.builtin.lavra
+#                                                                  ^ source.lavra
+#                                                                   ^ source.lavra variable.other.article.lavra
+#                                                                    ^ source.lavra
+#                                                                     ^^^^^ source.lavra variable.other.lavra
+#                                                                          ^ source.lavra
+#                                                                           ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                              ^ source.lavra
+#                                                                               ^^^^^^^^^ source.lavra variable.other.lavra
+#                                                                                        ^ source.lavra punctuation.terminator.period.lavra
+>    Se o juízo dos senadores for igual a 's':
+#^^^^ source.lavra
+#    ^^ source.lavra keyword.control.conditional.lavra
+#      ^ source.lavra
+#       ^ source.lavra variable.other.article.lavra
+#        ^ source.lavra
+#         ^^^^^ source.lavra variable.other.lavra
+#              ^ source.lavra
+#               ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^^^ source.lavra variable.other.lavra
+#                            ^ source.lavra
+#                             ^^^ source.lavra keyword.operator.copula.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                        ^ source.lavra
+#                                         ^^^ source.lavra constant.character.lavra
+#                                            ^ source.lavra punctuation.section.block.lavra
+>        A paciência dos senadores diminui 1,
+#^^^^^^^^ source.lavra
+#        ^ source.lavra variable.other.article.lavra
+#         ^ source.lavra
+#          ^^^^^^^^^ source.lavra variable.other.lavra
+#                   ^ source.lavra
+#                    ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                       ^ source.lavra
+#                        ^^^^^^^^^ source.lavra variable.other.lavra
+#                                 ^ source.lavra
+#                                  ^^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                         ^ source.lavra
+#                                          ^ source.lavra constant.numeric.decimal.lavra
+#                                           ^ source.lavra punctuation.separator.lavra
+>            e a credibilidade do cônsul cresce 1.
+#^^^^^^^^^^^^^^ source.lavra
+#              ^ source.lavra variable.other.article.lavra
+#               ^ source.lavra
+#                ^^^^^^^^^^^^^ source.lavra variable.other.lavra
+#                             ^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^ source.lavra variable.other.lavra
+#                                       ^ source.lavra
+#                                        ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                              ^ source.lavra
+#                                               ^ source.lavra constant.numeric.decimal.lavra
+#                                                ^ source.lavra punctuation.terminator.period.lavra
+>    Senão:
+#^^^^ source.lavra
+#    ^^^^^ source.lavra keyword.control.conditional.lavra
+#         ^ source.lavra punctuation.section.block.lavra
+>        A credibilidade do réu cresce 1.
+#^^^^^^^^ source.lavra
+#        ^ source.lavra variable.other.article.lavra
+#         ^ source.lavra
+#          ^^^^^^^^^^^^^ source.lavra variable.other.lavra
+#                       ^ source.lavra
+#                        ^^ source.lavra keyword.operator.word.preposition.lavra
+#                          ^ source.lavra
+#                           ^^^ source.lavra variable.other.lavra
+#                              ^ source.lavra
+#                               ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                     ^ source.lavra
+#                                      ^ source.lavra constant.numeric.decimal.lavra
+#                                       ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#              ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para a assembleia ser paciente, sendo a assembleia uma assembleia emprestada, devolvendo um lógico:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#      ^ source.lavra meta.function.header.lavra
+#       ^^^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                 ^ source.lavra meta.function.header.lavra
+#                  ^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#                     ^ source.lavra meta.function.header.lavra
+#                      ^^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.adjective.lavra
+#                              ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                               ^ source.lavra meta.function.header.lavra
+#                                ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                     ^ source.lavra meta.function.header.lavra
+#                                      ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                       ^ source.lavra meta.function.header.lavra
+#                                        ^^^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                  ^ source.lavra meta.function.header.lavra
+#                                                   ^^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                      ^ source.lavra meta.function.header.lavra
+#                                                       ^^^^^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                                                 ^ source.lavra meta.function.header.lavra
+#                                                                  ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                            ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                                                                             ^ source.lavra meta.function.header.lavra
+#                                                                              ^^^^^^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                                                                        ^ source.lavra meta.function.header.lavra
+#                                                                                         ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                                                           ^ source.lavra meta.function.header.lavra
+#                                                                                            ^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                                                                  ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Devolvo o fato de a paciência da assembleia ser maior que 0.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra keyword.control.flow.lavra
+#           ^ source.lavra
+#            ^ source.lavra keyword.other.fact.lavra
+#             ^ source.lavra
+#              ^^^^ source.lavra keyword.other.fact.lavra
+#                  ^ source.lavra
+#                   ^^ source.lavra keyword.other.fact.lavra
+#                     ^ source.lavra
+#                      ^ source.lavra variable.other.article.lavra
+#                       ^ source.lavra
+#                        ^^^^^^^^^ source.lavra variable.other.lavra
+#                                 ^ source.lavra
+#                                  ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                    ^ source.lavra
+#                                     ^^^^^^^^^^ source.lavra variable.other.lavra
+#                                               ^^^^^ source.lavra
+#                                                    ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                                             ^ source.lavra
+#                                                              ^ source.lavra constant.numeric.decimal.lavra
+#                                                               ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para abrir as portas com o cônsul, sendo o cônsul um orador emprestado:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#          ^ source.lavra meta.function.header.lavra
+#           ^^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                    ^ source.lavra meta.function.header.lavra
+#                     ^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra meta.function.header.lavra
+#                         ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                 ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                                  ^ source.lavra meta.function.header.lavra
+#                                   ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                        ^ source.lavra meta.function.header.lavra
+#                                         ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                          ^ source.lavra meta.function.header.lavra
+#                                           ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                 ^ source.lavra meta.function.header.lavra
+#                                                  ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                    ^ source.lavra meta.function.header.lavra
+#                                                     ^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                                           ^ source.lavra meta.function.header.lavra
+#                                                            ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                      ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Escrevo o cognome do cônsul seguido de ", apontando a saída:".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra
+#                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra
+#                         ^^^^^^ source.lavra variable.other.lavra
+#                               ^ source.lavra
+#                                ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                          ^ source.lavra
+#                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                            ^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                 ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "    O acampamento de Mânlio sente falta do seu general há tempo demais. "
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido de "Sai da cidade, Catilina. As portas estão abertas: parte.".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                             ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para ameaçar a cidade pelo réu, sendo o réu um orador emprestado:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#            ^ source.lavra meta.function.header.lavra
+#             ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#              ^ source.lavra meta.function.header.lavra
+#               ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                     ^ source.lavra meta.function.header.lavra
+#                      ^^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                              ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                               ^ source.lavra meta.function.header.lavra
+#                                ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                     ^ source.lavra meta.function.header.lavra
+#                                      ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                       ^ source.lavra meta.function.header.lavra
+#                                        ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                           ^ source.lavra meta.function.header.lavra
+#                                            ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                              ^ source.lavra meta.function.header.lavra
+#                                               ^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                                     ^ source.lavra meta.function.header.lavra
+#                                                      ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Escrevo o cognome do réu seguido de ", furioso, já de saída:".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra
+#                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra
+#                         ^^^ source.lavra variable.other.lavra
+#                            ^ source.lavra
+#                             ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                       ^ source.lavra
+#                                        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                         ^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                 ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "    Já que, cercado de inimigos, sou lançado ao abismo, "
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido de "apagarei o meu incêndio com a ruína.".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                         ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para deixar a cidade com o réu, sendo o réu um orador emprestado:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#           ^ source.lavra meta.function.header.lavra
+#            ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                    ^ source.lavra meta.function.header.lavra
+#                     ^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra meta.function.header.lavra
+#                         ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                              ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                               ^ source.lavra meta.function.header.lavra
+#                                ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                     ^ source.lavra meta.function.header.lavra
+#                                      ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                       ^ source.lavra meta.function.header.lavra
+#                                        ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                           ^ source.lavra meta.function.header.lavra
+#                                            ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                              ^ source.lavra meta.function.header.lavra
+#                                               ^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                                     ^ source.lavra meta.function.header.lavra
+#                                                      ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Escrevo "Naquela noite, " seguido do nome do réu
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                             ^ source.lavra
+#                              ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                     ^ source.lavra
+#                                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                        ^ source.lavra
+#                                         ^^^^ source.lavra variable.other.lavra
+#                                             ^ source.lavra
+#                                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                ^ source.lavra
+#                                                 ^^^ source.lavra variable.other.lavra
+>        seguido de " sai de Roma rumo ao acampamento de Mânlio.".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para retirar a acusação pelo cônsul, sendo o cônsul um orador emprestado:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#            ^ source.lavra meta.function.header.lavra
+#             ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#              ^ source.lavra meta.function.header.lavra
+#               ^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                       ^ source.lavra meta.function.header.lavra
+#                        ^^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                            ^ source.lavra meta.function.header.lavra
+#                             ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                   ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                                    ^ source.lavra meta.function.header.lavra
+#                                     ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                          ^ source.lavra meta.function.header.lavra
+#                                           ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                            ^ source.lavra meta.function.header.lavra
+#                                             ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                   ^ source.lavra meta.function.header.lavra
+#                                                    ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                      ^ source.lavra meta.function.header.lavra
+#                                                       ^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                                             ^ source.lavra meta.function.header.lavra
+#                                                              ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                        ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Escrevo o cognome do cônsul seguido de ", depois de um silêncio:".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra
+#                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra
+#                         ^^^^^^ source.lavra variable.other.lavra
+#                               ^ source.lavra
+#                                ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                          ^ source.lavra
+#                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                            ^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                     ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "    Retiro o que disse. Que o senado julgue em outro dia.".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                      ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                       ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para permanecer com o réu, sendo o réu um orador emprestado:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#               ^ source.lavra meta.function.header.lavra
+#                ^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                   ^ source.lavra meta.function.header.lavra
+#                    ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                     ^ source.lavra meta.function.header.lavra
+#                      ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                         ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                ^ source.lavra meta.function.header.lavra
+#                                 ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                  ^ source.lavra meta.function.header.lavra
+#                                   ^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                      ^ source.lavra meta.function.header.lavra
+#                                       ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                         ^ source.lavra meta.function.header.lavra
+#                                          ^^^^^^ source.lavra meta.function.header.lavra entity.name.type.lavra
+#                                                ^ source.lavra meta.function.header.lavra
+#                                                 ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                           ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Escrevo o cognome do réu seguido de " volta a sentar-se. "
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra
+#                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra
+#                         ^^^ source.lavra variable.other.lavra
+#                            ^ source.lavra
+#                             ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                       ^ source.lavra
+#                                        ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                         ^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+>        seguido de "Os bancos ao redor dele tornam a se encher.".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para flexionar a quantidade entre o singular e o plural,
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#              ^ source.lavra meta.function.header.lavra
+#               ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                ^ source.lavra meta.function.header.lavra
+#                 ^^^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                           ^ source.lavra meta.function.header.lavra
+#                            ^^^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                                 ^ source.lavra meta.function.header.lavra
+#                                  ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                   ^ source.lavra meta.function.header.lavra
+#                                    ^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                            ^ source.lavra meta.function.header.lavra
+#                                             ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                              ^ source.lavra meta.function.header.lavra
+#                                               ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                                ^ source.lavra meta.function.header.lavra
+#                                                 ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                       ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+>        sendo a quantidade um inteiro e o singular e o plural textos emprestados,
+#^^^^^^^^ source.lavra meta.function.header.lavra
+#        ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#               ^ source.lavra meta.function.header.lavra
+#                ^^^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                             ^ source.lavra meta.function.header.lavra
+#                              ^^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                     ^ source.lavra meta.function.header.lavra
+#                                      ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                       ^ source.lavra meta.function.header.lavra
+#                                        ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                         ^ source.lavra meta.function.header.lavra
+#                                          ^^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                  ^ source.lavra meta.function.header.lavra
+#                                                   ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                                    ^ source.lavra meta.function.header.lavra
+#                                                     ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                                      ^ source.lavra meta.function.header.lavra
+#                                                       ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                             ^ source.lavra meta.function.header.lavra
+#                                                              ^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                                    ^ source.lavra meta.function.header.lavra
+#                                                                     ^^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                                ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+>        devolvendo um texto:
+#^^^^^^^^ source.lavra meta.function.header.lavra
+#        ^^^^^^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                  ^ source.lavra meta.function.header.lavra
+#                   ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                     ^ source.lavra meta.function.header.lavra
+#                      ^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                           ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Se a quantidade for igual a 1: devolvo "1 " seguido do singular.
+#^^^^ source.lavra
+#    ^^ source.lavra keyword.control.conditional.lavra
+#      ^ source.lavra
+#       ^ source.lavra variable.other.article.lavra
+#        ^ source.lavra
+#         ^^^^^^^^^^ source.lavra variable.other.lavra
+#                   ^ source.lavra
+#                    ^^^ source.lavra keyword.operator.copula.lavra
+#                       ^ source.lavra
+#                        ^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                               ^ source.lavra
+#                                ^ source.lavra constant.numeric.decimal.lavra
+#                                 ^ source.lavra punctuation.section.block.lavra
+#                                  ^ source.lavra
+#                                   ^^^^^^^ source.lavra keyword.control.flow.lavra
+#                                          ^ source.lavra
+#                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                            ^^ source.lavra string.quoted.double.lavra
+#                                              ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                               ^ source.lavra
+#                                                ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                       ^ source.lavra
+#                                                        ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                          ^ source.lavra
+#                                                           ^^^^^^^^ source.lavra variable.other.lavra
+#                                                                   ^ source.lavra punctuation.terminator.period.lavra
+>    Devolvo a quantidade como texto seguido de " " seguido do plural.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra keyword.control.flow.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^^^^^^ source.lavra variable.other.lavra
+#                        ^ source.lavra
+#                         ^^^^ source.lavra keyword.operator.conversion.lavra
+#                             ^ source.lavra
+#                              ^^^^^ source.lavra storage.type.primitive.lavra
+#                                   ^ source.lavra
+#                                    ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                              ^ source.lavra
+#                                               ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                ^ source.lavra string.quoted.double.lavra
+#                                                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                  ^ source.lavra
+#                                                   ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                          ^ source.lavra
+#                                                           ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                             ^ source.lavra
+#                                                              ^^^^^^ source.lavra variable.other.lavra
+#                                                                    ^ source.lavra punctuation.terminator.period.lavra
+>

@@ -1,0 +1,246 @@
+>Nota: uma pilha de números; a lista é dona dos itens e os libera sozinha.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>Para somar a pilha, sendo a pilha uma lista de inteiros emprestada, devolvendo um inteiro:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#          ^ source.lavra meta.function.header.lavra
+#           ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#            ^ source.lavra meta.function.header.lavra
+#             ^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                  ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                   ^ source.lavra meta.function.header.lavra
+#                    ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                         ^ source.lavra meta.function.header.lavra
+#                          ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                           ^ source.lavra meta.function.header.lavra
+#                            ^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                 ^ source.lavra meta.function.header.lavra
+#                                  ^^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                     ^ source.lavra meta.function.header.lavra
+#                                      ^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                           ^ source.lavra meta.function.header.lavra
+#                                            ^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                                              ^ source.lavra meta.function.header.lavra
+#                                               ^^^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                       ^ source.lavra meta.function.header.lavra
+#                                                        ^^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.borrowed.lavra
+#                                                                  ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                                                                   ^ source.lavra meta.function.header.lavra
+#                                                                    ^^^^^^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                                                              ^ source.lavra meta.function.header.lavra
+#                                                                               ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                                                 ^ source.lavra meta.function.header.lavra
+#                                                                                  ^^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                                                         ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    O total começa em 0.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra
+#            ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                  ^ source.lavra
+#                   ^^ source.lavra keyword.operator.word.preposition.lavra
+#                     ^ source.lavra
+#                      ^ source.lavra constant.numeric.decimal.lavra
+#                       ^ source.lavra punctuation.terminator.period.lavra
+>    Para cada número da pilha: o total cresce o número.
+#^^^^ source.lavra
+#    ^^^^ source.lavra keyword.control.loop.lavra
+#        ^ source.lavra
+#         ^^^^ source.lavra keyword.control.loop.lavra
+#             ^ source.lavra
+#              ^^^^^^ source.lavra variable.other.lavra
+#                    ^ source.lavra
+#                     ^^ source.lavra keyword.operator.word.preposition.lavra
+#                       ^ source.lavra
+#                        ^^^^^ source.lavra variable.other.lavra
+#                             ^ source.lavra punctuation.section.block.lavra
+#                              ^ source.lavra
+#                               ^ source.lavra variable.other.article.lavra
+#                                ^ source.lavra
+#                                 ^^^^^ source.lavra variable.other.lavra
+#                                      ^ source.lavra
+#                                       ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                             ^ source.lavra
+#                                              ^ source.lavra variable.other.article.lavra
+#                                               ^ source.lavra
+#                                                ^^^^^^ source.lavra variable.other.lavra
+#                                                      ^ source.lavra punctuation.terminator.period.lavra
+>    Devolvo o total.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra keyword.control.flow.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^ source.lavra variable.other.lavra
+#                   ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para esvaziar a pilha, sendo a pilha uma lista de inteiros confiada:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#               ^ source.lavra meta.function.header.lavra
+#                ^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                     ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                      ^ source.lavra meta.function.header.lavra
+#                       ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                            ^ source.lavra meta.function.header.lavra
+#                             ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                              ^ source.lavra meta.function.header.lavra
+#                               ^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                    ^ source.lavra meta.function.header.lavra
+#                                     ^^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                        ^ source.lavra meta.function.header.lavra
+#                                         ^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                              ^ source.lavra meta.function.header.lavra
+#                                               ^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                                                 ^ source.lavra meta.function.header.lavra
+#                                                  ^^^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                          ^ source.lavra meta.function.header.lavra
+#                                                           ^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.lent.lavra
+#                                                                   ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Enquanto o tamanho da pilha for maior que 0:
+#^^^^ source.lavra
+#    ^^^^^^^^ source.lavra keyword.control.loop.lavra
+#            ^ source.lavra
+#             ^ source.lavra keyword.operator.word.preposition.lavra
+#              ^ source.lavra
+#               ^^^^^^^ source.lavra support.function.nominal.lavra
+#                      ^ source.lavra
+#                       ^^ source.lavra keyword.operator.word.preposition.lavra
+#                         ^ source.lavra
+#                          ^^^^^ source.lavra variable.other.lavra
+#                               ^ source.lavra
+#                                ^^^ source.lavra keyword.operator.copula.lavra
+#                                   ^ source.lavra
+#                                    ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                             ^ source.lavra
+#                                              ^ source.lavra constant.numeric.decimal.lavra
+#                                               ^ source.lavra punctuation.section.block.lavra
+>        Tomo o último da pilha.
+#^^^^^^^^ source.lavra
+#        ^^^^ source.lavra support.function.builtin.lavra
+#            ^ source.lavra
+#             ^ source.lavra keyword.other.position.lavra
+#              ^ source.lavra
+#               ^^^^^^ source.lavra keyword.other.position.lavra
+#                     ^ source.lavra
+#                      ^^ source.lavra keyword.operator.word.preposition.lavra
+#                        ^ source.lavra
+#                         ^^^^^ source.lavra variable.other.lavra
+#                              ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    A pilha, uma lista de inteiros, começa vazia.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra punctuation.separator.lavra
+#            ^ source.lavra
+#             ^^^ source.lavra keyword.other.article.lavra
+#                ^ source.lavra
+#                 ^^^^^ source.lavra storage.type.primitive.lavra
+#                      ^ source.lavra
+#                       ^^ source.lavra keyword.operator.word.preposition.lavra
+#                         ^ source.lavra
+#                          ^^^^^^^^ source.lavra storage.type.primitive.lavra
+#                                  ^ source.lavra punctuation.separator.lavra
+#                                   ^ source.lavra
+#                                    ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                                          ^ source.lavra
+#                                           ^^^^^ source.lavra constant.language.empty.lavra
+#                                                ^ source.lavra punctuation.terminator.period.lavra
+>    Para cada i de 1 até 10: a pilha ganha i vezes i.
+#^^^^ source.lavra
+#    ^^^^ source.lavra keyword.control.loop.lavra
+#        ^ source.lavra
+#         ^^^^ source.lavra keyword.control.loop.lavra
+#             ^ source.lavra
+#              ^ source.lavra variable.other.symbol.lavra
+#               ^ source.lavra
+#                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra constant.numeric.decimal.lavra
+#                    ^ source.lavra
+#                     ^^^ source.lavra keyword.control.loop.lavra
+#                        ^ source.lavra
+#                         ^^ source.lavra constant.numeric.decimal.lavra
+#                           ^ source.lavra punctuation.section.block.lavra
+#                            ^ source.lavra
+#                             ^ source.lavra variable.other.article.lavra
+#                              ^ source.lavra
+#                               ^^^^^ source.lavra variable.other.lavra
+#                                    ^ source.lavra
+#                                     ^^^^^ source.lavra keyword.other.mutation.lavra
+#                                          ^ source.lavra
+#                                           ^ source.lavra variable.other.symbol.lavra
+#                                            ^ source.lavra
+#                                             ^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                                  ^ source.lavra
+#                                                   ^ source.lavra variable.other.symbol.lavra
+#                                                    ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Soma dos quadrados de 1 a 10: " seguido do resultado de somar a pilha.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                            ^ source.lavra
+#                                             ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                    ^ source.lavra
+#                                                     ^^ source.lavra variable.language.article.lavra
+#                                                       ^ source.lavra
+#                                                        ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                    ^ source.lavra
+#                                                                     ^^^^^ source.lavra entity.name.function.call.lavra
+#                                                                          ^ source.lavra
+#                                                                           ^ source.lavra variable.other.article.lavra
+#                                                                            ^ source.lavra
+#                                                                             ^^^^^ source.lavra variable.other.lavra
+#                                                                                  ^ source.lavra punctuation.terminator.period.lavra
+>    Esvazio a pilha.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra entity.name.function.call.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.article.lavra
+#             ^ source.lavra
+#              ^^^^^ source.lavra variable.other.lavra
+#                   ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Restam " seguido do tamanho da pilha seguido de " itens.".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^ source.lavra string.quoted.double.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                     ^ source.lavra
+#                      ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                             ^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^^ source.lavra support.function.nominal.lavra
+#                                        ^ source.lavra
+#                                         ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                           ^ source.lavra
+#                                            ^^^^^ source.lavra variable.other.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                            ^ source.lavra
+#                                                             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                              ^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                      ^ source.lavra punctuation.terminator.period.lavra
+>

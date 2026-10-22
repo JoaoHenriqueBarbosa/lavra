@@ -1,0 +1,329 @@
+>Nota: listas, posições, contas por extenso.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    As notas são 7, 8,5, 6, 9,25 e 10.
+#^^^^ source.lavra
+#    ^^ source.lavra variable.other.article.lavra
+#      ^ source.lavra
+#       ^^^^^ source.lavra variable.other.lavra
+#            ^ source.lavra
+#             ^^^ source.lavra storage.type.declaration.lavra
+#                ^ source.lavra
+#                 ^ source.lavra constant.numeric.decimal.lavra
+#                  ^ source.lavra punctuation.separator.lavra
+#                   ^ source.lavra
+#                    ^^^ source.lavra constant.numeric.decimal.lavra
+#                       ^ source.lavra punctuation.separator.lavra
+#                        ^ source.lavra
+#                         ^ source.lavra constant.numeric.decimal.lavra
+#                          ^ source.lavra punctuation.separator.lavra
+#                           ^ source.lavra
+#                            ^^^^ source.lavra constant.numeric.decimal.lavra
+#                                ^^^ source.lavra
+#                                   ^^ source.lavra constant.numeric.decimal.lavra
+#                                     ^ source.lavra punctuation.terminator.period.lavra
+>    A soma-total começa em 0,0.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^^^^ source.lavra variable.other.lavra
+#                ^ source.lavra
+#                 ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                       ^ source.lavra
+#                        ^^ source.lavra keyword.operator.word.preposition.lavra
+#                          ^ source.lavra
+#                           ^^^ source.lavra constant.numeric.decimal.lavra
+#                              ^ source.lavra punctuation.terminator.period.lavra
+>    Para cada nota: a soma-total cresce a nota.
+#^^^^ source.lavra
+#    ^^^^ source.lavra keyword.control.loop.lavra
+#        ^ source.lavra
+#         ^^^^ source.lavra keyword.control.loop.lavra
+#             ^ source.lavra
+#              ^^^^ source.lavra variable.other.lavra
+#                  ^ source.lavra punctuation.section.block.lavra
+#                   ^ source.lavra
+#                    ^ source.lavra variable.other.article.lavra
+#                     ^ source.lavra
+#                      ^^^^^^^^^^ source.lavra variable.other.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                       ^ source.lavra
+#                                        ^ source.lavra variable.other.article.lavra
+#                                         ^ source.lavra
+#                                          ^^^^ source.lavra variable.other.lavra
+#                                              ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Notas: " seguido das notas.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^ source.lavra string.quoted.double.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                     ^ source.lavra
+#                      ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                             ^ source.lavra
+#                              ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                 ^ source.lavra
+#                                  ^^^^^ source.lavra variable.other.lavra
+#                                       ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Primeira: " seguido da primeira das notas seguido de ", última: " seguido da última das notas.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                        ^ source.lavra
+#                         ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                ^ source.lavra
+#                                 ^^ source.lavra keyword.other.position.lavra
+#                                   ^ source.lavra
+#                                    ^^^^^^^^ source.lavra keyword.other.position.lavra
+#                                            ^ source.lavra
+#                                             ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                ^ source.lavra
+#                                                 ^^^^^ source.lavra variable.other.lavra
+#                                                      ^ source.lavra
+#                                                       ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                                   ^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                              ^ source.lavra
+#                                                                               ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                                                      ^ source.lavra
+#                                                                                       ^^ source.lavra keyword.other.position.lavra
+#                                                                                         ^ source.lavra
+#                                                                                          ^^^^^^ source.lavra keyword.other.position.lavra
+#                                                                                                ^ source.lavra
+#                                                                                                 ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                                                    ^ source.lavra
+#                                                                                                     ^^^^^ source.lavra variable.other.lavra
+#                                                                                                          ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Média: " seguido da soma-total dividido por (o tamanho das notas) como real.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^ source.lavra string.quoted.double.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                     ^ source.lavra
+#                      ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                             ^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^^^^^ source.lavra variable.other.lavra
+#                                           ^ source.lavra
+#                                            ^^^^^^^^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                                        ^ source.lavra
+#                                                         ^ source.lavra punctuation.section.parens.lavra
+#                                                          ^ source.lavra keyword.operator.word.preposition.lavra
+#                                                           ^ source.lavra
+#                                                            ^^^^^^^ source.lavra support.function.nominal.lavra
+#                                                                   ^ source.lavra
+#                                                                    ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                       ^ source.lavra
+#                                                                        ^^^^^ source.lavra variable.other.lavra
+#                                                                             ^ source.lavra punctuation.section.parens.lavra
+#                                                                              ^ source.lavra
+#                                                                               ^^^^ source.lavra keyword.operator.conversion.lavra
+#                                                                                   ^ source.lavra
+#                                                                                    ^^^^ source.lavra storage.type.primitive.lavra
+#                                                                                        ^ source.lavra punctuation.terminator.period.lavra
+>
+>    As dobradas começam vazias.
+#^^^^ source.lavra
+#    ^^ source.lavra variable.other.article.lavra
+#      ^ source.lavra
+#       ^^^^^^^^ source.lavra variable.other.lavra
+#               ^ source.lavra
+#                ^^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                       ^ source.lavra
+#                        ^^^^^^ source.lavra constant.language.empty.lavra
+#                              ^ source.lavra punctuation.terminator.period.lavra
+>    Para cada nota das notas: as dobradas ganham a nota vezes 2.
+#^^^^ source.lavra
+#    ^^^^ source.lavra keyword.control.loop.lavra
+#        ^ source.lavra
+#         ^^^^ source.lavra keyword.control.loop.lavra
+#             ^ source.lavra
+#              ^^^^ source.lavra variable.other.lavra
+#                  ^ source.lavra
+#                   ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra
+#                       ^^^^^ source.lavra variable.other.lavra
+#                            ^ source.lavra punctuation.section.block.lavra
+#                             ^ source.lavra
+#                              ^^ source.lavra variable.other.article.lavra
+#                                ^ source.lavra
+#                                 ^^^^^^^^ source.lavra variable.other.lavra
+#                                         ^ source.lavra
+#                                          ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                                ^ source.lavra
+#                                                 ^ source.lavra variable.other.article.lavra
+#                                                  ^ source.lavra
+#                                                   ^^^^ source.lavra variable.other.lavra
+#                                                       ^ source.lavra
+#                                                        ^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                                             ^ source.lavra
+#                                                              ^ source.lavra constant.numeric.decimal.lavra
+#                                                               ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "Dobradas: " seguido das dobradas.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                        ^ source.lavra
+#                         ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                ^ source.lavra
+#                                 ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                    ^ source.lavra
+#                                     ^^^^^^^^ source.lavra variable.other.lavra
+#                                             ^ source.lavra punctuation.terminator.period.lavra
+>    Para cada i de 1 até o tamanho das dobradas:
+#^^^^ source.lavra
+#    ^^^^ source.lavra keyword.control.loop.lavra
+#        ^ source.lavra
+#         ^^^^ source.lavra keyword.control.loop.lavra
+#             ^ source.lavra
+#              ^ source.lavra variable.other.symbol.lavra
+#               ^ source.lavra
+#                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra constant.numeric.decimal.lavra
+#                    ^ source.lavra
+#                     ^^^ source.lavra keyword.control.loop.lavra
+#                        ^ source.lavra
+#                         ^ source.lavra keyword.operator.word.preposition.lavra
+#                          ^ source.lavra
+#                           ^^^^^^^ source.lavra support.function.nominal.lavra
+#                                  ^ source.lavra
+#                                   ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                      ^ source.lavra
+#                                       ^^^^^^^^ source.lavra variable.other.lavra
+#                                               ^ source.lavra punctuation.section.block.lavra
+>        Se o item i das dobradas for maior que 15:
+#^^^^^^^^ source.lavra
+#        ^^ source.lavra keyword.control.conditional.lavra
+#          ^ source.lavra
+#           ^ source.lavra keyword.other.position.lavra
+#            ^ source.lavra
+#             ^^^^ source.lavra keyword.other.position.lavra
+#                 ^ source.lavra
+#                  ^ source.lavra variable.other.symbol.lavra
+#                   ^ source.lavra
+#                    ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                       ^ source.lavra
+#                        ^^^^^^^^ source.lavra variable.other.lavra
+#                                ^ source.lavra
+#                                 ^^^ source.lavra keyword.operator.copula.lavra
+#                                    ^ source.lavra
+#                                     ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                              ^ source.lavra
+#                                               ^^ source.lavra constant.numeric.decimal.lavra
+#                                                 ^ source.lavra punctuation.section.block.lavra
+>            Escrevo "posição " seguido de i seguido de " passou de 15".
+#^^^^^^^^^^^^ source.lavra
+#            ^^^^^^^ source.lavra support.function.builtin.lavra
+#                   ^ source.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                     ^^^^^^^^ source.lavra string.quoted.double.lavra
+#                             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                              ^ source.lavra
+#                               ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                         ^ source.lavra
+#                                          ^ source.lavra variable.other.symbol.lavra
+#                                           ^ source.lavra
+#                                            ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                      ^ source.lavra
+#                                                       ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                        ^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                      ^ source.lavra punctuation.terminator.period.lavra
+>
+>    Escrevo "13 módulo 4 = " seguido de 13 módulo 4
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                            ^ source.lavra
+#                             ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                       ^ source.lavra
+#                                        ^^ source.lavra constant.numeric.decimal.lavra
+#                                          ^ source.lavra
+#                                           ^^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                                 ^ source.lavra
+#                                                  ^ source.lavra constant.numeric.decimal.lavra
+>        seguido de "; deslocamento: " seguido do deslocamento de 1 por 10 à esquerda.
+#^^^^^^^^ source.lavra
+#        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                  ^ source.lavra
+#                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                    ^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                     ^ source.lavra
+#                                      ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                             ^ source.lavra
+#                                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                ^ source.lavra
+#                                                 ^^^^^^^^^^^^ source.lavra support.function.nominal.lavra
+#                                                             ^ source.lavra
+#                                                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                ^ source.lavra
+#                                                                 ^ source.lavra constant.numeric.decimal.lavra
+#                                                                  ^ source.lavra
+#                                                                   ^^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                      ^ source.lavra
+#                                                                       ^^ source.lavra constant.numeric.decimal.lavra
+#                                                                         ^ source.lavra
+#                                                                          ^^^^^^^^^^ source.lavra keyword.operator.direction.lavra
+#                                                                                    ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "interseção de 12 e 10 = " seguido da interseção de 12 e 10.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                      ^ source.lavra
+#                                       ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                              ^ source.lavra
+#                                               ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                 ^ source.lavra
+#                                                  ^^^^^^^^^^ source.lavra support.function.nominal.lavra
+#                                                            ^ source.lavra
+#                                                             ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                               ^ source.lavra
+#                                                                ^^ source.lavra constant.numeric.decimal.lavra
+#                                                                  ^^^ source.lavra
+#                                                                     ^^ source.lavra constant.numeric.decimal.lavra
+#                                                                       ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "raiz de 2 = " seguido da raiz de 2.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                         ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                          ^ source.lavra
+#                           ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                  ^ source.lavra
+#                                   ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                     ^ source.lavra
+#                                      ^^^^ source.lavra support.function.nominal.lavra
+#                                          ^ source.lavra
+#                                           ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                             ^ source.lavra
+#                                              ^ source.lavra constant.numeric.decimal.lavra
+#                                               ^ source.lavra punctuation.terminator.period.lavra
+>

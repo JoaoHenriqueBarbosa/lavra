@@ -1,0 +1,147 @@
+>Nota: um script curto: laço, condição, coleção de caracteres.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    O total começa em 0.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra
+#            ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                  ^ source.lavra
+#                   ^^ source.lavra keyword.operator.word.preposition.lavra
+#                     ^ source.lavra
+#                      ^ source.lavra constant.numeric.decimal.lavra
+#                       ^ source.lavra punctuation.terminator.period.lavra
+>    Repito 5 vezes: o total cresce 2.
+#^^^^ source.lavra
+#    ^^^^^^ source.lavra keyword.control.loop.lavra
+#          ^ source.lavra
+#           ^ source.lavra constant.numeric.decimal.lavra
+#            ^ source.lavra
+#             ^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                  ^ source.lavra punctuation.section.block.lavra
+#                   ^ source.lavra
+#                    ^ source.lavra variable.other.article.lavra
+#                     ^ source.lavra
+#                      ^^^^^ source.lavra variable.other.lavra
+#                           ^ source.lavra
+#                            ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                  ^ source.lavra
+#                                   ^ source.lavra constant.numeric.decimal.lavra
+#                                    ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "total: " seguido do total.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^ source.lavra string.quoted.double.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                     ^ source.lavra
+#                      ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                             ^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^^^ source.lavra variable.other.lavra
+#                                      ^ source.lavra punctuation.terminator.period.lavra
+>    N começa em 10.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.symbol.lavra
+#     ^ source.lavra
+#      ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#            ^ source.lavra
+#             ^^ source.lavra keyword.operator.word.preposition.lavra
+#               ^ source.lavra
+#                ^^ source.lavra constant.numeric.decimal.lavra
+#                  ^ source.lavra punctuation.terminator.period.lavra
+>    Enquanto n for maior que 0: n diminui 3.
+#^^^^ source.lavra
+#    ^^^^^^^^ source.lavra keyword.control.loop.lavra
+#            ^ source.lavra
+#             ^ source.lavra variable.other.symbol.lavra
+#              ^ source.lavra
+#               ^^^ source.lavra keyword.operator.copula.lavra
+#                  ^ source.lavra
+#                   ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                            ^ source.lavra
+#                             ^ source.lavra constant.numeric.decimal.lavra
+#                              ^ source.lavra punctuation.section.block.lavra
+#                               ^ source.lavra
+#                                ^ source.lavra variable.other.symbol.lavra
+#                                 ^ source.lavra
+#                                  ^^^^^^^ source.lavra keyword.other.mutation.lavra
+#                                         ^ source.lavra
+#                                          ^ source.lavra constant.numeric.decimal.lavra
+#                                           ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "n: " seguido de n.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^ source.lavra string.quoted.double.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                 ^ source.lavra
+#                  ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                            ^ source.lavra
+#                             ^ source.lavra variable.other.symbol.lavra
+#                              ^ source.lavra punctuation.terminator.period.lavra
+>    As letras são 'a', 'b' e 'ç'.
+#^^^^ source.lavra
+#    ^^ source.lavra variable.other.article.lavra
+#      ^ source.lavra
+#       ^^^^^^ source.lavra variable.other.lavra
+#             ^ source.lavra
+#              ^^^ source.lavra storage.type.declaration.lavra
+#                 ^ source.lavra
+#                  ^^^ source.lavra constant.character.lavra
+#                     ^ source.lavra punctuation.separator.lavra
+#                      ^ source.lavra
+#                       ^^^ source.lavra constant.character.lavra
+#                          ^^^ source.lavra
+#                             ^^^ source.lavra constant.character.lavra
+#                                ^ source.lavra punctuation.terminator.period.lavra
+>    Para cada letra:
+#^^^^ source.lavra
+#    ^^^^ source.lavra keyword.control.loop.lavra
+#        ^ source.lavra
+#         ^^^^ source.lavra keyword.control.loop.lavra
+#             ^ source.lavra
+#              ^^^^^ source.lavra variable.other.lavra
+#                   ^ source.lavra punctuation.section.block.lavra
+>        Escrevo a letra seguido de "-" sem quebrar a linha.
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra variable.other.article.lavra
+#                 ^ source.lavra
+#                  ^^^^^ source.lavra variable.other.lavra
+#                       ^ source.lavra
+#                        ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                  ^ source.lavra
+#                                   ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                    ^ source.lavra string.quoted.double.lavra
+#                                     ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                      ^ source.lavra
+#                                       ^^^^^^^^^^^^^^^^^^^ source.lavra keyword.other.newline.lavra
+#                                                          ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "".
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#              ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo as letras.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^^ source.lavra variable.other.article.lavra
+#              ^ source.lavra
+#               ^^^^^^ source.lavra variable.other.lavra
+#                     ^ source.lavra punctuation.terminator.period.lavra
+>

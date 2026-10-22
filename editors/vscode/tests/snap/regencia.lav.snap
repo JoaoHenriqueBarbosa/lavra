@@ -1,0 +1,379 @@
+>Nota: a regência é a assinatura do verbo.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.lavra comment.line.nota.lavra
+>
+>Para elevar x a n, sendo x um real e n um natural, devolvendo um real:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#           ^ source.lavra meta.function.header.lavra
+#            ^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#               ^ source.lavra meta.function.header.lavra
+#                ^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                 ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                  ^ source.lavra meta.function.header.lavra
+#                   ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                        ^ source.lavra meta.function.header.lavra
+#                         ^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                             ^ source.lavra meta.function.header.lavra
+#                              ^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                  ^ source.lavra meta.function.header.lavra
+#                                   ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                    ^ source.lavra meta.function.header.lavra
+#                                     ^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                      ^ source.lavra meta.function.header.lavra
+#                                       ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                         ^ source.lavra meta.function.header.lavra
+#                                          ^^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                 ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                                                  ^ source.lavra meta.function.header.lavra
+#                                                   ^^^^^^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                                             ^ source.lavra meta.function.header.lavra
+#                                                              ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                                ^ source.lavra meta.function.header.lavra
+#                                                                 ^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                                     ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    R começa em 1,0.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.symbol.lavra
+#     ^ source.lavra
+#      ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#            ^ source.lavra
+#             ^^ source.lavra keyword.operator.word.preposition.lavra
+#               ^ source.lavra
+#                ^^^ source.lavra constant.numeric.decimal.lavra
+#                   ^ source.lavra punctuation.terminator.period.lavra
+>    Repito n vezes: r vira r vezes x.
+#^^^^ source.lavra
+#    ^^^^^^ source.lavra keyword.control.loop.lavra
+#          ^ source.lavra
+#           ^ source.lavra variable.other.symbol.lavra
+#            ^ source.lavra
+#             ^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                  ^ source.lavra punctuation.section.block.lavra
+#                   ^ source.lavra
+#                    ^ source.lavra variable.other.symbol.lavra
+#                     ^ source.lavra
+#                      ^^^^ source.lavra keyword.other.mutation.lavra
+#                          ^ source.lavra
+#                           ^ source.lavra variable.other.symbol.lavra
+#                            ^ source.lavra
+#                             ^^^^^ source.lavra keyword.operator.arithmetic.lavra
+#                                  ^ source.lavra
+#                                   ^ source.lavra variable.other.symbol.lavra
+#                                    ^ source.lavra punctuation.terminator.period.lavra
+>    Devolvo r.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra keyword.control.flow.lavra
+#           ^ source.lavra
+#            ^ source.lavra variable.other.symbol.lavra
+#             ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para o valor exceder o limite, sendo ambos inteiros, devolvendo um lógico:
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#      ^ source.lavra meta.function.header.lavra
+#       ^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#            ^ source.lavra meta.function.header.lavra
+#             ^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#                    ^ source.lavra meta.function.header.lavra
+#                     ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                      ^ source.lavra meta.function.header.lavra
+#                       ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                             ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                              ^ source.lavra meta.function.header.lavra
+#                               ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                    ^ source.lavra meta.function.header.lavra
+#                                     ^^^^^ source.lavra meta.function.header.lavra keyword.other.both.lavra
+#                                          ^ source.lavra meta.function.header.lavra
+#                                           ^^^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                   ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+#                                                    ^ source.lavra meta.function.header.lavra
+#                                                     ^^^^^^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#                                                               ^ source.lavra meta.function.header.lavra
+#                                                                ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                                                                  ^ source.lavra meta.function.header.lavra
+#                                                                   ^^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                                         ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    Devolvo o fato de o valor ser maior que o limite.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra keyword.control.flow.lavra
+#           ^ source.lavra
+#            ^ source.lavra keyword.other.fact.lavra
+#             ^ source.lavra
+#              ^^^^ source.lavra keyword.other.fact.lavra
+#                  ^ source.lavra
+#                   ^^ source.lavra keyword.other.fact.lavra
+#                     ^ source.lavra
+#                      ^ source.lavra variable.other.article.lavra
+#                       ^ source.lavra
+#                        ^^^^^ source.lavra variable.other.lavra
+#                             ^^^^^ source.lavra
+#                                  ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
+#                                           ^ source.lavra
+#                                            ^ source.lavra variable.other.article.lavra
+#                                             ^ source.lavra
+#                                              ^^^^^^ source.lavra variable.other.lavra
+#                                                    ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para transferir a quantia da origem para o destino,
+#^^^^ source.lavra meta.function.header.lavra keyword.other.definition.lavra
+#    ^ source.lavra meta.function.header.lavra
+#     ^^^^^^^^^^ source.lavra meta.function.header.lavra entity.name.function.lavra
+#               ^ source.lavra meta.function.header.lavra
+#                ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                 ^ source.lavra meta.function.header.lavra
+#                  ^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                         ^ source.lavra meta.function.header.lavra
+#                          ^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                            ^ source.lavra meta.function.header.lavra
+#                             ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                   ^ source.lavra meta.function.header.lavra
+#                                    ^^^^ source.lavra meta.function.header.lavra keyword.operator.word.preposition.lavra
+#                                        ^ source.lavra meta.function.header.lavra
+#                                         ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                          ^ source.lavra meta.function.header.lavra
+#                                           ^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                  ^ source.lavra meta.function.header.lavra punctuation.separator.lavra
+>        sendo a quantia um real e a origem e o destino reais confiados:
+#^^^^^^^^ source.lavra meta.function.header.lavra
+#        ^^^^^ source.lavra meta.function.header.lavra keyword.other.signature.lavra
+#             ^ source.lavra meta.function.header.lavra
+#              ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#               ^ source.lavra meta.function.header.lavra
+#                ^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                       ^ source.lavra meta.function.header.lavra
+#                        ^^ source.lavra meta.function.header.lavra keyword.other.article.lavra
+#                          ^ source.lavra meta.function.header.lavra
+#                           ^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                               ^ source.lavra meta.function.header.lavra
+#                                ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                 ^ source.lavra meta.function.header.lavra
+#                                  ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                   ^ source.lavra meta.function.header.lavra
+#                                    ^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                          ^ source.lavra meta.function.header.lavra
+#                                           ^ source.lavra meta.function.header.lavra keyword.operator.word.conjunction.lavra
+#                                            ^ source.lavra meta.function.header.lavra
+#                                             ^ source.lavra meta.function.header.lavra variable.other.article.lavra
+#                                              ^ source.lavra meta.function.header.lavra
+#                                               ^^^^^^^ source.lavra meta.function.header.lavra variable.parameter.lavra
+#                                                      ^ source.lavra meta.function.header.lavra
+#                                                       ^^^^^ source.lavra meta.function.header.lavra storage.type.primitive.lavra
+#                                                            ^ source.lavra meta.function.header.lavra
+#                                                             ^^^^^^^^^ source.lavra meta.function.header.lavra storage.modifier.lent.lavra
+#                                                                      ^^ source.lavra meta.function.header.lavra punctuation.section.block.lavra
+>    A origem diminui a quantia.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^ source.lavra variable.other.lavra
+#            ^ source.lavra
+#             ^^^^^^^ source.lavra keyword.other.mutation.lavra
+#                    ^ source.lavra
+#                     ^ source.lavra variable.other.article.lavra
+#                      ^ source.lavra
+#                       ^^^^^^^ source.lavra variable.other.lavra
+#                              ^ source.lavra punctuation.terminator.period.lavra
+>    O destino cresce a quantia.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^ source.lavra variable.other.lavra
+#             ^ source.lavra
+#              ^^^^^^ source.lavra keyword.other.mutation.lavra
+#                    ^ source.lavra
+#                     ^ source.lavra variable.other.article.lavra
+#                      ^ source.lavra
+#                       ^^^^^^^ source.lavra variable.other.lavra
+#                              ^ source.lavra punctuation.terminator.period.lavra
+>
+>Para começar:
+#^^^^ source.lavra keyword.other.definition.lavra
+#    ^ source.lavra
+#     ^^^^^^^ source.lavra entity.name.function.main.lavra
+#            ^ source.lavra punctuation.section.block.lavra
+>    Escrevo "2 elevado a 10 = " seguido do resultado de elevar 2 a 10.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                              ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                               ^ source.lavra
+#                                ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                       ^ source.lavra
+#                                        ^^ source.lavra variable.language.article.lavra
+#                                          ^ source.lavra
+#                                           ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                                                    ^ source.lavra
+#                                                     ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                       ^ source.lavra
+#                                                        ^^^^^^ source.lavra entity.name.function.call.lavra
+#                                                              ^ source.lavra
+#                                                               ^ source.lavra constant.numeric.decimal.lavra
+#                                                                ^ source.lavra
+#                                                                 ^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                  ^ source.lavra
+#                                                                   ^^ source.lavra constant.numeric.decimal.lavra
+#                                                                     ^ source.lavra punctuation.terminator.period.lavra
+>    Elevo 1,5 a 2 e escrevo o resultado.
+#^^^^ source.lavra
+#    ^^^^^ source.lavra entity.name.function.call.lavra
+#         ^ source.lavra
+#          ^^^ source.lavra constant.numeric.decimal.lavra
+#             ^ source.lavra
+#              ^ source.lavra keyword.operator.word.preposition.lavra
+#               ^ source.lavra
+#                ^ source.lavra constant.numeric.decimal.lavra
+#                 ^^^ source.lavra
+#                    ^^^^^^^ source.lavra support.function.builtin.lavra
+#                           ^ source.lavra
+#                            ^ source.lavra variable.language.article.lavra
+#                             ^ source.lavra
+#                              ^^^^^^^^^ source.lavra variable.language.result.lavra
+#                                       ^ source.lavra punctuation.terminator.period.lavra
+>    A conta, um real, começa em 1000.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra punctuation.separator.lavra
+#            ^ source.lavra
+#             ^^ source.lavra keyword.other.article.lavra
+#               ^ source.lavra
+#                ^^^^ source.lavra storage.type.primitive.lavra
+#                    ^ source.lavra punctuation.separator.lavra
+#                     ^ source.lavra
+#                      ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                            ^ source.lavra
+#                             ^^ source.lavra keyword.operator.word.preposition.lavra
+#                               ^ source.lavra
+#                                ^^^^ source.lavra constant.numeric.decimal.lavra
+#                                    ^ source.lavra punctuation.terminator.period.lavra
+>    A poupança, um real, começa em 250.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^^^^ source.lavra variable.other.lavra
+#              ^ source.lavra punctuation.separator.lavra
+#               ^ source.lavra
+#                ^^ source.lavra keyword.other.article.lavra
+#                  ^ source.lavra
+#                   ^^^^ source.lavra storage.type.primitive.lavra
+#                       ^ source.lavra punctuation.separator.lavra
+#                        ^ source.lavra
+#                         ^^^^^^ source.lavra storage.modifier.mutable.lavra
+#                               ^ source.lavra
+#                                ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                  ^ source.lavra
+#                                   ^^^ source.lavra constant.numeric.decimal.lavra
+#                                      ^ source.lavra punctuation.terminator.period.lavra
+>    Transfiro 300 da conta para a poupança.
+#^^^^ source.lavra
+#    ^^^^^^^^^ source.lavra entity.name.function.call.lavra
+#             ^ source.lavra
+#              ^^^ source.lavra constant.numeric.decimal.lavra
+#                 ^ source.lavra
+#                  ^^ source.lavra keyword.operator.word.preposition.lavra
+#                    ^ source.lavra
+#                     ^^^^^ source.lavra variable.other.lavra
+#                          ^ source.lavra
+#                           ^^^^ source.lavra keyword.operator.word.preposition.lavra
+#                               ^ source.lavra
+#                                ^ source.lavra variable.other.article.lavra
+#                                 ^ source.lavra
+#                                  ^^^^^^^^ source.lavra variable.other.lavra
+#                                          ^ source.lavra punctuation.terminator.period.lavra
+>    Escrevo "conta: " seguido da conta seguido de " | poupança: " seguido da poupança.
+#^^^^ source.lavra
+#    ^^^^^^^ source.lavra support.function.builtin.lavra
+#           ^ source.lavra
+#            ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#             ^^^^^^^ source.lavra string.quoted.double.lavra
+#                    ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                     ^ source.lavra
+#                      ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                             ^ source.lavra
+#                              ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                ^ source.lavra
+#                                 ^^^^^ source.lavra variable.other.lavra
+#                                      ^ source.lavra
+#                                       ^^^^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                 ^ source.lavra
+#                                                  ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                                   ^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                 ^ source.lavra
+#                                                                  ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
+#                                                                         ^ source.lavra
+#                                                                          ^^ source.lavra keyword.operator.word.preposition.lavra
+#                                                                            ^ source.lavra
+#                                                                             ^^^^^^^^ source.lavra variable.other.lavra
+#                                                                                     ^ source.lavra punctuation.terminator.period.lavra
+>    O saldo é 120.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^^ source.lavra variable.other.lavra
+#           ^ source.lavra
+#            ^ source.lavra storage.type.declaration.lavra
+#             ^ source.lavra
+#              ^^^ source.lavra constant.numeric.decimal.lavra
+#                 ^ source.lavra punctuation.terminator.period.lavra
+>    O teto é 100.
+#^^^^ source.lavra
+#    ^ source.lavra variable.other.article.lavra
+#     ^ source.lavra
+#      ^^^^ source.lavra variable.other.lavra
+#          ^ source.lavra
+#           ^ source.lavra storage.type.declaration.lavra
+#            ^ source.lavra
+#             ^^^ source.lavra constant.numeric.decimal.lavra
+#                ^ source.lavra punctuation.terminator.period.lavra
+>    Se o saldo exceder o teto:
+#^^^^ source.lavra
+#    ^^ source.lavra keyword.control.conditional.lavra
+#      ^ source.lavra
+#       ^ source.lavra variable.other.article.lavra
+#        ^ source.lavra
+#         ^^^^^ source.lavra variable.other.lavra
+#              ^^^^^^^^^ source.lavra
+#                       ^ source.lavra variable.other.article.lavra
+#                        ^ source.lavra
+#                         ^^^^ source.lavra variable.other.lavra
+#                             ^ source.lavra punctuation.section.block.lavra
+>        Escrevo "Estourou o teto".
+#^^^^^^^^ source.lavra
+#        ^^^^^^^ source.lavra support.function.builtin.lavra
+#               ^ source.lavra
+#                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                 ^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                 ^ source.lavra punctuation.terminator.period.lavra
+>    Se o teto não exceder o saldo: escrevo "teto não excede saldo".
+#^^^^ source.lavra
+#    ^^ source.lavra keyword.control.conditional.lavra
+#      ^ source.lavra
+#       ^ source.lavra variable.other.article.lavra
+#        ^ source.lavra
+#         ^^^^ source.lavra variable.other.lavra
+#             ^ source.lavra
+#              ^^^ source.lavra keyword.operator.logical.lavra
+#                 ^^^^^^^^^ source.lavra
+#                          ^ source.lavra variable.other.article.lavra
+#                           ^ source.lavra
+#                            ^^^^^ source.lavra variable.other.lavra
+#                                 ^ source.lavra punctuation.section.block.lavra
+#                                  ^ source.lavra
+#                                   ^^^^^^^ source.lavra support.function.builtin.lavra
+#                                          ^ source.lavra
+#                                           ^ source.lavra string.quoted.double.lavra punctuation.definition.string.begin.lavra
+#                                            ^^^^^^^^^^^^^^^^^^^^^ source.lavra string.quoted.double.lavra
+#                                                                 ^ source.lavra string.quoted.double.lavra punctuation.definition.string.end.lavra
+#                                                                  ^ source.lavra punctuation.terminator.period.lavra
+>

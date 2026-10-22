@@ -1,0 +1,624 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Lavra",
+  "scopeName": "source.lavra",
+  "fileTypes": [
+    "lav"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#definitions"
+    },
+    {
+      "include": "#control"
+    },
+    {
+      "include": "#builtins"
+    },
+    {
+      "include": "#ownership"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#declarations"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#literals"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#names"
+    },
+    {
+      "include": "#calls"
+    },
+    {
+      "include": "#punctuation"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.nota.lavra",
+          "match": "^\\s*(?i:nota):.*$"
+        },
+        {
+          "name": "comment.line.double-dash.lavra",
+          "match": "--.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.lavra",
+          "begin": "[\"“”]",
+          "end": "[\"“”]",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.lavra"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.lavra"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.lavra",
+              "match": "\\\\[nt0\\\\\\\"']"
+            }
+          ]
+        },
+        {
+          "name": "constant.character.lavra",
+          "match": "['‘’](?:\\\\[nt0\\\\\\\"']|[^'‘’\\\\])['‘’]"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])0[xX][0-9A-Fa-f]+(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "constant.numeric.decimal.lavra",
+          "match": "(?<![\\p{L}\\p{N}_,])-?\\d{1,3}(?: \\d{3})+(?:,\\d+)?(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "constant.numeric.decimal.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])-?\\d+(?:,\\d+)?(?![\\p{L}\\p{N}_])"
+        }
+      ]
+    },
+    "definitions": {
+      "patterns": [
+        {
+          "match": "^\\s*(?i:(para))\\s+(começar)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "keyword.other.definition.lavra"
+            },
+            "2": {
+              "name": "entity.name.function.main.lavra"
+            },
+            "3": {
+              "name": "punctuation.section.block.lavra"
+            }
+          }
+        },
+        {
+          "match": "^\\s*(?i:(um|uma))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)\\s+(é)\\s+((?:um\\s+registro\\s+de)|(?:uma\\s+destas)|(?:um\\s+destes))\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "keyword.other.article.lavra"
+            },
+            "2": {
+              "name": "entity.name.type.lavra"
+            },
+            "3": {
+              "name": "storage.type.declaration.lavra"
+            },
+            "4": {
+              "name": "keyword.other.definition.lavra"
+            },
+            "5": {
+              "name": "punctuation.section.block.lavra"
+            }
+          }
+        },
+        {
+          "include": "#header"
+        }
+      ]
+    },
+    "header": {
+      "begin": "^\\s*(?i:(para))(?!\\s+(?i:cada|começar)(?![\\p{L}\\p{N}_]))\\s+(?:((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)\\s+|((?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+))\\s+)?(?:(ser)\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)|([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*))(?:\\s+(\\()([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(\\)))?",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.definition.lavra"
+        },
+        "2": {
+          "name": "variable.other.article.lavra"
+        },
+        "3": {
+          "name": "variable.parameter.lavra"
+        },
+        "4": {
+          "name": "variable.parameter.lavra"
+        },
+        "5": {
+          "name": "entity.name.function.lavra"
+        },
+        "6": {
+          "name": "entity.name.function.adjective.lavra"
+        },
+        "7": {
+          "name": "entity.name.function.lavra"
+        },
+        "8": {
+          "name": "punctuation.definition.parameters.begin.lavra"
+        },
+        "9": {
+          "name": "entity.name.function.lavra"
+        },
+        "10": {
+          "name": "punctuation.definition.parameters.end.lavra"
+        }
+      },
+      "end": ":\\s*$",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.block.lavra"
+        }
+      },
+      "name": "meta.function.header.lavra",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "name": "keyword.other.signature.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:devolvendo|sendo)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "match": "(?i:salvo)\\s+(uma)\\s+(falha)",
+          "name": "keyword.other.fallible.lavra"
+        },
+        {
+          "name": "keyword.other.both.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:ambos|ambas)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.operator.word.conjunction.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:e)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "include": "#ownership"
+        },
+        {
+          "include": "#types"
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])(ser)\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.lavra"
+            },
+            "2": {
+              "name": "entity.name.function.adjective.lavra"
+            }
+          }
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "variable.other.article.lavra"
+            },
+            "2": {
+              "name": "variable.parameter.lavra"
+            }
+          }
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "2": {
+              "name": "variable.parameter.lavra"
+            }
+          }
+        },
+        {
+          "name": "keyword.operator.word.preposition.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:contra|sobre|entre|desde|para|após|ante|por|com|até|sem|sob|de|em|a)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.other.article.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:umas|uma|uns|um)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "variable.parameter.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "entity.name.type.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])[\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "include": "#punctuation"
+        }
+      ]
+    },
+    "control": {
+      "patterns": [
+        {
+          "match": "^\\s*(?i:(para))\\s+(cada)\\s+(?:((?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+))|([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*))(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "keyword.control.loop.lavra"
+            },
+            "2": {
+              "name": "keyword.control.loop.lavra"
+            },
+            "3": {
+              "name": "variable.other.symbol.lavra"
+            },
+            "4": {
+              "name": "variable.other.lavra"
+            }
+          }
+        },
+        {
+          "match": "^\\s*((?<![\\p{L}\\p{N}_])(?i:conforme|senão|sendo|se)(?![\\p{L}\\p{N}_]))",
+          "captures": {
+            "1": {
+              "name": "keyword.control.conditional.lavra"
+            }
+          }
+        },
+        {
+          "name": "keyword.control.conditional.lavra",
+          "match": "(?<=:\\s|,\\s)(?<![\\p{L}\\p{N}_])(?i:senão|se)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "match": "^\\s*((?<![\\p{L}\\p{N}_])(?i:enquanto|repito)(?![\\p{L}\\p{N}_]))",
+          "captures": {
+            "1": {
+              "name": "keyword.control.loop.lavra"
+            }
+          }
+        },
+        {
+          "name": "keyword.control.loop.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:sempre|até)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.control.flow.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:devolvo|desisto|paro|pulo)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.control.flow.lavra",
+          "match": ",\\s+(?i:ou)\\s+(?i:desisto)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])(?i:(for|forem))\\s+(?!(?i:o|a|os|as|um|uma|uns|umas|do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma|maior|maiores|menor|menores|igual|iguais|diferente|diferentes|pelo|no|verdadeiro|falso|nada|não)(?![\\p{L}\\p{N}_]))([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.copula.lavra"
+            },
+            "2": {
+              "name": "entity.name.function.adjective.lavra"
+            }
+          }
+        },
+        {
+          "name": "keyword.operator.copula.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:houver|forem|for)(?![\\p{L}\\p{N}_])"
+        }
+      ]
+    },
+    "declarations": {
+      "patterns": [
+        {
+          "match": "(?<![\\p{L}\\p{N}_])(?i:(começa|começam))(?:\\s+(em|com|na|no|nas|nos)|\\s+(vazi[oa]s?))?(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "storage.modifier.mutable.lavra"
+            },
+            "2": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "3": {
+              "name": "constant.language.empty.lavra"
+            }
+          }
+        },
+        {
+          "name": "storage.type.declaration.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:são|é)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "constant.language.empty.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:vazios|vazias|vazio|vazia)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.other.mutation.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:diminuem|crescem|diminui|cresce|ganham|perdem|viram|ganha|perde|vira)(?![\\p{L}\\p{N}_])"
+        }
+      ]
+    },
+    "ownership": {
+      "patterns": [
+        {
+          "name": "storage.modifier.borrowed.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:emprestados|emprestadas|emprestado|emprestada)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "storage.modifier.lent.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:confiados|confiadas|confiado|confiada)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "storage.modifier.maybe.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:talvez)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])(?i:(uma|numa))\\s+(cópia)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "keyword.other.article.lavra"
+            },
+            "2": {
+              "name": "support.function.copy.lavra"
+            }
+          }
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "match": "(?:(?<![\\p{L}\\p{N}_])(?i:(um|uma))\\s+)?((?<![\\p{L}\\p{N}_])(?i:caracteres|caractere|inteiros|naturais|inteiro|natural|lógicos|lógico|textos|listas|reais|bytes|texto|lista|real|byte)(?![\\p{L}\\p{N}_]))(?:\\s+(de)\\s+(\\d+)\\s+(bits))?",
+          "captures": {
+            "1": {
+              "name": "keyword.other.article.lavra"
+            },
+            "2": {
+              "name": "storage.type.primitive.lavra"
+            },
+            "3": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "4": {
+              "name": "constant.numeric.decimal.lavra"
+            },
+            "5": {
+              "name": "storage.type.primitive.lavra"
+            }
+          }
+        }
+      ]
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:escrevo|leio|tomo)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.other.newline.lavra",
+          "match": "(?i:sem)\\s+quebrar\\s+a\\s+linha(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as)|(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+(soma|diferença|produto|quociente|resto|potência|interseção|união|disjunção|negativo|raiz|tamanho|inverso|módulo|deslocamento)(?=\\s+(?:de|do|da|dos|das|entre)(?![\\p{L}\\p{N}_]))",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "2": {
+              "name": "support.function.nominal.lavra"
+            }
+          }
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as)|(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+(resultado)(?:\\s+(de)\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*))?(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "variable.language.article.lavra"
+            },
+            "2": {
+              "name": "variable.language.result.lavra"
+            },
+            "3": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "4": {
+              "name": "entity.name.function.call.lavra"
+            }
+          }
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as)|(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+(fato)\\s+(de)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "keyword.other.fact.lavra"
+            },
+            "2": {
+              "name": "keyword.other.fact.lavra"
+            },
+            "3": {
+              "name": "keyword.other.fact.lavra"
+            }
+          }
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as)|(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+((?:primeir|segund|terceir|quart|quint|sext|sétim|oitav|non|décim|últim)(?:o|a|os|as)|item)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "keyword.other.position.lavra"
+            },
+            "2": {
+              "name": "keyword.other.position.lavra"
+            }
+          }
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.comparison.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:maior)\\s+que(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:maiores)\\s+que(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:menor)\\s+que(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:menores)\\s+que(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:igual)\\s+a(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:iguais)\\s+a(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:diferente)\\s+de(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:diferentes)\\s+de(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:pelo)\\s+menos(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])(?i:no)\\s+máximo(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.operator.comparison.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:igual|iguais)(?=\\s+(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma)(?![\\p{L}\\p{N}_]))"
+        },
+        {
+          "name": "keyword.operator.comparison.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:diferentes?)(?=\\s+(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma)(?![\\p{L}\\p{N}_]))"
+        },
+        {
+          "name": "keyword.operator.arithmetic.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:módulo|menos|vezes|mais)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.operator.arithmetic.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])dividido\\s+por(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.operator.arithmetic.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])dividido(?=\\s+(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma)(?![\\p{L}\\p{N}_]))"
+        },
+        {
+          "name": "keyword.operator.concatenation.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])seguid[oa]\\s+de(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.operator.concatenation.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])seguid[oa](?=\\s+(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma)(?![\\p{L}\\p{N}_]))"
+        },
+        {
+          "name": "keyword.operator.conversion.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:como)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.operator.logical.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:não|ou)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.operator.direction.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?:à|a)\\s+(?:esquerda|direita)(?![\\p{L}\\p{N}_])"
+        }
+      ]
+    },
+    "literals": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:verdadeiro|falso)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "constant.language.nothing.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:nada)(?![\\p{L}\\p{N}_])"
+        }
+      ]
+    },
+    "names": {
+      "patterns": [
+        {
+          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "variable.other.article.lavra"
+            },
+            "2": {
+              "name": "variable.other.lavra"
+            }
+          }
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "2": {
+              "name": "variable.other.lavra"
+            }
+          }
+        },
+        {
+          "match": "(?<![\\p{L}\\p{N}_])(?i:(um|uma))\\s+(?!(?<![\\p{L}\\p{N}_])(?i:caracteres|caractere|inteiros|naturais|inteiro|natural|lógicos|lógico|textos|listas|reais|bytes|texto|lista|cópia|real|byte)(?![\\p{L}\\p{N}_]))([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "captures": {
+            "1": {
+              "name": "keyword.other.article.lavra"
+            },
+            "2": {
+              "name": "entity.name.type.lavra"
+            }
+          }
+        },
+        {
+          "name": "variable.other.symbol.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+)(?![\\p{L}\\p{N}_])"
+        },
+        {
+          "name": "keyword.operator.word.preposition.lavra",
+          "match": "(?<![\\p{L}\\p{N}_])(?i:contra|sobre|entre|desde|para|após|ante|por|com|até|sem|sob|de|em|a)(?![\\p{L}\\p{N}_])"
+        }
+      ]
+    },
+    "calls": {
+      "patterns": [
+        {
+          "match": "(?:^|(?<=:\\s)|(?<=,\\s)|(?<=\\se\\s))(\\s*)(?!(?i:caracteres|verdadeiro|devolvendo|caractere|inteiros|naturais|enquanto|conforme|dividido|diminuem|escrevo|devolvo|desisto|inteiro|natural|lógicos|seguido|seguida|crescem|diminui|contra|lógico|textos|listas|repito|sempre|talvez|houver|cresce|ganham|perdem|pelos|pelas|sobre|entre|desde|reais|bytes|texto|lista|senão|sendo|menos|vezes|falso|salvo|forem|viram|ganha|perde|umas|pelo|pela|numa|duma|para|após|ante|leio|tomo|paro|pulo|real|byte|nota|para|mais|como|nada|vira|uma|uns|dos|das|nos|nas|aos|num|dum|por|com|até|sem|sob|não|for|são|os|as|um|do|da|no|na|ao|às|de|em|se|ou|o|a|à|a|e|é)(?![\\p{L}\\p{N}_]))(?!(?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+)(?![\\p{L}\\p{N}_]))(\\p{L}[\\p{L}\\p{N}_-]*)(?=\\s|\\.|$)",
+          "captures": {
+            "2": {
+              "name": "entity.name.function.call.lavra"
+            }
+          }
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.terminator.period.lavra",
+          "match": "\\."
+        },
+        {
+          "name": "punctuation.section.block.lavra",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.separator.lavra",
+          "match": "[,;]"
+        },
+        {
+          "name": "punctuation.section.parens.lavra",
+          "match": "[()]"
+        }
+      ]
+    }
+  }
+}

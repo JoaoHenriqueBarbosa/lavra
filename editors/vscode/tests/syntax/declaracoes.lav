@@ -1,0 +1,28 @@
+-- SYNTAX TEST "source.lavra" "declaracoes"
+A gravidade é 9,81.
+--<- variable.other.article.lavra
+--<~~--------- variable.other.lavra
+--          ^ storage.type.declaration.lavra
+--            ^^^^ constant.numeric.decimal.lavra
+O saldo começa em 1 000 000.
+--<~~----- variable.other.lavra
+--      ^^^^^^ storage.modifier.mutable.lavra
+--             ^^ keyword.operator.word.preposition.lavra
+--                ^^^^^^^^^ constant.numeric.decimal.lavra
+O limite, um inteiro de 32 bits, é 100.
+--        ^^ keyword.other.article.lavra
+--           ^^^^^^^ storage.type.primitive.lavra
+--                      ^^ constant.numeric.decimal.lavra
+--                         ^^^^ storage.type.primitive.lavra
+As compras começam vazias.
+-- ^^^^^^^ variable.other.lavra
+--         ^^^^^^^ storage.modifier.mutable.lavra
+--                 ^^^^^^ constant.language.empty.lavra
+O apelido, talvez um texto, começa em nada.
+--         ^^^^^^ storage.modifier.maybe.lavra
+--                   ^^^^^ storage.type.primitive.lavra
+--                                    ^^^^ constant.language.nothing.lavra
+A sobra começa numa cópia da herança.
+--                  ^^^^^ support.function.copy.lavra
+--                        ^^ keyword.operator.word.preposition.lavra
+--                           ^^^^^^^ variable.other.lavra

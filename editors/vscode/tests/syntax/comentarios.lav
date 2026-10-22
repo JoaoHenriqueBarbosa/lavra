@@ -1,0 +1,6 @@
+-- SYNTAX TEST "source.lavra" "comentarios"
+Nota: comentário que ocupa a linha.
+--<----------------------------------- comment.line.nota.lavra
+    Escrevo "a -- b". -- comentário no fim
+--          ^^^^^^^^ string.quoted.double.lavra
+--                    ^^^^^^^^^^^^^^^^^^^^ comment.line.double-dash.lavra
