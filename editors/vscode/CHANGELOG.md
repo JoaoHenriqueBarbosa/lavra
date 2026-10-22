@@ -1,5 +1,12 @@
 # Mudanças
 
+## 0.4.0
+
+- Rename com morfologia: cada uso na forma em que foi escrito, o artigo e a contração no
+  gênero do nome novo, a concordância que vai junto, e a recusa com o motivo quando o
+  programa ficaria errado.
+- "Corrigir tudo" (`source.fixAll`) com as correções seguras do compilador.
+
 ## 0.3.0
 
 - Completar guiado pelo parser do compilador, com os verbos do programa como snippet da

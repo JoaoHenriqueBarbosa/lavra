@@ -3,7 +3,7 @@
 //! próprias passadas do compilador (a sema registra onde declara e onde resolve), nunca
 //! de uma segunda resolução de nomes: o que o editor mostra é o que o compilador entendeu.
 
-use crate::ast::ParamMode;
+use crate::ast::{ParamMode, VerbForm};
 use crate::morphology::{Gender, Number};
 use crate::span::Span;
 use crate::types::Ty;
@@ -48,6 +48,23 @@ pub enum Use {
     Read,
     Write,
     Call,
+    /// O nome reaparece na própria declaração (a tipagem do cabeçalho: "sendo a quantia
+    /// um inteiro"); não conta como uso.
+    Mention,
+}
+
+/// Como o nome foi escrito num uso: quem renomeia reescreve cada uso na mesma forma.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Form {
+    /// Como foi declarado: com artigo (ou contração), ou como símbolo; um tipo, no
+    /// singular.
+    Name,
+    /// O singular tirado do plural: "Para cada nota" acha "as notas".
+    Singular,
+    /// Um tipo no plural: "uma lista de contas".
+    Plural,
+    /// Uma forma do verbo de uma função.
+    Verb(VerbForm),
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -55,6 +72,7 @@ pub struct Ref {
     pub def: usize,
     pub span: Span,
     pub use_: Use,
+    pub form: Form,
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -374,7 +374,7 @@ Cada item termina com a suíte verde, um commit e um push.
 | 1 | Servidor (diagnósticos, tokens, hover, navegação, símbolos) e cliente **(feito)** | teste de integração e captura no VS Code |
 | 2 | Formatador **(feito)** | `fmt --check` no corpus sem alterar os poemas |
 | 3 | Completar pelo parser, signature help, inlay, code actions, folding **(feito)** | fixtures em `tests/lsp` |
-| 4 | Rename com morfologia e `lavrac fix` | rename de verbo num sample, com a suíte verde |
+| 4 | Rename com morfologia e `lavrac fix` **(feito)** | rename de verbo num sample, com a suíte verde |
 | 5 | Depurador e F5 | sessão roteirizada; captura parado num breakpoint |
 | 6 | Builtins e `Uso a biblioteca de textos.` | biblioteca no servidor sem mudar o servidor |
 | 7 | Releases, README, CHANGELOG, publicação | instalação limpa num contêiner |

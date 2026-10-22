@@ -198,6 +198,11 @@ impl Parser {
                 L0206,
                 format!("\"{}\" é {}: \"é {right_art} {right_these}\".", self.prog.enums[id].word, gender.describe()),
                 art.span.to(these.span),
+            )
+            .fix(
+                format!("Escrever \"{right_art} {right_these}\""),
+                art.span.to(these.span),
+                format!("{right_art} {right_these}"),
             ));
         }
         self.expect_punct(':', "os dois-pontos")?;

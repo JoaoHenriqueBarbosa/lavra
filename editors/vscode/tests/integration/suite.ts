@@ -73,12 +73,23 @@ export async function run(): Promise<void> {
     assert.ok(labels.includes(want), `falta o inlay hint "${want}": ${labels.join(" | ")}`);
   }
 
+  // Rename com morfologia: "o saldo" vira "a reserva", e o artigo vai junto.
+  const renamed = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    "vscode.executeDocumentRenameProvider",
+    uri,
+    new vscode.Position(6, 15),
+    "a reserva",
+  );
+  const edits = renamed.get(uri).map((e) => e.newText);
+  assert.ok(edits.includes("reserva") && edits.includes("A"), `rename: ${edits.join(" | ")}`);
+
   // Definição: do uso à declaração.
   const defs = await vscode.commands.executeCommand<vscode.Location[]>("vscode.executeDefinitionProvider", uri, new vscode.Position(6, 15));
   assert.strictEqual(defs[0].range.start.line, 4);
 
-  // As capturas da janela, quando pedidas: o hover com o realce semântico; uma oração nova
-  // com o completar aberto e os inlay hints no texto; a ajuda de assinatura.
+  // As capturas da janela, quando pedidas: o hover com o realce semântico; o campo de
+  // rename; uma oração nova com o completar aberto e os inlay hints no texto; a ajuda de
+  // assinatura.
   const shot = process.env.LAVRA_SHOT;
   if (shot) {
     const named = (what: string) => shot.replace(/\.png$/, `-${what}.png`);
@@ -87,6 +98,14 @@ export async function run(): Promise<void> {
     await sleep(2500);
     execFileSync("import", ["-window", "root", shot]);
     await vscode.commands.executeCommand("editor.action.hideHover");
+    // O campo de rename, com o nome proposto com o artigo.
+    // O comando só termina quando o campo fecha: não se espera por ele.
+    editor.selection = new vscode.Selection(6, 15, 6, 15);
+    void vscode.commands.executeCommand("editor.action.rename");
+    await sleep(2500);
+    execFileSync("import", ["-window", "root", named("rename")]);
+    await vscode.commands.executeCommand("cancelRenameInput");
+    await sleep(500);
     await editor.edit((e) => e.insert(new vscode.Position(5, 18), "\n    "));
     editor.selection = new vscode.Selection(6, 4, 6, 4);
     await vscode.commands.executeCommand("editor.action.triggerSuggest");

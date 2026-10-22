@@ -116,11 +116,64 @@ erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro s�
   final...), a segura como preferida.
 - **Dobra e seleção**: pelo papel das linhas que o léxico informa (blocos recuados,
   sequências de comentários; palavra, oração, blocos em volta, texto).
+- **Rename com morfologia** (`src/rename.rs`, `prepareRename` e `rename`): o editor propõe
+  o nome com o artigo ("o saldo", "uma conta") ou o infinitivo ("render"). Ver a seção
+  abaixo.
+- **Corrigir tudo** (`source.fixAll`): as correções seguras do documento inteiro numa ação
+  só, as mesmas do `lavrac fix`; vale como ação ao salvar
+  (`"editor.codeActionsOnSave": {"source.fixAll": "explicit"}`).
 - **Testes**: `tests/lsp.rs` roda o servidor em processo (`Connection::memory()`).
+
+## Rename com morfologia
+
+`src/rename.rs`. Cada uso registrado nas tabelas guarda a forma em que foi escrito
+(`tables::Form`), e o rename reescreve cada um na mesma forma:
+
+- **Função**: 1ª pessoa, infinitivo, futuro do subjuntivo e infinitivo pessoal (no número
+  de cada uso: "excederem"), o adjetivo do predicado concordando com o sujeito de cada uso,
+  e a 1ª pessoa declarada no cabeçalho ("Para trovejar (trovejo)"): troca, some quando o
+  verbo novo tem a regular, ou entra quando ele pede ("chover (chovo)").
+- **Nome, tipo ou caso**: a palavra (no plural onde o tipo aparece no plural), e o artigo
+  ou a contração logo antes dela quando o gênero muda ("do saldo" vira "da reserva",
+  "numa conta" vira "num cofre"), com a maiúscula do começo da oração. O nome novo vem com
+  o artigo; sem ele, o gênero sai da terminação ("-o", "-a", "-ção", "-dade", "-agem"), e o
+  rename recusa quando a terminação não decide ("valor", "problema"). O número fica, porque
+  nome no plural é coleção. Símbolo troca por símbolo.
+- **O mesmo nome em outra declaração**: o "Se houver apelido" e os campos que um braço de
+  "Conforme" expõe vão junto (são definições no mesmo trecho, ou ligadas pelo uso). "Para
+  cada nota" cita "as notas" pelo singular: renomear a coleção leva o item ao singular do
+  nome novo; renomear só o item deixa a coleção dita ("Para cada avaliação das notas"). O
+  item escrito que é o singular da coleção ("Para cada herdeiro dos herdeiros") também vai
+  junto com ela. O item tem o gênero da coleção, então trocar o gênero só dele é recusado.
+- **O que concorda sem citar o nome** ("As compras começam vazias", "Se a luz for acesa",
+  "ambos" no cabeçalho, "é uma destas", o particípio da tipagem) se ajusta com as correções
+  seguras do próprio compilador, aplicadas só aos erros de concordância que o rename fez
+  aparecer e nunca ao que ele escreveu. O ordinal que tinha o gênero da coleção ("a primeira
+  das notas") vai junto, porque a língua não o confere. O adjetivo do cabeçalho de um
+  predicado acompanha o sujeito ("Para a peça ser quadrada").
+- **Verificação**: o texto renomeado é analisado de novo. O rename é recusado, com a
+  mensagem do compilador, se aparecer erro que não havia, e é recusado se algum uso passar a
+  apontar para outro nome (o nome novo esconderia um que o programa usa depois).
+
+As edições saem pequenas, sobre o texto que o editor tem (`fix::Edited` acumula as voltas
+sobre o original). `tests/rename.rs` cobre cada forma e cada recusa, renomeia cada nome de
+cada programa do corpus (mais de 300) exigindo que compile e dê a mesma saída, e renomeia
+programas quebrados e cortados sem entrar em pânico.
+
+## Correções (`lavrac fix`)
+
+`src/fix.rs`. As correções seguras dos diagnósticos (contração, concordância, ponto final,
+"Senão, se", comparação no plural...) se aplicam em voltas, porque uma revela a outra (o
+ponto final que faltava esconde a concordância da linha de baixo), até não sobrar
+nenhuma. A correção que troca o começo de uma oração mantém a maiúscula (`keep_case` em
+`analyze`). `lavrac fix arquivos ou pastas` grava e diz quantas aplicou e se ainda há
+erro; `--check` só diz quais arquivos mudariam. O mesmo motor serve ao "corrigir tudo" do
+editor e às concordâncias do rename. `tests/fix.rs`: idempotência sobre os programas
+errados do corpus, e o erro corrigido nunca volta (o que aparece depois é erro que estava
+escondido, com outro código).
 
 ## Próximos passos
 
-Servidor de linguagem (`lavrac lsp`, reaproveitando léxico, parser, sema e posse):
-diagnósticos ao digitar, tokens semânticos (verbos e tipos do programa), hover com
-tipo e modo de posse, ir para a definição, completar verbos com a regência,
-formatação.
+O depurador (`lavrac dap`), os builtins declarados em Lavra e as bibliotecas, as releases,
+a gramática tree-sitter com as configurações de outros editores, e o site com o
+playground: `notes/roadmap.md`, fases 5 a 9.

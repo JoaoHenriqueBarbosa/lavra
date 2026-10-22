@@ -289,6 +289,7 @@ impl Parser {
                 self.prog.sigs.push(FuncSig {
                     infinitive: "começar".into(),
                     first_person: "começo".into(),
+                    first_person_span: None,
                     kind: SigKind::Action,
                     slots: vec![],
                     params: vec![],
@@ -809,7 +810,11 @@ impl Parser {
                 self.bump();
                 let mut args = vec![subject];
                 args.extend(self.call_args(sig, true, vt.span)?);
-                let call = Call { sig, args, span: start.to(self.prev_span()), verb_span: vt.span };
+                let form = match mood {
+                    Mood::Subjunctive => VerbForm::Subjunctive(n),
+                    Mood::Infinitive => VerbForm::PersonalInfinitive(n),
+                };
+                let call = Call { sig, args, span: start.to(self.prev_span()), verb_span: vt.span, form };
                 return Ok(Cond::Atom { negated, kind: Box::new(CondKind::Pred { call }), span: start.to(self.prev_span()) });
             }
         }
@@ -852,13 +857,14 @@ impl Parser {
             // Predicado adjetivo: "Se o número for par".
             if let Some(adj_tok) = self.peek().word().map(str::to_string) {
                 for (sig, s) in self.prog.sigs.iter().enumerate() {
-                    let SigKind::Adjective { adjective, base_gender } = &s.kind else { continue };
+                    let SigKind::Adjective { adjective, base_gender, .. } = &s.kind else { continue };
                     let want = morphology::inflect_adjective(adjective, *base_gender, gender, number);
                     if adj_tok == want {
                         let at = self.bump();
                         let mut args = vec![subject];
                         args.extend(self.call_args(sig, true, at.span)?);
-                        let call = Call { sig, args, span: start.to(self.prev_span()), verb_span: at.span };
+                        let form = VerbForm::Adjective(gender, number);
+                        let call = Call { sig, args, span: start.to(self.prev_span()), verb_span: at.span, form };
                         return Ok(Cond::Atom { negated, kind: Box::new(CondKind::Pred { call }), span: start.to(self.prev_span()) });
                     }
                     let any = [Gender::Masculine, Gender::Feminine]
@@ -877,7 +883,8 @@ impl Parser {
                                 at.orig
                             ),
                             at.span,
-                        ));
+                        )
+                        .fix(format!("Escrever \"{want}\""), at.span, want.clone()));
                     }
                 }
             }
@@ -887,7 +894,7 @@ impl Parser {
                 if got != number {
                     let right = if number == Number::Plural { plur } else { sing };
                     let _ = me;
-                    return err(Diagnostic::new(
+                    let d = Diagnostic::new(
                         L0116,
                         format!(
                             "A comparação concorda com o sujeito, que é {}: \"{right}\", não \"{}\".",
@@ -895,7 +902,13 @@ impl Parser {
                             rt.word().unwrap()
                         ),
                         rt.span,
-                    ));
+                    );
+                    // Só a primeira palavra flexiona ("iguais" vira "igual"); trocar só ela
+                    // não mexe na contração que pode vir encostada ("iguais ao limite").
+                    let first = rt.orig.split_whitespace().next().unwrap_or_default();
+                    let span = Span::new(rt.span.start as usize, rt.span.start as usize + first.len());
+                    let word = right.split(' ').next().unwrap_or(right);
+                    return err(d.fix(format!("Escrever \"{right}\""), span, word));
                 }
                 Ok(rel)
             };
@@ -1146,7 +1159,7 @@ impl Parser {
                 let vt = self.bump();
                 let sig = self.pick_overload(self.vocab.by_first_person[&w], vt.span)?;
                 let args = self.call_args(sig, false, vt.span)?;
-                let call = Call { sig, args, span: vt.span.to(self.prev_span()), verb_span: vt.span };
+                let call = Call { sig, args, span: vt.span.to(self.prev_span()), verb_span: vt.span, form: VerbForm::FirstPerson };
                 let handler = self.fallback()?;
                 ClauseKind::Call { call, handler }
             }
@@ -1604,7 +1617,8 @@ impl Parser {
                     let sig = self.pick_overload(sig, vt.span)?;
                     let args = self.call_args(sig, false, vt.span)?;
                     let span = t.span.to(self.prev_span());
-                    let call = Expr { kind: ExprKind::Call(Call { sig, args, span, verb_span: vt.span }), span };
+                    let call =
+                        Expr { kind: ExprKind::Call(Call { sig, args, span, verb_span: vt.span, form: VerbForm::Infinitive }), span };
                     return Ok(match self.fallback()? {
                         Some(fallback) => {
                             let span = span.to(self.prev_span());

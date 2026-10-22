@@ -7,7 +7,7 @@ use crate::diagnostics::{Diagnostic, Diagnostics, Result, err};
 use crate::hir::{self, PushStmt, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
-use crate::tables::{Def, DefKind, Ref, Scope, Tables, Use};
+use crate::tables::{Def, DefKind, Form, Ref, Scope, Tables, Use};
 use crate::types::{EnumTy, IntTy, RecordTy, Ty, VariantTy};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -28,8 +28,11 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
         cycles: std::collections::HashSet::new(),
         sig_defs: Vec::new(),
         global_defs: Vec::new(),
+        record_defs: Vec::new(),
+        enum_defs: Vec::new(),
         field_defs: HashMap::new(),
         variant_defs: HashMap::new(),
+        variant_field_defs: HashMap::new(),
     };
     env.tables.scopes.push(Scope { parent: None, span: Span::new(0, u32::MAX as usize) });
     for (i, f) in prog.funcs.iter().enumerate() {
@@ -79,6 +82,9 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
                     def.kind = DefKind::Param;
                     def.mode = Some(p.mode);
                     def.owner = Some(owner);
+                    if let Some(t) = p.typing {
+                        cx.env.use_def_as(d, t, Use::Mention, Form::Name);
+                    }
                     params.push((id, p.mode));
                 }
                 Err(d) => cx.report(d),
@@ -153,8 +159,11 @@ struct Env<'a> {
     /// O `Def` de cada assinatura, constante, campo de registro e caso.
     sig_defs: Vec<usize>,
     global_defs: Vec<usize>,
+    record_defs: Vec<usize>,
+    enum_defs: Vec<usize>,
     field_defs: HashMap<(usize, usize), usize>,
     variant_defs: HashMap<(usize, usize), usize>,
+    variant_field_defs: HashMap<(usize, usize, usize), usize>,
 }
 
 impl Env<'_> {
@@ -164,8 +173,12 @@ impl Env<'_> {
     }
 
     fn use_def(&mut self, def: usize, span: Span, use_: Use) {
+        self.use_def_as(def, span, use_, Form::Name);
+    }
+
+    fn use_def_as(&mut self, def: usize, span: Span, use_: Use, form: Form) {
         if def != usize::MAX {
-            self.tables.refs.push(Ref { def, span, use_ });
+            self.tables.refs.push(Ref { def, span, use_, form });
         }
     }
 
@@ -188,6 +201,7 @@ impl Env<'_> {
                 mode: None,
                 owner: None,
             });
+            self.record_defs.push(d);
             for (fi, f) in r.fields.iter().enumerate() {
                 let fty = ty.as_ref().and_then(|t| t.fields.get(fi)).map(|f| f.1.clone());
                 let fd = self.def(Def {
@@ -221,6 +235,7 @@ impl Env<'_> {
                 mode: None,
                 owner: None,
             });
+            self.enum_defs.push(d);
             for (vi, v) in e.variants.iter().enumerate() {
                 let vd = self.def(Def {
                     kind: DefKind::Variant,
@@ -236,6 +251,24 @@ impl Env<'_> {
                     owner: Some(d),
                 });
                 self.variant_defs.insert((i, vi), vd);
+                // Os campos do caso ("um círculo, com o raio, um real").
+                for (fi, f) in v.fields.iter().enumerate() {
+                    let fty = ty.as_ref().and_then(|t| t.variants.get(vi)).and_then(|v| v.fields.get(fi)).map(|f| f.1.clone());
+                    let fd = self.def(Def {
+                        kind: DefKind::Field,
+                        name: f.name.word.clone(),
+                        display: f.name.display(),
+                        gender: f.name.gender(),
+                        number: f.name.number(),
+                        ty: fty,
+                        span: f.name.span,
+                        scope: 0,
+                        mutable: false,
+                        mode: None,
+                        owner: Some(vd),
+                    });
+                    self.variant_field_defs.insert((i, vi, fi), fd);
+                }
             }
         }
         for (si, sig) in prog.sigs.iter().enumerate() {
@@ -262,6 +295,21 @@ impl Env<'_> {
                 owner: None,
             });
             self.sig_defs.push(d);
+            // O adjetivo do cabeçalho ("Para o número ser par") também é o nome da função.
+            if let (ast::SigKind::Adjective { span, .. }, Some(subject)) = (&sig.kind, sig.params.first()) {
+                let form = Form::Verb(ast::VerbForm::Adjective(subject.name.gender(), subject.name.number()));
+                self.use_def_as(d, *span, Use::Mention, form);
+            }
+        }
+        // Cada citação de um tipo do programa pelo nome.
+        for u in &prog.type_uses {
+            let def = match (prog.vocab.records.get(&u.word), prog.vocab.enums.get(&u.word)) {
+                (Some(&r), _) => self.record_defs[r],
+                (None, Some(&e)) => self.enum_defs[e],
+                (None, None) => continue,
+            };
+            let form = if u.number == Number::Plural { Form::Plural } else { Form::Name };
+            self.use_def_as(def, u.span, Use::Read, form);
         }
     }
 
@@ -928,6 +976,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 }
             }
             ast::Stmt::ForEach { item, source, body, .. } => {
+                let implicit = matches!(&source.kind, ExprKind::Place(p) if p.span == item.span);
+                let refs_before = self.env.tables.refs.len();
                 let src = match self.expr(source, None) {
                     Ok(e) => e,
                     Err(d) => {
@@ -950,6 +1000,10 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         error_expr(source.span)
                     }
                 };
+                // "Para cada nota" cita "as notas" pelo singular.
+                if implicit && let Some(r) = self.env.tables.refs[refs_before..].iter_mut().find(|r| r.span == item.span) {
+                    r.form = Form::Singular;
+                }
                 let elem = match self.element_of(&src.ty, "a coleção", source.span) {
                     Ok(t) => t,
                     Err(d) => {
@@ -1445,7 +1499,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             .hint(format!("Passe a falha adiante (\"{usage}, ou desisto.\") ou dê um valor de reserva (\"..., ou 0\").")));
         }
         let d = self.env.sig_defs[call.sig];
-        self.env.use_def(d, call.verb_span, Use::Call);
+        self.env.use_def_as(d, call.verb_span, Use::Call, Form::Verb(call.form));
         for (a, p) in call.args.iter().zip(&sig.params) {
             self.env.tables.args.push((a.span, p.mode));
         }
@@ -1654,11 +1708,17 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     if let Some(a) = n.article
                         && (a.gender != def.name.gender() || a.number != def.name.number())
                     {
+                        let right = morphology::definite_article(def.name.gender(), def.name.number());
+                        let fixed = match a.contraction.and_then(morphology::split_contraction) {
+                            Some((_, prep, _)) => format!("{} {}", morphology::join_prep(prep, right), n.word),
+                            None => format!("{right} {}", n.word),
+                        };
                         return err(Diagnostic::new(
                             L0339,
                             format!("\"{}\" não concorda com o campo, que é \"{}\".", n.display(), def.name.display()),
                             n.span,
-                        ));
+                        )
+                        .fix(format!("Escrever \"{fixed}\""), n.span, fixed.clone()));
                     }
                     owner = format!("{} {}", n.display(), of_phrase(&owner));
                     let fty = r.fields[i].1.clone();
@@ -1972,6 +2032,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     if values[i].is_some() {
                         return err(Diagnostic::new(L0351, format!("O campo \"{fname}\" aparece duas vezes."), *fspan));
                     }
+                    let fd = self.env.variant_field_defs.get(&(e.id, tag, i)).copied().unwrap_or(usize::MAX);
+                    self.env.use_def(fd, *fspan, Use::Write);
                     let fty = v.fields[i].1.clone();
                     values[i] = Some(self.expr(value, Some(&fty))?);
                 }
@@ -1990,6 +2052,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
             }
             ExprKind::Construct { word, word_span, fields, .. } => {
                 let r = self.env.records[word].clone();
+                let rd = self.env.record_defs.get(r.id).copied().unwrap_or(usize::MAX);
+                self.env.use_def(rd, *word_span, Use::Read);
                 // Registro definido com erro: os campos que faltam ou sobram não se acusam.
                 let broken = self.env.broken_record(&r);
                 let mut values: Vec<Option<hir::Expr>> = vec![None; r.fields.len()];
@@ -2149,7 +2213,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
 pub fn unused_warnings(tables: &Tables) -> Vec<Diagnostic> {
     let mut out = Vec::new();
     let mut used = vec![false; tables.defs.len()];
-    for r in &tables.refs {
+    for r in tables.refs.iter().filter(|r| r.use_ != Use::Mention) {
         used[r.def] = true;
     }
     for (i, d) in tables.defs.iter().enumerate() {

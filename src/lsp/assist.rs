@@ -344,6 +344,25 @@ pub fn code_actions(uri: &lsp::Uri, diagnostics: &[lsp::Diagnostic]) -> Vec<lsp:
     out
 }
 
+/// "Corrigir tudo": as correções seguras do documento, volta após volta (as mesmas do
+/// `lavrac fix`), numa ação só. Sem correção segura no documento, não há ação.
+pub fn fix_all(a: &Analysis, src: &str, text: &Text, uri: &lsp::Uri) -> Option<lsp::CodeActionOrCommand> {
+    if !a.diagnostics.iter().any(|d| d.fixes.iter().any(|f| f.safe)) {
+        return None;
+    }
+    let (fixed, _) = crate::fix::fix_all(src);
+    if fixed.is_empty() {
+        return None;
+    }
+    let edits = fixed.edits().iter().map(|e| lsp::TextEdit { range: text.range(e.span), new_text: e.text.clone() }).collect();
+    Some(lsp::CodeActionOrCommand::CodeAction(lsp::CodeAction {
+        title: "Corrigir tudo o que é seguro".into(),
+        kind: Some(lsp::CodeActionKind::SOURCE_FIX_ALL),
+        edit: Some(super::convert::workspace_edit(uri, edits)),
+        ..Default::default()
+    }))
+}
+
 /// A última linha que pertence ao bloco aberto na linha `i` (de profundidade `depth`).
 fn block_end(roles: &[LineRole], i: usize, depth: usize) -> usize {
     let mut end = i;

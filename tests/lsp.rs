@@ -21,12 +21,17 @@ impl Client {
     }
 
     fn request(&mut self, method: &str, params: Value) -> Value {
+        self.try_request(method, params).unwrap_or_else(|e| panic!("erro em {method}: {e}"))
+    }
+
+    /// O pedido, com a mensagem de erro se o servidor recusar.
+    fn try_request(&mut self, method: &str, params: Value) -> Result<Value, String> {
         let id = RequestId::from(self.next);
         self.next += 1;
         self.conn.sender.send(Message::Request(Request::new(id.clone(), method.into(), params))).unwrap();
         loop {
             match self.conn.receiver.recv().unwrap() {
-                Message::Response(r) if r.id == id => return r.response_result.unwrap_or_else(|e| panic!("erro em {method}: {e:?}")),
+                Message::Response(r) if r.id == id => return r.response_result.map_err(|e| e.message),
                 Message::Notification(n) => self.notes.push(n),
                 _ => {}
             }
@@ -258,5 +263,86 @@ fn writing_assistance() {
         r = &r["parent"];
     }
     assert!(depth >= 4, "{sel}");
+    c.stop(handle);
+}
+
+/// Aplica as edições de um `WorkspaceEdit` (linhas e colunas em UTF-16) ao texto.
+fn apply_workspace_edit(text: &str, edit: &Value, uri: &str) -> String {
+    let lines = lavra::span::LineIndex::new(text);
+    let offset = |p: &Value| {
+        let line = p["line"].as_u64().unwrap() as usize;
+        let start = lines.line_start(line, text);
+        let col = p["character"].as_u64().unwrap() as usize;
+        let mut units = 0;
+        let mut at = start;
+        for c in text[start..].chars() {
+            if units >= col {
+                break;
+            }
+            units += c.len_utf16();
+            at += c.len_utf8();
+        }
+        at
+    };
+    let mut edits: Vec<(usize, usize, String)> = edit["changes"][uri]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| (offset(&e["range"]["start"]), offset(&e["range"]["end"]), e["newText"].as_str().unwrap().to_string()))
+        .collect();
+    edits.sort_by_key(|e| std::cmp::Reverse(e.0));
+    let mut out = text.to_string();
+    for (s, e, t) in edits {
+        out.replace_range(s..e, &t);
+    }
+    out
+}
+
+#[test]
+fn rename_and_fix_all() {
+    let (mut c, handle) = Client::start();
+    c.notify("textDocument/didOpen", json!({ "textDocument": { "uri": URI, "languageId": "lavra", "version": 1, "text": PROGRAM } }));
+    c.diagnostics();
+    // O editor propõe o nome com o artigo, e marca só a palavra.
+    let p = c.request("textDocument/prepareRename", pos(6, 15));
+    assert_eq!(p["placeholder"], "o saldo");
+    assert_eq!(
+        (&p["range"]["start"], &p["range"]["end"]),
+        (&json!({ "line": 6, "character": 14 }), &json!({ "line": 6, "character": 19 }))
+    );
+    // Outro gênero: o artigo vai junto, com a maiúscula do começo da oração.
+    let mut params = pos(6, 15);
+    params["newName"] = json!("a reserva");
+    let edit = c.request("textDocument/rename", params);
+    let renamed = apply_workspace_edit(PROGRAM, &edit, URI);
+    assert!(
+        renamed.contains("    A reserva começa em 100.\n    Rendo a reserva.\n    Escrevo a reserva.\n    Escrevo o sald."),
+        "{renamed}"
+    );
+    // O verbo, pelo uso na 1ª pessoa.
+    let mut params = pos(5, 5);
+    params["newName"] = json!("aplicar");
+    let renamed = apply_workspace_edit(PROGRAM, &c.request("textDocument/rename", params), URI);
+    assert!(renamed.starts_with("Para aplicar a quantia,") && renamed.contains("    Aplico o saldo."), "{renamed}");
+    // Recusado, com o motivo.
+    let mut params = pos(6, 15);
+    params["newName"] = json!("valor");
+    let e = c.try_request("textDocument/rename", params).unwrap_err();
+    assert!(e.contains("gênero"), "{e}");
+    assert!(c.try_request("textDocument/prepareRename", pos(6, 5)).is_err(), "\"Escrevo\" é da língua");
+
+    // "Corrigir tudo": o ponto final e a comparação, numa ação só.
+    let broken = "Para começar:\n    A nota é 7\n    Se a nota for maiores que 5: escrevo \"ok\".\n";
+    c.notify("textDocument/didChange", json!({ "textDocument": { "uri": URI, "version": 2 }, "contentChanges": [{ "text": broken }] }));
+    c.diagnostics();
+    let range = json!({ "start": { "line": 0, "character": 0 }, "end": { "line": 0, "character": 0 } });
+    let actions = c.request(
+        "textDocument/codeAction",
+        json!({ "textDocument": { "uri": URI }, "range": range, "context": { "diagnostics": [], "only": ["source.fixAll"] } }),
+    );
+    let all = &actions.as_array().unwrap()[0];
+    assert_eq!((all["title"].as_str(), all["kind"].as_str()), (Some("Corrigir tudo o que é seguro"), Some("source.fixAll")));
+    let fixed = apply_workspace_edit(broken, &all["edit"], URI);
+    assert_eq!(fixed, "Para começar:\n    A nota é 7.\n    Se a nota for maior que 5: escrevo \"ok\".\n");
     c.stop(handle);
 }

@@ -24,6 +24,12 @@ em que cada instrução é uma oração em português.
   ponto final, acento...).
 - **Formatação** (`lavrac fmt`): recuo e espaços, sem nunca mexer em quebra de linha, porque
   os poemas também são programas.
+- **Rename com morfologia** (F2): cada uso na forma em que foi escrito ("Rendo", "render",
+  "exceder", "excederem"); o artigo e a contração acompanham o gênero do nome novo ("do
+  saldo" vira "da reserva"), e o que concorda com ele vai junto. O rename é conferido pelo
+  compilador e recusado, com o motivo, se deixaria erro.
+- **Corrigir tudo**: as correções seguras do arquivo numa ação só (também ao salvar, com
+  `"editor.codeActionsOnSave": {"source.fixAll": "explicit"}`).
 - **Rodar, compilar e verificar**: botão de rodar no título do editor, comandos na paleta
   ("Lavra: Rodar o arquivo") e tarefas com os erros no painel Problemas.
 - **Snippets** dos blocos: `para começar`, `se`, `para cada`, `conforme`, `registro`.

@@ -2,7 +2,7 @@
   "name": "lavra",
   "displayName": "Lavra",
   "description": "Suporte à linguagem Lavra: diagnósticos ao digitar, realce semântico, hover com tipo e posse, navegação, tarefas e realce de sintaxe.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "joaohenriquebarbosa",
   "license": "MIT",
   "repository": {

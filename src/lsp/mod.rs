@@ -90,7 +90,15 @@ pub fn run(conn: &Connection) -> Fallible<()> {
             work_done_progress_options: Default::default(),
         }),
         inlay_hint_provider: Some(lsp::OneOf::Left(true)),
-        code_action_provider: Some(lsp::CodeActionProviderCapability::Simple(true)),
+        code_action_provider: Some(lsp::CodeActionProviderCapability::Options(lsp::CodeActionOptions {
+            code_action_kinds: Some(vec![lsp::CodeActionKind::QUICKFIX, lsp::CodeActionKind::SOURCE_FIX_ALL]),
+            resolve_provider: None,
+            work_done_progress_options: Default::default(),
+        })),
+        rename_provider: Some(lsp::OneOf::Right(lsp::RenameOptions {
+            prepare_provider: Some(true),
+            work_done_progress_options: Default::default(),
+        })),
         folding_range_provider: Some(lsp::FoldingRangeProviderCapability::Simple(true)),
         selection_range_provider: Some(lsp::SelectionRangeProviderCapability::Simple(true)),
         semantic_tokens_provider: Some(lsp::SemanticTokensServerCapabilities::SemanticTokensOptions(lsp::SemanticTokensOptions {
@@ -215,7 +223,32 @@ impl Server {
             }
             "textDocument/codeAction" => {
                 let p: lsp::CodeActionParams = params(&req)?;
-                json!(assist::code_actions(&p.text_document.uri, &p.context.diagnostics))
+                let doc = self.doc(&p.text_document.uri)?;
+                let wants = |kind: &lsp::CodeActionKind| {
+                    p.context.only.as_ref().is_none_or(|only| only.iter().any(|k| kind.as_str().starts_with(k.as_str())))
+                };
+                let mut actions = Vec::new();
+                if wants(&lsp::CodeActionKind::QUICKFIX) {
+                    actions = assist::code_actions(&p.text_document.uri, &p.context.diagnostics);
+                }
+                if wants(&lsp::CodeActionKind::SOURCE_FIX_ALL) {
+                    actions.extend(assist::fix_all(&doc.analysis, &doc.text, &self.text(doc), &doc.uri));
+                }
+                json!(actions)
+            }
+            "textDocument/prepareRename" => {
+                let p: lsp::TextDocumentPositionParams = params(&req)?;
+                let (doc, offset) = self.at(&p)?;
+                let t = crate::rename::prepare(&doc.text, offset).map_err(|e| (ErrorCode::RequestFailed, e))?;
+                json!(lsp::PrepareRenameResponse::RangeWithPlaceholder { range: self.text(doc).range(t.span), placeholder: t.placeholder })
+            }
+            "textDocument/rename" => {
+                let p: lsp::RenameParams = params(&req)?;
+                let (doc, offset) = self.at(&p.text_document_position)?;
+                let edits = crate::rename::rename(&doc.text, offset, &p.new_name).map_err(|e| (ErrorCode::RequestFailed, e))?;
+                let text = self.text(doc);
+                let edits = edits.iter().map(|e| lsp::TextEdit { range: text.range(e.span), new_text: e.text.clone() }).collect();
+                json!(convert::workspace_edit(&doc.uri, edits))
             }
             "textDocument/foldingRange" => {
                 let p: lsp::FoldingRangeParams = params(&req)?;

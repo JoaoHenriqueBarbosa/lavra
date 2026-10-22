@@ -22,6 +22,9 @@ uso:
   lavrac fmt [--check] <arquivos ou pastas>
                                         formata os .lav (só recuo e espaços; nunca muda
                                         quebra de linha); com --check, só diz quais mudariam
+  lavrac fix [--check] <arquivos ou pastas>
+                                        aplica as correções seguras (contração, concordância,
+                                        ponto final...); com --check, só diz quais mudariam
   lavrac --version                      a versão e o commit
   lavrac --help                         esta ajuda
 
@@ -40,6 +43,7 @@ enum Command {
     Lexicon,
     Lsp,
     Fmt { paths: Vec<String>, check: bool },
+    Fix { paths: Vec<String>, check: bool },
     Version,
     Help,
 }
@@ -83,13 +87,13 @@ fn parse_args(args: &[String]) -> Result<Command, String> {
             _ => Err("\"explain\" pede um código, como L0334".into()),
         },
         Some("lsp") => Ok(Command::Lsp),
-        Some("fmt") => {
+        Some(cmd @ ("fmt" | "fix")) => {
             let check = rest(1).iter().any(|x| x == "--check");
             let paths: Vec<String> = rest(1).iter().filter(|x| *x != "--check").cloned().collect();
             if paths.is_empty() {
-                return Err("\"fmt\" pede os arquivos ou as pastas".into());
+                return Err(format!("\"{cmd}\" pede os arquivos ou as pastas"));
             }
-            Ok(Command::Fmt { paths, check })
+            Ok(if cmd == "fmt" { Command::Fmt { paths, check } } else { Command::Fix { paths, check } })
         }
         Some("lexicon") => match rest(1) {
             [flag] if flag == "--json" => Ok(Command::Lexicon),
@@ -149,6 +153,7 @@ fn main() -> ExitCode {
             return ExitCode::SUCCESS;
         }
         Command::Fmt { paths, check } => return fmt(&paths, check),
+        Command::Fix { paths, check } => return fix(&paths, check),
         Command::Lsp => {
             return match lavra::lsp::run_stdio() {
                 Ok(()) => ExitCode::SUCCESS,
@@ -335,6 +340,66 @@ fn lav_files(path: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
 }
 
 /// `lavrac fmt`: formata no lugar, ou só confere com `--check`.
+/// Os .lav das pastas e arquivos pedidos; o erro é o caminho que não existe.
+fn files_of(paths: &[String]) -> Result<Vec<std::path::PathBuf>, String> {
+    let mut files = Vec::new();
+    for p in paths {
+        let path = std::path::Path::new(p);
+        if !path.exists() {
+            return Err(p.clone());
+        }
+        lav_files(path, &mut files);
+    }
+    Ok(files)
+}
+
+/// `lavrac fix`: as correções seguras de cada arquivo, volta após volta.
+fn fix(paths: &[String], check: bool) -> ExitCode {
+    let files = match files_of(paths) {
+        Ok(f) => f,
+        Err(p) => {
+            eprintln!("lavrac: {p} não existe");
+            return ExitCode::from(2);
+        }
+    };
+    let plural = |n: usize, one: &str, many: &str| if n == 1 { format!("1 {one}") } else { format!("{n} {many}") };
+    let (mut changed, mut failed) = (0, 0);
+    for file in &files {
+        let name = file.display().to_string();
+        let text = match std::fs::read_to_string(file) {
+            Ok(t) => t,
+            Err(e) => {
+                eprintln!("lavrac: não consegui ler {name}: {e}");
+                failed += 1;
+                continue;
+            }
+        };
+        let (fixed, applied) = lavra::fix::fix_all(&text);
+        if fixed.is_empty() {
+            continue;
+        }
+        changed += 1;
+        let corrections = plural(applied, "correção", "correções");
+        if check {
+            println!("{name}: {corrections} a aplicar");
+            continue;
+        }
+        let new = fixed.text();
+        if let Err(e) = std::fs::write(file, &new) {
+            eprintln!("lavrac: não consegui escrever {name}: {e}");
+            failed += 1;
+            continue;
+        }
+        let left = lavra::analyze(&new).diagnostics.iter().filter(|d| d.is_error()).count();
+        if left == 0 {
+            println!("corrigi {name} ({corrections})");
+        } else {
+            println!("corrigi {name} ({corrections}); ainda há {} (lavrac check {name})", plural(left, "erro", "erros"));
+        }
+    }
+    if failed > 0 || (check && changed > 0) { ExitCode::from(1) } else { ExitCode::SUCCESS }
+}
+
 fn fmt(paths: &[String], check: bool) -> ExitCode {
     let mut files = Vec::new();
     for p in paths {

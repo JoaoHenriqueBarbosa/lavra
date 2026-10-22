@@ -91,6 +91,17 @@ modo de cada argumento. O servidor de linguagem consulta essas tabelas (`def_at`
 não uso (função nunca chamada, L0502; nome nunca usado, L0503), calculados depois da posse
 e só num programa sem erro nenhum.
 
+Cada uso guarda a forma em que foi escrito (`Form`): o nome como declarado, o singular de
+"Para cada nota", o tipo no plural ("uma lista de contas"), ou a forma do verbo
+(`ast::VerbForm`: 1ª pessoa, infinitivo, subjuntivo e infinitivo pessoal com o número,
+adjetivo com gênero e número), que o parser grava em `ast::Call` nos quatro lugares em que
+monta uma chamada. O uso `Mention` é o nome que reaparece na própria declaração (a tipagem
+do cabeçalho, "sendo a quantia um inteiro"; o adjetivo de "Para o número ser par") e não
+conta como uso. Os tipos citados pelo nome (`ast::Program::type_uses`, gravados em
+`type_word`) e a construção de registro também viram uso, e os campos de um caso de
+enumeração são definições (donas: o caso). O rename se apoia nisso tudo; uma construção
+nova que registra os usos com a forma certa já sai renomeada.
+
 ## Análise tolerante a erro
 
 `lavra::analyze(texto)` não para no primeiro erro; devolve todos os diagnósticos (na ordem

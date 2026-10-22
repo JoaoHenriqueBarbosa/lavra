@@ -169,6 +169,68 @@ pub fn guess_gender(word: &str) -> Gender {
     }
 }
 
+/// O gênero de um substantivo pela terminação, quando ela decide: "-o" é masculino;
+/// "-a", "-ção", "-dade", "-agem" são femininos. "-ma" fica sem decidir ("o problema",
+/// "a forma"), e as outras terminações também ("o valor", "a cor").
+pub fn gender_by_ending(word: &str) -> Option<Gender> {
+    let w = word.strip_suffix('s').filter(|w| !w.is_empty()).unwrap_or(word);
+    let w = w.strip_suffix("õe").map(|stem| format!("{stem}ão")).unwrap_or_else(|| w.to_string());
+    let w = w.strip_suffix("agen").map(|stem| format!("{stem}agem")).unwrap_or(w);
+    if w.ends_with("ção") || w.ends_with("são") || w.ends_with("dade") || w.ends_with("agem") {
+        return Some(Gender::Feminine);
+    }
+    if w.ends_with("ma") {
+        return None;
+    }
+    if w.ends_with('a') {
+        return Some(Gender::Feminine);
+    }
+    if w.ends_with('o') {
+        return Some(Gender::Masculine);
+    }
+    None
+}
+
+/// O singular de um plural, quando o plural da língua volta a ele ("avaliações" →
+/// "avaliação", "papéis" → "papel"); `None` quando nada volta. Sem dicionário, é o
+/// singular que a própria língua aceita: "Para cada lápi" acha "os lápis".
+pub fn singularize(plural: &str) -> Option<String> {
+    const ENDINGS: &[(&str, &str)] = &[
+        ("ões", "ão"),
+        ("ães", "ão"),
+        ("ãos", "ão"),
+        ("ns", "m"),
+        ("ais", "al"),
+        ("éis", "el"),
+        ("eis", "el"),
+        ("eis", "il"),
+        ("óis", "ol"),
+        ("ois", "ol"),
+        ("uis", "ul"),
+        ("is", "il"),
+        ("es", ""),
+        ("s", ""),
+    ];
+    ENDINGS.iter().find_map(|(plural_end, singular_end)| {
+        let stem = plural.strip_suffix(plural_end)?;
+        let candidate = format!("{stem}{singular_end}");
+        (!stem.is_empty() && candidate != plural && pluralize(&candidate) == plural).then_some(candidate)
+    })
+}
+
+/// O mesmo ordinal no outro gênero, no mesmo número ("primeira" → "primeiro").
+pub fn inflect_ordinal(word: &str, g: Gender) -> Option<String> {
+    let (_, _, n) = ordinal(word)?;
+    let stem = crate::lexicon::ORDINALS.iter().find(|(stem, _)| word.starts_with(stem))?.0;
+    let end = match (g, n) {
+        (Gender::Masculine, Number::Singular) => "o",
+        (Gender::Feminine, Number::Singular) => "a",
+        (Gender::Masculine, Number::Plural) => "os",
+        (Gender::Feminine, Number::Plural) => "as",
+    };
+    Some(format!("{stem}{end}"))
+}
+
 /// Símbolo: uma letra minúscula com dígitos opcionais, sem artigo. "a", "e" e "o"
 /// sozinhos são artigo e conjunção, então não servem de símbolo (mas "a1" serve).
 pub fn is_symbol(w: &str) -> bool {
@@ -225,6 +287,20 @@ mod tests {
         assert_eq!(ordinal("terceira"), Some((3, Gender::Feminine, Number::Singular)));
         assert_eq!(ordinal("último"), Some((0, Gender::Masculine, Number::Singular)));
         assert_eq!(ordinal("primo"), None);
+    }
+
+    #[test]
+    fn gender_singular_and_ordinal_for_renaming() {
+        assert_eq!(gender_by_ending("reserva"), Some(Gender::Feminine));
+        assert_eq!(gender_by_ending("avaliações"), Some(Gender::Feminine));
+        assert_eq!(gender_by_ending("saldos"), Some(Gender::Masculine));
+        assert_eq!(gender_by_ending("problema"), None);
+        assert_eq!(gender_by_ending("valor"), None);
+        for (p, s) in [("avaliações", "avaliação"), ("papéis", "papel"), ("valores", "valor"), ("nomes", "nome"), ("casas", "casa")] {
+            assert_eq!(singularize(p).as_deref(), Some(s), "{p}");
+        }
+        assert_eq!(inflect_ordinal("primeira", Gender::Masculine).as_deref(), Some("primeiro"));
+        assert_eq!(inflect_ordinal("último", Gender::Feminine).as_deref(), Some("última"));
     }
 
     #[test]

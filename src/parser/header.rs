@@ -194,17 +194,20 @@ impl Parser {
             };
             let g = params[0].0.gender();
             let base = if params[0].0.number() == Number::Plural { a.trim_end_matches('s').to_string() } else { a };
-            kind = SigKind::Adjective { adjective: base, base_gender: g };
+            kind = SigKind::Adjective { adjective: base, base_gender: g, span: adj.span };
         }
         draft.kind = Some(kind.clone());
         let regular = morphology::first_person(&infinitive);
         let mut first_person = regular.clone();
+        let mut first_person_span = None;
         if self.at_punct('(') {
             self.bump();
             let f = self.bump();
             let Some(w) = f.word() else { return Err(self.expected("a 1ª pessoa do verbo entre parênteses")) };
             first_person = Some(w.to_string());
+            first_person_span = Some(f.span);
             draft.first_person = first_person.clone();
+            draft.first_person_span = first_person_span;
             self.expect_punct(')', "o parêntese de fechamento")?;
         }
         let first_person = match first_person {
@@ -257,7 +260,7 @@ impl Parser {
             slots.push(Slot::Prep { prep, count });
         }
         // Tipagem e retorno.
-        let mut typed: Vec<(String, TypeAnn, ParamMode, Span)> = Vec::new();
+        let mut typed: Vec<Typed> = Vec::new();
         let mut ret = None;
         let mut fallible = false;
         while self.eat_punct(',') {
@@ -305,9 +308,9 @@ impl Parser {
             match slot {
                 Slot::Object => {
                     let (n, _) = pi.next().unwrap();
-                    match typed.iter().find(|t| t.0 == n.word) {
-                        Some((_, ty, mode, _)) => {
-                            final_params.push(Param { name: n.clone(), ty: ty.clone(), mode: *mode });
+                    match typed.iter().find(|t| t.word == n.word) {
+                        Some(t) => {
+                            final_params.push(t.param(n));
                             final_slots.push(Slot::Object);
                         }
                         None if !n.is_symbol() => final_slots.push(Slot::Fixed {
@@ -319,24 +322,24 @@ impl Parser {
                 }
                 Slot::Subject => {
                     let (n, _) = pi.next().unwrap();
-                    let (_, ty, mode, _) = typed.iter().find(|t| t.0 == n.word).ok_or_else(|| Box::new(missing_type(n)))?;
-                    final_params.push(Param { name: n.clone(), ty: ty.clone(), mode: *mode });
+                    let t = typed.iter().find(|t| t.word == n.word).ok_or_else(|| Box::new(missing_type(n)))?;
+                    final_params.push(t.param(n));
                     final_slots.push(Slot::Subject);
                 }
                 Slot::Prep { prep, count } => {
                     for _ in 0..count {
                         let (n, _) = pi.next().unwrap();
-                        let (_, ty, mode, _) = typed.iter().find(|t| t.0 == n.word).ok_or_else(|| Box::new(missing_type(n)))?;
-                        final_params.push(Param { name: n.clone(), ty: ty.clone(), mode: *mode });
+                        let t = typed.iter().find(|t| t.word == n.word).ok_or_else(|| Box::new(missing_type(n)))?;
+                        final_params.push(t.param(n));
                     }
                     final_slots.push(Slot::Prep { prep, count });
                 }
                 Slot::Fixed { .. } => unreachable!(),
             }
         }
-        for (w, _, _, span) in &typed {
-            if !params.iter().any(|(n, _)| &n.word == w) {
-                return err(Diagnostic::new(L0160, format!("\"{w}\" foi tipado mas não aparece no cabeçalho."), *span));
+        for t in &typed {
+            if !params.iter().any(|(n, _)| n.word == t.word) {
+                return err(Diagnostic::new(L0160, format!("\"{}\" foi tipado mas não aparece no cabeçalho.", t.word), t.span));
             }
         }
         if !matches!(kind, SigKind::Action) && ret.as_ref().is_some_and(|r| !matches!(r.ty, TypeExpr::Bool)) {
@@ -350,6 +353,7 @@ impl Parser {
         Ok(FuncSig {
             infinitive,
             first_person,
+            first_person_span,
             kind,
             slots: final_slots,
             params: final_params,
@@ -364,8 +368,9 @@ impl Parser {
 
     /// Um grupo de tipagem depois de "sendo": "x um real", "p e q inteiros",
     /// "ambas datas", "a carta um texto emprestado".
-    fn typing(&mut self, params: &[(NameRef, Slot)]) -> Result<Vec<(String, TypeAnn, ParamMode, Span)>> {
-        let mut names: Vec<(String, Gender, Span)> = Vec::new();
+    fn typing(&mut self, params: &[(NameRef, Slot)]) -> Result<Vec<Typed>> {
+        // (palavra, trecho do nome ou do "ambos", o nome se repetiu)
+        let mut names: Vec<(String, Span, bool)> = Vec::new();
         let t = self.peek().clone();
         if t.is_word("ambos") || t.is_word("ambas") {
             self.bump();
@@ -385,7 +390,7 @@ impl Parser {
                     .fix(format!("Escrever \"{right}\""), t.span, right));
             }
             for n in pair {
-                names.push((n.word.clone(), n.gender(), t.span));
+                names.push((n.word.clone(), t.span, false));
             }
         } else {
             loop {
@@ -400,9 +405,10 @@ impl Parser {
                         L0164,
                         format!("\"{}\" não concorda com o cabeçalho, que diz \"{}\".", n.display(), decl.display()),
                         n.span,
-                    ));
+                    )
+                    .fix(format!("Escrever \"{}\"", decl.display()), n.span, decl.display()));
                 }
-                names.push((n.word.clone(), decl.gender(), n.span));
+                names.push((n.word.clone(), n.span, true));
                 // Mais nomes antes do tipo: "p e q inteiros".
                 let more = (self.at_word("e") || self.at_punct(',')) && self.continues_group();
                 if more {
@@ -461,7 +467,7 @@ impl Parser {
             }
         }
         let ann = TypeAnn { ty, span: start.to(self.prev_span()) };
-        Ok(names.into_iter().map(|(w, _, s)| (w, ann.clone(), mode, s)).collect())
+        Ok(names.into_iter().map(|(word, span, named)| Typed { word, ann: ann.clone(), mode, span, named }).collect())
     }
 
     /// Depois de "e"/"," na tipagem: o nome seguinte é do mesmo grupo plural
@@ -515,6 +521,7 @@ impl Parser {
             return Ok((TypeExpr::List(Box::new(elem)), Gender::Feminine));
         }
         if let Some((name, g)) = self.record_type_word(&w, number) {
+            self.prog.type_uses.push(TypeUse { word: name.clone(), span: t.span, number });
             return Ok((TypeExpr::Named(name), g));
         }
         let ty = match sing.as_str() {
@@ -629,9 +636,26 @@ pub(super) struct Draft {
     start: Option<Span>,
     infinitive: Option<String>,
     first_person: Option<String>,
+    first_person_span: Option<Span>,
     kind: Option<SigKind>,
     name_span: Span,
     params: Vec<NameRef>,
+}
+
+/// Um nome da tipagem do cabeçalho: o tipo e o modo que ele ganhou, e onde foi tipado
+/// (o próprio nome, ou o "ambos" que o inclui).
+struct Typed {
+    word: String,
+    ann: TypeAnn,
+    mode: ParamMode,
+    span: Span,
+    named: bool,
+}
+
+impl Typed {
+    fn param(&self, name: &NameRef) -> Param {
+        Param { name: name.clone(), ty: self.ann.clone(), mode: self.mode, typing: self.named.then_some(self.span) }
+    }
 }
 
 impl Draft {
@@ -645,12 +669,13 @@ impl Draft {
             .into_iter()
             .map(|n| {
                 let span = n.span;
-                Param { name: n, ty: TypeAnn { ty: TypeExpr::Error, span }, mode: ParamMode::Lent }
+                Param { name: n, ty: TypeAnn { ty: TypeExpr::Error, span }, mode: ParamMode::Lent, typing: None }
             })
             .collect();
         Some(FuncSig {
             infinitive,
             first_person,
+            first_person_span: self.first_person_span,
             kind,
             slots: Vec::new(),
             params,

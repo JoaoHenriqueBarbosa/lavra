@@ -90,6 +90,9 @@ pub struct Param {
     pub name: NameRef,
     pub ty: TypeAnn,
     pub mode: ParamMode,
+    /// Onde o nome reaparece na tipagem ("sendo a quantia um inteiro"); com "ambos", o
+    /// nome não se repete.
+    pub typing: Option<Span>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -109,10 +112,12 @@ pub enum SigKind {
     Action,
     /// Predicado com verbo: "Para o valor exceder o limite".
     Predicate,
-    /// Predicado adjetivo: "Para o número ser par"; guarda o adjetivo e o gênero da base.
+    /// Predicado adjetivo: "Para o número ser par"; guarda o adjetivo, o gênero da base e
+    /// onde ele está no cabeçalho.
     Adjective {
         adjective: String,
         base_gender: Gender,
+        span: Span,
     },
 }
 
@@ -120,6 +125,8 @@ pub enum SigKind {
 pub struct FuncSig {
     pub infinitive: String,
     pub first_person: String,
+    /// A 1ª pessoa declarada entre parênteses ("Para trovejar (trovejo)").
+    pub first_person_span: Option<Span>,
     pub kind: SigKind,
     pub slots: Vec<Slot>,
     /// Parâmetros na ordem de chamada (sem os complementos fixos).
@@ -353,6 +360,24 @@ pub struct Call {
     pub args: Vec<Expr>,
     pub span: Span,
     pub verb_span: Span,
+    /// A forma em que o verbo foi escrito.
+    pub form: VerbForm,
+}
+
+/// A forma em que o verbo de uma chamada foi escrito: quem renomeia a função reescreve
+/// cada uso na mesma forma.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum VerbForm {
+    /// Oração na 1ª pessoa: "Transfiro 300 da conta para a poupança."
+    FirstPerson,
+    /// Valor: "o resultado de elevar 2 a 10".
+    Infinitive,
+    /// Condição: "Se o saldo exceder o teto", "Se os saldos excederem o teto".
+    Subjunctive(Number),
+    /// Depois de "o fato de": "o fato de o saldo exceder o teto".
+    PersonalInfinitive(Number),
+    /// Predicado adjetivo, concordando com o sujeito: "Se o pino for aceso".
+    Adjective(Gender, Number),
 }
 
 #[derive(Clone, Debug)]
@@ -511,6 +536,18 @@ pub struct Program {
     pub main: Option<usize>,
     /// Os nomes que o programa declara, como o parser os achou.
     pub vocab: Vocabulary,
+    /// Cada vez que um tipo do programa é citado pelo nome ("sendo a carteira uma conta",
+    /// "uma lista de contas"): a análise liga cada citação à definição.
+    pub type_uses: Vec<TypeUse>,
+}
+
+/// Um tipo do programa citado pelo nome, no singular ou no plural.
+#[derive(Clone, Debug)]
+pub struct TypeUse {
+    /// O nome do tipo no singular, como foi definido.
+    pub word: String,
+    pub span: Span,
+    pub number: Number,
 }
 
 /// O que o programa declara e o parser precisa conhecer antes de ler os corpos: os
