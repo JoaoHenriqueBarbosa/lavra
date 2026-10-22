@@ -84,30 +84,11 @@ impl Token {
     }
 }
 
-/// Locuções protegidas: juntadas antes de desfazer contrações ("pelo menos" não é
-/// "por o menos").
-const PROTECTED: &[(&str, &str)] = &[("pelo", "menos"), ("no", "máximo"), ("à", "esquerda"), ("à", "direita")];
-
-/// Locuções cuja preposição final pode vir contraída ("igual ao", "seguido do").
-const LOCUTIONS: &[(&str, &str)] = &[
-    ("maior", "que"),
-    ("menor", "que"),
-    ("igual", "a"),
-    ("diferente", "de"),
-    ("maiores", "que"),
-    ("menores", "que"),
-    ("iguais", "a"),
-    ("diferentes", "de"),
-    ("dividido", "por"),
-    ("seguido", "de"),
-    ("seguida", "de"),
-];
-
 pub fn tokenize(src: &str) -> Result<Vec<Token>> {
     let raw = scan(src)?;
-    let protected = fuse(raw, PROTECTED, false);
+    let protected = fuse(raw, crate::lexicon::PROTECTED_LOCUTIONS, false);
     let split = split_contractions(protected);
-    Ok(fuse(split, LOCUTIONS, true))
+    Ok(fuse(split, crate::lexicon::LOCUTIONS, true))
 }
 
 fn lex_error(msg: impl Into<String>, start: usize, end: usize) -> Box<Diagnostic> {

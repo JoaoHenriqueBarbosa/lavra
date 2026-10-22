@@ -363,7 +363,7 @@ impl BinOp {
             BinOp::Mul => "vezes",
             BinOp::Div => "dividido por",
             BinOp::Rem => "módulo",
-            BinOp::Pow => "elevado a",
+            BinOp::Pow => "a potência",
             BinOp::BitAnd => "a interseção",
             BinOp::BitOr => "a união",
             BinOp::BitXor => "a disjunção",

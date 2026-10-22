@@ -23,3 +23,7 @@ curl -sSfL -o data/pt_BR.aff https://raw.githubusercontent.com/LibreOffice/dicti
 
 Cada `check_*.py` compila um binário pequeno que inclui o arquivo Rust por `#[path]`,
 passa todas as palavras da referência por ele e lista as divergências.
+
+`check_first_person.py --collisions` lista os verbos cuja 1ª pessoa coincide com uma
+palavra funcional, um número ou o vocabulário da Lavra; o vocabulário vem do léxico que o
+compilador exporta (`editors/lexicon.json`).

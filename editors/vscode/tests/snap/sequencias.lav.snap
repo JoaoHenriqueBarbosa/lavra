@@ -82,7 +82,7 @@
 #                        ^ source.lavra
 #                         ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #                                ^ source.lavra
-#                                 ^^ source.lavra keyword.other.position.lavra
+#                                 ^^ source.lavra keyword.operator.word.preposition.lavra
 #                                   ^ source.lavra
 #                                    ^^^^^^^^ source.lavra keyword.other.position.lavra
 #                                            ^ source.lavra
@@ -98,7 +98,7 @@
 #                                                                              ^ source.lavra
 #                                                                               ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #                                                                                      ^ source.lavra
-#                                                                                       ^^ source.lavra keyword.other.position.lavra
+#                                                                                       ^^ source.lavra keyword.operator.word.preposition.lavra
 #                                                                                         ^ source.lavra
 #                                                                                          ^^^^^^ source.lavra keyword.other.position.lavra
 #                                                                                                ^ source.lavra
@@ -123,7 +123,7 @@
 #                                            ^^^^^^^^^^^^ source.lavra keyword.operator.arithmetic.lavra
 #                                                        ^ source.lavra
 #                                                         ^ source.lavra punctuation.section.parens.lavra
-#                                                          ^ source.lavra keyword.operator.word.preposition.lavra
+#                                                          ^ source.lavra support.function.nominal.lavra
 #                                                           ^ source.lavra
 #                                                            ^^^^^^^ source.lavra support.function.nominal.lavra
 #                                                                   ^ source.lavra
@@ -202,7 +202,7 @@
 #                    ^ source.lavra
 #                     ^^^ source.lavra keyword.control.loop.lavra
 #                        ^ source.lavra
-#                         ^ source.lavra keyword.operator.word.preposition.lavra
+#                         ^ source.lavra support.function.nominal.lavra
 #                          ^ source.lavra
 #                           ^^^^^^^ source.lavra support.function.nominal.lavra
 #                                  ^ source.lavra

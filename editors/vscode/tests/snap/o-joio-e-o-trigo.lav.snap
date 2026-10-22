@@ -189,7 +189,7 @@
 #                          ^ source.lavra
 #                           ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
 #                                    ^ source.lavra
-#                                     ^ source.lavra keyword.operator.word.preposition.lavra
+#                                     ^ source.lavra support.function.nominal.lavra
 #                                      ^ source.lavra
 #                                       ^^^^^^^ source.lavra support.function.nominal.lavra
 #                                              ^ source.lavra
@@ -239,7 +239,7 @@
 #                          ^ source.lavra
 #                           ^^^^^^^^^ source.lavra keyword.operator.comparison.lavra
 #                                    ^ source.lavra
-#                                     ^ source.lavra keyword.operator.word.preposition.lavra
+#                                     ^ source.lavra support.function.nominal.lavra
 #                                      ^ source.lavra
 #                                       ^^^^^^^ source.lavra support.function.nominal.lavra
 #                                              ^ source.lavra
@@ -332,7 +332,7 @@
 #                    ^ source.lavra
 #                     ^^^ source.lavra keyword.control.loop.lavra
 #                        ^ source.lavra
-#                         ^ source.lavra keyword.operator.word.preposition.lavra
+#                         ^ source.lavra support.function.nominal.lavra
 #                          ^ source.lavra
 #                           ^^^^^^^ source.lavra support.function.nominal.lavra
 #                                  ^ source.lavra
@@ -400,7 +400,7 @@
 #^^^^^^^^ source.lavra
 #        ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #               ^ source.lavra
-#                ^^ source.lavra variable.language.article.lavra
+#                ^^ source.lavra keyword.operator.word.preposition.lavra
 #                  ^ source.lavra
 #                   ^^^^^^^^^ source.lavra variable.language.result.lavra
 #                            ^ source.lavra

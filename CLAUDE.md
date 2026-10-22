@@ -54,9 +54,12 @@ npm test                                     # escopos e snapshots da gramática
 npm run package && code --install-extension lavra.vsix --force
 ```
 
-Mudou a gramática? Edite `syntaxes/build.py` (nunca o JSON), rode `npm test`, revise e
-atualize os snapshots (`npm run test:update-snapshots`), confira a renderização com
-`scripts/preview.mjs` e reinstale.
+Palavra nova na língua? Ela entra em `src/lexicon.rs` (com papel e documentação); depois
+`LAVRA_BLESS=1 cargo test --lib lexicon` regrava `editors/lexicon.json`, de onde a
+gramática do editor tira as palavras. Mudou uma regra do realce? Edite
+`syntaxes/build.py` (nunca o JSON), rode `npm test`, revise e atualize os snapshots
+(`npm run test:update-snapshots`), confira a renderização com `scripts/preview.mjs` e
+reinstale.
 
 ## Convenções
 

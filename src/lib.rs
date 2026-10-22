@@ -7,6 +7,7 @@ pub mod diagnostics;
 pub mod hir;
 pub mod interp;
 pub mod lexer;
+pub mod lexicon;
 pub mod morphology;
 pub mod ownership;
 pub mod parser;

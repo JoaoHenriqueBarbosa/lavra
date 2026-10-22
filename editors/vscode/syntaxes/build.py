@@ -1,7 +1,8 @@
 """Gera `lavra.tmLanguage.json`, a gramática TextMate da Lavra.
 
-As listas de palavras ficam aqui, num lugar só; o JSON é gerado (não edite à mão).
-Rodar: `python3 -I syntaxes/build.py` dentro de `editors/vscode`.
+As palavras vêm do léxico que o compilador exporta (`editors/lexicon.json`, gerado por
+`lavrac lexicon --json`); aqui ficam só as regras que as combinam. O JSON da gramática é
+gerado (não edite à mão). Rodar: `python3 -I syntaxes/build.py` dentro de `editors/vscode`.
 
 A gramática é léxica: pinta o que a forma das palavras revela. O que depende de nomes
 declarados (verbo do usuário num predicado, caso de enumeração) fica para os tokens
@@ -28,44 +29,26 @@ def phrase(*parts: str) -> str:
     return r"\s+".join(parts)
 
 
-ARTICLES = ["o", "a", "os", "as"]
-INDEFINITE = ["um", "uma", "uns", "umas"]
-CONTRACTIONS = [
-    "do", "da", "dos", "das", "no", "na", "nos", "nas", "ao", "à", "aos", "às",
-    "pelo", "pela", "pelos", "pelas", "num", "numa", "dum", "duma",
-]
-PREPOSITIONS = ["de", "em", "a", "por", "com", "para", "sobre", "contra", "entre", "até", "sem", "desde", "após", "ante", "sob"]
-TYPES = [
-    "inteiro", "inteiros", "natural", "naturais", "real", "reais", "byte", "bytes",
-    "lógico", "lógicos", "caractere", "caracteres", "texto", "textos", "lista", "listas",
-]
-NOMINALS = [
-    "soma", "diferença", "produto", "quociente", "resto", "potência", "interseção", "união",
-    "disjunção", "negativo", "raiz", "tamanho", "inverso", "módulo", "deslocamento",
-]
-ORDINAL_STEMS = ["primeir", "segund", "terceir", "quart", "quint", "sext", "sétim", "oitav", "non", "décim", "últim"]
-MUTATIONS = ["vira", "viram", "cresce", "crescem", "diminui", "diminuem", "ganha", "ganham", "perde", "perdem"]
-CORE_VERBS = ["escrevo", "leio", "tomo"]
-FLOW_VERBS = ["paro", "pulo", "devolvo", "desisto"]
-COMPARISONS = [
-    ("maior", "que"), ("maiores", "que"), ("menor", "que"), ("menores", "que"),
-    ("igual", "a"), ("iguais", "a"), ("diferente", "de"), ("diferentes", "de"),
-    ("pelo", "menos"), ("no", "máximo"),
-]
-ART = "(?i:o|a|os|as)"
+LEXICON = json.loads((Path(__file__).resolve().parents[2] / "lexicon.json").read_text(encoding="utf-8"))
+
+ARTICLES = [a["form"] for a in LEXICON["articles"] if a["definite"]]
+INDEFINITE = [a["form"] for a in LEXICON["articles"] if not a["definite"]]
+CONTRACTIONS = [c["form"] for c in LEXICON["contractions"]]
+PREPOSITIONS = LEXICON["prepositions"]
+TYPES = [form for t in LEXICON["types"] for form in (t["singular"], t["plural"])]
+NOMINALS = [n["word"] for n in LEXICON["nominals"]]
+ORDINAL_STEMS = [o["stem"] for o in LEXICON["ordinals"]]
+MUTATIONS = [form for v in LEXICON["subjectVerbs"] if v["role"] == "mutation" for form in (v["singular"], v["plural"])]
+CORE_VERBS = [v["firstPerson"] for v in LEXICON["coreVerbs"] if v["role"] == "statement"]
+FLOW_VERBS = [v["firstPerson"] for v in LEXICON["coreVerbs"] if v["role"] == "flow"]
+COMPARISONS = [tuple(k["form"].split(" ")) for k in LEXICON["keywords"] if k["role"] == "comparison"]
+LITERALS = [k["form"] for k in LEXICON["keywords"] if k["role"] == "literal"]
+ART = "(?i:" + "|".join(ARTICLES) + ")"
 # Palavras que podem seguir "for" sem ser adjetivo de predicado.
-ADJ_STOP = ARTICLES + INDEFINITE + CONTRACTIONS + [
-    "maior", "maiores", "menor", "menores", "igual", "iguais", "diferente", "diferentes", "pelo", "no",
-    "verdadeiro", "falso", "nada", "não",
-]
-# Palavras que abrem linha sem ser verbo do usuário.
-NOT_VERBS = (
-    ARTICLES + INDEFINITE + CONTRACTIONS + PREPOSITIONS + CORE_VERBS + FLOW_VERBS + TYPES
-    + ["nota", "se", "senão", "enquanto", "repito", "conforme", "sendo", "para", "não", "ou", "e", "mais", "menos",
-       "vezes", "dividido", "seguido", "seguida", "como", "sempre", "verdadeiro", "falso", "nada", "devolvendo",
-       "salvo", "talvez", "for", "forem", "houver", "é", "são"]
-    + MUTATIONS
-)
+ADJ_STOP = ARTICLES + INDEFINITE + CONTRACTIONS + [a for a, _ in COMPARISONS] + LITERALS + ["não"]
+# Palavras que abrem linha sem ser verbo do usuário: toda palavra da língua (cada
+# palavra das locuções), menos as formas recusadas com dica, que o usuário pode definir.
+NOT_VERBS = sorted({part for w in LEXICON["words"] if w["role"] != "rejected" for part in w["form"].split(" ")})
 CONTR = "(?i:" + "|".join(CONTRACTIONS) + ")"
 
 name_after_article = {
@@ -258,27 +241,43 @@ repository = {
         "patterns": [
             {"name": "support.function.builtin.lavra", "match": words(*CORE_VERBS)},
             {"name": "keyword.other.newline.lavra", "match": phrase("(?i:sem)", "quebrar", "a", "linha") + B1},
+            # O artigo acompanha a operação ("o tamanho"); a contração é preposição
+            # ("seguido do tamanho").
             {
-                "match": B0 + "(" + ART + r"|" + CONTR + r")\s+(" + "|".join(NOMINALS) + r")(?=\s+(?:de|do|da|dos|das|entre)" + B1 + ")",
-                "captures": {"1": {"name": "keyword.operator.word.preposition.lavra"}, "2": {"name": "support.function.nominal.lavra"}},
+                "match": B0 + "(?:(" + ART + ")|(" + CONTR + r"))\s+(" + "|".join(NOMINALS) + r")(?=\s+(?:de|do|da|dos|das|entre)" + B1 + ")",
+                "captures": {
+                    "1": {"name": "support.function.nominal.lavra"},
+                    "2": {"name": "keyword.operator.word.preposition.lavra"},
+                    "3": {"name": "support.function.nominal.lavra"},
+                },
             },
             # "o resultado de flexionar ...": depois de "o resultado de" só vem verbo.
             {
-                "match": B0 + "(" + ART + "|" + CONTR + r")\s+(resultado)(?:\s+(de)\s+(" + WORD + "))?" + B1,
+                "match": B0 + "(?:(" + ART + ")|(" + CONTR + r"))\s+(resultado)(?:\s+(de)\s+(" + WORD + "))?" + B1,
                 "captures": {
                     "1": {"name": "variable.language.article.lavra"},
-                    "2": {"name": "variable.language.result.lavra"},
-                    "3": {"name": "keyword.operator.word.preposition.lavra"},
-                    "4": {"name": "entity.name.function.call.lavra"},
+                    "2": {"name": "keyword.operator.word.preposition.lavra"},
+                    "3": {"name": "variable.language.result.lavra"},
+                    "4": {"name": "keyword.operator.word.preposition.lavra"},
+                    "5": {"name": "entity.name.function.call.lavra"},
                 },
             },
             {
-                "match": B0 + "(" + ART + "|" + CONTR + r")\s+(fato)\s+(de)" + B1,
-                "captures": {"1": {"name": "keyword.other.fact.lavra"}, "2": {"name": "keyword.other.fact.lavra"}, "3": {"name": "keyword.other.fact.lavra"}},
+                "match": B0 + "(?:(" + ART + ")|(" + CONTR + r"))\s+(fato)\s+(de)" + B1,
+                "captures": {
+                    "1": {"name": "keyword.other.fact.lavra"},
+                    "2": {"name": "keyword.operator.word.preposition.lavra"},
+                    "3": {"name": "keyword.other.fact.lavra"},
+                    "4": {"name": "keyword.other.fact.lavra"},
+                },
             },
             {
-                "match": B0 + "(" + ART + "|" + CONTR + r")\s+((?:" + "|".join(ORDINAL_STEMS) + r")(?:o|a|os|as)|item)" + B1,
-                "captures": {"1": {"name": "keyword.other.position.lavra"}, "2": {"name": "keyword.other.position.lavra"}},
+                "match": B0 + "(?:(" + ART + ")|(" + CONTR + r"))\s+((?:" + "|".join(ORDINAL_STEMS) + r")(?:o|a|os|as)|item)" + B1,
+                "captures": {
+                    "1": {"name": "keyword.other.position.lavra"},
+                    "2": {"name": "keyword.operator.word.preposition.lavra"},
+                    "3": {"name": "keyword.other.position.lavra"},
+                },
             },
         ]
     },

@@ -30,7 +30,7 @@
 #^^^^ source.lavra
 #    ^^^^^^^ source.lavra keyword.control.flow.lavra
 #           ^ source.lavra
-#            ^ source.lavra keyword.operator.word.preposition.lavra
+#            ^ source.lavra support.function.nominal.lavra
 #             ^ source.lavra
 #              ^^^^^^^^^ source.lavra support.function.nominal.lavra
 #                       ^ source.lavra

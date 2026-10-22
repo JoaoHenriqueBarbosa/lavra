@@ -221,3 +221,15 @@ Períodos com ponto; blocos com dois-pontos e recuo; linha sem `.`, `:` ou `;` c
 de baixo (enjambement). Comentários: linha com `Nota:` ou `--`. Números com vírgula
 decimal e milhar com espaço (`1 000 000`), hexadecimal `0xFF`. Sinais como `+` e `=` são
 erro léxico com a palavra certa na dica.
+
+## Mudanças
+
+A Lavra ainda não tem versão estável; mudança incompatível entra quando o corpus inteiro
+(`tests/programs` e `samples/`) muda no mesmo commit. Cada uma fica registrada aqui.
+
+- **2026-10-22, palavras reservadas vindas do léxico.** A 1ª pessoa de um verbo do
+  usuário não pode ser palavra da língua; a lista dessas palavras era mantida à mão e
+  agora sai do léxico (`src/lexicon.rs`): toda palavra da língua e cada palavra das
+  locuções, menos as formas recusadas com dica ("guardo", "seja", "há"), que continuam
+  livres para o usuário. Conferido contra os 15 267 verbos do Verbiste: passam a ser
+  proibidos só "emprestadar" (dá "emprestado") e "vaziar" (dá "vazio").

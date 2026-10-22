@@ -50,20 +50,7 @@ pub struct Article {
 }
 
 pub fn article(word: &str) -> Option<Article> {
-    use Gender::*;
-    use Number::*;
-    let (definite, gender, number) = match word {
-        "o" => (true, Masculine, Singular),
-        "a" => (true, Feminine, Singular),
-        "os" => (true, Masculine, Plural),
-        "as" => (true, Feminine, Plural),
-        "um" => (false, Masculine, Singular),
-        "uma" => (false, Feminine, Singular),
-        "uns" => (false, Masculine, Plural),
-        "umas" => (false, Feminine, Plural),
-        _ => return None,
-    };
-    Some(Article { definite, gender, number })
+    crate::lexicon::ARTICLES.iter().find(|a| a.0 == word).map(|&(_, definite, gender, number)| Article { definite, gender, number })
 }
 
 pub fn definite_article(g: Gender, n: Number) -> &'static str {
@@ -84,29 +71,8 @@ pub fn indefinite_article(g: Gender, n: Number) -> &'static str {
     }
 }
 
-/// Contrações obrigatórias: forma contraída → (preposição, artigo).
-pub const CONTRACTIONS: &[(&str, &str, &str)] = &[
-    ("do", "de", "o"),
-    ("da", "de", "a"),
-    ("dos", "de", "os"),
-    ("das", "de", "as"),
-    ("no", "em", "o"),
-    ("na", "em", "a"),
-    ("nos", "em", "os"),
-    ("nas", "em", "as"),
-    ("ao", "a", "o"),
-    ("à", "a", "a"),
-    ("aos", "a", "os"),
-    ("às", "a", "as"),
-    ("pelo", "por", "o"),
-    ("pela", "por", "a"),
-    ("pelos", "por", "os"),
-    ("pelas", "por", "as"),
-    ("num", "em", "um"),
-    ("numa", "em", "uma"),
-    ("dum", "de", "um"),
-    ("duma", "de", "uma"),
-];
+/// Contrações obrigatórias e preposições: as tabelas ficam no léxico.
+pub use crate::lexicon::{CONTRACTIONS, PREPOSITIONS};
 
 pub fn split_contraction(word: &str) -> Option<(&'static str, &'static str, &'static str)> {
     CONTRACTIONS.iter().find(|(c, _, _)| *c == word).copied()
@@ -124,9 +90,6 @@ pub fn join_prep(prep: &str, art: &str) -> String {
         None => format!("{prep} {art}"),
     }
 }
-
-pub const PREPOSITIONS: &[&str] =
-    &["a", "de", "em", "por", "com", "para", "sobre", "contra", "entre", "até", "sem", "desde", "após", "ante", "sob"];
 
 pub fn is_preposition(w: &str) -> bool {
     PREPOSITIONS.contains(&w)
@@ -158,20 +121,7 @@ pub fn adjective_form(word: &str, base_masc_sing: &str) -> Option<(Gender, Numbe
 /// Ordinais de primeiro a décimo, e último. Devolve (posição, gênero, número); o último
 /// tem posição 0.
 pub fn ordinal(word: &str) -> Option<(u32, Gender, Number)> {
-    const STEMS: &[(&str, u32)] = &[
-        ("primeir", 1),
-        ("segund", 2),
-        ("terceir", 3),
-        ("quart", 4),
-        ("quint", 5),
-        ("sext", 6),
-        ("sétim", 7),
-        ("oitav", 8),
-        ("non", 9),
-        ("décim", 10),
-        ("últim", 0),
-    ];
-    for (stem, value) in STEMS {
+    for (stem, value) in crate::lexicon::ORDINALS {
         if let Some(rest) = word.strip_prefix(stem) {
             let (g, n) = match rest {
                 "o" => (Gender::Masculine, Number::Singular),
@@ -187,19 +137,7 @@ pub fn ordinal(word: &str) -> Option<(u32, Gender, Number)> {
 }
 
 pub fn ordinal_word(value: u32, g: Gender) -> String {
-    let stem = match value {
-        0 => "últim",
-        1 => "primeir",
-        2 => "segund",
-        3 => "terceir",
-        4 => "quart",
-        5 => "quint",
-        6 => "sext",
-        7 => "sétim",
-        8 => "oitav",
-        9 => "non",
-        _ => "décim",
-    };
+    let stem = crate::lexicon::ORDINALS.iter().find(|o| o.1 == value.min(10)).map_or("décim", |o| o.0);
     format!("{stem}{}", if g == Gender::Feminine { "a" } else { "o" })
 }
 

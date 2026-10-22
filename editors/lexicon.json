@@ -1,0 +1,2429 @@
+{
+  "articles": [
+    {
+      "definite": true,
+      "form": "o",
+      "gender": "masculine",
+      "number": "singular"
+    },
+    {
+      "definite": true,
+      "form": "a",
+      "gender": "feminine",
+      "number": "singular"
+    },
+    {
+      "definite": true,
+      "form": "os",
+      "gender": "masculine",
+      "number": "plural"
+    },
+    {
+      "definite": true,
+      "form": "as",
+      "gender": "feminine",
+      "number": "plural"
+    },
+    {
+      "definite": false,
+      "form": "um",
+      "gender": "masculine",
+      "number": "singular"
+    },
+    {
+      "definite": false,
+      "form": "uma",
+      "gender": "feminine",
+      "number": "singular"
+    },
+    {
+      "definite": false,
+      "form": "uns",
+      "gender": "masculine",
+      "number": "plural"
+    },
+    {
+      "definite": false,
+      "form": "umas",
+      "gender": "feminine",
+      "number": "plural"
+    }
+  ],
+  "contractions": [
+    {
+      "article": "o",
+      "form": "do",
+      "preposition": "de"
+    },
+    {
+      "article": "a",
+      "form": "da",
+      "preposition": "de"
+    },
+    {
+      "article": "os",
+      "form": "dos",
+      "preposition": "de"
+    },
+    {
+      "article": "as",
+      "form": "das",
+      "preposition": "de"
+    },
+    {
+      "article": "o",
+      "form": "no",
+      "preposition": "em"
+    },
+    {
+      "article": "a",
+      "form": "na",
+      "preposition": "em"
+    },
+    {
+      "article": "os",
+      "form": "nos",
+      "preposition": "em"
+    },
+    {
+      "article": "as",
+      "form": "nas",
+      "preposition": "em"
+    },
+    {
+      "article": "o",
+      "form": "ao",
+      "preposition": "a"
+    },
+    {
+      "article": "a",
+      "form": "à",
+      "preposition": "a"
+    },
+    {
+      "article": "os",
+      "form": "aos",
+      "preposition": "a"
+    },
+    {
+      "article": "as",
+      "form": "às",
+      "preposition": "a"
+    },
+    {
+      "article": "o",
+      "form": "pelo",
+      "preposition": "por"
+    },
+    {
+      "article": "a",
+      "form": "pela",
+      "preposition": "por"
+    },
+    {
+      "article": "os",
+      "form": "pelos",
+      "preposition": "por"
+    },
+    {
+      "article": "as",
+      "form": "pelas",
+      "preposition": "por"
+    },
+    {
+      "article": "um",
+      "form": "num",
+      "preposition": "em"
+    },
+    {
+      "article": "uma",
+      "form": "numa",
+      "preposition": "em"
+    },
+    {
+      "article": "um",
+      "form": "dum",
+      "preposition": "de"
+    },
+    {
+      "article": "uma",
+      "form": "duma",
+      "preposition": "de"
+    }
+  ],
+  "coreVerbs": [
+    {
+      "doc": "Escreve um valor na saída e quebra a linha: \"Escrevo o saldo.\"",
+      "firstPerson": "escrevo",
+      "infinitive": "escrever",
+      "role": "statement"
+    },
+    {
+      "doc": "Lê uma linha da entrada para um lugar (\"Leio o nome.\") ou como valor (\"leio um inteiro\").",
+      "firstPerson": "leio",
+      "infinitive": "ler",
+      "role": "statement"
+    },
+    {
+      "doc": "Tira um item da coleção, com a posse dele: \"Tomo a última das notas.\" O item fica em \"o resultado\".",
+      "firstPerson": "tomo",
+      "infinitive": "tomar",
+      "role": "statement"
+    },
+    {
+      "doc": "Devolve o valor da função e sai dela: \"Devolvo o total.\"",
+      "firstPerson": "devolvo",
+      "infinitive": "devolver",
+      "role": "flow"
+    },
+    {
+      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo uma falha\".",
+      "firstPerson": "desisto",
+      "infinitive": "desistir",
+      "role": "flow"
+    },
+    {
+      "doc": "Sai do laço.",
+      "firstPerson": "paro",
+      "infinitive": "parar",
+      "role": "flow"
+    },
+    {
+      "doc": "Passa para a próxima volta do laço.",
+      "firstPerson": "pulo",
+      "infinitive": "pular",
+      "role": "flow"
+    },
+    {
+      "doc": "Laço contado (\"Repito 3 vezes:\") ou sem fim (\"Repito sempre:\", que sai com \"Paro\").",
+      "firstPerson": "repito",
+      "infinitive": "repetir",
+      "role": "control"
+    }
+  ],
+  "keywords": [
+    {
+      "doc": "Liga orações (\"Escrevo x e paro.\"), termos de uma operação e os itens de uma lista.",
+      "form": "e",
+      "role": "conjunction"
+    },
+    {
+      "doc": "Liga condições e casos (\"Sendo um círculo ou um quadrado:\"); \", ou VALOR\" trata a falha de uma chamada.",
+      "form": "ou",
+      "role": "conjunction"
+    },
+    {
+      "doc": "Condição: \"Se o saldo for maior que 0:\".",
+      "form": "se",
+      "role": "control"
+    },
+    {
+      "doc": "O caso contrário de um \"Se\"; \"Senão, se\" encadeia outra condição.",
+      "form": "senão",
+      "role": "control"
+    },
+    {
+      "doc": "Laço com condição: \"Enquanto o saldo for positivo:\".",
+      "form": "enquanto",
+      "role": "control"
+    },
+    {
+      "doc": "\"Para cada nota das notas:\" percorre a coleção; \"Para cada i de 1 até 10:\" conta.",
+      "form": "cada",
+      "role": "control"
+    },
+    {
+      "doc": "O fim do intervalo em \"Para cada i de 1 até 10:\".",
+      "form": "até",
+      "role": "control"
+    },
+    {
+      "doc": "\"Repito sempre:\": laço sem fim, que sai com \"Paro\".",
+      "form": "sempre",
+      "role": "control"
+    },
+    {
+      "doc": "\"Repito 3 vezes:\" conta as voltas; entre dois números, multiplica.",
+      "form": "vezes",
+      "role": "control"
+    },
+    {
+      "doc": "Examina uma enumeração caso a caso: \"Conforme a figura:\" seguido de \"Sendo ...:\".",
+      "form": "conforme",
+      "role": "control"
+    },
+    {
+      "doc": "Um caso de \"Conforme\" (\"Sendo um círculo:\"); no cabeçalho, dá os tipos (\", sendo a quantia um real\").",
+      "form": "sendo",
+      "role": "control"
+    },
+    {
+      "doc": "\"ser\" no futuro do subjuntivo, nas condições: \"Se o saldo for maior que 0\".",
+      "form": "for",
+      "role": "copula"
+    },
+    {
+      "doc": "\"ser\" no futuro do subjuntivo, no plural: \"Se as notas forem iguais\".",
+      "form": "forem",
+      "role": "copula"
+    },
+    {
+      "doc": "\"Se houver apelido:\": o talvez tem valor, que vira um nome dentro do bloco.",
+      "form": "houver",
+      "role": "copula"
+    },
+    {
+      "doc": "Define uma função (\"Para transferir a quantia ...:\"), abre o programa (\"Para começar:\") ou um laço (\"Para cada\").",
+      "form": "para",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Para começar:\" é onde o programa começa.",
+      "form": "começar",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Uma conta é um registro de:\" define um registro, com os campos recuados.",
+      "form": "registro",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Uma forma é uma destas:\" define uma enumeração, com os casos recuados.",
+      "form": "destas",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Um sinal é um destes:\" define uma enumeração de nome masculino.",
+      "form": "destes",
+      "role": "definition"
+    },
+    {
+      "doc": "Os campos de um registro novo (\"uma conta com o titular \"Ana\" e o saldo 0\"), a coleção que começa com itens, a mensagem de \"Desisto com\".",
+      "form": "com",
+      "role": "definition"
+    },
+    {
+      "doc": "No cabeçalho, o tipo do valor que a função devolve: \", devolvendo um real\".",
+      "form": "devolvendo",
+      "role": "signature"
+    },
+    {
+      "doc": "\", salvo uma falha\": a função pode desistir, e quem chama tem de tratar.",
+      "form": "salvo",
+      "role": "signature"
+    },
+    {
+      "doc": "\", salvo uma falha\": a função pode desistir, e quem chama tem de tratar.",
+      "form": "falha",
+      "role": "signature"
+    },
+    {
+      "doc": "Na tipagem, os dois regidos de uma vez: \", sendo ambos inteiros\".",
+      "form": "ambos",
+      "role": "signature"
+    },
+    {
+      "doc": "Na tipagem, as duas regidas de uma vez: \", sendo ambas listas de reais\".",
+      "form": "ambas",
+      "role": "signature"
+    },
+    {
+      "doc": "\"uma cópia de X\": entrega uma cópia, e o original continua com o dono.",
+      "form": "cópia",
+      "role": "ownership"
+    },
+    {
+      "doc": "Tipo que pode não ter valor: \"talvez um texto\", que começa em \"nada\".",
+      "form": "talvez",
+      "role": "ownership"
+    },
+    {
+      "doc": "O tamanho de um número: \"um inteiro de 32 bits\".",
+      "form": "bits",
+      "role": "type"
+    },
+    {
+      "doc": "Soma: \"x mais 1\".",
+      "form": "mais",
+      "role": "operator"
+    },
+    {
+      "doc": "Subtração: \"x menos 1\".",
+      "form": "menos",
+      "role": "operator"
+    },
+    {
+      "doc": "Divisão: \"x dividido por 2\".",
+      "form": "dividido por",
+      "role": "operator"
+    },
+    {
+      "doc": "Junta textos: \"\"Olá, \" seguido do nome\". Liga mais frouxo que os argumentos de uma chamada.",
+      "form": "seguido de",
+      "role": "operator"
+    },
+    {
+      "doc": "\"seguido de\" concordando com um nome feminino.",
+      "form": "seguida de",
+      "role": "operator"
+    },
+    {
+      "doc": "Converte: \"x como real\", \"o saldo como texto\". Falha se o valor não cabe no tipo.",
+      "form": "como",
+      "role": "operator"
+    },
+    {
+      "doc": "Nega a condição: \"Se o saldo não for positivo\", \"Se não houver apelido\".",
+      "form": "não",
+      "role": "operator"
+    },
+    {
+      "doc": "\"à esquerda\": a direção do deslocamento de bits.",
+      "form": "esquerda",
+      "role": "operator"
+    },
+    {
+      "doc": "\"à direita\": a direção do deslocamento de bits.",
+      "form": "direita",
+      "role": "operator"
+    },
+    {
+      "doc": "Comparação: \"Se o saldo for maior que 0\".",
+      "form": "maior que",
+      "role": "comparison"
+    },
+    {
+      "doc": "\"maior que\" no plural.",
+      "form": "maiores que",
+      "role": "comparison"
+    },
+    {
+      "doc": "Comparação: \"Se o saldo for menor que 0\".",
+      "form": "menor que",
+      "role": "comparison"
+    },
+    {
+      "doc": "\"menor que\" no plural.",
+      "form": "menores que",
+      "role": "comparison"
+    },
+    {
+      "doc": "Igualdade: \"Se o saldo for igual a 0\" (contrai: \"igual ao teto\").",
+      "form": "igual a",
+      "role": "comparison"
+    },
+    {
+      "doc": "\"igual a\" no plural.",
+      "form": "iguais a",
+      "role": "comparison"
+    },
+    {
+      "doc": "Desigualdade: \"Se o nome for diferente de \"Ana\"\".",
+      "form": "diferente de",
+      "role": "comparison"
+    },
+    {
+      "doc": "\"diferente de\" no plural.",
+      "form": "diferentes de",
+      "role": "comparison"
+    },
+    {
+      "doc": "Maior ou igual: \"Se a nota for pelo menos 7\".",
+      "form": "pelo menos",
+      "role": "comparison"
+    },
+    {
+      "doc": "Menor ou igual: \"Se a nota for no máximo 10\".",
+      "form": "no máximo",
+      "role": "comparison"
+    },
+    {
+      "doc": "O lógico verdadeiro.",
+      "form": "verdadeiro",
+      "role": "literal"
+    },
+    {
+      "doc": "O lógico falso.",
+      "form": "falso",
+      "role": "literal"
+    },
+    {
+      "doc": "A falta de valor de um talvez: \"O apelido, talvez um texto, começa em nada.\"",
+      "form": "nada",
+      "role": "literal"
+    },
+    {
+      "doc": "\"o item 2 das notas\": a posição, contando de 1.",
+      "form": "item",
+      "role": "position"
+    },
+    {
+      "doc": "\"o resultado\": o valor da oração anterior; \"o resultado de dividir ...\" chama uma função como valor.",
+      "form": "resultado",
+      "role": "anaphora"
+    },
+    {
+      "doc": "\"o fato de o saldo ser positivo\": uma condição vista como lógico.",
+      "form": "fato",
+      "role": "anaphora"
+    },
+    {
+      "doc": "\"Escrevo x sem quebrar a linha.\": a próxima escrita continua na mesma linha.",
+      "form": "sem quebrar a linha",
+      "role": "output"
+    },
+    {
+      "doc": "\"Nota:\" no começo da linha faz dela um comentário; \"--\" comenta até o fim da linha.",
+      "form": "nota",
+      "role": "comment"
+    },
+    {
+      "doc": "Quem se declara é o sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).",
+      "form": "seja",
+      "role": "rejected"
+    },
+    {
+      "doc": "Quem se declara é o sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).",
+      "form": "sejam",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição o verbo vai no futuro do subjuntivo: \"for\".",
+      "form": "fosse",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição o verbo vai no futuro do subjuntivo: \"forem\".",
+      "form": "fossem",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição o verbo vai no futuro do subjuntivo: \"for\".",
+      "form": "está",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição o verbo vai no futuro do subjuntivo: \"forem\".",
+      "form": "estão",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição, \"houver\": \"Se houver apelido\".",
+      "form": "há",
+      "role": "rejected"
+    },
+    {
+      "doc": "Predicado com \"ir\" não pode: no subjuntivo ele dá \"for\", igual a \"ser\", que a língua usa nas comparações.",
+      "form": "ir",
+      "role": "rejected"
+    },
+    {
+      "doc": "\"Repito\" conta em \"vezes\", no plural; para uma vez só, não precisa de laço.",
+      "form": "vez",
+      "role": "rejected"
+    },
+    {
+      "doc": "Para mudar um valor, o dado é o sujeito: \"O saldo vira 10.\"",
+      "form": "guardo",
+      "role": "rejected"
+    },
+    {
+      "doc": "Para somar ao valor, o dado é o sujeito: \"O saldo cresce 10.\"",
+      "form": "acrescento",
+      "role": "rejected"
+    },
+    {
+      "doc": "Para tirar do valor, o dado é o sujeito: \"O saldo diminui 10.\"",
+      "form": "subtraio",
+      "role": "rejected"
+    },
+    {
+      "doc": "Nome que a língua dá aos itens de uma enumeração; não pode ser a 1ª pessoa de um verbo do usuário.",
+      "form": "caso",
+      "role": "reserved"
+    }
+  ],
+  "locutions": {
+    "contractible": [
+      [
+        "maior",
+        "que"
+      ],
+      [
+        "menor",
+        "que"
+      ],
+      [
+        "igual",
+        "a"
+      ],
+      [
+        "diferente",
+        "de"
+      ],
+      [
+        "maiores",
+        "que"
+      ],
+      [
+        "menores",
+        "que"
+      ],
+      [
+        "iguais",
+        "a"
+      ],
+      [
+        "diferentes",
+        "de"
+      ],
+      [
+        "dividido",
+        "por"
+      ],
+      [
+        "seguido",
+        "de"
+      ],
+      [
+        "seguida",
+        "de"
+      ]
+    ],
+    "protected": [
+      [
+        "pelo",
+        "menos"
+      ],
+      [
+        "no",
+        "máximo"
+      ],
+      [
+        "à",
+        "esquerda"
+      ],
+      [
+        "à",
+        "direita"
+      ]
+    ]
+  },
+  "nominals": [
+    {
+      "arity": 2,
+      "commutative": true,
+      "doc": "\"a soma de x e y\": x mais y.",
+      "gender": "feminine",
+      "word": "soma"
+    },
+    {
+      "arity": 2,
+      "commutative": false,
+      "doc": "\"a diferença de x e y\": x menos y.",
+      "gender": "feminine",
+      "word": "diferença"
+    },
+    {
+      "arity": 2,
+      "commutative": true,
+      "doc": "\"o produto de x e y\": x vezes y.",
+      "gender": "masculine",
+      "word": "produto"
+    },
+    {
+      "arity": 2,
+      "commutative": false,
+      "doc": "\"o quociente de x e y\": x dividido por y.",
+      "gender": "masculine",
+      "word": "quociente"
+    },
+    {
+      "arity": 2,
+      "commutative": false,
+      "doc": "\"o resto de x e y\": o resto da divisão de x por y.",
+      "gender": "masculine",
+      "word": "resto"
+    },
+    {
+      "arity": 2,
+      "commutative": false,
+      "doc": "\"a potência de x e y\": x elevado a y.",
+      "gender": "feminine",
+      "word": "potência"
+    },
+    {
+      "arity": 2,
+      "commutative": true,
+      "doc": "\"a interseção de x e y\": os bits ligados nos dois.",
+      "gender": "feminine",
+      "word": "interseção"
+    },
+    {
+      "arity": 2,
+      "commutative": true,
+      "doc": "\"a união de x e y\": os bits ligados em qualquer um.",
+      "gender": "feminine",
+      "word": "união"
+    },
+    {
+      "arity": 2,
+      "commutative": true,
+      "doc": "\"a disjunção de x e y\": os bits ligados em só um dos dois.",
+      "gender": "feminine",
+      "word": "disjunção"
+    },
+    {
+      "arity": 1,
+      "commutative": false,
+      "doc": "\"o negativo de x\": x com o sinal trocado.",
+      "gender": "masculine",
+      "word": "negativo"
+    },
+    {
+      "arity": 1,
+      "commutative": false,
+      "doc": "\"a raiz de x\": a raiz quadrada de um real.",
+      "gender": "feminine",
+      "word": "raiz"
+    },
+    {
+      "arity": 1,
+      "commutative": false,
+      "doc": "\"o tamanho de x\": quantos itens tem a lista, ou quantas letras tem o texto.",
+      "gender": "masculine",
+      "word": "tamanho"
+    },
+    {
+      "arity": 1,
+      "commutative": false,
+      "doc": "\"o inverso de x\": os bits de x trocados.",
+      "gender": "masculine",
+      "word": "inverso"
+    },
+    {
+      "arity": 1,
+      "commutative": false,
+      "doc": "\"o módulo de x\": o valor absoluto. Entre dois números, \"x módulo y\" é o resto.",
+      "gender": "masculine",
+      "word": "módulo"
+    },
+    {
+      "arity": 2,
+      "commutative": false,
+      "doc": "\"o deslocamento de x por n à esquerda\" (ou à direita): os bits de x andam n casas.",
+      "gender": "masculine",
+      "word": "deslocamento"
+    }
+  ],
+  "ordinals": [
+    {
+      "position": 1,
+      "stem": "primeir"
+    },
+    {
+      "position": 2,
+      "stem": "segund"
+    },
+    {
+      "position": 3,
+      "stem": "terceir"
+    },
+    {
+      "position": 4,
+      "stem": "quart"
+    },
+    {
+      "position": 5,
+      "stem": "quint"
+    },
+    {
+      "position": 6,
+      "stem": "sext"
+    },
+    {
+      "position": 7,
+      "stem": "sétim"
+    },
+    {
+      "position": 8,
+      "stem": "oitav"
+    },
+    {
+      "position": 9,
+      "stem": "non"
+    },
+    {
+      "position": 10,
+      "stem": "décim"
+    },
+    {
+      "position": 0,
+      "stem": "últim"
+    }
+  ],
+  "participles": [
+    {
+      "base": "emprestado",
+      "doc": "Parâmetro emprestado: a função lê o valor, não o muda nem fica com ele (como &T).",
+      "forms": [
+        "emprestado",
+        "emprestados",
+        "emprestada",
+        "emprestadas"
+      ],
+      "role": "ownership"
+    },
+    {
+      "base": "confiado",
+      "doc": "Parâmetro confiado: a função pode mudar o valor, que volta para quem chamou (como &mut T).",
+      "forms": [
+        "confiado",
+        "confiados",
+        "confiada",
+        "confiadas"
+      ],
+      "role": "ownership"
+    },
+    {
+      "base": "vazio",
+      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "forms": [
+        "vazio",
+        "vazios",
+        "vazia",
+        "vazias"
+      ],
+      "role": "literal"
+    }
+  ],
+  "prepositions": [
+    "a",
+    "de",
+    "em",
+    "por",
+    "com",
+    "para",
+    "sobre",
+    "contra",
+    "entre",
+    "até",
+    "sem",
+    "desde",
+    "após",
+    "ante",
+    "sob"
+  ],
+  "roles": [
+    {
+      "id": "article",
+      "name": "artigo"
+    },
+    {
+      "id": "contraction",
+      "name": "contração"
+    },
+    {
+      "id": "preposition",
+      "name": "preposição"
+    },
+    {
+      "id": "conjunction",
+      "name": "conjunção"
+    },
+    {
+      "id": "statement",
+      "name": "verbo da língua"
+    },
+    {
+      "id": "flow",
+      "name": "verbo de fluxo"
+    },
+    {
+      "id": "declaration",
+      "name": "declaração"
+    },
+    {
+      "id": "mutation",
+      "name": "mudança do dado"
+    },
+    {
+      "id": "control",
+      "name": "controle"
+    },
+    {
+      "id": "copula",
+      "name": "verbo da condição"
+    },
+    {
+      "id": "definition",
+      "name": "definição"
+    },
+    {
+      "id": "signature",
+      "name": "cabeçalho"
+    },
+    {
+      "id": "ownership",
+      "name": "posse"
+    },
+    {
+      "id": "type",
+      "name": "tipo"
+    },
+    {
+      "id": "nominal",
+      "name": "operação por extenso"
+    },
+    {
+      "id": "operator",
+      "name": "operador"
+    },
+    {
+      "id": "comparison",
+      "name": "comparação"
+    },
+    {
+      "id": "literal",
+      "name": "valor da língua"
+    },
+    {
+      "id": "position",
+      "name": "posição"
+    },
+    {
+      "id": "anaphora",
+      "name": "retomada"
+    },
+    {
+      "id": "output",
+      "name": "saída"
+    },
+    {
+      "id": "comment",
+      "name": "comentário"
+    },
+    {
+      "id": "rejected",
+      "name": "forma recusada"
+    },
+    {
+      "id": "reserved",
+      "name": "palavra reservada"
+    }
+  ],
+  "subjectVerbs": [
+    {
+      "doc": "Declara um valor fixo: \"O limite é 100.\" O que \"é\" não muda.",
+      "infinitive": "ser",
+      "plural": "são",
+      "role": "declaration",
+      "singular": "é"
+    },
+    {
+      "doc": "Declara um valor que muda: \"O saldo começa em 0.\", \"As notas começam vazias.\"",
+      "infinitive": "começar",
+      "plural": "começam",
+      "role": "declaration",
+      "singular": "começa"
+    },
+    {
+      "doc": "Dá um valor novo ao dado: \"O saldo vira 10.\"",
+      "infinitive": "virar",
+      "plural": "viram",
+      "role": "mutation",
+      "singular": "vira"
+    },
+    {
+      "doc": "Soma ao dado: \"O saldo cresce 5.\"",
+      "infinitive": "crescer",
+      "plural": "crescem",
+      "role": "mutation",
+      "singular": "cresce"
+    },
+    {
+      "doc": "Subtrai do dado: \"O saldo diminui 5.\"",
+      "infinitive": "diminuir",
+      "plural": "diminuem",
+      "role": "mutation",
+      "singular": "diminui"
+    },
+    {
+      "doc": "Põe um item no fim da coleção: \"As notas ganham 7.\"",
+      "infinitive": "ganhar",
+      "plural": "ganham",
+      "role": "mutation",
+      "singular": "ganha"
+    },
+    {
+      "doc": "Tira um item da coleção, sem ficar com ele: \"As notas perdem a primeira.\"",
+      "infinitive": "perder",
+      "plural": "perdem",
+      "role": "mutation",
+      "singular": "perde"
+    }
+  ],
+  "types": [
+    {
+      "doc": "Número inteiro com sinal, de 64 bits (ou \"de 8/16/32 bits\").",
+      "gender": "masculine",
+      "plural": "inteiros",
+      "singular": "inteiro"
+    },
+    {
+      "doc": "Número inteiro sem sinal, de 64 bits (ou \"de 8/16/32 bits\").",
+      "gender": "masculine",
+      "plural": "naturais",
+      "singular": "natural"
+    },
+    {
+      "doc": "Número com vírgula, de 64 bits (ou \"de 32 bits\").",
+      "gender": "masculine",
+      "plural": "reais",
+      "singular": "real"
+    },
+    {
+      "doc": "Natural de 8 bits.",
+      "gender": "masculine",
+      "plural": "bytes",
+      "singular": "byte"
+    },
+    {
+      "doc": "Verdadeiro ou falso.",
+      "gender": "masculine",
+      "plural": "lógicos",
+      "singular": "lógico"
+    },
+    {
+      "doc": "Uma letra, entre aspas simples: 'a'.",
+      "gender": "masculine",
+      "plural": "caracteres",
+      "singular": "caractere"
+    },
+    {
+      "doc": "Texto entre aspas: \"olá\".",
+      "gender": "masculine",
+      "plural": "textos",
+      "singular": "texto"
+    },
+    {
+      "doc": "Coleção de valores do mesmo tipo: \"uma lista de inteiros\".",
+      "gender": "feminine",
+      "plural": "listas",
+      "singular": "lista"
+    }
+  ],
+  "version": 1,
+  "words": [
+    {
+      "doc": "Artigo definido masculino singular: marca o nome de um valor (\"o saldo\").",
+      "form": "o",
+      "lemma": "o",
+      "role": "article"
+    },
+    {
+      "doc": "Artigo definido feminino singular: marca o nome de um valor (\"a saldo\").",
+      "form": "a",
+      "lemma": "a",
+      "role": "article"
+    },
+    {
+      "doc": "Artigo definido masculino plural: marca o nome de um valor (\"os saldo\").",
+      "form": "os",
+      "lemma": "os",
+      "role": "article"
+    },
+    {
+      "doc": "Artigo definido feminino plural: marca o nome de um valor (\"as saldo\").",
+      "form": "as",
+      "lemma": "as",
+      "role": "article"
+    },
+    {
+      "doc": "Artigo indefinido masculino singular: apresenta um tipo ou um caso (\"um inteiro\").",
+      "form": "um",
+      "lemma": "um",
+      "role": "article"
+    },
+    {
+      "doc": "Artigo indefinido feminino singular: apresenta um tipo ou um caso (\"uma inteiro\").",
+      "form": "uma",
+      "lemma": "uma",
+      "role": "article"
+    },
+    {
+      "doc": "Artigo indefinido masculino plural: apresenta um tipo ou um caso (\"uns inteiro\").",
+      "form": "uns",
+      "lemma": "uns",
+      "role": "article"
+    },
+    {
+      "doc": "Artigo indefinido feminino plural: apresenta um tipo ou um caso (\"umas inteiro\").",
+      "form": "umas",
+      "lemma": "umas",
+      "role": "article"
+    },
+    {
+      "doc": "\"de\" + \"o\": a contração é obrigatória antes de nome com artigo.",
+      "form": "do",
+      "lemma": "do",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"de\" + \"a\": a contração é obrigatória antes de nome com artigo.",
+      "form": "da",
+      "lemma": "da",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"de\" + \"os\": a contração é obrigatória antes de nome com artigo.",
+      "form": "dos",
+      "lemma": "dos",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"de\" + \"as\": a contração é obrigatória antes de nome com artigo.",
+      "form": "das",
+      "lemma": "das",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"em\" + \"o\": a contração é obrigatória antes de nome com artigo.",
+      "form": "no",
+      "lemma": "no",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"em\" + \"a\": a contração é obrigatória antes de nome com artigo.",
+      "form": "na",
+      "lemma": "na",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"em\" + \"os\": a contração é obrigatória antes de nome com artigo.",
+      "form": "nos",
+      "lemma": "nos",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"em\" + \"as\": a contração é obrigatória antes de nome com artigo.",
+      "form": "nas",
+      "lemma": "nas",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"a\" + \"o\": a contração é obrigatória antes de nome com artigo.",
+      "form": "ao",
+      "lemma": "ao",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"a\" + \"a\": a contração é obrigatória antes de nome com artigo.",
+      "form": "à",
+      "lemma": "à",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"a\" + \"os\": a contração é obrigatória antes de nome com artigo.",
+      "form": "aos",
+      "lemma": "aos",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"a\" + \"as\": a contração é obrigatória antes de nome com artigo.",
+      "form": "às",
+      "lemma": "às",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"por\" + \"o\": a contração é obrigatória antes de nome com artigo.",
+      "form": "pelo",
+      "lemma": "pelo",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"por\" + \"a\": a contração é obrigatória antes de nome com artigo.",
+      "form": "pela",
+      "lemma": "pela",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"por\" + \"os\": a contração é obrigatória antes de nome com artigo.",
+      "form": "pelos",
+      "lemma": "pelos",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"por\" + \"as\": a contração é obrigatória antes de nome com artigo.",
+      "form": "pelas",
+      "lemma": "pelas",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"em\" + \"um\": a contração é obrigatória antes de nome com artigo.",
+      "form": "num",
+      "lemma": "num",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"em\" + \"uma\": a contração é obrigatória antes de nome com artigo.",
+      "form": "numa",
+      "lemma": "numa",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"de\" + \"um\": a contração é obrigatória antes de nome com artigo.",
+      "form": "dum",
+      "lemma": "dum",
+      "role": "contraction"
+    },
+    {
+      "doc": "\"de\" + \"uma\": a contração é obrigatória antes de nome com artigo.",
+      "form": "duma",
+      "lemma": "duma",
+      "role": "contraction"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "a",
+      "lemma": "a",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "de",
+      "lemma": "de",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "em",
+      "lemma": "em",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "por",
+      "lemma": "por",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "com",
+      "lemma": "com",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "para",
+      "lemma": "para",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "sobre",
+      "lemma": "sobre",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "contra",
+      "lemma": "contra",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "entre",
+      "lemma": "entre",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "até",
+      "lemma": "até",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "sem",
+      "lemma": "sem",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "desde",
+      "lemma": "desde",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "após",
+      "lemma": "após",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "ante",
+      "lemma": "ante",
+      "role": "preposition"
+    },
+    {
+      "doc": "Preposição: rege um argumento no cabeçalho e na chamada (\"transferir a quantia para o destino\").",
+      "form": "sob",
+      "lemma": "sob",
+      "role": "preposition"
+    },
+    {
+      "doc": "Escreve um valor na saída e quebra a linha: \"Escrevo o saldo.\"",
+      "form": "escrevo",
+      "lemma": "escrever",
+      "role": "statement"
+    },
+    {
+      "doc": "Escreve um valor na saída e quebra a linha: \"Escrevo o saldo.\"",
+      "form": "escrever",
+      "lemma": "escrever",
+      "role": "statement"
+    },
+    {
+      "doc": "Lê uma linha da entrada para um lugar (\"Leio o nome.\") ou como valor (\"leio um inteiro\").",
+      "form": "leio",
+      "lemma": "ler",
+      "role": "statement"
+    },
+    {
+      "doc": "Lê uma linha da entrada para um lugar (\"Leio o nome.\") ou como valor (\"leio um inteiro\").",
+      "form": "ler",
+      "lemma": "ler",
+      "role": "statement"
+    },
+    {
+      "doc": "Tira um item da coleção, com a posse dele: \"Tomo a última das notas.\" O item fica em \"o resultado\".",
+      "form": "tomo",
+      "lemma": "tomar",
+      "role": "statement"
+    },
+    {
+      "doc": "Tira um item da coleção, com a posse dele: \"Tomo a última das notas.\" O item fica em \"o resultado\".",
+      "form": "tomar",
+      "lemma": "tomar",
+      "role": "statement"
+    },
+    {
+      "doc": "Devolve o valor da função e sai dela: \"Devolvo o total.\"",
+      "form": "devolvo",
+      "lemma": "devolver",
+      "role": "flow"
+    },
+    {
+      "doc": "Devolve o valor da função e sai dela: \"Devolvo o total.\"",
+      "form": "devolver",
+      "lemma": "devolver",
+      "role": "flow"
+    },
+    {
+      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo uma falha\".",
+      "form": "desisto",
+      "lemma": "desistir",
+      "role": "flow"
+    },
+    {
+      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo uma falha\".",
+      "form": "desistir",
+      "lemma": "desistir",
+      "role": "flow"
+    },
+    {
+      "doc": "Sai do laço.",
+      "form": "paro",
+      "lemma": "parar",
+      "role": "flow"
+    },
+    {
+      "doc": "Sai do laço.",
+      "form": "parar",
+      "lemma": "parar",
+      "role": "flow"
+    },
+    {
+      "doc": "Passa para a próxima volta do laço.",
+      "form": "pulo",
+      "lemma": "pular",
+      "role": "flow"
+    },
+    {
+      "doc": "Passa para a próxima volta do laço.",
+      "form": "pular",
+      "lemma": "pular",
+      "role": "flow"
+    },
+    {
+      "doc": "Laço contado (\"Repito 3 vezes:\") ou sem fim (\"Repito sempre:\", que sai com \"Paro\").",
+      "form": "repito",
+      "lemma": "repetir",
+      "role": "control"
+    },
+    {
+      "doc": "Laço contado (\"Repito 3 vezes:\") ou sem fim (\"Repito sempre:\", que sai com \"Paro\").",
+      "form": "repetir",
+      "lemma": "repetir",
+      "role": "control"
+    },
+    {
+      "doc": "Declara um valor fixo: \"O limite é 100.\" O que \"é\" não muda.",
+      "form": "é",
+      "lemma": "ser",
+      "role": "declaration"
+    },
+    {
+      "doc": "Declara um valor fixo: \"O limite é 100.\" O que \"é\" não muda.",
+      "form": "são",
+      "lemma": "ser",
+      "role": "declaration"
+    },
+    {
+      "doc": "Declara um valor fixo: \"O limite é 100.\" O que \"é\" não muda.",
+      "form": "ser",
+      "lemma": "ser",
+      "role": "declaration"
+    },
+    {
+      "doc": "Declara um valor que muda: \"O saldo começa em 0.\", \"As notas começam vazias.\"",
+      "form": "começa",
+      "lemma": "começar",
+      "role": "declaration"
+    },
+    {
+      "doc": "Declara um valor que muda: \"O saldo começa em 0.\", \"As notas começam vazias.\"",
+      "form": "começam",
+      "lemma": "começar",
+      "role": "declaration"
+    },
+    {
+      "doc": "Declara um valor que muda: \"O saldo começa em 0.\", \"As notas começam vazias.\"",
+      "form": "começar",
+      "lemma": "começar",
+      "role": "declaration"
+    },
+    {
+      "doc": "Dá um valor novo ao dado: \"O saldo vira 10.\"",
+      "form": "vira",
+      "lemma": "virar",
+      "role": "mutation"
+    },
+    {
+      "doc": "Dá um valor novo ao dado: \"O saldo vira 10.\"",
+      "form": "viram",
+      "lemma": "virar",
+      "role": "mutation"
+    },
+    {
+      "doc": "Dá um valor novo ao dado: \"O saldo vira 10.\"",
+      "form": "virar",
+      "lemma": "virar",
+      "role": "mutation"
+    },
+    {
+      "doc": "Soma ao dado: \"O saldo cresce 5.\"",
+      "form": "cresce",
+      "lemma": "crescer",
+      "role": "mutation"
+    },
+    {
+      "doc": "Soma ao dado: \"O saldo cresce 5.\"",
+      "form": "crescem",
+      "lemma": "crescer",
+      "role": "mutation"
+    },
+    {
+      "doc": "Soma ao dado: \"O saldo cresce 5.\"",
+      "form": "crescer",
+      "lemma": "crescer",
+      "role": "mutation"
+    },
+    {
+      "doc": "Subtrai do dado: \"O saldo diminui 5.\"",
+      "form": "diminui",
+      "lemma": "diminuir",
+      "role": "mutation"
+    },
+    {
+      "doc": "Subtrai do dado: \"O saldo diminui 5.\"",
+      "form": "diminuem",
+      "lemma": "diminuir",
+      "role": "mutation"
+    },
+    {
+      "doc": "Subtrai do dado: \"O saldo diminui 5.\"",
+      "form": "diminuir",
+      "lemma": "diminuir",
+      "role": "mutation"
+    },
+    {
+      "doc": "Põe um item no fim da coleção: \"As notas ganham 7.\"",
+      "form": "ganha",
+      "lemma": "ganhar",
+      "role": "mutation"
+    },
+    {
+      "doc": "Põe um item no fim da coleção: \"As notas ganham 7.\"",
+      "form": "ganham",
+      "lemma": "ganhar",
+      "role": "mutation"
+    },
+    {
+      "doc": "Põe um item no fim da coleção: \"As notas ganham 7.\"",
+      "form": "ganhar",
+      "lemma": "ganhar",
+      "role": "mutation"
+    },
+    {
+      "doc": "Tira um item da coleção, sem ficar com ele: \"As notas perdem a primeira.\"",
+      "form": "perde",
+      "lemma": "perder",
+      "role": "mutation"
+    },
+    {
+      "doc": "Tira um item da coleção, sem ficar com ele: \"As notas perdem a primeira.\"",
+      "form": "perdem",
+      "lemma": "perder",
+      "role": "mutation"
+    },
+    {
+      "doc": "Tira um item da coleção, sem ficar com ele: \"As notas perdem a primeira.\"",
+      "form": "perder",
+      "lemma": "perder",
+      "role": "mutation"
+    },
+    {
+      "doc": "Número inteiro com sinal, de 64 bits (ou \"de 8/16/32 bits\").",
+      "form": "inteiro",
+      "lemma": "inteiro",
+      "role": "type"
+    },
+    {
+      "doc": "Número inteiro com sinal, de 64 bits (ou \"de 8/16/32 bits\").",
+      "form": "inteiros",
+      "lemma": "inteiro",
+      "role": "type"
+    },
+    {
+      "doc": "Número inteiro sem sinal, de 64 bits (ou \"de 8/16/32 bits\").",
+      "form": "natural",
+      "lemma": "natural",
+      "role": "type"
+    },
+    {
+      "doc": "Número inteiro sem sinal, de 64 bits (ou \"de 8/16/32 bits\").",
+      "form": "naturais",
+      "lemma": "natural",
+      "role": "type"
+    },
+    {
+      "doc": "Número com vírgula, de 64 bits (ou \"de 32 bits\").",
+      "form": "real",
+      "lemma": "real",
+      "role": "type"
+    },
+    {
+      "doc": "Número com vírgula, de 64 bits (ou \"de 32 bits\").",
+      "form": "reais",
+      "lemma": "real",
+      "role": "type"
+    },
+    {
+      "doc": "Natural de 8 bits.",
+      "form": "byte",
+      "lemma": "byte",
+      "role": "type"
+    },
+    {
+      "doc": "Natural de 8 bits.",
+      "form": "bytes",
+      "lemma": "byte",
+      "role": "type"
+    },
+    {
+      "doc": "Verdadeiro ou falso.",
+      "form": "lógico",
+      "lemma": "lógico",
+      "role": "type"
+    },
+    {
+      "doc": "Verdadeiro ou falso.",
+      "form": "lógicos",
+      "lemma": "lógico",
+      "role": "type"
+    },
+    {
+      "doc": "Uma letra, entre aspas simples: 'a'.",
+      "form": "caractere",
+      "lemma": "caractere",
+      "role": "type"
+    },
+    {
+      "doc": "Uma letra, entre aspas simples: 'a'.",
+      "form": "caracteres",
+      "lemma": "caractere",
+      "role": "type"
+    },
+    {
+      "doc": "Texto entre aspas: \"olá\".",
+      "form": "texto",
+      "lemma": "texto",
+      "role": "type"
+    },
+    {
+      "doc": "Texto entre aspas: \"olá\".",
+      "form": "textos",
+      "lemma": "texto",
+      "role": "type"
+    },
+    {
+      "doc": "Coleção de valores do mesmo tipo: \"uma lista de inteiros\".",
+      "form": "lista",
+      "lemma": "lista",
+      "role": "type"
+    },
+    {
+      "doc": "Coleção de valores do mesmo tipo: \"uma lista de inteiros\".",
+      "form": "listas",
+      "lemma": "lista",
+      "role": "type"
+    },
+    {
+      "doc": "\"a soma de x e y\": x mais y.",
+      "form": "soma",
+      "lemma": "soma",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"a diferença de x e y\": x menos y.",
+      "form": "diferença",
+      "lemma": "diferença",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"o produto de x e y\": x vezes y.",
+      "form": "produto",
+      "lemma": "produto",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"o quociente de x e y\": x dividido por y.",
+      "form": "quociente",
+      "lemma": "quociente",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"o resto de x e y\": o resto da divisão de x por y.",
+      "form": "resto",
+      "lemma": "resto",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"a potência de x e y\": x elevado a y.",
+      "form": "potência",
+      "lemma": "potência",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"a interseção de x e y\": os bits ligados nos dois.",
+      "form": "interseção",
+      "lemma": "interseção",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"a união de x e y\": os bits ligados em qualquer um.",
+      "form": "união",
+      "lemma": "união",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"a disjunção de x e y\": os bits ligados em só um dos dois.",
+      "form": "disjunção",
+      "lemma": "disjunção",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"o negativo de x\": x com o sinal trocado.",
+      "form": "negativo",
+      "lemma": "negativo",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"a raiz de x\": a raiz quadrada de um real.",
+      "form": "raiz",
+      "lemma": "raiz",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"o tamanho de x\": quantos itens tem a lista, ou quantas letras tem o texto.",
+      "form": "tamanho",
+      "lemma": "tamanho",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"o inverso de x\": os bits de x trocados.",
+      "form": "inverso",
+      "lemma": "inverso",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"o módulo de x\": o valor absoluto. Entre dois números, \"x módulo y\" é o resto.",
+      "form": "módulo",
+      "lemma": "módulo",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"o deslocamento de x por n à esquerda\" (ou à direita): os bits de x andam n casas.",
+      "form": "deslocamento",
+      "lemma": "deslocamento",
+      "role": "nominal"
+    },
+    {
+      "doc": "\"a primeira das notas\": o item 1 da coleção.",
+      "form": "primeiro",
+      "lemma": "primeiro",
+      "role": "position"
+    },
+    {
+      "doc": "\"a primeira das notas\": o item 1 da coleção.",
+      "form": "primeira",
+      "lemma": "primeiro",
+      "role": "position"
+    },
+    {
+      "doc": "\"a primeira das notas\": o item 1 da coleção.",
+      "form": "primeiros",
+      "lemma": "primeiro",
+      "role": "position"
+    },
+    {
+      "doc": "\"a primeira das notas\": o item 1 da coleção.",
+      "form": "primeiras",
+      "lemma": "primeiro",
+      "role": "position"
+    },
+    {
+      "doc": "\"a segunda das notas\": o item 2 da coleção.",
+      "form": "segundo",
+      "lemma": "segundo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a segunda das notas\": o item 2 da coleção.",
+      "form": "segunda",
+      "lemma": "segundo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a segunda das notas\": o item 2 da coleção.",
+      "form": "segundos",
+      "lemma": "segundo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a segunda das notas\": o item 2 da coleção.",
+      "form": "segundas",
+      "lemma": "segundo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a terceira das notas\": o item 3 da coleção.",
+      "form": "terceiro",
+      "lemma": "terceiro",
+      "role": "position"
+    },
+    {
+      "doc": "\"a terceira das notas\": o item 3 da coleção.",
+      "form": "terceira",
+      "lemma": "terceiro",
+      "role": "position"
+    },
+    {
+      "doc": "\"a terceira das notas\": o item 3 da coleção.",
+      "form": "terceiros",
+      "lemma": "terceiro",
+      "role": "position"
+    },
+    {
+      "doc": "\"a terceira das notas\": o item 3 da coleção.",
+      "form": "terceiras",
+      "lemma": "terceiro",
+      "role": "position"
+    },
+    {
+      "doc": "\"a quarta das notas\": o item 4 da coleção.",
+      "form": "quarto",
+      "lemma": "quarto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a quarta das notas\": o item 4 da coleção.",
+      "form": "quarta",
+      "lemma": "quarto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a quarta das notas\": o item 4 da coleção.",
+      "form": "quartos",
+      "lemma": "quarto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a quarta das notas\": o item 4 da coleção.",
+      "form": "quartas",
+      "lemma": "quarto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a quinta das notas\": o item 5 da coleção.",
+      "form": "quinto",
+      "lemma": "quinto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a quinta das notas\": o item 5 da coleção.",
+      "form": "quinta",
+      "lemma": "quinto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a quinta das notas\": o item 5 da coleção.",
+      "form": "quintos",
+      "lemma": "quinto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a quinta das notas\": o item 5 da coleção.",
+      "form": "quintas",
+      "lemma": "quinto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a sexta das notas\": o item 6 da coleção.",
+      "form": "sexto",
+      "lemma": "sexto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a sexta das notas\": o item 6 da coleção.",
+      "form": "sexta",
+      "lemma": "sexto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a sexta das notas\": o item 6 da coleção.",
+      "form": "sextos",
+      "lemma": "sexto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a sexta das notas\": o item 6 da coleção.",
+      "form": "sextas",
+      "lemma": "sexto",
+      "role": "position"
+    },
+    {
+      "doc": "\"a sétima das notas\": o item 7 da coleção.",
+      "form": "sétimo",
+      "lemma": "sétimo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a sétima das notas\": o item 7 da coleção.",
+      "form": "sétima",
+      "lemma": "sétimo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a sétima das notas\": o item 7 da coleção.",
+      "form": "sétimos",
+      "lemma": "sétimo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a sétima das notas\": o item 7 da coleção.",
+      "form": "sétimas",
+      "lemma": "sétimo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a oitava das notas\": o item 8 da coleção.",
+      "form": "oitavo",
+      "lemma": "oitavo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a oitava das notas\": o item 8 da coleção.",
+      "form": "oitava",
+      "lemma": "oitavo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a oitava das notas\": o item 8 da coleção.",
+      "form": "oitavos",
+      "lemma": "oitavo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a oitava das notas\": o item 8 da coleção.",
+      "form": "oitavas",
+      "lemma": "oitavo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a nona das notas\": o item 9 da coleção.",
+      "form": "nono",
+      "lemma": "nono",
+      "role": "position"
+    },
+    {
+      "doc": "\"a nona das notas\": o item 9 da coleção.",
+      "form": "nona",
+      "lemma": "nono",
+      "role": "position"
+    },
+    {
+      "doc": "\"a nona das notas\": o item 9 da coleção.",
+      "form": "nonos",
+      "lemma": "nono",
+      "role": "position"
+    },
+    {
+      "doc": "\"a nona das notas\": o item 9 da coleção.",
+      "form": "nonas",
+      "lemma": "nono",
+      "role": "position"
+    },
+    {
+      "doc": "\"a décima das notas\": o item 10 da coleção.",
+      "form": "décimo",
+      "lemma": "décimo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a décima das notas\": o item 10 da coleção.",
+      "form": "décima",
+      "lemma": "décimo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a décima das notas\": o item 10 da coleção.",
+      "form": "décimos",
+      "lemma": "décimo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a décima das notas\": o item 10 da coleção.",
+      "form": "décimas",
+      "lemma": "décimo",
+      "role": "position"
+    },
+    {
+      "doc": "\"a última das notas\": o último item da coleção.",
+      "form": "último",
+      "lemma": "último",
+      "role": "position"
+    },
+    {
+      "doc": "\"a última das notas\": o último item da coleção.",
+      "form": "última",
+      "lemma": "último",
+      "role": "position"
+    },
+    {
+      "doc": "\"a última das notas\": o último item da coleção.",
+      "form": "últimos",
+      "lemma": "último",
+      "role": "position"
+    },
+    {
+      "doc": "\"a última das notas\": o último item da coleção.",
+      "form": "últimas",
+      "lemma": "último",
+      "role": "position"
+    },
+    {
+      "doc": "Parâmetro emprestado: a função lê o valor, não o muda nem fica com ele (como &T).",
+      "form": "emprestado",
+      "lemma": "emprestado",
+      "role": "ownership"
+    },
+    {
+      "doc": "Parâmetro emprestado: a função lê o valor, não o muda nem fica com ele (como &T).",
+      "form": "emprestados",
+      "lemma": "emprestado",
+      "role": "ownership"
+    },
+    {
+      "doc": "Parâmetro emprestado: a função lê o valor, não o muda nem fica com ele (como &T).",
+      "form": "emprestada",
+      "lemma": "emprestado",
+      "role": "ownership"
+    },
+    {
+      "doc": "Parâmetro emprestado: a função lê o valor, não o muda nem fica com ele (como &T).",
+      "form": "emprestadas",
+      "lemma": "emprestado",
+      "role": "ownership"
+    },
+    {
+      "doc": "Parâmetro confiado: a função pode mudar o valor, que volta para quem chamou (como &mut T).",
+      "form": "confiado",
+      "lemma": "confiado",
+      "role": "ownership"
+    },
+    {
+      "doc": "Parâmetro confiado: a função pode mudar o valor, que volta para quem chamou (como &mut T).",
+      "form": "confiados",
+      "lemma": "confiado",
+      "role": "ownership"
+    },
+    {
+      "doc": "Parâmetro confiado: a função pode mudar o valor, que volta para quem chamou (como &mut T).",
+      "form": "confiada",
+      "lemma": "confiado",
+      "role": "ownership"
+    },
+    {
+      "doc": "Parâmetro confiado: a função pode mudar o valor, que volta para quem chamou (como &mut T).",
+      "form": "confiadas",
+      "lemma": "confiado",
+      "role": "ownership"
+    },
+    {
+      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "form": "vazio",
+      "lemma": "vazio",
+      "role": "literal"
+    },
+    {
+      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "form": "vazios",
+      "lemma": "vazio",
+      "role": "literal"
+    },
+    {
+      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "form": "vazia",
+      "lemma": "vazio",
+      "role": "literal"
+    },
+    {
+      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "form": "vazias",
+      "lemma": "vazio",
+      "role": "literal"
+    },
+    {
+      "doc": "Liga orações (\"Escrevo x e paro.\"), termos de uma operação e os itens de uma lista.",
+      "form": "e",
+      "lemma": "e",
+      "role": "conjunction"
+    },
+    {
+      "doc": "Liga condições e casos (\"Sendo um círculo ou um quadrado:\"); \", ou VALOR\" trata a falha de uma chamada.",
+      "form": "ou",
+      "lemma": "ou",
+      "role": "conjunction"
+    },
+    {
+      "doc": "Condição: \"Se o saldo for maior que 0:\".",
+      "form": "se",
+      "lemma": "se",
+      "role": "control"
+    },
+    {
+      "doc": "O caso contrário de um \"Se\"; \"Senão, se\" encadeia outra condição.",
+      "form": "senão",
+      "lemma": "senão",
+      "role": "control"
+    },
+    {
+      "doc": "Laço com condição: \"Enquanto o saldo for positivo:\".",
+      "form": "enquanto",
+      "lemma": "enquanto",
+      "role": "control"
+    },
+    {
+      "doc": "\"Para cada nota das notas:\" percorre a coleção; \"Para cada i de 1 até 10:\" conta.",
+      "form": "cada",
+      "lemma": "cada",
+      "role": "control"
+    },
+    {
+      "doc": "O fim do intervalo em \"Para cada i de 1 até 10:\".",
+      "form": "até",
+      "lemma": "até",
+      "role": "control"
+    },
+    {
+      "doc": "\"Repito sempre:\": laço sem fim, que sai com \"Paro\".",
+      "form": "sempre",
+      "lemma": "sempre",
+      "role": "control"
+    },
+    {
+      "doc": "\"Repito 3 vezes:\" conta as voltas; entre dois números, multiplica.",
+      "form": "vezes",
+      "lemma": "vezes",
+      "role": "control"
+    },
+    {
+      "doc": "Examina uma enumeração caso a caso: \"Conforme a figura:\" seguido de \"Sendo ...:\".",
+      "form": "conforme",
+      "lemma": "conforme",
+      "role": "control"
+    },
+    {
+      "doc": "Um caso de \"Conforme\" (\"Sendo um círculo:\"); no cabeçalho, dá os tipos (\", sendo a quantia um real\").",
+      "form": "sendo",
+      "lemma": "sendo",
+      "role": "control"
+    },
+    {
+      "doc": "\"ser\" no futuro do subjuntivo, nas condições: \"Se o saldo for maior que 0\".",
+      "form": "for",
+      "lemma": "for",
+      "role": "copula"
+    },
+    {
+      "doc": "\"ser\" no futuro do subjuntivo, no plural: \"Se as notas forem iguais\".",
+      "form": "forem",
+      "lemma": "forem",
+      "role": "copula"
+    },
+    {
+      "doc": "\"Se houver apelido:\": o talvez tem valor, que vira um nome dentro do bloco.",
+      "form": "houver",
+      "lemma": "houver",
+      "role": "copula"
+    },
+    {
+      "doc": "Define uma função (\"Para transferir a quantia ...:\"), abre o programa (\"Para começar:\") ou um laço (\"Para cada\").",
+      "form": "para",
+      "lemma": "para",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Para começar:\" é onde o programa começa.",
+      "form": "começar",
+      "lemma": "começar",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Uma conta é um registro de:\" define um registro, com os campos recuados.",
+      "form": "registro",
+      "lemma": "registro",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Uma forma é uma destas:\" define uma enumeração, com os casos recuados.",
+      "form": "destas",
+      "lemma": "destas",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Um sinal é um destes:\" define uma enumeração de nome masculino.",
+      "form": "destes",
+      "lemma": "destes",
+      "role": "definition"
+    },
+    {
+      "doc": "Os campos de um registro novo (\"uma conta com o titular \"Ana\" e o saldo 0\"), a coleção que começa com itens, a mensagem de \"Desisto com\".",
+      "form": "com",
+      "lemma": "com",
+      "role": "definition"
+    },
+    {
+      "doc": "No cabeçalho, o tipo do valor que a função devolve: \", devolvendo um real\".",
+      "form": "devolvendo",
+      "lemma": "devolvendo",
+      "role": "signature"
+    },
+    {
+      "doc": "\", salvo uma falha\": a função pode desistir, e quem chama tem de tratar.",
+      "form": "salvo",
+      "lemma": "salvo",
+      "role": "signature"
+    },
+    {
+      "doc": "\", salvo uma falha\": a função pode desistir, e quem chama tem de tratar.",
+      "form": "falha",
+      "lemma": "falha",
+      "role": "signature"
+    },
+    {
+      "doc": "Na tipagem, os dois regidos de uma vez: \", sendo ambos inteiros\".",
+      "form": "ambos",
+      "lemma": "ambos",
+      "role": "signature"
+    },
+    {
+      "doc": "Na tipagem, as duas regidas de uma vez: \", sendo ambas listas de reais\".",
+      "form": "ambas",
+      "lemma": "ambas",
+      "role": "signature"
+    },
+    {
+      "doc": "\"uma cópia de X\": entrega uma cópia, e o original continua com o dono.",
+      "form": "cópia",
+      "lemma": "cópia",
+      "role": "ownership"
+    },
+    {
+      "doc": "Tipo que pode não ter valor: \"talvez um texto\", que começa em \"nada\".",
+      "form": "talvez",
+      "lemma": "talvez",
+      "role": "ownership"
+    },
+    {
+      "doc": "O tamanho de um número: \"um inteiro de 32 bits\".",
+      "form": "bits",
+      "lemma": "bits",
+      "role": "type"
+    },
+    {
+      "doc": "Soma: \"x mais 1\".",
+      "form": "mais",
+      "lemma": "mais",
+      "role": "operator"
+    },
+    {
+      "doc": "Subtração: \"x menos 1\".",
+      "form": "menos",
+      "lemma": "menos",
+      "role": "operator"
+    },
+    {
+      "doc": "Divisão: \"x dividido por 2\".",
+      "form": "dividido por",
+      "lemma": "dividido por",
+      "role": "operator"
+    },
+    {
+      "doc": "Junta textos: \"\"Olá, \" seguido do nome\". Liga mais frouxo que os argumentos de uma chamada.",
+      "form": "seguido de",
+      "lemma": "seguido de",
+      "role": "operator"
+    },
+    {
+      "doc": "\"seguido de\" concordando com um nome feminino.",
+      "form": "seguida de",
+      "lemma": "seguida de",
+      "role": "operator"
+    },
+    {
+      "doc": "Converte: \"x como real\", \"o saldo como texto\". Falha se o valor não cabe no tipo.",
+      "form": "como",
+      "lemma": "como",
+      "role": "operator"
+    },
+    {
+      "doc": "Nega a condição: \"Se o saldo não for positivo\", \"Se não houver apelido\".",
+      "form": "não",
+      "lemma": "não",
+      "role": "operator"
+    },
+    {
+      "doc": "\"à esquerda\": a direção do deslocamento de bits.",
+      "form": "esquerda",
+      "lemma": "esquerda",
+      "role": "operator"
+    },
+    {
+      "doc": "\"à direita\": a direção do deslocamento de bits.",
+      "form": "direita",
+      "lemma": "direita",
+      "role": "operator"
+    },
+    {
+      "doc": "Comparação: \"Se o saldo for maior que 0\".",
+      "form": "maior que",
+      "lemma": "maior que",
+      "role": "comparison"
+    },
+    {
+      "doc": "\"maior que\" no plural.",
+      "form": "maiores que",
+      "lemma": "maiores que",
+      "role": "comparison"
+    },
+    {
+      "doc": "Comparação: \"Se o saldo for menor que 0\".",
+      "form": "menor que",
+      "lemma": "menor que",
+      "role": "comparison"
+    },
+    {
+      "doc": "\"menor que\" no plural.",
+      "form": "menores que",
+      "lemma": "menores que",
+      "role": "comparison"
+    },
+    {
+      "doc": "Igualdade: \"Se o saldo for igual a 0\" (contrai: \"igual ao teto\").",
+      "form": "igual a",
+      "lemma": "igual a",
+      "role": "comparison"
+    },
+    {
+      "doc": "\"igual a\" no plural.",
+      "form": "iguais a",
+      "lemma": "iguais a",
+      "role": "comparison"
+    },
+    {
+      "doc": "Desigualdade: \"Se o nome for diferente de \"Ana\"\".",
+      "form": "diferente de",
+      "lemma": "diferente de",
+      "role": "comparison"
+    },
+    {
+      "doc": "\"diferente de\" no plural.",
+      "form": "diferentes de",
+      "lemma": "diferentes de",
+      "role": "comparison"
+    },
+    {
+      "doc": "Maior ou igual: \"Se a nota for pelo menos 7\".",
+      "form": "pelo menos",
+      "lemma": "pelo menos",
+      "role": "comparison"
+    },
+    {
+      "doc": "Menor ou igual: \"Se a nota for no máximo 10\".",
+      "form": "no máximo",
+      "lemma": "no máximo",
+      "role": "comparison"
+    },
+    {
+      "doc": "O lógico verdadeiro.",
+      "form": "verdadeiro",
+      "lemma": "verdadeiro",
+      "role": "literal"
+    },
+    {
+      "doc": "O lógico falso.",
+      "form": "falso",
+      "lemma": "falso",
+      "role": "literal"
+    },
+    {
+      "doc": "A falta de valor de um talvez: \"O apelido, talvez um texto, começa em nada.\"",
+      "form": "nada",
+      "lemma": "nada",
+      "role": "literal"
+    },
+    {
+      "doc": "\"o item 2 das notas\": a posição, contando de 1.",
+      "form": "item",
+      "lemma": "item",
+      "role": "position"
+    },
+    {
+      "doc": "\"o resultado\": o valor da oração anterior; \"o resultado de dividir ...\" chama uma função como valor.",
+      "form": "resultado",
+      "lemma": "resultado",
+      "role": "anaphora"
+    },
+    {
+      "doc": "\"o fato de o saldo ser positivo\": uma condição vista como lógico.",
+      "form": "fato",
+      "lemma": "fato",
+      "role": "anaphora"
+    },
+    {
+      "doc": "\"Escrevo x sem quebrar a linha.\": a próxima escrita continua na mesma linha.",
+      "form": "sem quebrar a linha",
+      "lemma": "sem quebrar a linha",
+      "role": "output"
+    },
+    {
+      "doc": "\"Nota:\" no começo da linha faz dela um comentário; \"--\" comenta até o fim da linha.",
+      "form": "nota",
+      "lemma": "nota",
+      "role": "comment"
+    },
+    {
+      "doc": "Quem se declara é o sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).",
+      "form": "seja",
+      "lemma": "seja",
+      "role": "rejected"
+    },
+    {
+      "doc": "Quem se declara é o sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).",
+      "form": "sejam",
+      "lemma": "sejam",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição o verbo vai no futuro do subjuntivo: \"for\".",
+      "form": "fosse",
+      "lemma": "fosse",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição o verbo vai no futuro do subjuntivo: \"forem\".",
+      "form": "fossem",
+      "lemma": "fossem",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição o verbo vai no futuro do subjuntivo: \"for\".",
+      "form": "está",
+      "lemma": "está",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição o verbo vai no futuro do subjuntivo: \"forem\".",
+      "form": "estão",
+      "lemma": "estão",
+      "role": "rejected"
+    },
+    {
+      "doc": "Numa condição, \"houver\": \"Se houver apelido\".",
+      "form": "há",
+      "lemma": "há",
+      "role": "rejected"
+    },
+    {
+      "doc": "Predicado com \"ir\" não pode: no subjuntivo ele dá \"for\", igual a \"ser\", que a língua usa nas comparações.",
+      "form": "ir",
+      "lemma": "ir",
+      "role": "rejected"
+    },
+    {
+      "doc": "\"Repito\" conta em \"vezes\", no plural; para uma vez só, não precisa de laço.",
+      "form": "vez",
+      "lemma": "vez",
+      "role": "rejected"
+    },
+    {
+      "doc": "Para mudar um valor, o dado é o sujeito: \"O saldo vira 10.\"",
+      "form": "guardo",
+      "lemma": "guardo",
+      "role": "rejected"
+    },
+    {
+      "doc": "Para somar ao valor, o dado é o sujeito: \"O saldo cresce 10.\"",
+      "form": "acrescento",
+      "lemma": "acrescento",
+      "role": "rejected"
+    },
+    {
+      "doc": "Para tirar do valor, o dado é o sujeito: \"O saldo diminui 10.\"",
+      "form": "subtraio",
+      "lemma": "subtraio",
+      "role": "rejected"
+    },
+    {
+      "doc": "Nome que a língua dá aos itens de uma enumeração; não pode ser a 1ª pessoa de um verbo do usuário.",
+      "form": "caso",
+      "lemma": "caso",
+      "role": "reserved"
+    }
+  ]
+}

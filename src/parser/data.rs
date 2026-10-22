@@ -6,32 +6,12 @@ use super::Parser;
 use crate::ast::*;
 use crate::diagnostics::{Category, Diagnostic, Result, err};
 use crate::lexer::TokenKind;
+use crate::lexicon::{self, NominalOp};
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
 
-/// Operações nominais de dois termos: palavra, gênero, operação, se é comutativa.
-const BINARY_NOMINALS: &[(&str, Gender, BinOp, bool)] = &[
-    ("soma", Gender::Feminine, BinOp::Add, true),
-    ("diferença", Gender::Feminine, BinOp::Sub, false),
-    ("produto", Gender::Masculine, BinOp::Mul, true),
-    ("quociente", Gender::Masculine, BinOp::Div, false),
-    ("resto", Gender::Masculine, BinOp::Rem, false),
-    ("potência", Gender::Feminine, BinOp::Pow, false),
-    ("interseção", Gender::Feminine, BinOp::BitAnd, true),
-    ("união", Gender::Feminine, BinOp::BitOr, true),
-    ("disjunção", Gender::Feminine, BinOp::BitXor, true),
-];
-
-const UNARY_NOMINALS: &[(&str, Gender, UnOp)] = &[
-    ("negativo", Gender::Masculine, UnOp::Neg),
-    ("raiz", Gender::Feminine, UnOp::Sqrt),
-    ("tamanho", Gender::Masculine, UnOp::Len),
-    ("inverso", Gender::Masculine, UnOp::BitNot),
-    ("módulo", Gender::Masculine, UnOp::Abs),
-];
-
 pub(super) fn is_nominal_word(w: &str) -> bool {
-    BINARY_NOMINALS.iter().any(|n| n.0 == w) || UNARY_NOMINALS.iter().any(|n| n.0 == w) || w == "deslocamento"
+    lexicon::nominal(w).is_some()
 }
 
 impl Parser {
@@ -461,8 +441,9 @@ impl Parser {
         self.check_contraction()?;
         self.bump();
         self.bump();
-        if w == "deslocamento" {
-            check_gender(Gender::Masculine)?;
+        let nominal = lexicon::nominal(&w).expect("palavra nominal conferida acima");
+        if nominal.op == NominalOp::Shift {
+            check_gender(nominal.gender)?;
             self.expect_word("de")?;
             let value = self.nominal_operand()?;
             self.expect_word("por")?;
@@ -477,10 +458,10 @@ impl Parser {
             self.last_nominal = true;
             return Ok(Some(Expr { kind: ExprKind::Binary { op, lhs: Box::new(value), rhs: Box::new(amount) }, span }));
         }
-        if let Some(&(_, g, op, commutative)) = BINARY_NOMINALS.iter().find(|n| n.0 == w) {
-            check_gender(g)?;
+        if let NominalOp::Binary(op) = nominal.op {
+            check_gender(nominal.gender)?;
             let prep = self.bump();
-            if prep.is_word("entre") && !commutative {
+            if prep.is_word("entre") && !nominal.commutative {
                 return err(Diagnostic::new(
                     Category::Regency,
                     format!("\"entre\" indica simetria e só vale para operação comutativa; \"{w}\" pede \"de\"."),
@@ -500,8 +481,8 @@ impl Parser {
             self.last_nominal = true;
             return Ok(Some(Expr { kind: ExprKind::Binary { op, lhs: Box::new(lhs), rhs: Box::new(rhs) }, span }));
         }
-        let &(_, g, op) = UNARY_NOMINALS.iter().find(|n| n.0 == w).unwrap();
-        check_gender(g)?;
+        let NominalOp::Unary(op) = nominal.op else { unreachable!("deslocamento e binárias tratados acima") };
+        check_gender(nominal.gender)?;
         self.expect_word("de")?;
         let operand = self.nominal_operand()?;
         let span = at.span.to(self.prev_span());

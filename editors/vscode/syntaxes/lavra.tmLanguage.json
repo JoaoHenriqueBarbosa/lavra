@@ -429,54 +429,66 @@
           "match": "(?i:sem)\\s+quebrar\\s+a\\s+linha(?![\\p{L}\\p{N}_])"
         },
         {
-          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as)|(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+(soma|diferença|produto|quociente|resto|potência|interseção|união|disjunção|negativo|raiz|tamanho|inverso|módulo|deslocamento)(?=\\s+(?:de|do|da|dos|das|entre)(?![\\p{L}\\p{N}_]))",
+          "match": "(?<![\\p{L}\\p{N}_])(?:((?i:o|a|os|as))|((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma)))\\s+(soma|diferença|produto|quociente|resto|potência|interseção|união|disjunção|negativo|raiz|tamanho|inverso|módulo|deslocamento)(?=\\s+(?:de|do|da|dos|das|entre)(?![\\p{L}\\p{N}_]))",
           "captures": {
             "1": {
-              "name": "keyword.operator.word.preposition.lavra"
+              "name": "support.function.nominal.lavra"
             },
             "2": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "3": {
               "name": "support.function.nominal.lavra"
             }
           }
         },
         {
-          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as)|(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+(resultado)(?:\\s+(de)\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*))?(?![\\p{L}\\p{N}_])",
+          "match": "(?<![\\p{L}\\p{N}_])(?:((?i:o|a|os|as))|((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma)))\\s+(resultado)(?:\\s+(de)\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*))?(?![\\p{L}\\p{N}_])",
           "captures": {
             "1": {
               "name": "variable.language.article.lavra"
             },
             "2": {
-              "name": "variable.language.result.lavra"
-            },
-            "3": {
               "name": "keyword.operator.word.preposition.lavra"
             },
+            "3": {
+              "name": "variable.language.result.lavra"
+            },
             "4": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "5": {
               "name": "entity.name.function.call.lavra"
             }
           }
         },
         {
-          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as)|(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+(fato)\\s+(de)(?![\\p{L}\\p{N}_])",
+          "match": "(?<![\\p{L}\\p{N}_])(?:((?i:o|a|os|as))|((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma)))\\s+(fato)\\s+(de)(?![\\p{L}\\p{N}_])",
           "captures": {
             "1": {
               "name": "keyword.other.fact.lavra"
             },
             "2": {
-              "name": "keyword.other.fact.lavra"
+              "name": "keyword.operator.word.preposition.lavra"
             },
             "3": {
+              "name": "keyword.other.fact.lavra"
+            },
+            "4": {
               "name": "keyword.other.fact.lavra"
             }
           }
         },
         {
-          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as)|(?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+((?:primeir|segund|terceir|quart|quint|sext|sétim|oitav|non|décim|últim)(?:o|a|os|as)|item)(?![\\p{L}\\p{N}_])",
+          "match": "(?<![\\p{L}\\p{N}_])(?:((?i:o|a|os|as))|((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma)))\\s+((?:primeir|segund|terceir|quart|quint|sext|sétim|oitav|non|décim|últim)(?:o|a|os|as)|item)(?![\\p{L}\\p{N}_])",
           "captures": {
             "1": {
               "name": "keyword.other.position.lavra"
             },
             "2": {
+              "name": "keyword.operator.word.preposition.lavra"
+            },
+            "3": {
               "name": "keyword.other.position.lavra"
             }
           }
@@ -591,7 +603,7 @@
     "calls": {
       "patterns": [
         {
-          "match": "(?:^|(?<=:\\s)|(?<=,\\s)|(?<=\\se\\s))(\\s*)(?!(?i:caracteres|verdadeiro|devolvendo|caractere|inteiros|naturais|enquanto|conforme|dividido|diminuem|escrevo|devolvo|desisto|inteiro|natural|lógicos|seguido|seguida|crescem|diminui|contra|lógico|textos|listas|repito|sempre|talvez|houver|cresce|ganham|perdem|pelos|pelas|sobre|entre|desde|reais|bytes|texto|lista|senão|sendo|menos|vezes|falso|salvo|forem|viram|ganha|perde|umas|pelo|pela|numa|duma|para|após|ante|leio|tomo|paro|pulo|real|byte|nota|para|mais|como|nada|vira|uma|uns|dos|das|nos|nas|aos|num|dum|por|com|até|sem|sob|não|for|são|os|as|um|do|da|no|na|ao|às|de|em|se|ou|o|a|à|a|e|é)(?![\\p{L}\\p{N}_]))(?!(?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+)(?![\\p{L}\\p{N}_]))(\\p{L}[\\p{L}\\p{N}_-]*)(?=\\s|\\.|$)",
+          "match": "(?:^|(?<=:\\s)|(?<=,\\s)|(?<=\\se\\s))(\\s*)(?!(?i:deslocamento|emprestadas|emprestados|caracteres|devolvendo|diferentes|emprestada|emprestado|interseção|verdadeiro|caractere|confiadas|confiados|diferente|diferença|disjunção|primeiras|primeiros|quociente|resultado|terceiras|terceiros|confiada|confiado|conforme|desistir|devolver|diminuem|diminuir|dividido|enquanto|escrever|esquerda|inteiros|naturais|negativo|potência|primeira|primeiro|registro|segundas|segundos|terceira|terceiro|começam|começar|crescem|crescer|desisto|devolvo|diminui|direita|décimas|décimos|escrevo|inteiro|inverso|lógicos|maiores|menores|natural|oitavas|oitavos|produto|quartas|quartos|quebrar|quintas|quintos|repetir|seguida|seguido|segunda|segundo|sétimas|sétimos|tamanho|últimas|últimos|começa|contra|cresce|destas|destes|décima|décimo|ganham|ganhar|houver|iguais|listas|lógico|máximo|módulo|oitava|oitavo|perdem|perder|quarta|quarto|quinta|quinto|repito|sempre|sextas|sextos|sétima|sétimo|talvez|textos|vazias|vazios|última|último|ambas|ambos|bytes|cópia|desde|entre|falha|falso|forem|ganha|igual|linha|lista|maior|menor|menos|nonas|nonos|parar|pelas|pelos|perde|pular|reais|resto|salvo|sendo|senão|sexta|sexto|sobre|texto|tomar|união|vazia|vazio|vezes|viram|virar|ante|após|bits|byte|cada|caso|como|duma|fato|item|leio|mais|nada|nona|nono|nota|numa|para|paro|pela|pelo|pulo|raiz|real|soma|tomo|umas|vira|aos|até|com|das|dos|dum|for|ler|nas|nos|num|não|por|que|sem|ser|sob|são|uma|uns|ao|as|da|de|do|em|na|no|os|ou|se|um|às|a|e|o|à|é)(?![\\p{L}\\p{N}_]))(?!(?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+)(?![\\p{L}\\p{N}_]))(\\p{L}[\\p{L}\\p{N}_-]*)(?=\\s|\\.|$)",
           "captures": {
             "2": {
               "name": "entity.name.function.call.lavra"

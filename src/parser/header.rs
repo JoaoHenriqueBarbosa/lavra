@@ -6,62 +6,9 @@ use super::Parser;
 use crate::ast::*;
 use crate::diagnostics::{Category, Diagnostic, Result, err};
 use crate::lexer::TokenKind;
+use crate::lexicon;
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
-
-/// Verbos da própria língua: não se redefinem.
-const CORE_INFINITIVES: &[&str] = &[
-    "escrever", "ler", "devolver", "desistir", "parar", "pular", "tomar", "repetir", "ser", "começar", "virar", "crescer", "diminuir",
-    "ganhar", "perder",
-];
-
-/// Palavras da língua que não podem ser a 1ª pessoa de um verbo do usuário.
-const RESERVED_FORMS: &[&str] = &[
-    "como",
-    "caso",
-    "pelo",
-    "salvo",
-    "para",
-    "se",
-    "senão",
-    "enquanto",
-    "cada",
-    "mais",
-    "menos",
-    "vezes",
-    "módulo",
-    "talvez",
-    "nada",
-    "sempre",
-    "quarto",
-    "quinto",
-    "oitavo",
-    "segundo",
-    "terceiro",
-    "sexto",
-    "sétimo",
-    "nono",
-    "décimo",
-    "último",
-    "primeiro",
-    "falso",
-    "verdadeiro",
-    "inteiro",
-    "natural",
-    "real",
-    "texto",
-    "registro",
-    "resto",
-    "produto",
-    "quociente",
-    "tamanho",
-    "negativo",
-    "inverso",
-    "deslocamento",
-    "item",
-    "resultado",
-    "fato",
-];
 
 impl Parser {
     /// Acha os cabeçalhos do nível de fora antes de ler os corpos, para que uma função
@@ -110,7 +57,7 @@ impl Parser {
             )
             .hint("Escolha outro verbo: \"seguir\", \"partir\", \"chegar\"."));
         }
-        if CORE_INFINITIVES.contains(&sig.infinitive.as_str()) {
+        if lexicon::is_core_infinitive(&sig.infinitive) {
             return err(Diagnostic::new(
                 Category::Morphology,
                 format!("\"{}\" é verbo da própria língua e não se redefine.", sig.infinitive),
@@ -119,7 +66,7 @@ impl Parser {
             .hint("Escolha outro verbo para a sua função."));
         }
         if sig.kind == SigKind::Action {
-            if RESERVED_FORMS.contains(&sig.first_person.as_str()) {
+            if lexicon::reserved(&sig.first_person).is_some() {
                 return err(Diagnostic::new(
                     Category::Morphology,
                     format!(
@@ -505,16 +452,17 @@ impl Parser {
         let w = t.word().unwrap_or_default().to_string();
         let sing = match number {
             Number::Singular => w.clone(),
-            Number::Plural => match plural_type_word(&w) {
-                Some(s) => s.to_string(),
+            Number::Plural => match lexicon::type_noun_by_plural(&w) {
+                Some(t) => t.singular.to_string(),
                 None if self.record_plurals.contains_key(&w) => w.clone(),
                 None => {
+                    let plurals: Vec<&str> = lexicon::TYPE_NOUNS.iter().filter(|t| t.singular != "lista").map(|t| t.plural).collect();
                     return err(Diagnostic::new(Category::Type, format!("Tipo desconhecido: \"{}\".", t.orig), t.span)
-                        .hint("No plural: inteiros, naturais, reais, bytes, lógicos, caracteres, textos."));
+                        .hint(format!("No plural: {}.", plurals.join(", "))));
                 }
             },
         };
-        if number == Number::Singular && (plural_type_word(&w).is_some() || self.record_plurals.contains_key(&w)) {
+        if number == Number::Singular && (lexicon::type_noun_by_plural(&w).is_some() || self.record_plurals.contains_key(&w)) {
             return err(Diagnostic::new(
                 Category::Agreement,
                 format!("Depois do artigo singular, o tipo vai no singular: não \"{w}\"."),
@@ -546,8 +494,11 @@ impl Parser {
             "caractere" => TypeExpr::Char,
             "texto" => TypeExpr::Text,
             _ => {
-                let mut d = Diagnostic::new(Category::Type, format!("Tipo desconhecido: \"{}\".", t.orig), t.span)
-                    .hint("Tipos: inteiro, natural, real, byte, lógico, caractere, texto, lista de ..., ou um registro definido com \"Uma conta é um registro de:\".");
+                let singulars: Vec<&str> = lexicon::TYPE_NOUNS.iter().filter(|t| t.singular != "lista").map(|t| t.singular).collect();
+                let mut d = Diagnostic::new(Category::Type, format!("Tipo desconhecido: \"{}\".", t.orig), t.span).hint(format!(
+                    "Tipos: {}, lista de ..., ou um registro definido com \"Uma conta é um registro de:\".",
+                    singulars.join(", ")
+                ));
                 if let Some(fix) = ["lógico", "lógicos"].iter().find(|c| morphology::strip_accents(c) == w) {
                     d = d.hint(format!("Faltou acento? Escreva \"{fix}\"."));
                 }
@@ -624,19 +575,4 @@ impl Parser {
 fn missing_type(n: &NameRef) -> Diagnostic {
     Diagnostic::new(Category::Type, format!("Falta o tipo de \"{}\".", n.display()), n.span)
         .hint(format!("Depois do cabeçalho: \", sendo {} um inteiro\".", n.display()))
-}
-
-/// Plural dos tipos da língua → singular.
-fn plural_type_word(w: &str) -> Option<&'static str> {
-    Some(match w {
-        "inteiros" => "inteiro",
-        "naturais" => "natural",
-        "reais" => "real",
-        "bytes" => "byte",
-        "lógicos" => "lógico",
-        "caracteres" => "caractere",
-        "textos" => "texto",
-        "listas" => "lista",
-        _ => return None,
-    })
 }

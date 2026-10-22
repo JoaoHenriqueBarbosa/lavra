@@ -1,0 +1,6 @@
+Erro de morfologia: A 1ª pessoa de "comer" é "como", que já é palavra da língua; a oração ficaria ambígua.
+ --> tests/programs/err/verbo_reservado.lav:3:6
+  |
+3 | Para comer o bolo, sendo o bolo um texto:
+  |      ^^^^^
+  = dica: Escolha outro verbo.

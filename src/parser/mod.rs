@@ -4,6 +4,7 @@
 use crate::ast::*;
 use crate::diagnostics::{Category, Diagnostic, Result, err};
 use crate::lexer::{Token, TokenKind};
+use crate::lexicon;
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
 
@@ -58,9 +59,6 @@ struct Parser {
     /// O último termo lido foi uma operação por extenso (para a regra dos parênteses).
     last_nominal: bool,
 }
-
-/// Verbos dos dados-sujeito, por infinitivo.
-const SUBJECT_VERBS: &[&str] = &["ser", "começar", "virar", "crescer", "diminuir", "ganhar", "perder"];
 
 impl Parser {
     // ------------------------------------------------------------------ tokens
@@ -733,7 +731,7 @@ impl Parser {
     }
 
     fn is_core_verb(w: &str) -> bool {
-        matches!(w, "escrevo" | "leio" | "devolvo" | "desisto" | "paro" | "pulo" | "tomo")
+        lexicon::is_clause_verb(w)
     }
 
     /// Depois de "e" ou vírgula: começa outra oração?
@@ -847,8 +845,7 @@ impl Parser {
     fn unknown_verb(&self, t: &Token) -> Box<Diagnostic> {
         let w = t.word().unwrap_or_default();
         // Verbos conhecidos (da língua e do programa) cuja 3ª pessoa é a palavra escrita.
-        let known = ["escrever", "ler", "devolver", "desistir", "parar", "pular", "tomar"]
-            .into_iter()
+        let known = lexicon::clause_verb_infinitives()
             .map(String::from)
             .chain(self.by_first_person.values().map(|&i| self.prog.sigs[i].infinitive.clone()));
         let third = known
@@ -875,7 +872,7 @@ impl Parser {
             .by_first_person
             .keys()
             .map(String::as_str)
-            .chain(["escrevo", "leio", "devolvo", "desisto", "paro", "pulo", "tomo"])
+            .chain(lexicon::clause_verb_forms().map(|f| -> &str { f }))
             .filter(|k| morphology::edit_distance(k, w) <= 2)
             .min_by_key(|k| morphology::edit_distance(k, w));
         if let Some(n) = near {
@@ -885,16 +882,9 @@ impl Parser {
             );
         }
         let d = Diagnostic::new(Category::Syntax, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span);
-        let hint = match w {
-            "seja" | "sejam" => {
-                Some("Quem se declara é o sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).".to_string())
-            }
-            "guardo" => Some("Para mudar um valor, o dado é o sujeito: \"O saldo vira 10.\"".to_string()),
-            "acrescento" => Some("Para somar ao valor, o dado é o sujeito: \"O saldo cresce 10.\"".to_string()),
-            "subtraio" => Some("Para tirar do valor, o dado é o sujeito: \"O saldo diminui 10.\"".to_string()),
-            _ => None,
-        };
-        Box::new(d.maybe_hint(hint))
+        // Formas que alguém escreveria no lugar da construção da língua: a dica vem do léxico.
+        let hint = matches!(w, "seja" | "sejam" | "guardo" | "acrescento" | "subtraio").then(|| lexicon::rejected_hint(w)).flatten();
+        Box::new(d.maybe_hint(hint.map(String::from)))
     }
 
     // --------------------------------------------------------- dados-sujeito
@@ -1354,10 +1344,10 @@ fn art_span_index(p: &Parser, span: Span) -> usize {
 
 /// Reconhece a forma de um verbo de dado-sujeito: devolve o infinitivo e o número.
 fn subject_verb(w: &str) -> Option<(&'static str, Number)> {
-    for inf in SUBJECT_VERBS {
+    for v in lexicon::SUBJECT_VERBS {
         for n in [Number::Singular, Number::Plural] {
-            if morphology::third_person(inf, n).as_deref() == Some(w) {
-                return Some((inf, n));
+            if morphology::third_person(v.infinitive, n).as_deref() == Some(w) {
+                return Some((v.infinitive, n));
             }
         }
     }

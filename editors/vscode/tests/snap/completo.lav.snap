@@ -230,11 +230,11 @@
 #^^^^ source.lavra
 #    ^^^^^^^ source.lavra keyword.control.flow.lavra
 #           ^ source.lavra
-#            ^ source.lavra keyword.operator.word.preposition.lavra
+#            ^ source.lavra support.function.nominal.lavra
 #             ^ source.lavra
 #              ^^^^ source.lavra support.function.nominal.lavra
 #                  ^ source.lavra
-#                   ^^ source.lavra variable.language.article.lavra
+#                   ^^ source.lavra keyword.operator.word.preposition.lavra
 #                     ^ source.lavra
 #                      ^^^^^^^^^ source.lavra variable.language.result.lavra
 #                               ^ source.lavra
@@ -248,7 +248,7 @@
 #                                                  ^ source.lavra
 #                                                   ^ source.lavra constant.numeric.decimal.lavra
 #                                                    ^^^ source.lavra
-#                                                       ^^ source.lavra variable.language.article.lavra
+#                                                       ^^ source.lavra keyword.operator.word.preposition.lavra
 #                                                         ^ source.lavra
 #                                                          ^^^^^^^^^ source.lavra variable.language.result.lavra
 #                                                                   ^ source.lavra
@@ -308,7 +308,7 @@
 #        ^ source.lavra
 #         ^ source.lavra storage.type.declaration.lavra
 #          ^ source.lavra
-#           ^ source.lavra keyword.operator.word.preposition.lavra
+#           ^ source.lavra support.function.nominal.lavra
 #            ^ source.lavra
 #             ^^^^^^^^^ source.lavra support.function.nominal.lavra
 #                      ^ source.lavra
@@ -336,7 +336,7 @@
 #        ^ source.lavra
 #         ^ source.lavra storage.type.declaration.lavra
 #          ^ source.lavra
-#           ^ source.lavra keyword.operator.word.preposition.lavra
+#           ^ source.lavra support.function.nominal.lavra
 #            ^ source.lavra
 #             ^^^^^^^^^ source.lavra support.function.nominal.lavra
 #                      ^ source.lavra
@@ -360,7 +360,7 @@
 #^^^^ source.lavra
 #    ^^^^^^^ source.lavra keyword.control.flow.lavra
 #           ^ source.lavra
-#            ^ source.lavra keyword.operator.word.preposition.lavra
+#            ^ source.lavra support.function.nominal.lavra
 #             ^ source.lavra
 #              ^^^^ source.lavra support.function.nominal.lavra
 #                  ^ source.lavra
@@ -509,7 +509,7 @@
 #                  ^ source.lavra
 #                   ^^ source.lavra keyword.other.fact.lavra
 #                     ^ source.lavra
-#                      ^ source.lavra keyword.operator.word.preposition.lavra
+#                      ^ source.lavra support.function.nominal.lavra
 #                       ^ source.lavra
 #                        ^^^^^ source.lavra support.function.nominal.lavra
 #                             ^ source.lavra
@@ -551,7 +551,7 @@
 #                    ^ source.lavra
 #                     ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #                            ^ source.lavra
-#                             ^^ source.lavra variable.language.article.lavra
+#                             ^^ source.lavra keyword.operator.word.preposition.lavra
 #                               ^ source.lavra
 #                                ^^^^^^^^^ source.lavra variable.language.result.lavra
 #                                         ^ source.lavra
@@ -589,7 +589,7 @@
 #                        ^ source.lavra
 #                         ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #                                ^ source.lavra
-#                                 ^^ source.lavra variable.language.article.lavra
+#                                 ^^ source.lavra keyword.operator.word.preposition.lavra
 #                                   ^ source.lavra
 #                                    ^^^^^^^^^ source.lavra variable.language.result.lavra
 #                                             ^ source.lavra
@@ -654,7 +654,7 @@
 #                         ^ source.lavra
 #                          ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #                                 ^ source.lavra
-#                                  ^^ source.lavra variable.language.article.lavra
+#                                  ^^ source.lavra keyword.operator.word.preposition.lavra
 #                                    ^ source.lavra
 #                                     ^^^^^^^^^ source.lavra variable.language.result.lavra
 #                                              ^ source.lavra
@@ -1276,7 +1276,7 @@
 #                                         ^ source.lavra
 #                                          ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #                                                 ^ source.lavra
-#                                                  ^^ source.lavra keyword.other.fact.lavra
+#                                                  ^^ source.lavra keyword.operator.word.preposition.lavra
 #                                                    ^ source.lavra
 #                                                     ^^^^ source.lavra keyword.other.fact.lavra
 #                                                         ^ source.lavra
@@ -1453,7 +1453,7 @@
 #                                                  ^ source.lavra
 #                                                   ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #                                                          ^ source.lavra
-#                                                           ^^ source.lavra variable.language.article.lavra
+#                                                           ^^ source.lavra keyword.operator.word.preposition.lavra
 #                                                             ^ source.lavra
 #                                                              ^^^^^^^^^ source.lavra variable.language.result.lavra
 #                                                                       ^ source.lavra punctuation.terminator.period.lavra
@@ -1473,7 +1473,7 @@
 #                                            ^ source.lavra
 #                                             ^^^^^^^ source.lavra keyword.operator.concatenation.lavra
 #                                                    ^ source.lavra
-#                                                     ^^ source.lavra variable.language.article.lavra
+#                                                     ^^ source.lavra keyword.operator.word.preposition.lavra
 #                                                       ^ source.lavra
 #                                                        ^^^^^^^^^ source.lavra variable.language.result.lavra
 #                                                                 ^ source.lavra punctuation.terminator.period.lavra

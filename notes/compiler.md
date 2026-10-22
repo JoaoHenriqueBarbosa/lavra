@@ -1,7 +1,8 @@
 # O compilador (`lavrac`)
 
 Crate único em Rust 2024 (`Cargo.toml`): biblioteca `lavra` e binário `lavrac`.
-Dependências: só o Cranelift 0.137 (`codegen`, `frontend`, `module`, `object`, `native`).
+Dependências: o Cranelift 0.137 (`codegen`, `frontend`, `module`, `object`, `native`) e o
+`serde_json` (exportação do léxico).
 
 ```
 lavrac run    arquivo.lav          interpreta
@@ -26,8 +27,19 @@ lavrac check  arquivo.lav          só confere
    cópia na ida e na volta (equivale à referência, porque o empréstimo é exclusivo).
 6. `codegen.rs` + `runtime/lib.rs`: nativo (ver abaixo).
 
-`morphology/`: artigos, contrações, ordinais e as tabelas conferidas contra o dicionário
-(ver [morphology.md](morphology.md)). `diagnostics.rs`: categorias e renderização no
+`lexicon.rs`: o léxico, fonte única das palavras da língua (artigos, contrações,
+preposições, verbos da língua, verbos do sujeito, tipos, operações por extenso, ordinais,
+locuções, particípios e as demais palavras-chave), cada uma com o papel e uma linha de
+documentação. O parser, o lexer e a morfologia consultam as tabelas dele; as formas que um
+verbo do usuário não pode ter na 1ª pessoa saem dele; `lavrac lexicon --json` exporta tudo
+para `editors/lexicon.json`, que a gramática do VS Code, o conferidor da morfologia e o
+site leem. Testes do léxico: toda palavra que o parser consulta (os literais de
+`at_word`, `eat_word`, `expect_word`, `is_word`, comparações e padrões de `match`) está no
+léxico; toda entrada tem documentação; o JSON exportado está em dia
+(`LAVRA_BLESS=1 cargo test --lib lexicon` regrava).
+
+`morphology/`: flexão, artigos e ordinais (com as tabelas do léxico) e as tabelas
+conferidas contra o dicionário (ver [morphology.md](morphology.md)). `diagnostics.rs`: categorias e renderização no
 estilo do rustc. `textfmt.rs`: formatação e mensagens de execução, compartilhadas pelo
 interpretador e pelo runtime (a paridade vem daí).
 

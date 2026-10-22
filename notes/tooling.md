@@ -5,9 +5,12 @@
 Extensão `joaohenriquebarbosa.lavra`, instalada no VS Code do WSL em 2026-10-22 com
 `code --install-extension lavra.vsix`.
 
-- **Gramática TextMate** `source.lavra`, gerada por `syntaxes/build.py` (as listas de
-  palavras ficam lá; o JSON não se edita à mão). Escopos padrão para os temas pintarem
-  sem configuração: `storage.type.declaration` (é/são), `storage.modifier.mutable`
+- **Gramática TextMate** `source.lavra`, gerada por `syntaxes/build.py` a partir do
+  léxico que o compilador exporta (`editors/lexicon.json`, de `lavrac lexicon --json`):
+  as palavras vêm do léxico e o `build.py` só monta as regras; o JSON não se edita à mão.
+  Palavra nova na língua entra em `src/lexicon.rs`, o JSON se regera
+  (`LAVRA_BLESS=1 cargo test --lib lexicon`) e a gramática também (`npm test`).
+  Escopos padrão para os temas pintarem sem configuração: `storage.type.declaration` (é/são), `storage.modifier.mutable`
   (começa), `keyword.other.mutation` (vira, cresce, ganha, perde, diminui),
   `keyword.control.*`, `entity.name.function` (cabeçalho, predicado, chamada em 1ª
   pessoa, verbo depois de "o resultado de", adjetivo depois de "for"),
@@ -15,6 +18,8 @@ Extensão `joaohenriquebarbosa.lavra`, instalada no VS Code do WSL em 2026-10-22
   (o resultado), `storage.modifier.borrowed/lent/maybe` (emprestado, confiado, talvez),
   `storage.type.primitive`, `entity.name.type` (registros, enumerações, casos),
   `support.function.nominal` (a soma de ...), `keyword.operator.*`, literais e comentários.
+  O artigo leva o escopo da palavra que determina ("o tamanho", "o resultado", "o item");
+  a contração leva o de preposição ("seguido do tamanho").
 - Fronteira de palavra própria (`\b` do Oniguruma não serve para "é"); tudo sem
   diferenciar maiúsculas, porque a primeira palavra da oração vem maiúscula.
 - O TextMate escolhe o casamento que começa antes na linha; por isso a regra de chamada

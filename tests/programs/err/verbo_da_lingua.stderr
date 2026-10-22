@@ -1,0 +1,6 @@
+Erro de morfologia: "escrever" é verbo da própria língua e não se redefine.
+ --> tests/programs/err/verbo_da_lingua.lav:3:6
+  |
+3 | Para escrever o recado, sendo o recado um texto:
+  |      ^^^^^^^^
+  = dica: Escolha outro verbo para a sua função.

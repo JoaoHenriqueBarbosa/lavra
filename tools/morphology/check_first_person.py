@@ -24,6 +24,7 @@ O código de saída é 1 quando há divergência fora das exceções documentada
 """
 
 import collections
+import json
 import os
 import random
 import subprocess
@@ -128,18 +129,22 @@ setecentos oitocentos novecentos mil milhão milhões bilhão meio meia dobro tr
 primeiro segundo terceiro quarto quinto sexto sétimo oitavo nono décimo último
 """.split()
 
-# Vocabulário da Lavra que uma 1ª pessoa pode imitar: verbos-núcleo (notes/language.md)
-# e palavras reservadas.
-LAVRA_CORE_VERBS = """
-seja sejam guardo acrescento subtraio multiplico divido escrevo leio devolvo repito
-paro pulo reservo libero desisto tomo
-""".split()
+LEXICON = os.path.join(ROOT, "editors/lexicon.json")
 
-LAVRA_RESERVED = """
-deslocamento resultado fato item apontado verdadeiro falso nada registro
-inteiro inteiros natural naturais real reais lógico texto caractere byte módulo
-máximo mínimo resto soma produto valendo sendo devolvendo
-""".split()
+
+def lavra_vocabulary():
+    """O vocabulário da Lavra que uma 1ª pessoa pode imitar, lido do léxico que o
+    compilador exporta (`lavrac lexicon --json`): os verbos da língua na 1ª pessoa e as
+    demais palavras (cada palavra das locuções), menos as formas recusadas com dica, que
+    não ficam reservadas."""
+    with open(LEXICON, encoding="utf-8") as f:
+        lex = json.load(f)
+    core = {v["firstPerson"] for v in lex["coreVerbs"]}
+    words = set()
+    for w in lex["words"]:
+        if w["role"] != "rejected":
+            words.update(w["form"].split(" "))
+    return sorted(core), sorted(words - core)
 
 
 def load_templates():
@@ -282,8 +287,8 @@ def collisions(ref, got):
             forms[g].add(inf)
     vocab = {}
     for kind, words in [
-        ("núcleo da Lavra", LAVRA_CORE_VERBS),
-        ("reservada da Lavra", LAVRA_RESERVED),
+        ("núcleo da Lavra", lavra_vocabulary()[0]),
+        ("reservada da Lavra", lavra_vocabulary()[1]),
         ("número/ordinal", NUMBER_WORDS),
         ("funcional", FUNCTION_WORDS),
     ]:

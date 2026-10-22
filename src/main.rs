@@ -12,6 +12,8 @@ comandos:
   run     interpreta o programa
   build   compila para um executável nativo (padrão: o nome do arquivo sem .lav)
   check   só confere gramática, tipos e posse
+
+  lavrac lexicon --json   exporta o léxico da língua (palavras, papéis, documentação)
 ";
 
 /// O runtime, compilado pelo build.rs e embutido no compilador.
@@ -19,6 +21,13 @@ const RUNTIME: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/liblavra_rt.a")
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if let [cmd, flag] = args.as_slice()
+        && cmd == "lexicon"
+        && flag == "--json"
+    {
+        print!("{}", lavra::lexicon::to_json());
+        return ExitCode::SUCCESS;
+    }
     let (cmd, path, output) = match args.as_slice() {
         [cmd, path] => (cmd.as_str(), path.as_str(), None),
         [cmd, path, flag, out] if flag == "-o" => (cmd.as_str(), path.as_str(), Some(out.clone())),
