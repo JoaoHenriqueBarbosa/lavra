@@ -173,6 +173,10 @@ Escrevo o resultado de dividir 100 entre 0, ou 0.                       valor de
 Chamar função que pode falhar sem dizer o que fazer é erro de compilação. "Para começar"
 pode desistir; a falha não tratada encerra com `Falha: ...` e código 1.
 
+Ainda falta: "talvez" só aparece no aposto da declaração. No cabeçalho de função ele não
+é aceito, nem no tipo do parâmetro (`sendo o apelido talvez um texto`) nem no retorno
+(`devolvendo talvez um inteiro`), então uma função ainda não devolve "nada".
+
 ## Controle e condições
 
 `Se/Senão, se/Senão`, `Enquanto`, `Repito N vezes`, `Repito sempre`,
