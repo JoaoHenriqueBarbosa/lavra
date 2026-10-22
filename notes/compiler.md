@@ -212,6 +212,76 @@ registro não tem. Para passar a publicar no crates.io: o token como secret
 quando os secrets `VSCE_PAT` (Visual Studio Marketplace, publisher `joaohenriquebarbosa`) e
 `OVSX_PAT` (Open VSX) existem.
 
+## Crescer a língua
+
+### Lista de conferência de uma feature
+
+Cada construção nova passa por estes lugares, nesta ordem, e só os que ela de fato toca:
+
+- **Léxico** (`src/lexicon.rs`): cada palavra nova com o papel e a linha de documentação. As
+  formas reservadas saem dele; regere `editors/lexicon.json` com `lavrac lexicon --json` (um
+  teste confere que está em dia, e outro que o parser só consulta palavras do léxico).
+- **Parser** (`src/parser/`): leia as palavras pelos auxiliares (`at_word`, `eat_word`,
+  `expect_word`, `at_punct`, `expect_punct`) e as classes pelas consultas que registram o
+  que esperam; assim o completar do editor já oferece a construção nova. O que o programa
+  declara de novo (verbo, tipo, caso) entra no `Vocabulary` pelas pré-varreduras.
+- **AST, sema e HIR** (`src/ast.rs`, `src/sema.rs`, `src/hir.rs`): tipos, concordância e
+  mensagens que concordam em gênero e número com o nome de que falam. Cada nome declarado
+  ou usado vai para as tabelas (`def`, `use_def`), e é delas que o hover, a navegação e o
+  rename tiram tudo.
+- **Posse** (`src/ownership.rs`): o que a construção entrega, empresta ou muda.
+- **Interpretador e nativo** (`src/interp.rs`, `src/codegen.rs`, `runtime/lib.rs`).
+- **Erros**: código novo em `src/codes.rs`, com a explicação em `src/explain/LXXXX.md` (o
+  teste roda o exemplo errado e o certo).
+- **Programas**: um certo em `tests/programs/ok` (com o `.stdout`, que a paridade confere
+  no interpretador e no nativo) e um errado em `tests/programs/err`, com a mensagem
+  esperada; `LAVRA_BLESS=1 cargo test --test golden` grava, e o diff se revisa.
+- **Notas**: `notes/lavra.md`, com a seção "Mudanças" se a mudança for incompatível.
+
+Ficam de fora da lista o servidor de linguagem e as gramáticas dos editores: o servidor
+tira tudo da análise, e as gramáticas TextMate e tree-sitter tiram as palavras do léxico
+regerado. Só mexem nelas as construções que pedem realce de estrutura, como foi o "Uso a
+biblioteca de ..." (`editors/vscode/syntaxes/build.py`).
+
+### Compatibilidade
+
+O corpus (`tests/programs`, `samples/`) é a suíte de compatibilidade. Antes da 1.0, uma
+mudança incompatível entra quando os programas do corpus e a seção "Mudanças" de
+`notes/lavra.md` mudam no mesmo commit. Se a migração é mecânica, ela vira uma correção
+(`Fix`) do diagnóstico novo, e `lavrac fix` a aplica em quem já escreveu do jeito antigo.
+No back-end, o critério continua sendo a paridade: a mesma saída, byte a byte, no
+interpretador e no nativo.
+
+### Roteiros
+
+Os pontos de extensão que ainda não têm uso real ficam descritos aqui, para a feature que
+chegar começar do lugar certo.
+
+- **Módulos do usuário.** As posições já comportam vários arquivos: o `SourceMap`
+  (`src/span.rs`) dá a cada arquivo uma faixa própria, e um `Span` acha o arquivo sem
+  levá-lo junto. O caminho é o das bibliotecas: o pedido do módulo é lido antes da
+  pré-varredura (como `Parser::imports`), os tokens do arquivo entram com a base dele, os
+  cabeçalhos, registros e enumerações vão para o mesmo `Vocabulary` (colisão é erro, como o
+  L0175), e os corpos entram no mesmo `hir::Program`, com ids globais. Nome de campo de
+  outro módulo não entra no `field_names` do parse local, porque ele muda o parse de "a soma
+  de". No editor, a definição passa a apontar para o arquivo do módulo, e o servidor analisa
+  também os arquivos que o documento aberto pede. A sintaxe fica para quando for desenhada.
+- **Genéricos e traits.** Um `Ty::Param` existe só entre a sema e a monomorfização: a sema
+  confere a função genérica uma vez e, a cada chamada, deduz os tipos dos parâmetros e pede
+  a instância concreta, que vira um `hir::Func` comum. Nenhum back-end vê variável de tipo.
+  É a hora de internar os tipos (um id por tipo no lugar de `Box` e `Arc`), porque as
+  instâncias multiplicam as comparações.
+- **Referências guardadas.** O empréstimo de hoje é lexical: o `Loan` de um "Para cada" ou
+  de um "Conforme" vale do começo ao fim do bloco (`LoanKind::Loop` e `LoanKind::Match`).
+  Uma referência guardada num nome entra como `LoanKind::Binding`, do mesmo jeito: vale da
+  declaração até o fim do bloco em que o nome vive, e enquanto isso o dono não muda nem se
+  entrega. É o modelo lexical, não o NLL do Rust (o empréstimo não acaba no último uso).
+- **Tipos novos no runtime.** O nativo descreve cada tipo por um `Desc` estático
+  (`runtime/lib.rs`), que o codegen escreve num lugar só (`desc` em `src/codegen.rs`, com o
+  mesmo número de `KIND_*`). Um tipo novo (mapa, conjunto) ganha um `KIND_*` e o braço dele
+  nas funções do runtime que olham o tipo: `format_into`, `rt_drop`, `is_copy`, `rt_clone`,
+  `rt_cmp` e `rt_len`. As operações sobre ele entram como builtins de uma biblioteca.
+
 ## Testes
 
 - `cargo test`: unitários de morfologia e léxico; golden (`tests/golden.rs`) sobre

@@ -21,7 +21,7 @@ contexto com sintaxe e decisões que não valem mais é grande.
 Leia antes de mexer em qualquer coisa: [`notes/README.md`](notes/README.md).
 
 - `notes/lavra.md`: **a língua como está implementada** (referência completa).
-- `notes/compiler.md`: o compilador, o nativo e os testes.
+- `notes/compiler.md`: o compilador, o nativo, os testes e como crescer a língua (a lista de conferência de uma feature e os roteiros).
 - `notes/morphology.md`: tabelas conferidas contra o dicionário e decisões de borda.
 - `notes/tooling.md`: extensão do VS Code e o caminho para o servidor de linguagem.
 - `notes/roadmap.md`: o plano em curso (tooling maduro e fundações para crescer a língua).

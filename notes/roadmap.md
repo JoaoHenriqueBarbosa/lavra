@@ -318,14 +318,14 @@ Cada ponto é **provado** com um uso real e pequeno, ou fica **documentado como 
   - Colisão com verbo do usuário é erro com dica.
   - A primeira biblioteca, `textos`, traz poucos verbos de desenho óbvio (dividir, juntar, conter, aparar). Cada um tem programa certo e errado.
   - O teste de aceite: o servidor de linguagem atende a biblioteca sem nenhuma mudança no seu código.
-- **Módulos do usuário (roteiro).** `SourceMap` mais `Vocabulary` mais ids globais. A sintaxe fica para quando for desenhada.
-- **Genéricos e traits (roteiro).** `Ty::Param` e monomorfização entre a sema e os back-ends. Nenhum back-end vê variável de tipo. Interning de tipos entra nessa hora.
-- **Referências guardadas (roteiro).** `LoanKind::Binding` lexical, ao lado de `Loop` e `Match` (`ownership.rs:109-113`). Fica documentado que é o modelo lexical, não o NLL.
-- **Tipos novos no runtime (roteiro).** Um `KIND_*` novo no `Desc` (`runtime/lib.rs:37-48`), escrito num lugar só do codegen.
+- **Módulos do usuário (roteiro).** `SourceMap` mais `Vocabulary` mais ids globais. A sintaxe fica para quando for desenhada. **(roteiro em `notes/compiler.md`)**
+- **Genéricos e traits (roteiro).** `Ty::Param` e monomorfização entre a sema e os back-ends. Nenhum back-end vê variável de tipo. Interning de tipos entra nessa hora. **(roteiro em `notes/compiler.md`)**
+- **Referências guardadas (roteiro).** `LoanKind::Binding` lexical, ao lado de `Loop` e `Match` (`ownership.rs:109-113`). Fica documentado que é o modelo lexical, não o NLL. **(roteiro em `notes/compiler.md`)**
+- **Tipos novos no runtime (roteiro).** Um `KIND_*` novo no `Desc` (`runtime/lib.rs:37-48`), escrito num lugar só do codegen. **(roteiro em `notes/compiler.md`)**
 
 ### 2.3 Processo
 
-- **Checklist por feature em `notes/compiler.md`:**
+- **Checklist por feature em `notes/compiler.md`:** **(feito)**
   - léxico, parser, sema, HIR, posse, interpretador, codegen e runtime;
   - programa certo e errado;
   - golden e paridade;
