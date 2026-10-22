@@ -381,7 +381,8 @@ impl Parser {
             let fem = pair.iter().all(|n| n.gender() == Gender::Feminine && !n.is_symbol());
             if t.is_word("ambas") != fem {
                 let right = if fem { "ambas" } else { "ambos" };
-                return err(Diagnostic::new(L0163, format!("\"{}\" não concorda com os parâmetros: escreva \"{right}\".", t.orig), t.span));
+                return err(Diagnostic::new(L0163, format!("\"{}\" não concorda com os parâmetros: escreva \"{right}\".", t.orig), t.span)
+                    .fix(format!("Escrever \"{right}\""), t.span, right));
             }
             for n in pair {
                 names.push((n.word.clone(), n.gender(), t.span));
@@ -429,7 +430,8 @@ impl Parser {
                     L0128,
                     format!("\"{w}\" é {}: \"{} {w}\".", g.describe(), morphology::indefinite_article(g, Number::Singular)),
                     at.span,
-                ));
+                )
+                .fix("Trocar o artigo", at.span, morphology::indefinite_article(g, Number::Singular)));
             }
             (ty, g, false)
         } else {
@@ -451,7 +453,8 @@ impl Parser {
                             L0167,
                             format!("O particípio concorda com o tipo: \"{right}\", não \"{}\".", pt.orig),
                             pt.span,
-                        ));
+                        )
+                        .fix(format!("Escrever \"{right}\""), pt.span, right.clone()));
                     }
                     mode = m;
                 }

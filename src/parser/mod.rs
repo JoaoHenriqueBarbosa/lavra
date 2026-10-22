@@ -116,6 +116,7 @@ impl Parser {
         if what == "o ponto final" && (matches!(t.kind, TokenKind::Newline | TokenKind::Eof | TokenKind::Dedent) || t.line_start) {
             return Box::new(
                 Diagnostic::new(L0100, "Faltou o ponto final.", self.last_char_span())
+                    .fix("Pôr o ponto final", Span::new(self.last_char_span().end as usize, self.last_char_span().end as usize), ".")
                     .hint("Todo período termina em ponto; uma linha sem ponto continua na de baixo."),
             );
         }
@@ -638,9 +639,9 @@ impl Parser {
                 continue;
             }
             if self.at_word("se") {
-                return err(
-                    Diagnostic::new(L0110, "Entre \"senão\" e \"se\" vai vírgula.", self.peek().span).hint("Escreva \"Senão, se ...:\".")
-                );
+                return err(Diagnostic::new(L0110, "Entre \"senão\" e \"se\" vai vírgula.", self.peek().span)
+                    .fix("Pôr a vírgula", Span::new(self.prev_span().end as usize, self.prev_span().end as usize), ",")
+                    .hint("Escreva \"Senão, se ...:\"."));
             }
             self.expect_punct(':', "os dois-pontos depois de \"Senão\"")?;
             otherwise = Some(self.block());
@@ -733,7 +734,8 @@ impl Parser {
                         L0113,
                         format!("O verbo não concorda com o sujeito, que é {}: \"{right}\", não \"{w}\".", number.describe()),
                         vt.span,
-                    ));
+                    )
+                    .fix(format!("Escrever \"{right}\""), vt.span, right.clone()));
                 }
                 self.bump();
                 let mut args = vec![subject];
@@ -750,7 +752,8 @@ impl Parser {
                 L0114,
                 format!("Em condição, o predicado vai no futuro do subjuntivo: \"{right}\", não \"{w}\"."),
                 vt.span,
-            ));
+            )
+            .fix(format!("Escrever \"{right}\""), vt.span, right.clone()));
         }
         let be_sing = Self::be_form(mood, Number::Singular);
         let be_plur = Self::be_form(mood, Number::Plural);
@@ -763,7 +766,8 @@ impl Parser {
                     L0113,
                     format!("O verbo não concorda com o sujeito, que é {}: \"{right}\", não \"{w}\".", number.describe()),
                     vt.span,
-                ));
+                )
+                .fix(format!("Escrever \"{right}\""), vt.span, right.clone()));
             }
             // Caso de enumeração: "Se a figura for um círculo".
             if self.peek().word().and_then(morphology::article).is_some_and(|a| !a.definite)
@@ -875,7 +879,8 @@ impl Parser {
                 L0114,
                 format!("Em condição, o verbo vai no futuro do subjuntivo: \"{right}\", não \"{}\".", vt.orig),
                 vt.span,
-            ));
+            )
+            .fix(format!("Escrever \"{right}\""), vt.span, right.clone()));
         }
         if mood == Mood::Infinitive {
             return Err(self.expected("o verbo no infinitivo (\"ser\", \"serem\", ou um predicado)"));
@@ -1150,7 +1155,8 @@ impl Parser {
                     vt.orig
                 ),
                 vt.span,
-            ));
+            )
+            .fix(format!("Escrever \"{right}\""), vt.span, right.clone()));
         }
         let declares = matches!(inf, "ser" | "começar");
         if (declares || ann.is_some()) && !place.proj.is_empty() {
@@ -1224,6 +1230,7 @@ impl Parser {
                 format!("O tipo é {}: \"{right} ...\", não \"{} ...\".", gender.describe(), self.toks[art_span_index(self, art_span)].orig),
                 art_span.to(self.prev_span()),
             )
+            .fix(format!("Escrever \"{right}\""), art_span, right)
             .hint(format!("O artigo concorda com o tipo (\"{w}\").")));
         }
         Ok(ty)
@@ -1260,7 +1267,8 @@ impl Parser {
         let Some(art) = t.word() else { return Ok(()) };
         if let Some(c) = morphology::contract(prep, art) {
             let written = format!("{prep} {}", t.orig);
-            return err(Diagnostic::new(L0130, format!("Contração obrigatória: \"{written}\" se escreve \"{c}\"."), prev.span.to(t.span)));
+            return err(Diagnostic::new(L0130, format!("Contração obrigatória: \"{written}\" se escreve \"{c}\"."), prev.span.to(t.span))
+                .fix(format!("Escrever \"{c}\""), prev.span.to(t.span), c));
         }
         Ok(())
     }

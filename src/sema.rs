@@ -1362,6 +1362,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 ),
                 name.span,
             )
+            .fix(format!("Escrever \"{fixed}\""), name.span, fixed.clone())
             .label(info.decl_span, "declarado aqui"));
         }
         Ok(info)

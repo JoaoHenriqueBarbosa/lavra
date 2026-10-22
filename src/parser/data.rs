@@ -341,7 +341,11 @@ impl Parser {
                 let a = self.definite_article_at(0).unwrap();
                 if a.gender != g || a.number != n || n != Number::Singular {
                     let right = format!("{} {}", morphology::definite_article(g, Number::Singular), morphology::ordinal_word(position, g));
-                    return err(Diagnostic::new(L0212, format!("O ordinal concorda com o artigo: \"{right}\"."), at.span.to(w.span)));
+                    return err(Diagnostic::new(L0212, format!("O ordinal concorda com o artigo: \"{right}\"."), at.span.to(w.span)).fix(
+                        format!("Escrever \"{right}\""),
+                        at.span.to(w.span),
+                        right.clone(),
+                    ));
                 }
                 self.check_contraction()?;
                 self.bump();
@@ -411,7 +415,11 @@ impl Parser {
         let t = self.bump();
         if g != subject.gender() || n != subject.number() {
             let right = morphology::inflect_adjective("vazio", Gender::Masculine, subject.gender(), subject.number());
-            return err(Diagnostic::new(L0214, format!("\"{}\" concorda com {}: \"{right}\".", t.orig, subject.display()), t.span));
+            return err(Diagnostic::new(L0214, format!("\"{}\" concorda com {}: \"{right}\".", t.orig, subject.display()), t.span).fix(
+                format!("Escrever \"{right}\""),
+                t.span,
+                right.clone(),
+            ));
         }
         Ok(Some(t.span))
     }
@@ -435,7 +443,11 @@ impl Parser {
         let check_gender = |g: Gender| -> Result<()> {
             if art.gender != g || art.number != Number::Singular {
                 let right = morphology::definite_article(g, Number::Singular);
-                return err(Diagnostic::new(L0215, format!("\"{w}\" é {}: \"{right} {w}\".", g.describe()), at.span.to(wt.span)));
+                return err(Diagnostic::new(L0215, format!("\"{w}\" é {}: \"{right} {w}\".", g.describe()), at.span.to(wt.span)).fix(
+                    format!("Escrever \"{right} {w}\""),
+                    at.span.to(wt.span),
+                    format!("{right} {w}"),
+                ));
             }
             Ok(())
         };
@@ -531,7 +543,11 @@ impl Parser {
         let a = at.word().and_then(morphology::article).filter(|a| !a.definite);
         if a.is_none_or(|a| a.gender != var.gender || a.number != Number::Singular) {
             let right = morphology::indefinite_article(var.gender, Number::Singular);
-            return err(Diagnostic::new(L0219, format!("O caso se diz com artigo indefinido: \"{right} {w}\"."), at.span.to(wt.span)));
+            return err(Diagnostic::new(L0219, format!("O caso se diz com artigo indefinido: \"{right} {w}\"."), at.span.to(wt.span)).fix(
+                format!("Escrever \"{right} {w}\""),
+                at.span.to(wt.span),
+                format!("{right} {w}"),
+            ));
         }
         Ok(Pattern::Variant { word: w, gender: var.gender, span: at.span.to(wt.span) })
     }
@@ -553,7 +569,11 @@ impl Parser {
         };
         if gender != art.gender || art.number != Number::Singular {
             let right = morphology::indefinite_article(gender, Number::Singular);
-            return err(Diagnostic::new(L0220, format!("\"{w}\" é {}: \"{right} {w}\".", gender.describe()), at.span.to(wt.span)));
+            return err(Diagnostic::new(L0220, format!("\"{w}\" é {}: \"{right} {w}\".", gender.describe()), at.span.to(wt.span)).fix(
+                format!("Escrever \"{right} {w}\""),
+                at.span.to(wt.span),
+                format!("{right} {w}"),
+            ));
         }
         self.bump();
         self.bump();
