@@ -1,4 +1,4 @@
-Erro de execução: A coleção está vazia: não há último para tirar.
+Erro de execução [L0911]: A coleção está vazia: não há último para tirar.
  --> tests/programs/err/vazia_ultimo.lav:3:5
   |
 3 |     As compras perdem a última.

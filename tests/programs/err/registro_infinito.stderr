@@ -1,4 +1,4 @@
-Erro de tipo: "nó" contém a si mesmo e teria tamanho infinito.
+Erro de tipo [L0302]: "nó" contém a si mesmo e teria tamanho infinito.
  --> tests/programs/err/registro_infinito.lav:1:1
   |
 1 | Um nó é um registro de:

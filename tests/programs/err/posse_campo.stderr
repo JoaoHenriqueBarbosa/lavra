@@ -1,4 +1,4 @@
-Erro de posse: Não se tira "o titular da carteira" de dentro de "a carteira" entregando: o valor tem dono.
+Erro de posse [L0403]: Não se tira "o titular da carteira" de dentro de "a carteira" entregando: o valor tem dono.
  --> tests/programs/err/posse_campo.lav:7:14
   |
 7 |     O nome é o titular da carteira.

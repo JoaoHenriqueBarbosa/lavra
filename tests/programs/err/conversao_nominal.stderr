@@ -1,4 +1,4 @@
-Erro de sintaxe: Conversão encostada numa operação por extenso é ambígua: precisa de parênteses.
+Erro de sintaxe [L0133]: Conversão encostada numa operação por extenso é ambígua: precisa de parênteses.
  --> tests/programs/err/conversao_nominal.lav:2:29
   |
 2 |     Escrevo a soma de 3 e 4 como real.

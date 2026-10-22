@@ -1,4 +1,4 @@
-Erro de posse: A carta foi entregue a "arquivar" na linha 6 e não volta.
+Erro de posse [L0400]: A carta foi entregue a "arquivar" na linha 6 e não volta.
  --> tests/programs/err/posse_entregue.lav:7:13
   |
 6 |     Arquivo a carta.

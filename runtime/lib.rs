@@ -14,12 +14,15 @@
 
 #[path = "../src/span.rs"]
 mod span;
+#[path = "../src/codes.rs"]
+mod codes;
 #[path = "../src/diagnostics.rs"]
 mod diagnostics;
 #[path = "../src/textfmt.rs"]
 mod textfmt;
 
-use diagnostics::{Category, Diagnostic, Style};
+use codes::*;
+use diagnostics::{Diagnostic, Style};
 use span::{SourceFile, Span};
 use std::io::{BufRead, BufWriter, IsTerminal, Stdout, Write};
 
@@ -124,20 +127,20 @@ unsafe fn str_of<'a>(ptr: *const u8, len: u64) -> &'a str {
     unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(ptr, len as usize)) }
 }
 
-/// Mostra o diagnóstico no mesmo formato do compilador e encerra.
-unsafe fn report(category: Category, message: String, lo: u32, hi: u32, primary: Option<&str>, code: i32) -> ! {
+/// Mostra um erro de execução no mesmo formato do compilador e encerra com 101.
+unsafe fn report(code: Code, message: String, lo: u32, hi: u32) -> ! {
+    unsafe { show(Diagnostic::new(code, message, Span { start: lo, end: hi }), 101) }
+}
+
+unsafe fn show(d: Diagnostic, exit: i32) -> ! {
     unsafe {
         flush();
         let text = str_of(&lavra_src, lavra_src_len);
         let path = str_of(&lavra_path, lavra_path_len);
         let src = SourceFile::new(path, text);
-        let mut d = Diagnostic::new(category, message, Span { start: lo, end: hi });
-        if let Some(p) = primary {
-            d = d.primary(p);
-        }
         let style = Style { color: std::io::stderr().is_terminal() && std::env::var_os("NO_COLOR").is_none() };
         eprint!("{}", diagnostics::render(&d, &src, style));
-        std::process::exit(code);
+        std::process::exit(exit);
     }
 }
 
@@ -151,7 +154,7 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
         let f = lavra_main();
         if !f.is_null() {
             let f = *Box::from_raw(f);
-            report(Category::Failure, f.message, f.lo, f.hi, Some("o programa desistiu aqui"), 1);
+            show(Diagnostic::failure(f.message, Span { start: f.lo, end: f.hi }).primary("o programa desistiu aqui"), 1);
         }
         flush();
         0
@@ -161,42 +164,42 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
 // ------------------------------------------------------------------ falhas
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rt_fault(msg: *const u8, len: u64, lo: u32, hi: u32) -> ! {
-    unsafe { report(Category::Runtime, str_of(msg, len).to_string(), lo, hi, None, 101) }
+pub unsafe extern "C" fn rt_fault(code: u32, msg: *const u8, len: u64, lo: u32, hi: u32) -> ! {
+    unsafe { report(by_number(code).unwrap_or(L0900), str_of(msg, len).to_string(), lo, hi) }
 }
 
 /// Erro com um inteiro no lugar de "{}" na mensagem.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rt_fault_int(tpl: *const u8, len: u64, value: i64, lo: u32, hi: u32) -> ! {
-    unsafe { report(Category::Runtime, str_of(tpl, len).replacen("{}", &value.to_string(), 1), lo, hi, None, 101) }
+pub unsafe extern "C" fn rt_fault_int(code: u32, tpl: *const u8, len: u64, value: i64, lo: u32, hi: u32) -> ! {
+    unsafe { report(by_number(code).unwrap_or(L0900), str_of(tpl, len).replacen("{}", &value.to_string(), 1), lo, hi) }
 }
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_fault_abs(value: i64, bits: u32, signed: u32, lo: u32, hi: u32) -> ! {
-    unsafe { report(Category::Runtime, textfmt::abs_overflow(value as i128, bits as u8, signed != 0), lo, hi, None, 101) }
+    unsafe { report(L0902, textfmt::abs_overflow(value as i128, bits as u8, signed != 0), lo, hi) }
 }
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_fault_shift(value: i64, bits: u32, signed: u32, lo: u32, hi: u32) -> ! {
-    unsafe { report(Category::Runtime, textfmt::shift_range(value as i128, bits as u8, signed != 0), lo, hi, None, 101) }
+    unsafe { report(L0903, textfmt::shift_range(value as i128, bits as u8, signed != 0), lo, hi) }
 }
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_fault_sqrt(value: f64, lo: u32, hi: u32) -> ! {
-    unsafe { report(Category::Runtime, textfmt::negative_sqrt(value), lo, hi, None, 101) }
+    unsafe { report(L0907, textfmt::negative_sqrt(value), lo, hi) }
 }
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_fault_convert_int(x: i64, src_signed: u32, bits: u32, signed: u32, lo: u32, hi: u32) -> ! {
     unsafe {
         let shown = if src_signed != 0 { x.to_string() } else { (x as u64).to_string() };
-        report(Category::Runtime, textfmt::convert_error(&shown, bits as u8, signed != 0), lo, hi, None, 101)
+        report(L0908, textfmt::convert_error(&shown, bits as u8, signed != 0), lo, hi)
     }
 }
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_fault_convert_real(x: f64, bits: u32, signed: u32, lo: u32, hi: u32) -> ! {
-    unsafe { report(Category::Runtime, textfmt::convert_error(&textfmt::format_real(x), bits as u8, signed != 0), lo, hi, None, 101) }
+    unsafe { report(L0908, textfmt::convert_error(&textfmt::format_real(x), bits as u8, signed != 0), lo, hi) }
 }
 
 #[unsafe(no_mangle)]
@@ -217,7 +220,7 @@ pub unsafe extern "C" fn rt_failure_drop(f: *mut Failure) {
 pub unsafe extern "C" fn rt_enter(lo: u32, hi: u32) {
     unsafe {
         if DEPTH >= textfmt::MAX_DEPTH {
-            report(Category::Runtime, textfmt::stack_overflow(), lo, hi, None, 101);
+            report(L0914, textfmt::stack_overflow(), lo, hi);
         }
         DEPTH += 1;
     }
@@ -326,7 +329,7 @@ pub unsafe extern "C" fn rt_text_char(t: *const String, n: i64, lo: u32, hi: u32
         let s = &*t;
         let len = s.chars().count();
         if n < 1 || n as usize > len {
-            report(Category::Runtime, textfmt::position_error(n as i128, len), lo, hi, None, 101);
+            report(L0909, textfmt::position_error(n as i128, len), lo, hi);
         }
         s.chars().nth(n as usize - 1).unwrap() as u32
     }
@@ -337,7 +340,7 @@ pub unsafe extern "C" fn rt_text_last_char(t: *const String, lo: u32, hi: u32) -
     unsafe {
         match (*t).chars().last() {
             Some(c) => c as u32,
-            None => report(Category::Runtime, textfmt::EMPTY_LAST.to_string(), lo, hi, None, 101),
+            None => report(L0910, textfmt::EMPTY_LAST.to_string(), lo, hi),
         }
     }
 }
@@ -376,7 +379,7 @@ pub unsafe extern "C" fn rt_list_addr(l: *mut Vec<u64>, n: i64, lo: u32, hi: u32
     unsafe {
         let v = &mut *l;
         if n < 1 || n as usize > v.len() {
-            report(Category::Runtime, textfmt::position_error(n as i128, v.len()), lo, hi, None, 101);
+            report(L0909, textfmt::position_error(n as i128, v.len()), lo, hi);
         }
         v.as_mut_ptr().add(n as usize - 1)
     }
@@ -387,7 +390,7 @@ pub unsafe extern "C" fn rt_list_last_addr(l: *mut Vec<u64>, lo: u32, hi: u32) -
     unsafe {
         let v = &mut *l;
         if v.is_empty() {
-            report(Category::Runtime, textfmt::EMPTY_LAST.to_string(), lo, hi, None, 101);
+            report(L0910, textfmt::EMPTY_LAST.to_string(), lo, hi);
         }
         let n = v.len();
         v.as_mut_ptr().add(n - 1)
@@ -402,11 +405,11 @@ pub unsafe extern "C" fn rt_list_take(l: *mut Vec<u64>, n: i64, lo: u32, hi: u32
         if n == 0 {
             return match v.pop() {
                 Some(x) => x,
-                None => report(Category::Runtime, textfmt::EMPTY_TAKE.to_string(), lo, hi, None, 101),
+                None => report(L0911, textfmt::EMPTY_TAKE.to_string(), lo, hi),
             };
         }
         if n < 1 || n as usize > v.len() {
-            report(Category::Runtime, textfmt::position_error(n as i128, v.len()), lo, hi, None, 101);
+            report(L0909, textfmt::position_error(n as i128, v.len()), lo, hi);
         }
         v.remove(n as usize - 1)
     }
@@ -591,13 +594,13 @@ pub unsafe extern "C" fn rt_pow_int(x: i64, y: i64, bits: u32, signed: u32, lo: 
         let xv: i128 = if signed { x as i128 } else { x as u64 as i128 };
         let yv: i128 = if signed { y as i128 } else { y as u64 as i128 };
         if yv < 0 {
-            report(Category::Runtime, textfmt::NEG_POW.to_string(), lo, hi, None, 101);
+            report(L0906, textfmt::NEG_POW.to_string(), lo, hi);
         }
         let mut r: i128 = 1;
         for _ in 0..yv.min(200) {
             match r.checked_mul(xv) {
                 Some(v) if v >= textfmt::int_min(bits, signed) && v <= textfmt::int_max(bits, signed) => r = v,
-                _ => report(Category::Runtime, textfmt::pow_overflow(bits, signed), lo, hi, None, 101),
+                _ => report(L0901, textfmt::pow_overflow(bits, signed), lo, hi),
             }
         }
         r as i64
@@ -622,7 +625,7 @@ unsafe fn read_line(lo: u32, hi: u32) -> String {
         let input = INPUT.get_or_insert_with(|| std::io::stdin().lock());
         let mut line = String::new();
         match input.read_line(&mut line) {
-            Ok(0) | Err(_) => report(Category::Runtime, textfmt::INPUT_ENDED.to_string(), lo, hi, None, 101),
+            Ok(0) | Err(_) => report(L0912, textfmt::INPUT_ENDED.to_string(), lo, hi),
             Ok(_) => {}
         }
         let line = line.trim_end_matches(['\n', '\r']).to_string();
@@ -634,7 +637,7 @@ unsafe fn read_line(lo: u32, hi: u32) -> String {
 }
 
 unsafe fn bad_input(expected: *const u8, len: u64, line: &str, lo: u32, hi: u32) -> ! {
-    unsafe { report(Category::Runtime, textfmt::bad_input(str_of(expected, len), line), lo, hi, None, 101) }
+    unsafe { report(L0913, textfmt::bad_input(str_of(expected, len), line), lo, hi) }
 }
 
 #[unsafe(no_mangle)]

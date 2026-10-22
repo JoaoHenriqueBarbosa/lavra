@@ -1,4 +1,4 @@
-Erro de posse: A saudação é constante do programa e não se entrega.
+Erro de posse [L0402]: A saudação é constante do programa e não se entrega.
  --> tests/programs/err/posse_constante.lav:4:15
   |
 4 |     A frase é a saudação.

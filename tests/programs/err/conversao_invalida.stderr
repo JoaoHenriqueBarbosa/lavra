@@ -1,4 +1,4 @@
-Erro de tipo: Não se converte um texto em um inteiro.
+Erro de tipo [L0347]: Não se converte um texto em um inteiro.
  --> tests/programs/err/conversao_invalida.lav:3:13
   |
 3 |     Escrevo o nome como inteiro.

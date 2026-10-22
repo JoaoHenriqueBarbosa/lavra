@@ -1,4 +1,4 @@
-Erro de posse: A carta foi entregue a "arquivar" numa volta anterior do laço e não volta.
+Erro de posse [L0400]: A carta foi entregue a "arquivar" numa volta anterior do laço e não volta.
  --> tests/programs/err/posse_laco.lav:7:17
   |
 7 |         Arquivo a carta.

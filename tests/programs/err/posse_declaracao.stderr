@@ -1,4 +1,4 @@
-Erro de posse: O rascunho passou para "o texto" na linha 3 e não volta.
+Erro de posse [L0400]: O rascunho passou para "o texto" na linha 3 e não volta.
  --> tests/programs/err/posse_declaracao.lav:4:13
   |
 3 |     O texto é o rascunho.

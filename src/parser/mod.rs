@@ -2,7 +2,8 @@
 //! concordância verbal, ordem das palavras); escopo, tipos e posse ficam na `sema`.
 
 use crate::ast::*;
-use crate::diagnostics::{Category, Diagnostic, Result, err};
+use crate::codes::*;
+use crate::diagnostics::{Diagnostic, Result, err};
 use crate::lexer::{Token, TokenKind};
 use crate::lexicon;
 use crate::morphology::{self, Gender, Number};
@@ -109,11 +110,11 @@ impl Parser {
         let t = self.peek();
         if what == "o ponto final" && (matches!(t.kind, TokenKind::Newline | TokenKind::Eof | TokenKind::Dedent) || t.line_start) {
             return Box::new(
-                Diagnostic::new(Category::Syntax, "Faltou o ponto final.", self.last_char_span())
+                Diagnostic::new(L0100, "Faltou o ponto final.", self.last_char_span())
                     .hint("Todo período termina em ponto; uma linha sem ponto continua na de baixo."),
             );
         }
-        Box::new(Diagnostic::new(Category::Syntax, format!("Esperava {what}, mas encontrei {}.", t.describe()), t.span))
+        Box::new(Diagnostic::new(L0101, format!("Esperava {what}, mas encontrei {}.", t.describe()), t.span))
     }
 
     fn expect_punct(&mut self, c: char, what: &str) -> Result<Token> {
@@ -149,7 +150,7 @@ impl Parser {
                 let name_span = self.bump().span;
                 self.expect_punct(':', "os dois-pontos depois de \"Para começar\"")?;
                 if self.prog.main.is_some() {
-                    return err(Diagnostic::new(Category::Syntax, "O programa já tem um \"Para começar\".", start.to(name_span)));
+                    return err(Diagnostic::new(L0102, "O programa já tem um \"Para começar\".", start.to(name_span)));
                 }
                 let sig = self.prog.sigs.len();
                 self.prog.sigs.push(FuncSig {
@@ -188,7 +189,7 @@ impl Parser {
             self.skip_newlines();
             if !matches!(self.peek().kind, TokenKind::Indent) {
                 return Err(Box::new(
-                    Diagnostic::new(Category::Syntax, "Depois dos dois-pontos vem um bloco recuado.", self.peek().span)
+                    Diagnostic::new(L0103, "Depois dos dois-pontos vem um bloco recuado.", self.peek().span)
                         .hint("Recue as linhas do bloco (quatro espaços), ou escreva um período na mesma linha."),
                 ));
             }
@@ -228,7 +229,7 @@ impl Parser {
                 if !self.eat_word("vezes") {
                     if self.at_word("vez") {
                         let t = self.peek().clone();
-                        return err(Diagnostic::new(Category::Agreement, "\"Repito\" conta em \"vezes\", no plural.", t.span)
+                        return err(Diagnostic::new(L0104, "\"Repito\" conta em \"vezes\", no plural.", t.span)
                             .hint("Para uma vez só, não precisa de laço."));
                     }
                     return Err(self.expected("\"vezes\" (ou \"Repito sempre:\")"));
@@ -266,7 +267,7 @@ impl Parser {
                     let plural = morphology::pluralize(&var.word);
                     if plural == var.word {
                         return err(Diagnostic::new(
-                            Category::Morphology,
+                            L0105,
                             format!("\"{}\" é igual no singular e no plural: diga de onde vêm os itens.", var.word),
                             var.span,
                         )
@@ -304,7 +305,7 @@ impl Parser {
             return self.match_stmt(start);
         }
         if self.at_word("senão") {
-            return err(Diagnostic::new(Category::Syntax, "\"Senão\" sem um \"Se\" antes.", self.peek().span)
+            return err(Diagnostic::new(L0106, "\"Senão\" sem um \"Se\" antes.", self.peek().span)
                 .hint("O \"Senão\" fica alinhado com o \"Se\" a que responde."));
         }
         Ok(Stmt::Period(self.period()?))
@@ -316,7 +317,7 @@ impl Parser {
         let t = self.bump();
         let Some(w) = t.word().map(str::to_string) else {
             return err(Diagnostic::new(
-                Category::Syntax,
+                L0107,
                 format!("Depois de \"Para cada\" vem o nome do item, mas encontrei {}.", t.describe()),
                 t.span,
             ));
@@ -325,7 +326,7 @@ impl Parser {
             return Ok(NameRef { word: w, span: t.span, word_span: t.span, article: None });
         }
         if morphology::article(&w).is_some() {
-            return err(Diagnostic::new(Category::Syntax, "\"Cada\" já determina o nome: \"Para cada nota\", sem artigo.", t.span));
+            return err(Diagnostic::new(L0108, "\"Cada\" já determina o nome: \"Para cada nota\", sem artigo.", t.span));
         }
         let g = morphology::guess_gender(&w);
         Ok(NameRef {
@@ -358,7 +359,7 @@ impl Parser {
             }
             if !self.eat_word("sendo") {
                 return err(Diagnostic::new(
-                    Category::Syntax,
+                    L0109,
                     format!("Dentro de \"Conforme\", cada caso começa com \"Sendo\", mas encontrei {}.", t.describe()),
                     t.span,
                 )
@@ -401,8 +402,9 @@ impl Parser {
                 continue;
             }
             if self.at_word("se") {
-                return err(Diagnostic::new(Category::Syntax, "Entre \"senão\" e \"se\" vai vírgula.", self.peek().span)
-                    .hint("Escreva \"Senão, se ...:\"."));
+                return err(
+                    Diagnostic::new(L0110, "Entre \"senão\" e \"se\" vai vírgula.", self.peek().span).hint("Escreva \"Senão, se ...:\".")
+                );
             }
             self.expect_punct(':', "os dois-pontos depois de \"Senão\"")?;
             otherwise = Some(self.block()?);
@@ -460,17 +462,13 @@ impl Parser {
             let t = self.bump();
             let Some(word) = t.word().map(str::to_string) else {
                 return Err(Box::new(Diagnostic::new(
-                    Category::Syntax,
+                    L0111,
                     format!("Depois de \"houver\" vem o nome, sem artigo: \"Se houver apelido\". Encontrei {}.", t.describe()),
                     t.span,
                 )));
             };
             if morphology::article(&word).is_some() {
-                return err(Diagnostic::new(
-                    Category::Syntax,
-                    "Depois de \"houver\" o nome vem sem artigo: \"Se houver apelido\".",
-                    t.span,
-                ));
+                return err(Diagnostic::new(L0111, "Depois de \"houver\" o nome vem sem artigo: \"Se houver apelido\".", t.span));
             }
             return Ok(Cond::Atom {
                 negated: neg_exists,
@@ -480,11 +478,7 @@ impl Parser {
         }
         if mood == Mood::Subjunctive && self.at_word("há") {
             let t = self.peek().clone();
-            return err(Diagnostic::new(
-                Category::Morphology,
-                "Em condição, o verbo vai no futuro do subjuntivo: \"houver\", não \"há\".",
-                t.span,
-            ));
+            return err(Diagnostic::new(L0112, "Em condição, o verbo vai no futuro do subjuntivo: \"houver\", não \"há\".", t.span));
         }
         let subject = self.expr()?;
         self.allow_uncontracted = false;
@@ -500,7 +494,7 @@ impl Parser {
                 if n != number {
                     let right = Self::verb_form(mood, &self.prog.sigs[sig].infinitive, number);
                     return err(Diagnostic::new(
-                        Category::Agreement,
+                        L0113,
                         format!("O verbo não concorda com o sujeito, que é {}: \"{right}\", não \"{w}\".", number.describe()),
                         vt.span,
                     ));
@@ -517,7 +511,7 @@ impl Parser {
         {
             let right = Self::verb_form(mood, &self.prog.sigs[sig].infinitive, number);
             return err(Diagnostic::new(
-                Category::Morphology,
+                L0114,
                 format!("Em condição, o predicado vai no futuro do subjuntivo: \"{right}\", não \"{w}\"."),
                 vt.span,
             ));
@@ -530,7 +524,7 @@ impl Parser {
             if got != number {
                 let right = Self::be_form(mood, number);
                 return err(Diagnostic::new(
-                    Category::Agreement,
+                    L0113,
                     format!("O verbo não concorda com o sujeito, que é {}: \"{right}\", não \"{w}\".", number.describe()),
                     vt.span,
                 ));
@@ -567,7 +561,7 @@ impl Parser {
                     if any {
                         let at = self.peek().clone();
                         return err(Diagnostic::new(
-                            Category::Agreement,
+                            L0115,
                             format!(
                                 "O adjetivo concorda com o sujeito ({}): \"{want}\", não \"{}\".",
                                 morphology::describe_gn(gender, number),
@@ -585,7 +579,7 @@ impl Parser {
                     let right = if number == Number::Plural { plur } else { sing };
                     let _ = me;
                     return err(Diagnostic::new(
-                        Category::Agreement,
+                        L0116,
                         format!(
                             "A comparação concorda com o sujeito, que é {}: \"{right}\", não \"{}\".",
                             number.describe(),
@@ -627,11 +621,7 @@ impl Parser {
                         "igual" => "a",
                         _ => "de",
                     };
-                    return err(Diagnostic::new(
-                        Category::Regency,
-                        format!("\"{}\" rege \"{need}\": \"{} {need}\".", rt.orig, rt.orig),
-                        rt.span,
-                    ));
+                    return err(Diagnostic::new(L0117, format!("\"{}\" rege \"{need}\": \"{} {need}\".", rt.orig, rt.orig), rt.span));
                 }
                 _ => {
                     return Err(self.expected(
@@ -646,7 +636,7 @@ impl Parser {
         if mood == Mood::Subjunctive && matches!(w.as_str(), "é" | "são" | "seja" | "sejam" | "fosse" | "fossem" | "está" | "estão") {
             let right = morphology::future_subjunctive("ser", number);
             return err(Diagnostic::new(
-                Category::Morphology,
+                L0114,
                 format!("Em condição, o verbo vai no futuro do subjuntivo: \"{right}\", não \"{}\".", vt.orig),
                 vt.span,
             ));
@@ -686,7 +676,7 @@ impl Parser {
                 && self.toks[self.pos - 2].word().and_then(morphology::article).is_some_and(|a| a.definite)
             {
                 let t = &self.toks[self.pos - 1];
-                let mut d = Diagnostic::new(Category::Scope, format!("Nenhum registro tem o campo \"{prev}\"."), t.span);
+                let mut d = Diagnostic::new(L0118, format!("Nenhum registro tem o campo \"{prev}\"."), t.span);
                 if !self.vocab.field_names.is_empty() {
                     let mut names: Vec<&String> = self.vocab.field_names.iter().collect();
                     names.sort();
@@ -797,11 +787,7 @@ impl Parser {
             "desisto" => {
                 self.bump();
                 if !self.eat_word("com") {
-                    return err(Diagnostic::new(
-                        Category::Syntax,
-                        "\"Desisto\" diz o motivo: \"Desisto com \\\"sem permissão\\\".\"",
-                        t.span,
-                    ));
+                    return err(Diagnostic::new(L0119, "\"Desisto\" diz o motivo: \"Desisto com \\\"sem permissão\\\".\"", t.span));
                 }
                 ClauseKind::Desist(self.expr()?)
             }
@@ -846,7 +832,7 @@ impl Parser {
             });
         if let Some(f) = third {
             return Box::new(Diagnostic::new(
-                Category::Morphology,
+                L0120,
                 format!("\"{}\" está na 3ª pessoa. Quando o programa age, narra em 1ª pessoa: \"{f}\".", t.orig),
                 t.span,
             ));
@@ -854,7 +840,7 @@ impl Parser {
         if let Some(&sig) = self.vocab.by_infinitive.get(w).and_then(|v| v.first()) {
             let f = &self.prog.sigs[sig].first_person;
             return Box::new(Diagnostic::new(
-                Category::Morphology,
+                L0121,
                 format!("\"{}\" está no infinitivo, que define. Para executar, a 1ª pessoa: \"{f}\".", t.orig),
                 t.span,
             ));
@@ -869,11 +855,10 @@ impl Parser {
             .min_by_key(|k| morphology::edit_distance(k, w));
         if let Some(n) = near {
             return Box::new(
-                Diagnostic::new(Category::Syntax, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span)
-                    .hint(format!("Quis dizer \"{n}\"?")),
+                Diagnostic::new(L0122, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span).hint(format!("Quis dizer \"{n}\"?")),
             );
         }
-        let d = Diagnostic::new(Category::Syntax, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span);
+        let d = Diagnostic::new(L0122, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span);
         // Formas que alguém escreveria no lugar da construção da língua: a dica vem do léxico.
         let hint = matches!(w, "seja" | "sejam" | "guardo" | "acrescento" | "subtraio").then(|| lexicon::rejected_hint(w)).flatten();
         Box::new(d.maybe_hint(hint.map(String::from)))
@@ -893,7 +878,7 @@ impl Parser {
         let Some((inf, number)) = vt.word().and_then(subject_verb) else {
             return Err(Box::new(
                 Diagnostic::new(
-                    Category::Syntax,
+                    L0123,
                     format!("Esperava o verbo de {}, mas encontrei {}.", describe_place(&place), vt.describe()),
                     vt.span,
                 )
@@ -905,7 +890,7 @@ impl Parser {
         if number != subj_number {
             let right = morphology::third_person(inf, subj_number).unwrap_or_default();
             return err(Diagnostic::new(
-                Category::Agreement,
+                L0113,
                 format!(
                     "O verbo não concorda com o sujeito: {} é {}, então \"{right}\", não \"{}\".",
                     describe_place(&place),
@@ -917,11 +902,11 @@ impl Parser {
         }
         let declares = matches!(inf, "ser" | "começar");
         if (declares || ann.is_some()) && !place.proj.is_empty() {
-            return err(Diagnostic::new(Category::Syntax, "Só se declara um nome novo; um campo ou item já existe.", vt.span)
+            return err(Diagnostic::new(L0124, "Só se declara um nome novo; um campo ou item já existe.", vt.span)
                 .hint(format!("Para mudar o valor, use \"vira\": \"{} vira ...\".", describe_place(&place))));
         }
         if ann.is_some() && !declares {
-            return err(Diagnostic::new(Category::Syntax, "O aposto com o tipo só cabe na declaração (\"é\" ou \"começa em\").", vt.span));
+            return err(Diagnostic::new(L0125, "O aposto com o tipo só cabe na declaração (\"é\" ou \"começa em\").", vt.span));
         }
         Ok(match inf {
             "ser" => {
@@ -960,14 +945,14 @@ impl Parser {
         if self.eat_word("talvez") {
             let inner = self.aposto()?;
             if matches!(inner.ty, TypeExpr::Maybe(_)) {
-                return err(Diagnostic::new(Category::Syntax, "\"talvez talvez\" não existe: a ausência já é uma só.", inner.span));
+                return err(Diagnostic::new(L0126, "\"talvez talvez\" não existe: a ausência já é uma só.", inner.span));
             }
             return Ok(TypeAnn { ty: TypeExpr::Maybe(Box::new(inner.ty)), span: start.to(self.prev_span()) });
         }
         let t = self.bump();
         let Some(art) = t.word().and_then(morphology::article).filter(|a| !a.definite) else {
             return Err(Box::new(Diagnostic::new(
-                Category::Syntax,
+                L0127,
                 format!("Esperava o tipo com artigo indefinido (\"um inteiro\"), mas encontrei {}.", t.describe()),
                 t.span,
             )));
@@ -983,7 +968,7 @@ impl Parser {
             let w = self.toks[self.pos - 1].orig.clone();
             let right = morphology::indefinite_article(gender, Number::Singular);
             return err(Diagnostic::new(
-                Category::Agreement,
+                L0128,
                 format!("O tipo é {}: \"{right} ...\", não \"{} ...\".", gender.describe(), self.toks[art_span_index(self, art_span)].orig),
                 art_span.to(self.prev_span()),
             )
@@ -1001,7 +986,7 @@ impl Parser {
         self.bump();
         let TokenKind::Int(v) = n.kind else { unreachable!() };
         if ![8, 16, 32, 64].contains(&v) {
-            return err(Diagnostic::new(Category::Type, "Os inteiros têm 8, 16, 32 ou 64 bits.", n.span));
+            return err(Diagnostic::new(L0129, "Os inteiros têm 8, 16, 32 ou 64 bits.", n.span));
         }
         Ok(Some(v as u8))
     }
@@ -1023,11 +1008,7 @@ impl Parser {
         let Some(art) = t.word() else { return Ok(()) };
         if let Some(c) = morphology::contract(prep, art) {
             let written = format!("{prep} {}", t.orig);
-            return err(Diagnostic::new(
-                Category::Morphology,
-                format!("Contração obrigatória: \"{written}\" se escreve \"{c}\"."),
-                prev.span.to(t.span),
-            ));
+            return err(Diagnostic::new(L0130, format!("Contração obrigatória: \"{written}\" se escreve \"{c}\"."), prev.span.to(t.span)));
         }
         Ok(())
     }
@@ -1062,7 +1043,7 @@ impl Parser {
             let w = self.bump();
             let Some(word) = w.word().map(str::to_string) else {
                 return Err(Box::new(Diagnostic::new(
-                    Category::Syntax,
+                    L0131,
                     format!("Depois do artigo \"{}\" esperava um nome, mas encontrei {}.", t.orig, w.describe()),
                     w.span,
                 )));
@@ -1136,11 +1117,7 @@ impl Parser {
         let start = self.peek().span;
         if self.peek().word().and_then(morphology::article).is_some() {
             let t = self.peek().clone();
-            return err(Diagnostic::new(
-                Category::Syntax,
-                "Depois de \"como\" o tipo vem sem artigo: \"como real\", \"como texto\".",
-                t.span,
-            ));
+            return err(Diagnostic::new(L0132, "Depois de \"como\" o tipo vem sem artigo: \"como real\", \"como texto\".", t.span));
         }
         let (ty, _) = self.type_word(Number::Singular)?;
         let ann = TypeAnn { ty, span: start.to(self.prev_span()) };
@@ -1220,7 +1197,7 @@ impl Parser {
     fn mixing_error(&self) -> Box<Diagnostic> {
         let t = self.peek();
         Box::new(
-            Diagnostic::new(Category::Syntax, "Operação por extenso seguida de conta infixa é ambígua: precisa de parênteses.", t.span)
+            Diagnostic::new(L0133, "Operação por extenso seguida de conta infixa é ambígua: precisa de parênteses.", t.span)
                 .hint("Escreva \"(a diferença de 10 e 3) mais 1\" ou \"a diferença de 10 e (3 mais 1)\", conforme o que quer dizer."),
         )
     }
@@ -1263,7 +1240,7 @@ impl Parser {
                 {
                     let de = self.bump();
                     if de.contraction.is_some() {
-                        return err(Diagnostic::new(Category::Morphology, "Antes do verbo, \"de\" não contrai.", de.span));
+                        return err(Diagnostic::new(L0134, "Antes do verbo, \"de\" não contrai.", de.span));
                     }
                     let vt = self.bump();
                     let sig = self.pick_overload(sig, vt.span)?;
@@ -1287,7 +1264,7 @@ impl Parser {
                 if let Some(c) = de.contraction {
                     let (_, _, art) = morphology::split_contraction(c.written).unwrap();
                     return err(Diagnostic::new(
-                        Category::Morphology,
+                        L0135,
                         format!(
                             "Antes do sujeito de um infinitivo não se contrai: escreva \"o fato de {art} ...\", não \"o fato {} ...\".",
                             c.written
@@ -1305,7 +1282,7 @@ impl Parser {
                 let a = self.bump();
                 let c = self.bump();
                 if a.is_word("um") {
-                    return err(Diagnostic::new(Category::Agreement, "\"cópia\" é feminino: \"uma cópia\".", a.span.to(c.span)));
+                    return err(Diagnostic::new(L0136, "\"cópia\" é feminino: \"uma cópia\".", a.span.to(c.span)));
                 }
                 self.expect_word("de")?;
                 let inner = self.primary()?;

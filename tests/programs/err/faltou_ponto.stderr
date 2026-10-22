@@ -1,4 +1,4 @@
-Erro de sintaxe: Faltou o ponto final.
+Erro de sintaxe [L0100]: Faltou o ponto final.
  --> tests/programs/err/faltou_ponto.lav:2:16
   |
 2 |     Escrevo "um"

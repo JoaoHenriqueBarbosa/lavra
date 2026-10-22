@@ -1,4 +1,4 @@
-Erro de mutabilidade: O saldo é fixo por definição e não se confia a "render".
+Erro de mutabilidade [L0342]: O saldo é fixo por definição e não se confia a "render".
  --> tests/programs/err/confiado_fixo.lav:6:11
   |
 5 |     O saldo é 100,0.

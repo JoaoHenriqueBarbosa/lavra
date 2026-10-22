@@ -1,4 +1,4 @@
-Erro de escopo: "o sado" não foi declarado.
+Erro de escopo [L0334]: "o sado" não foi declarado.
  --> tests/programs/err/nao_declarado.lav:3:5
   |
 3 |     O sado cresce 1.

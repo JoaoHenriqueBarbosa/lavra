@@ -1,4 +1,4 @@
-Erro de tipo: Uma conta precisa de todos os campos; faltou "o saldo" e "a agência".
+Erro de tipo [L0352]: Uma conta precisa de todos os campos; faltou "o saldo" e "a agência".
  --> tests/programs/err/campo_faltando.lav:7:22
   |
 7 |     A carteira é uma conta com o titular "Ana".

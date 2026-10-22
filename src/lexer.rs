@@ -5,7 +5,8 @@
 //! "--" no meio da linha corta o resto); a linha só termina o período se acabar em
 //! ".", ":" ou ";", senão continua na de baixo com recuo livre (enjambement).
 
-use crate::diagnostics::{Category, Diagnostic, Result, err};
+use crate::codes::*;
+use crate::diagnostics::{Diagnostic, Result, err};
 use crate::morphology::split_contraction;
 use crate::span::Span;
 
@@ -91,8 +92,8 @@ pub fn tokenize(src: &str) -> Result<Vec<Token>> {
     Ok(fuse(split, crate::lexicon::LOCUTIONS, true))
 }
 
-fn lex_error(msg: impl Into<String>, start: usize, end: usize) -> Box<Diagnostic> {
-    Box::new(Diagnostic::new(Category::Lexical, msg, Span::new(start, end.max(start + 1))))
+fn lex_error(code: Code, msg: impl Into<String>, start: usize, end: usize) -> Box<Diagnostic> {
+    Box::new(Diagnostic::new(code, msg, Span::new(start, end.max(start + 1))))
 }
 
 fn is_word_char(c: char) -> bool {
@@ -144,7 +145,7 @@ fn scan(src: &str) -> Result<Vec<Token>> {
                 }
                 if width != *indents.last().unwrap() {
                     return err(Diagnostic::new(
-                        Category::Lexical,
+                        L0012,
                         "Recuo inconsistente: esta linha não se alinha com nenhum bloco aberto.",
                         Span::new(line_start, pos.max(line_start + 1)),
                     )
@@ -231,7 +232,7 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
             let mut s = String::new();
             loop {
                 if j >= n {
-                    return Err(lex_error("Texto sem aspas de fechamento.", pos(start), pos(n)));
+                    return Err(lex_error(L0002, "Texto sem aspas de fechamento.", pos(start), pos(n)));
                 }
                 let cj = chars[j].1;
                 if cj == '"' || cj == '”' || cj == '“' {
@@ -259,7 +260,7 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
         if c == '\'' || c == '‘' || c == '’' {
             let mut j = i + 1;
             if j >= n {
-                return Err(lex_error("Caractere sem aspas simples de fechamento.", pos(start), pos(n)));
+                return Err(lex_error(L0003, "Caractere sem aspas simples de fechamento.", pos(start), pos(n)));
             }
             let value = if chars[j].1 == '\\' {
                 let (e, next) = escape(&chars, j, base)?;
@@ -271,12 +272,8 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
             };
             if j >= n || !matches!(chars[j].1, '\'' | '’' | '‘') {
                 return Err(Box::new(
-                    Diagnostic::new(
-                        Category::Lexical,
-                        "Caractere entre aspas simples tem uma letra só.",
-                        Span::new(pos(start), pos(j.min(n))),
-                    )
-                    .hint("Para mais de uma letra, use aspas duplas: é um texto."),
+                    Diagnostic::new(L0004, "Caractere entre aspas simples tem uma letra só.", Span::new(pos(start), pos(j.min(n))))
+                        .hint("Para mais de uma letra, use aspas duplas: é um texto."),
                 ));
             }
             out.push(Token {
@@ -300,7 +297,7 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
             i += 1;
             continue;
         }
-        let d = Diagnostic::new(Category::Lexical, format!("O sinal \"{c}\" não faz parte da Lavra."), Span::new(pos(i), pos(i + 1)));
+        let d = Diagnostic::new(L0001, format!("O sinal \"{c}\" não faz parte da Lavra."), Span::new(pos(i), pos(i + 1)));
         let d = match c {
             '+' | '-' | '*' | '/' | '%' => {
                 d.hint("Operações se escrevem por extenso: \"mais\", \"menos\", \"vezes\", \"dividido por\", \"módulo\".")
@@ -318,7 +315,7 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
 fn escape(chars: &[(usize, char)], j: usize, base: usize) -> Result<(char, usize)> {
     let at = |k: usize| base + chars.get(k).map(|c| c.0).unwrap_or(0);
     let Some(&(_, e)) = chars.get(j + 1) else {
-        return Err(lex_error("Barra invertida no fim da linha.", at(j), at(j) + 1));
+        return Err(lex_error(L0005, "Barra invertida no fim da linha.", at(j), at(j) + 1));
     };
     let v = match e {
         'n' => '\n',
@@ -329,7 +326,7 @@ fn escape(chars: &[(usize, char)], j: usize, base: usize) -> Result<(char, usize
         '\'' => '\'',
         _ => {
             return Err(Box::new(
-                Diagnostic::new(Category::Lexical, format!("Escape desconhecido: \"\\{e}\"."), Span::new(at(j), at(j + 1) + e.len_utf8()))
+                Diagnostic::new(L0006, format!("Escape desconhecido: \"\\{e}\"."), Span::new(at(j), at(j + 1) + e.len_utf8()))
                     .hint("Escapes válidos: \\n (quebra de linha), \\t (tabulação), \\\" (aspas), \\\\ (barra), \\0."),
             ));
         }
@@ -354,14 +351,14 @@ fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str) -
                 .checked_mul(16)
                 .and_then(|v| v.checked_add(chars[j].1.to_digit(16).unwrap() as i128))
                 .filter(|v| *v <= u64::MAX as i128)
-                .ok_or_else(|| lex_error("Número grande demais.", pos(start), pos(j)))?;
+                .ok_or_else(|| lex_error(L0007, "Número grande demais.", pos(start), pos(j)))?;
             j += 1;
         }
         if j == i + 2 {
-            return Err(lex_error("Hexadecimal sem dígitos depois de \"0x\".", pos(start), pos(j)));
+            return Err(lex_error(L0008, "Hexadecimal sem dígitos depois de \"0x\".", pos(start), pos(j)));
         }
         if negative {
-            return Err(lex_error("Hexadecimal não leva sinal.", pos(start), pos(j)));
+            return Err(lex_error(L0009, "Hexadecimal não leva sinal.", pos(start), pos(j)));
         }
         return Ok((
             Token {
@@ -404,20 +401,22 @@ fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str) -
             j += 1;
         }
         return Err(Box::new(
-            Diagnostic::new(Category::Lexical, "Número colado numa palavra.", Span::new(pos(start), pos(j)))
+            Diagnostic::new(L0011, "Número colado numa palavra.", Span::new(pos(start), pos(j)))
                 .hint("Separe o número da palavra com um espaço."),
         ));
     }
     let span = Span::new(pos(start), pos(i));
     let sign = if negative { "-" } else { "" };
     let kind = if !frac.is_empty() {
-        TokenKind::Real(format!("{sign}{digits}.{frac}").parse().map_err(|_| lex_error("Número real malformado.", pos(start), pos(i)))?)
+        TokenKind::Real(
+            format!("{sign}{digits}.{frac}").parse().map_err(|_| lex_error(L0010, "Número real malformado.", pos(start), pos(i)))?,
+        )
     } else {
         let v: i128 = format!("{sign}{digits}")
             .parse()
             .ok()
             .filter(|v: &i128| *v <= u64::MAX as i128 && *v >= i64::MIN as i128)
-            .ok_or_else(|| lex_error("Número grande demais: nenhum tipo da Lavra guarda esse valor.", pos(start), pos(i)))?;
+            .ok_or_else(|| lex_error(L0007, "Número grande demais: nenhum tipo da Lavra guarda esse valor.", pos(start), pos(i)))?;
         TokenKind::Int(v)
     };
     Ok((Token { kind, span, orig: text_of(start, i), contraction: None, line_start: false }, i))

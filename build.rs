@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-    for f in ["runtime/lib.rs", "src/span.rs", "src/diagnostics.rs", "src/textfmt.rs"] {
+    for f in ["runtime/lib.rs", "src/span.rs", "src/codes.rs", "src/diagnostics.rs", "src/textfmt.rs"] {
         println!("cargo:rerun-if-changed={f}");
     }
     let out = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("liblavra_rt.a");

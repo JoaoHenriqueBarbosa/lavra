@@ -1,4 +1,4 @@
-Erro de empréstimo: As notas estão emprestadas ao laço "Para cada" da linha 3 e não ganham itens enquanto ele durar.
+Erro de empréstimo [L0401]: As notas estão emprestadas ao laço "Para cada" da linha 3 e não ganham itens enquanto ele durar.
  --> tests/programs/err/emprestimo_laco.lav:4:9
   |
 3 |     Para cada nota das notas:

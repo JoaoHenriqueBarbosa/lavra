@@ -3,6 +3,7 @@
 
 pub mod ast;
 pub mod codegen;
+pub mod codes;
 pub mod diagnostics;
 pub mod hir;
 pub mod interp;

@@ -1,4 +1,4 @@
-Erro de escopo: "O resultado" retoma o valor da oração anterior do mesmo período, e aqui nenhuma oração antes deu valor.
+Erro de escopo [L0345]: "O resultado" retoma o valor da oração anterior do mesmo período, e aqui nenhuma oração antes deu valor.
  --> tests/programs/err/resultado_sem_valor.lav:3:13
   |
 3 |     Escrevo o resultado.

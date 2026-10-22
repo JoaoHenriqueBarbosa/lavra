@@ -1,6 +1,6 @@
 //! `lavrac`: compila e roda programas Lavra.
 
-use lavra::diagnostics::{Category, Diagnostic, Style, render};
+use lavra::diagnostics::{Diagnostic, Style, render};
 use lavra::span::SourceFile;
 use std::io::IsTerminal;
 use std::process::ExitCode;
@@ -87,14 +87,16 @@ fn main() -> ExitCode {
             });
             match result {
                 Ok(()) => ExitCode::SUCCESS,
-                Err(f) if f.desist => {
-                    report(&Diagnostic::new(Category::Failure, f.message, f.span).primary("o programa desistiu aqui"));
-                    ExitCode::from(1)
-                }
-                Err(f) => {
-                    report(&Diagnostic::new(Category::Runtime, f.message, f.span));
-                    ExitCode::from(101)
-                }
+                Err(f) => match f.code {
+                    Some(code) if !f.desist => {
+                        report(&Diagnostic::new(code, f.message, f.span));
+                        ExitCode::from(101)
+                    }
+                    _ => {
+                        report(&Diagnostic::failure(f.message, f.span).primary("o programa desistiu aqui"));
+                        ExitCode::from(1)
+                    }
+                },
             }
         }
         _ => {

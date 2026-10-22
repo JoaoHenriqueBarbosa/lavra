@@ -1,6 +1,10 @@
-//! Diagnósticos: categorias gramaticais e semânticas, e a renderização no estilo do
-//! rustc, em português, com o trecho do código sublinhado.
+//! Diagnósticos: categorias gramaticais e semânticas, códigos estáveis, correções que
+//! o compilador sabe fazer, e a renderização no estilo do rustc, em português, com o
+//! trecho do código sublinhado.
+//!
+//! O runtime dos executáveis inclui este arquivo; ele só depende de `span` e `codes`.
 
+use crate::codes::Code;
 use crate::span::{SourceFile, Span};
 use std::fmt::Write;
 
@@ -53,9 +57,27 @@ pub struct Label {
     pub text: String,
 }
 
+/// Uma troca no texto: o trecho `span` vira `text` (trecho vazio insere).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Edit {
+    pub span: Span,
+    pub text: String,
+}
+
+/// Uma correção que o compilador sabe fazer. `safe` quando ela não muda o sentido do
+/// programa (contração, concordância, ponto final): `lavrac fix` aplica só essas.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Fix {
+    pub title: String,
+    pub edits: Vec<Edit>,
+    pub safe: bool,
+}
+
 #[derive(Clone, Debug)]
 pub struct Diagnostic {
     pub category: Category,
+    /// Código estável ("L0334"); só a falha declarada pelo programa não tem.
+    pub code: Option<&'static str>,
     pub message: String,
     pub span: Span,
     /// Explicação curta sob o sublinhado principal.
@@ -63,11 +85,54 @@ pub struct Diagnostic {
     pub labels: Vec<Label>,
     pub notes: Vec<String>,
     pub hint: Option<String>,
+    pub fixes: Vec<Fix>,
 }
 
 impl Diagnostic {
-    pub fn new(category: Category, message: impl Into<String>, span: Span) -> Diagnostic {
-        Diagnostic { category, message: message.into(), span, primary: None, labels: Vec::new(), notes: Vec::new(), hint: None }
+    pub fn new(code: Code, message: impl Into<String>, span: Span) -> Diagnostic {
+        Diagnostic {
+            category: code.category,
+            code: Some(code.id),
+            message: message.into(),
+            span,
+            primary: None,
+            labels: Vec::new(),
+            notes: Vec::new(),
+            hint: None,
+            fixes: Vec::new(),
+        }
+    }
+
+    /// A falha declarada pelo programa ("Desisto com ...") que ninguém tratou: a
+    /// mensagem é do programa, e não tem código.
+    pub fn failure(message: impl Into<String>, span: Span) -> Diagnostic {
+        Diagnostic {
+            category: Category::Failure,
+            code: None,
+            message: message.into(),
+            span,
+            primary: None,
+            labels: Vec::new(),
+            notes: Vec::new(),
+            hint: None,
+            fixes: Vec::new(),
+        }
+    }
+
+    /// Uma correção segura: troca um trecho só, sem mudar o sentido.
+    pub fn fix(mut self, title: impl Into<String>, span: Span, text: impl Into<String>) -> Self {
+        self.fixes.push(Fix { title: title.into(), edits: vec![Edit { span, text: text.into() }], safe: true });
+        self
+    }
+
+    /// Uma correção que muda o programa e pede a revisão de quem escreve.
+    pub fn suggest(mut self, title: impl Into<String>, edits: Vec<Edit>) -> Self {
+        self.fixes.push(Fix { title: title.into(), edits, safe: false });
+        self
+    }
+
+    pub fn is_error(&self) -> bool {
+        self.category.is_error()
     }
 
     pub fn primary(mut self, text: impl Into<String>) -> Self {
@@ -105,6 +170,33 @@ pub fn err<T>(d: Diagnostic) -> Result<T> {
     Err(Box::new(d))
 }
 
+/// Os diagnósticos de uma análise inteira: as etapas acumulam aqui em vez de parar no
+/// primeiro erro.
+#[derive(Clone, Debug, Default)]
+pub struct Diagnostics {
+    pub list: Vec<Diagnostic>,
+}
+
+impl Diagnostics {
+    pub fn push(&mut self, d: Diagnostic) {
+        self.list.push(d);
+    }
+
+    pub fn has_errors(&self) -> bool {
+        self.list.iter().any(Diagnostic::is_error)
+    }
+
+    pub fn errors(&self) -> usize {
+        self.list.iter().filter(|d| d.is_error()).count()
+    }
+
+    /// Na ordem do texto; empate pela ordem em que foram achados.
+    pub fn sorted(mut self) -> Vec<Diagnostic> {
+        self.list.sort_by_key(|d| d.span.start);
+        self.list
+    }
+}
+
 /// Cores ANSI, ligadas só quando a saída é um terminal.
 #[derive(Clone, Copy)]
 pub struct Style {
@@ -129,8 +221,11 @@ struct Mark {
 pub fn render(d: &Diagnostic, src: &SourceFile, style: Style) -> String {
     let mut out = String::new();
     let head_color = if d.category.is_error() { "1;31" } else { "1;33" };
-    let _ =
-        writeln!(out, "{}{}", style.paint(head_color, &format!("{}:", d.category.label())), style.paint("1", &format!(" {}", d.message)));
+    let head = match d.code {
+        Some(code) => format!("{} [{code}]:", d.category.label()),
+        None => format!("{}:", d.category.label()),
+    };
+    let _ = writeln!(out, "{}{}", style.paint(head_color, &head), style.paint("1", &format!(" {}", d.message)));
     let (line, col) = src.line_col(d.span.start);
     let mut marks = vec![mark(src, d.span, true, d.primary.clone())];
     for l in &d.labels {

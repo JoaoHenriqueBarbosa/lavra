@@ -1,4 +1,4 @@
-Erro de tipo: "abrir" não pode desistir: o cabeçalho não diz "salvo uma falha".
+Erro de tipo [L0357]: "abrir" não pode desistir: o cabeçalho não diz "salvo uma falha".
  --> tests/programs/err/desisto_sem_salvo.lav:2:5
   |
 1 | Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto:

@@ -1,4 +1,4 @@
-Erro de concordância: "a nota" está no singular, mas o valor é uma coleção.
+Erro de concordância [L0318]: "a nota" está no singular, mas o valor é uma coleção.
  --> tests/programs/err/singular_colecao.lav:2:5
   |
 2 |     A nota começa com 1 e 2.

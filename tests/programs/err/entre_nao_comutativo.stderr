@@ -1,4 +1,4 @@
-Erro de regência: "entre" indica simetria e só vale para operação comutativa; "diferença" pede "de".
+Erro de regência [L0217]: "entre" indica simetria e só vale para operação comutativa; "diferença" pede "de".
  --> tests/programs/err/entre_nao_comutativo.lav:2:25
   |
 2 |     Escrevo a diferença entre 10 e 3.

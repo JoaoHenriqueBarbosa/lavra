@@ -1,4 +1,4 @@
-Erro de sintaxe: Dentro de uma operação por extenso, a conta infixa precisa de parênteses.
+Erro de sintaxe [L0133]: Dentro de uma operação por extenso, a conta infixa precisa de parênteses.
  --> tests/programs/err/nominal_infixa.lav:2:35
   |
 2 |     Escrevo a diferença de 10 e 3 mais 1.

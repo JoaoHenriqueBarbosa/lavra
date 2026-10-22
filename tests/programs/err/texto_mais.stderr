@@ -1,4 +1,4 @@
-Erro de tipo: Texto não se soma: se junta.
+Erro de tipo [L0358]: Texto não se soma: se junta.
  --> tests/programs/err/texto_mais.lav:3:13
   |
 3 |     Escrevo "Olá, " mais o nome.

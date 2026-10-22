@@ -4,7 +4,8 @@
 
 use super::Parser;
 use crate::ast::*;
-use crate::diagnostics::{Category, Diagnostic, Result, err};
+use crate::codes::*;
+use crate::diagnostics::{Diagnostic, Result, err};
 use crate::lexer::TokenKind;
 use crate::lexicon;
 use crate::morphology::{self, Gender, Number};
@@ -51,7 +52,7 @@ impl Parser {
         }
         if sig.kind == SigKind::Predicate && sig.infinitive == "ir" {
             return err(Diagnostic::new(
-                Category::Morphology,
+                L0150,
                 "Predicado com \"ir\" não pode: no subjuntivo ele dá \"for\", igual a \"ser\", que a língua usa nas comparações.",
                 sig.name_span,
             )
@@ -59,7 +60,7 @@ impl Parser {
         }
         if lexicon::is_core_infinitive(&sig.infinitive) {
             return err(Diagnostic::new(
-                Category::Morphology,
+                L0151,
                 format!("\"{}\" é verbo da própria língua e não se redefine.", sig.infinitive),
                 sig.name_span,
             )
@@ -68,7 +69,7 @@ impl Parser {
         if sig.kind == SigKind::Action {
             if lexicon::reserved(&sig.first_person).is_some() {
                 return err(Diagnostic::new(
-                    Category::Morphology,
+                    L0152,
                     format!(
                         "A 1ª pessoa de \"{}\" é \"{}\", que já é palavra da língua; a oração ficaria ambígua.",
                         sig.infinitive, sig.first_person
@@ -79,7 +80,7 @@ impl Parser {
             }
             if Self::is_core_verb(&sig.first_person) {
                 return err(Diagnostic::new(
-                    Category::Morphology,
+                    L0153,
                     format!("A 1ª pessoa de \"{}\" é \"{}\", que já é verbo da língua.", sig.infinitive, sig.first_person),
                     sig.name_span,
                 ));
@@ -88,7 +89,7 @@ impl Parser {
                 let o = &self.prog.sigs[other];
                 if o.infinitive != sig.infinitive {
                     return err(Diagnostic::new(
-                        Category::Morphology,
+                        L0154,
                         format!("\"{}\" e \"{}\" se conjugam igual: \"{}\".", o.infinitive, sig.infinitive, sig.first_person),
                         sig.name_span,
                     )
@@ -102,7 +103,7 @@ impl Parser {
             let o = &self.prog.sigs[other];
             if o.slots == sig.slots {
                 return err(Diagnostic::new(
-                    Category::Scope,
+                    L0155,
                     format!("\"{}\" já foi definido com essa mesma regência.", sig.infinitive),
                     sig.name_span,
                 )
@@ -148,7 +149,7 @@ impl Parser {
         let vt = self.bump();
         let Some(infinitive) = vt.word().map(str::to_string).filter(|w| morphology::verbs::is_infinitive(w)) else {
             return err(Diagnostic::new(
-                Category::Morphology,
+                L0156,
                 format!("Depois de \"Para\" vem um verbo no infinitivo, mas encontrei {}.", vt.describe()),
                 vt.span,
             )
@@ -178,7 +179,7 @@ impl Parser {
             Some(f) => f,
             None if kind == SigKind::Action => {
                 return err(Diagnostic::new(
-                    Category::Morphology,
+                    L0157,
                     format!("\"{infinitive}\" é defectivo: não tem 1ª pessoa do presente, e é ela que executa."),
                     name_span,
                 )
@@ -241,7 +242,7 @@ impl Parser {
                 let at = self.bump();
                 let Some(art) = at.word().and_then(morphology::article).filter(|a| !a.definite && a.number == Number::Singular) else {
                     return err(Diagnostic::new(
-                        Category::Syntax,
+                        L0158,
                         format!("Esperava o tipo devolvido com artigo indefinido (\"um real\"), mas encontrei {}.", at.describe()),
                         at.span,
                     ));
@@ -253,7 +254,7 @@ impl Parser {
                 let a = self.bump();
                 let f = self.bump();
                 if !(a.is_word("uma") && f.is_word("falha")) {
-                    return err(Diagnostic::new(Category::Syntax, "Esperava \"salvo uma falha\".", a.span.to(f.span)));
+                    return err(Diagnostic::new(L0159, "Esperava \"salvo uma falha\".", a.span.to(f.span)));
                 }
                 fallible = true;
             } else {
@@ -300,15 +301,15 @@ impl Parser {
         }
         for (w, _, _, span) in &typed {
             if !params.iter().any(|(n, _)| &n.word == w) {
-                return err(Diagnostic::new(Category::Scope, format!("\"{w}\" foi tipado mas não aparece no cabeçalho."), *span));
+                return err(Diagnostic::new(L0160, format!("\"{w}\" foi tipado mas não aparece no cabeçalho."), *span));
             }
         }
         if !matches!(kind, SigKind::Action) && ret.as_ref().is_some_and(|r| !matches!(r.ty, TypeExpr::Bool)) {
-            return err(Diagnostic::new(Category::Type, "Um predicado (sujeito antes do verbo) devolve um lógico.", ret.unwrap().span)
+            return err(Diagnostic::new(L0161, "Um predicado (sujeito antes do verbo) devolve um lógico.", ret.unwrap().span)
                 .hint("Ele vira condição: \"Se o saldo exceder o teto:\"."));
         }
         if !matches!(kind, SigKind::Action) && ret.is_none() {
-            return err(Diagnostic::new(Category::Type, "Um predicado (sujeito antes do verbo) devolve um lógico.", name_span)
+            return err(Diagnostic::new(L0161, "Um predicado (sujeito antes do verbo) devolve um lógico.", name_span)
                 .hint("Acrescente \", devolvendo um lógico\" ao cabeçalho."));
         }
         Ok(FuncSig {
@@ -339,16 +340,12 @@ impl Parser {
                 params.iter().filter(|(_, s)| !matches!(s, Slot::Object)).map(|(n, _)| n).collect()
             };
             if pair.len() != 2 {
-                return err(Diagnostic::new(Category::Syntax, "\"Ambos\" só cabe quando o cabeçalho tem dois parâmetros.", t.span));
+                return err(Diagnostic::new(L0162, "\"Ambos\" só cabe quando o cabeçalho tem dois parâmetros.", t.span));
             }
             let fem = pair.iter().all(|n| n.gender() == Gender::Feminine && !n.is_symbol());
             if t.is_word("ambas") != fem {
                 let right = if fem { "ambas" } else { "ambos" };
-                return err(Diagnostic::new(
-                    Category::Agreement,
-                    format!("\"{}\" não concorda com os parâmetros: escreva \"{right}\".", t.orig),
-                    t.span,
-                ));
+                return err(Diagnostic::new(L0163, format!("\"{}\" não concorda com os parâmetros: escreva \"{right}\".", t.orig), t.span));
             }
             for n in pair {
                 names.push((n.word.clone(), n.gender(), t.span));
@@ -357,13 +354,13 @@ impl Parser {
             loop {
                 let n = self.name_ref()?;
                 let Some((decl, _)) = params.iter().find(|(p, _)| p.word == n.word) else {
-                    return err(Diagnostic::new(Category::Scope, format!("\"{}\" não aparece no cabeçalho.", n.display()), n.span));
+                    return err(Diagnostic::new(L0160, format!("\"{}\" não aparece no cabeçalho.", n.display()), n.span));
                 };
                 if let (Some(a), Some(b)) = (n.article, decl.article)
                     && (a.gender != b.gender || a.number != b.number)
                 {
                     return err(Diagnostic::new(
-                        Category::Agreement,
+                        L0164,
                         format!("\"{}\" não concorda com o cabeçalho, que diz \"{}\".", n.display(), decl.display()),
                         n.span,
                     ));
@@ -384,7 +381,7 @@ impl Parser {
             let at = self.bump();
             if names.len() > 1 {
                 return err(Diagnostic::new(
-                    Category::Agreement,
+                    L0165,
                     "Vários parâmetros pedem o tipo no plural, sem artigo: \"sendo p e q inteiros\".",
                     at.span,
                 ));
@@ -393,7 +390,7 @@ impl Parser {
             if g != art.gender {
                 let w = self.toks[self.pos - 1].orig.clone();
                 return err(Diagnostic::new(
-                    Category::Agreement,
+                    L0128,
                     format!("\"{w}\" é {}: \"{} {w}\".", g.describe(), morphology::indefinite_article(g, Number::Singular)),
                     at.span,
                 ));
@@ -415,7 +412,7 @@ impl Parser {
                     if g != ty_gender || n != number {
                         let right = morphology::inflect_adjective(base, Gender::Masculine, ty_gender, number);
                         return err(Diagnostic::new(
-                            Category::Agreement,
+                            L0167,
                             format!("O particípio concorda com o tipo: \"{right}\", não \"{}\".", pt.orig),
                             pt.span,
                         ));
@@ -457,17 +454,13 @@ impl Parser {
                 None if self.vocab.record_plurals.contains_key(&w) => w.clone(),
                 None => {
                     let plurals: Vec<&str> = lexicon::TYPE_NOUNS.iter().filter(|t| t.singular != "lista").map(|t| t.plural).collect();
-                    return err(Diagnostic::new(Category::Type, format!("Tipo desconhecido: \"{}\".", t.orig), t.span)
+                    return err(Diagnostic::new(L0168, format!("Tipo desconhecido: \"{}\".", t.orig), t.span)
                         .hint(format!("No plural: {}.", plurals.join(", "))));
                 }
             },
         };
         if number == Number::Singular && (lexicon::type_noun_by_plural(&w).is_some() || self.vocab.record_plurals.contains_key(&w)) {
-            return err(Diagnostic::new(
-                Category::Agreement,
-                format!("Depois do artigo singular, o tipo vai no singular: não \"{w}\"."),
-                t.span,
-            ));
+            return err(Diagnostic::new(L0169, format!("Depois do artigo singular, o tipo vai no singular: não \"{w}\"."), t.span));
         }
         if sing == "lista" {
             if number == Number::Plural && w != "listas" {
@@ -485,7 +478,7 @@ impl Parser {
             "real" => {
                 let bits = self.bits()?.unwrap_or(64);
                 if bits != 64 && bits != 32 {
-                    return err(Diagnostic::new(Category::Type, "Um real tem 32 ou 64 bits.", self.prev_span()));
+                    return err(Diagnostic::new(L0170, "Um real tem 32 ou 64 bits.", self.prev_span()));
                 }
                 TypeExpr::Real { bits }
             }
@@ -495,7 +488,7 @@ impl Parser {
             "texto" => TypeExpr::Text,
             _ => {
                 let singulars: Vec<&str> = lexicon::TYPE_NOUNS.iter().filter(|t| t.singular != "lista").map(|t| t.singular).collect();
-                let mut d = Diagnostic::new(Category::Type, format!("Tipo desconhecido: \"{}\".", t.orig), t.span).hint(format!(
+                let mut d = Diagnostic::new(L0168, format!("Tipo desconhecido: \"{}\".", t.orig), t.span).hint(format!(
                     "Tipos: {}, lista de ..., ou um registro definido com \"Uma conta é um registro de:\".",
                     singulars.join(", ")
                 ));
@@ -564,7 +557,7 @@ impl Parser {
     fn regency_error(&self, sig: &FuncSig, what: &str) -> Box<Diagnostic> {
         let t = self.peek();
         Box::new(
-            Diagnostic::new(Category::Regency, format!("A chamada não segue a regência de \"{}\": {what}.", sig.infinitive), t.span)
+            Diagnostic::new(L0171, format!("A chamada não segue a regência de \"{}\": {what}.", sig.infinitive), t.span)
                 .primary(format!("encontrei {}", t.describe()))
                 .label(sig.name_span, "definido aqui")
                 .hint(format!("Escreva: {}", sig.usage())),
@@ -573,6 +566,6 @@ impl Parser {
 }
 
 fn missing_type(n: &NameRef) -> Diagnostic {
-    Diagnostic::new(Category::Type, format!("Falta o tipo de \"{}\".", n.display()), n.span)
+    Diagnostic::new(L0172, format!("Falta o tipo de \"{}\".", n.display()), n.span)
         .hint(format!("Depois do cabeçalho: \", sendo {} um inteiro\".", n.display()))
 }

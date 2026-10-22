@@ -1,4 +1,4 @@
-Erro de tipo: "círculo" é caso de uma forma, não de um sinal.
+Erro de tipo [L0333]: "círculo" é caso de uma forma, não de um sinal.
   --> tests/programs/err/caso_de_outro_tipo.lav:11:23
    |
 11 |     Se o semáforo for um círculo: escrevo "?".

@@ -1,4 +1,4 @@
-Erro de tipo: "nada" só cabe onde se espera "talvez", e aqui se espera um texto.
+Erro de tipo [L0348]: "nada" só cabe onde se espera "talvez", e aqui se espera um texto.
  --> tests/programs/err/nada_sem_talvez.lav:3:17
   |
 3 |     O nome vira nada.

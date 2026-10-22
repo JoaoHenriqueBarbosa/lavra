@@ -1,4 +1,4 @@
-Erro de posse: O bilhete foi guardado em "as cartas" na linha 4 e não volta.
+Erro de posse [L0400]: O bilhete foi guardado em "as cartas" na linha 4 e não volta.
  --> tests/programs/err/posse_lista.lav:5:13
   |
 4 |     As cartas ganham o bilhete.

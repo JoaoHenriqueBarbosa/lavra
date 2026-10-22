@@ -43,6 +43,13 @@ site leem. Testes do léxico: toda palavra que o parser consulta (os literais de
 léxico; toda entrada tem documentação; o JSON exportado está em dia
 (`LAVRA_BLESS=1 cargo test --lib lexicon` regrava).
 
+`codes.rs`: os códigos dos diagnósticos, estáveis e num espaço só (`L0001` em diante),
+independentes da categoria; cada ponto que cria um diagnóstico passa o código
+(`Diagnostic::new(L0334, ...)`) e a categoria sai do registro. O cabeçalho mostra o código
+(`Erro de escopo [L0334]: ...`); a falha declarada pelo programa (`Desisto com`) não tem
+código. O runtime inclui o registro e recebe do nativo o número do código, para o erro de
+execução sair igual nos dois back-ends.
+
 `morphology/`: flexão, artigos e ordinais (com as tabelas do léxico) e as tabelas
 conferidas contra o dicionário (ver [morphology.md](morphology.md)). `diagnostics.rs`: categorias e renderização no
 estilo do rustc. `textfmt.rs`: formatação e mensagens de execução, compartilhadas pelo

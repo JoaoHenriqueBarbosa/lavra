@@ -1,4 +1,4 @@
-Erro de concordância: O verbo não concorda com o sujeito: "os dias" é plural, então "começam", não "começa".
+Erro de concordância [L0113]: O verbo não concorda com o sujeito: "os dias" é plural, então "começam", não "começa".
  --> tests/programs/err/concordancia_verbo.lav:2:13
   |
 2 |     Os dias começa em 0.

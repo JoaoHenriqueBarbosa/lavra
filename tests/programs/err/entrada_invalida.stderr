@@ -1,4 +1,4 @@
-Erro de execução: Esperava um inteiro, mas li "doze".
+Erro de execução [L0913]: Esperava um inteiro, mas li "doze".
  --> tests/programs/err/entrada_invalida.lav:2:5
   |
 2 |     Leio um inteiro e escrevo o resultado.

@@ -7,6 +7,7 @@
 //! entrega; na saída da função, o que ainda tem dono é liberado.
 
 use crate::ast::{BinOp, ParamMode, Rel, UnOp};
+use crate::codes::{Code, L0900, L0904, L0905};
 use crate::hir::{self, Cond, ExprKind, PlaceProj, Stmt, Var};
 use crate::span::Span;
 use crate::textfmt;
@@ -24,7 +25,7 @@ const PTR: types::Type = types::I64;
 
 /// Funções do runtime: nome, parâmetros, retornos.
 const RUNTIME: &[(&str, &[types::Type], &[types::Type])] = &[
-    ("rt_fault", &[PTR, types::I64, types::I32, types::I32], &[]),
+    ("rt_fault", &[types::I32, PTR, types::I64, types::I32, types::I32], &[]),
     ("rt_fault_abs", &[types::I64, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_fault_shift", &[types::I64, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_fault_sqrt", &[types::F64, types::I32, types::I32], &[]),
@@ -475,20 +476,21 @@ impl<'a, 'b> Fx<'a, 'b> {
         (self.b.ins().iconst(types::I32, lo), self.b.ins().iconst(types::I32, hi))
     }
 
-    fn fault(&mut self, msg: &str, span: Span) {
+    fn fault(&mut self, code: Code, msg: &str, span: Span) {
+        let c = self.b.ins().iconst(types::I32, code.number() as i64);
         let (p, n) = self.str_args(msg);
         let (lo, hi) = self.span_vals(span);
-        self.rt("rt_fault", &[p, n, lo, hi]);
+        self.rt("rt_fault", &[c, p, n, lo, hi]);
         self.b.ins().trap(ir::TrapCode::unwrap_user(2));
     }
 
     /// Se `cond` for verdadeiro, falha com a mensagem; senão segue.
-    fn fault_if(&mut self, cond: Value, msg: &str, span: Span) {
+    fn fault_if(&mut self, cond: Value, code: Code, msg: &str, span: Span) {
         let bad = self.b.create_block();
         let ok = self.b.create_block();
         self.b.ins().brif(cond, bad, &[], ok, &[]);
         self.b.switch_to_block(bad);
-        self.fault(msg, span);
+        self.fault(code, msg, span);
         self.b.switch_to_block(ok);
     }
 
@@ -1594,12 +1596,16 @@ impl<'a, 'b> Fx<'a, 'b> {
                     (BinOp::Mul, true) => self.b.ins().smul_overflow(a, b),
                     _ => self.b.ins().umul_overflow(a, b),
                 };
-                self.fault_if(of, &overflow, span);
+                self.fault_if(of, L0900, &overflow, span);
                 r
             }
             BinOp::Div | BinOp::Rem => {
                 let zero = self.b.ins().icmp_imm_s(IntCC::Equal, b, 0);
-                self.fault_if(zero, if op == BinOp::Div { textfmt::DIV_ZERO } else { textfmt::REM_ZERO }, span);
+                if op == BinOp::Div {
+                    self.fault_if(zero, L0904, textfmt::DIV_ZERO, span);
+                } else {
+                    self.fault_if(zero, L0905, textfmt::REM_ZERO, span);
+                }
                 if !it.signed {
                     return if op == BinOp::Div { self.b.ins().udiv(a, b) } else { self.b.ins().urem(a, b) };
                 }
@@ -1608,7 +1614,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                 if op == BinOp::Div {
                     let min = self.b.ins().icmp_imm_s(IntCC::Equal, a, it.min() as i64);
                     let both = self.b.ins().band(minus_one, min);
-                    self.fault_if(both, &overflow, span);
+                    self.fault_if(both, L0900, &overflow, span);
                     self.b.ins().sdiv(a, b)
                 } else {
                     let one = self.b.ins().iconst(t, 1);

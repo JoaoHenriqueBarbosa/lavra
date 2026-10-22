@@ -1,4 +1,4 @@
-Erro de escopo: Nenhum registro tem o campo "cor".
+Erro de escopo [L0118]: Nenhum registro tem o campo "cor".
  --> tests/programs/err/campo_inexistente.lav:7:15
   |
 7 |     Escrevo a cor da carteira.

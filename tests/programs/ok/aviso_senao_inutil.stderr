@@ -1,4 +1,4 @@
-Aviso: Este "Senão" nunca acontece: todos os casos já foram tratados.
+Aviso [L0501]: Este "Senão" nunca acontece: todos os casos já foram tratados.
  --> tests/programs/ok/aviso_senao_inutil.lav:7:14
   |
 7 |     Conforme o semáforo:

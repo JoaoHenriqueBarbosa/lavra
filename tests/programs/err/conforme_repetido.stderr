@@ -1,4 +1,4 @@
-Erro de sintaxe: O caso "um verde" já foi tratado.
+Erro de sintaxe [L0310]: O caso "um verde" já foi tratado.
  --> tests/programs/err/conforme_repetido.lav:9:15
   |
 8 |         Sendo um verde: escrevo "siga".

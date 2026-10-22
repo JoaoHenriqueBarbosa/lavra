@@ -2,6 +2,7 @@
 //! mutabilidade e regência dos parâmetros, e baixa a AST para a HIR.
 
 use crate::ast::{self, BinOp, ClauseKind, ExprKind, Init, ParamMode, Rel, UnOp};
+use crate::codes::*;
 use crate::diagnostics::{Category, Diagnostic, Result, err};
 use crate::hir::{self, Var};
 use crate::morphology::{self, Gender, Number};
@@ -12,7 +13,7 @@ use std::sync::Arc;
 
 pub fn check(prog: &ast::Program) -> Result<(hir::Program, Vec<Diagnostic>)> {
     let Some(main) = prog.main else {
-        return err(Diagnostic::new(Category::Syntax, "O programa não tem \"Para começar:\".", Span::new(0, 0))
+        return err(Diagnostic::new(L0300, "O programa não tem \"Para começar:\".", Span::new(0, 0))
             .hint("Todo programa começa por \"Para começar:\", seguido do bloco recuado."));
     };
     let mut env = Env {
@@ -62,7 +63,7 @@ pub fn check(prog: &ast::Program) -> Result<(hir::Program, Vec<Diagnostic>)> {
         let body = cx.block(&f.body)?;
         if ret != Ty::Unit && !always_returns(&body) {
             return err(Diagnostic::new(
-                Category::Type,
+                L0301,
                 format!("\"{}\" promete devolver {}, mas pode terminar sem devolver.", sig.infinitive, ret.describe()),
                 sig.name_span,
             )
@@ -119,7 +120,7 @@ impl Env<'_> {
             return Ok(r.clone());
         }
         if stack.contains(&i) {
-            return err(Diagnostic::new(Category::Type, format!("\"{}\" contém a si mesmo e teria tamanho infinito.", def.word), def.span)
+            return err(Diagnostic::new(L0302, format!("\"{}\" contém a si mesmo e teria tamanho infinito.", def.word), def.span)
                 .hint("Para guardar outros do mesmo tipo, use uma lista: \"os filhos, uma lista de nós\"."));
         }
         stack.push(i);
@@ -151,7 +152,7 @@ impl Env<'_> {
         }
         let key = self.prog.records.len() + i;
         if stack.contains(&key) {
-            return err(Diagnostic::new(Category::Type, format!("\"{}\" contém a si mesma e teria tamanho infinito.", def.word), def.span)
+            return err(Diagnostic::new(L0302, format!("\"{}\" contém a si mesma e teria tamanho infinito.", def.word), def.span)
                 .hint("Para guardar outros do mesmo tipo, use uma lista."));
         }
         stack.push(key);
@@ -192,12 +193,12 @@ impl Env<'_> {
                     && let Some(i) = self.prog.records.iter().position(|r| &r.word == name)
                     && stack.contains(&i)
                 {
-                    return err(Diagnostic::new(Category::Type, "Registro recursivo ainda não é suportado.", span));
+                    return err(Diagnostic::new(L0303, "Registro recursivo ainda não é suportado.", span));
                 }
                 Ty::List(Box::new(self.type_in_record(inner, span, stack)?))
             }
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_in_record(inner, span, stack)?)),
-            other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(Category::Type, "Tipo ainda não suportado.", span)))?,
+            other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(L0304, "Tipo ainda não suportado.", span)))?,
         })
     }
 
@@ -213,7 +214,7 @@ impl Env<'_> {
             },
             ast::TypeExpr::List(inner) => Ty::List(Box::new(self.type_expr(inner, span)?)),
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_expr(inner, span)?)),
-            other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(Category::Type, "Tipo ainda não suportado.", span)))?,
+            other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(L0304, "Tipo ainda não suportado.", span)))?,
         })
     }
 }
@@ -289,7 +290,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let l = &self.locals[i];
                 let name = format!("{} {}", morphology::definite_article(l.gender, l.number), l.local.name);
                 return err(Diagnostic::new(
-                    Category::Type,
+                    L0305,
                     format!("Não sei o tipo dos itens de \"{name}\": nada entra nem sai dela."),
                     l.decl_span,
                 )
@@ -306,12 +307,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let begin = morphology::third_person("começar", l.number).unwrap_or_default();
                 let change = morphology::third_person("mudar", l.number).unwrap_or_default();
                 self.env.warnings.push(
-                    Diagnostic::new(
-                        Category::Warning,
-                        format!("{} {begin} com um valor e nunca {change}.", capitalize(&name)),
-                        l.decl_span,
-                    )
-                    .hint(format!("Se é definição, escreva \"{} {verb} ...\".", capitalize(&name))),
+                    Diagnostic::new(L0500, format!("{} {begin} com um valor e nunca {change}.", capitalize(&name)), l.decl_span)
+                        .hint(format!("Se é definição, escreva \"{} {verb} ...\".", capitalize(&name))),
                 );
             }
         }
@@ -444,7 +441,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let e = self.expr(c, None)?;
                         if !matches!(e.ty, Ty::Int(_) | Ty::Error) {
                             return err(Diagnostic::new(
-                                Category::Type,
+                                L0306,
                                 format!("Repete-se um número inteiro de vezes, e este valor é {}.", e.ty.describe()),
                                 c.span,
                             ));
@@ -460,7 +457,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let from = self.expr(from, None)?;
                 if !matches!(from.ty, Ty::Int(_)) {
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0307,
                         format!("O intervalo de \"Para cada\" é de inteiros, e este valor é {}.", from.ty.describe()),
                         from.span,
                     ));
@@ -478,7 +475,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     Err(d) if d.category == Category::Scope && matches!(&source.kind, ExprKind::Place(p) if p.span == item.span) => {
                         let ExprKind::Place(p) = &source.kind else { unreachable!() };
                         return err(Diagnostic::new(
-                            Category::Scope,
+                            L0308,
                             format!("\"Para cada {}\" procura \"{}\", que não foi declarado.", item.word, p.root.display()),
                             item.span,
                         )
@@ -507,7 +504,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let v = self.expr(scrutinee, None)?;
                 let Ty::Enum(e) = self.resolve_ty(&v.ty) else {
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0309,
                         format!(
                             "\"Conforme\" escolhe entre os casos de uma enumeração, e este valor é {}.",
                             self.resolve_ty(&v.ty).describe()
@@ -524,7 +521,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let tag = self.variant_of(&e, word, *span)?;
                         if let Some(prev) = seen[tag] {
                             return err(Diagnostic::new(
-                                Category::Syntax,
+                                L0310,
                                 format!("O caso \"{} {word}\" já foi tratado.", if e.variants[tag].feminine { "uma" } else { "um" }),
                                 *span,
                             )
@@ -558,12 +555,12 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if otherwise.is_none() && !missing.is_empty() {
                     let cases = join_e(&missing);
                     let word = if missing.len() == 1 { "o caso" } else { "os casos" };
-                    return err(Diagnostic::new(Category::Type, format!("\"Conforme\" não trata {word} {cases}.",), scrutinee.span)
+                    return err(Diagnostic::new(L0311, format!("\"Conforme\" não trata {word} {cases}.",), scrutinee.span)
                         .hint("Trate cada caso com \"Sendo ...:\", ou junte o resto num \"Senão:\"."));
                 }
                 if otherwise.is_some() && missing.is_empty() {
                     self.env.warnings.push(Diagnostic::new(
-                        Category::Warning,
+                        L0501,
                         "Este \"Senão\" nunca acontece: todos os casos já foram tratados.",
                         scrutinee.span,
                     ));
@@ -584,7 +581,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
 
     fn declare(&mut self, name: &ast::NameRef, ty: Ty, mutable: bool) -> Result<hir::LocalId> {
         if let Some(id) = self.scopes.last().unwrap().iter().find(|(w, _)| *w == name.word).map(|(_, id)| *id) {
-            return err(Diagnostic::new(Category::Scope, format!("\"{}\" já foi declarado neste bloco.", name.display()), name.span)
+            return err(Diagnostic::new(L0312, format!("\"{}\" já foi declarado neste bloco.", name.display()), name.span)
                 .label(self.locals[id].decl_span, "declarado aqui"));
         }
         self.check_name(name)?;
@@ -603,11 +600,11 @@ impl<'e, 'a> FnCx<'e, 'a> {
 
     fn check_name(&self, name: &ast::NameRef) -> Result<()> {
         if let Some(g) = self.env.globals.iter().find(|g| g.name == name.word) {
-            return err(Diagnostic::new(Category::Scope, format!("\"{}\" já é uma constante do programa.", name.display()), name.span)
+            return err(Diagnostic::new(L0313, format!("\"{}\" já é uma constante do programa.", name.display()), name.span)
                 .label(g.span, "definida aqui"));
         }
         if !name.is_symbol() && name.word.chars().count() < 2 {
-            return err(Diagnostic::new(Category::Morphology, "Um nome tem pelo menos duas letras.", name.span));
+            return err(Diagnostic::new(L0314, "Um nome tem pelo menos duas letras.", name.span));
         }
         Ok(())
     }
@@ -656,7 +653,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             Some(Ty::List(e)) => Some(*e),
                             Some(other) => {
                                 return err(Diagnostic::new(
-                                    Category::Type,
+                                    L0315,
                                     format!("Vários valores formam uma lista, mas o aposto diz {}.", other.describe()),
                                     *span,
                                 ));
@@ -681,7 +678,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             Some(Ty::Text) => Ty::Text,
                             Some(other) => {
                                 return err(Diagnostic::new(
-                                    Category::Type,
+                                    L0316,
                                     format!("Só lista e texto começam vazios, e o aposto diz {}.", other.describe()),
                                     *span,
                                 ));
@@ -699,7 +696,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let is_list = matches!(self.resolve_ty(&ty), Ty::List(_));
                 if plural && !is_list {
                     return err(Diagnostic::new(
-                        Category::Agreement,
+                        L0317,
                         format!(
                             "\"{}\" está no plural, então é uma coleção, mas o valor é {}.",
                             name.display(),
@@ -713,7 +710,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     let pl =
                         format!("{} {}", morphology::definite_article(name.gender(), Number::Plural), morphology::pluralize(&name.word));
                     return err(Diagnostic::new(
-                        Category::Agreement,
+                        L0318,
                         format!("\"{}\" está no singular, mas o valor é uma coleção.", name.display()),
                         name.span,
                     )
@@ -743,7 +740,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let p = self.place_mut(place, &morphology::third_person("ganhar", place.number()).unwrap_or_default())?;
                 let Ty::List(elem) = self.resolve_ty(&p.ty) else {
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0319,
                         format!("Só lista ganha itens, e {} {} {}.", place_name(place), be(place), self.resolve_ty(&p.ty).describe()),
                         place.span,
                     ));
@@ -759,7 +756,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let p = self.place_mut(place, &verb)?;
                 let Ty::List(elem) = self.resolve_ty(&p.ty) else {
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0320,
                         format!("Só lista perde itens, e {} {} {}.", place_name(place), be(place), self.resolve_ty(&p.ty).describe()),
                         place.span,
                     ));
@@ -791,7 +788,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let p = self.place_mut(place, if grow { "cresce" } else { "diminui" })?;
                 if !p.ty.is_numeric() {
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0321,
                         format!("Só número cresce ou diminui; {} {} {}.", place_name(place), be(place), p.ty.describe()),
                         place.span,
                     ));
@@ -806,7 +803,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ClauseKind::Write { parts, newline } => {
                 let value = self.expr(&parts[0], None)?;
                 if value.ty == Ty::Unit {
-                    return err(Diagnostic::new(Category::Type, "Esse valor não existe: a função não devolve nada.", parts[0].span));
+                    return err(Diagnostic::new(L0322, "Esse valor não existe: a função não devolve nada.", parts[0].span));
                 }
                 out.push(hir::Stmt::Write { value, newline: *newline });
                 self.result = None;
@@ -814,7 +811,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ClauseKind::ReadInto { place } => {
                 let p = self.place_mut(place, "muda pela leitura")?;
                 if !readable(&p.ty) {
-                    return err(Diagnostic::new(Category::Type, format!("Não se lê {} da entrada.", p.ty.describe()), place.span));
+                    return err(Diagnostic::new(L0323, format!("Não se lê {} da entrada.", p.ty.describe()), place.span));
                 }
                 let value = hir::Expr { kind: hir::ExprKind::Input, ty: p.ty.clone(), span: c.span };
                 out.push(hir::Stmt::Assign { place: p.clone(), value });
@@ -838,7 +835,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let brk = matches!(c.kind, ClauseKind::Break);
                 if self.loops == 0 {
                     let w = if brk { "Paro" } else { "Pulo" };
-                    return err(Diagnostic::new(Category::Syntax, format!("\"{w}\" só faz sentido dentro de um laço."), c.span));
+                    return err(Diagnostic::new(L0324, format!("\"{w}\" só faz sentido dentro de um laço."), c.span));
                 }
                 out.push(if brk { hir::Stmt::Break } else { hir::Stmt::Continue });
             }
@@ -853,16 +850,12 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         } else {
                             format!("\"{}\" não devolve valor", sig.infinitive)
                         };
-                        return err(Diagnostic::new(Category::Type, format!("{what}; aqui basta \"Devolvo.\""), e.span).maybe_hint(
+                        return err(Diagnostic::new(L0325, format!("{what}; aqui basta \"Devolvo.\""), e.span).maybe_hint(
                             (!sig.is_main).then(|| "Para devolver, acrescente \", devolvendo um ...\" ao cabeçalho.".to_string()),
                         ));
                     }
                     (None, t) => {
-                        return err(Diagnostic::new(
-                            Category::Type,
-                            format!("\"{}\" devolve {}: diga qual.", sig.infinitive, t.describe()),
-                            c.span,
-                        ));
+                        return err(Diagnostic::new(L0326, format!("\"{}\" devolve {}: diga qual.", sig.infinitive, t.describe()), c.span));
                     }
                     (Some(e), t) => Some(self.expr(e, Some(t))?),
                 };
@@ -874,7 +867,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     Some(h) => {
                         if !self.env.prog.sigs[call.sig].fallible {
                             return err(Diagnostic::new(
-                                Category::Syntax,
+                                L0327,
                                 format!("\"{}\" não falha, então não precisa de \", ou ...\".", self.env.prog.sigs[call.sig].infinitive),
                                 c.span,
                             ));
@@ -905,7 +898,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         if sig.fallible && !handled {
             let usage = capitalize(&sig.usage());
             return err(Diagnostic::new(
-                Category::Type,
+                L0328,
                 format!("\"{}\" pode falhar, e a chamada não diz o que fazer se falhar.", sig.infinitive),
                 call.span,
             )
@@ -919,7 +912,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             let place = if p.mode == ParamMode::Lent {
                 let ExprKind::Place(pl) = &a.kind else {
                     return err(Diagnostic::new(
-                        Category::Borrow,
+                        L0329,
                         format!(
                             "\"{}\" recebe {} confiado: precisa de um lugar que possa mudar, não de um valor solto.",
                             sig.infinitive,
@@ -953,7 +946,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let ordered = !matches!(rel, Rel::Equal | Rel::Different);
                         if ordered && !matches!(lhs.ty, Ty::Int(_) | Ty::Real(_) | Ty::Char | Ty::Text | Ty::Error) {
                             return err(Diagnostic::new(
-                                Category::Type,
+                                L0330,
                                 format!("\"{}\" compara números, caracteres ou textos, e este valor é {}.", rel.words(), lhs.ty.describe()),
                                 *span,
                             ));
@@ -965,7 +958,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let v = self.expr(subject, None)?;
                         let Ty::Enum(e) = self.resolve_ty(&v.ty) else {
                             return err(Diagnostic::new(
-                                Category::Type,
+                                L0331,
                                 format!("Só enumeração tem casos, e este valor é {}.", self.resolve_ty(&v.ty).describe()),
                                 subject.span,
                             ));
@@ -977,7 +970,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let e = self.maybe_named(word, *word_span)?;
                         hir::Cond::IsSome(e)
                     }
-                    _ => return err(Diagnostic::new(Category::Syntax, "Condição ainda não suportada.", *span)),
+                    _ => return err(Diagnostic::new(L0332, "Condição ainda não suportada.", *span)),
                 };
                 if *negated { hir::Cond::Not(Box::new(inner)) } else { inner }
             }
@@ -1003,7 +996,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let cases: Vec<String> =
                     e.variants.iter().map(|v| format!("\"{} {}\"", if v.feminine { "uma" } else { "um" }, v.name)).collect();
                 err(Diagnostic::new(
-                    Category::Type,
+                    L0333,
                     format!("\"{word}\" é caso de {}, não de {}.", Ty::Enum(other).describe(), Ty::Enum(e.clone()).describe()),
                     span,
                 )
@@ -1015,13 +1008,13 @@ impl<'e, 'a> FnCx<'e, 'a> {
     /// O nome de um "Se houver apelido": tem que ser um "talvez".
     fn maybe_named(&mut self, word: &str, span: Span) -> Result<hir::Expr> {
         let Some(info) = self.lookup(word) else {
-            return err(Diagnostic::new(Category::Scope, format!("\"{word}\" não foi declarado."), span));
+            return err(Diagnostic::new(L0334, format!("\"{word}\" não foi declarado."), span));
         };
         let ty = self.resolve_ty(&info.ty);
         if !matches!(ty, Ty::Maybe(_)) {
             let name = format!("{} {word}", morphology::definite_article(info.gender, info.number));
             return err(Diagnostic::new(
-                Category::Type,
+                L0335,
                 format!("\"{name}\" é {} e sempre existe; \"houver\" é para o que foi declarado com \"talvez\".", ty.describe()),
                 span,
             ));
@@ -1031,7 +1024,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
 
     fn resolve(&self, name: &ast::NameRef) -> Result<NameInfo> {
         let Some(info) = self.lookup(&name.word) else {
-            let mut d = Diagnostic::new(Category::Scope, format!("\"{}\" não foi declarado.", name.display()), name.span);
+            let mut d = Diagnostic::new(L0334, format!("\"{}\" não foi declarado.", name.display()), name.span);
             let near = self
                 .scopes
                 .iter()
@@ -1064,7 +1057,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 None => format!("{right} {}", name.word),
             };
             return err(Diagnostic::new(
-                Category::Agreement,
+                L0336,
                 format!(
                     "\"{written}\" não concorda: \"{}\" é {}. Escreva \"{fixed}\".",
                     name.word,
@@ -1086,16 +1079,12 @@ impl<'e, 'a> FnCx<'e, 'a> {
             match pr {
                 ast::Proj::Field(n) => {
                     let Ty::Record(r) = &ty else {
-                        return err(Diagnostic::new(
-                            Category::Type,
-                            format!("\"{}\" é {} e não tem campos.", owner, ty.describe()),
-                            n.span,
-                        ));
+                        return err(Diagnostic::new(L0337, format!("\"{}\" é {} e não tem campos.", owner, ty.describe()), n.span));
                     };
                     let Some(i) = r.fields.iter().position(|(f, _)| *f == n.word) else {
                         let names: Vec<String> = r.fields.iter().map(|(f, _)| format!("\"{f}\"")).collect();
                         return err(Diagnostic::new(
-                            Category::Scope,
+                            L0338,
                             format!("{} não tem o campo \"{}\".", capitalize(&Ty::Record(r.clone()).describe()), n.word),
                             n.word_span,
                         )
@@ -1106,7 +1095,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         && (a.gender != def.name.gender() || a.number != def.name.number())
                     {
                         return err(Diagnostic::new(
-                            Category::Agreement,
+                            L0339,
                             format!("\"{}\" não concorda com o campo, que é \"{}\".", n.display(), def.name.display()),
                             n.span,
                         ));
@@ -1142,8 +1131,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
         match self.resolve_ty(ty) {
             Ty::List(e) => Ok(*e),
             Ty::Text => Ok(Ty::Char),
-            Ty::Infer(_) => err(Diagnostic::new(Category::Type, format!("Ainda não sei de que é \"{owner}\" para tirar um item."), span)),
-            other => err(Diagnostic::new(Category::Type, format!("\"{owner}\" é {} e não tem itens.", other.describe()), span)),
+            Ty::Infer(_) => err(Diagnostic::new(L0340, format!("Ainda não sei de que é \"{owner}\" para tirar um item."), span)),
+            other => err(Diagnostic::new(L0341, format!("\"{owner}\" é {} e não tem itens.", other.describe()), span)),
         }
     }
 
@@ -1190,14 +1179,13 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     )
                 }
             };
-            return err(Diagnostic::new(Category::Mutability, message, p.span).label(info.decl_span, label).maybe_hint(hint));
+            return err(Diagnostic::new(L0342, message, p.span).label(info.decl_span, label).maybe_hint(hint));
         }
         if let Var::Local(id) = info.var {
             self.locals[id].mutated = true;
         }
         if hp.proj.iter().any(|p| !matches!(p, hir::PlaceProj::Field(_))) && hp.ty == Ty::Char {
-            return err(Diagnostic::new(Category::Type, "Texto não se muda letra por letra.", p.span)
-                .hint("Monte o texto novo com \"seguido de\"."));
+            return err(Diagnostic::new(L0343, "Texto não se muda letra por letra.", p.span).hint("Monte o texto novo com \"seguido de\"."));
         }
         Ok(hp)
     }
@@ -1221,7 +1209,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     && !i.contains(*v)
                 {
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0344,
                         format!("{v} não cabe num {}: vai de {} a {}.", i.noun(false), i.min(), i.max()),
                         e.span,
                     ));
@@ -1268,7 +1256,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ExprKind::Anaphora => {
                 let Some(id) = self.result else {
                     return err(Diagnostic::new(
-                        Category::Scope,
+                        L0345,
                         "\"O resultado\" retoma o valor da oração anterior do mesmo período, e aqui nenhuma oração antes deu valor.",
                         e.span,
                     )
@@ -1282,7 +1270,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 for p in parts {
                     let v = self.expr(p, None)?;
                     if v.ty == Ty::Unit {
-                        return err(Diagnostic::new(Category::Type, "Esse valor não existe: a função não devolve nada.", p.span));
+                        return err(Diagnostic::new(L0322, "Esse valor não existe: a função não devolve nada.", p.span));
                     }
                     out.push(v);
                 }
@@ -1293,7 +1281,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if c.ty == Ty::Unit {
                     let sig = &self.env.prog.sigs[call.sig];
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0346,
                         format!("\"{}\" não devolve valor, então não tem resultado.", sig.infinitive),
                         call.verb_span,
                     )
@@ -1313,12 +1301,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     (a, b) => a == b,
                 };
                 if !ok {
-                    return err(Diagnostic::new(
-                        Category::Type,
-                        format!("Não se converte {} em {}.", from.describe(), target.describe()),
-                        e.span,
-                    )
-                    .hint("\"como\" converte entre números, e de qualquer valor simples para texto."));
+                    return err(Diagnostic::new(L0347, format!("Não se converte {} em {}.", from.describe(), target.describe()), e.span)
+                        .hint("\"como\" converte entre números, e de qualquer valor simples para texto."));
                 }
                 (hir::ExprKind::Convert(Box::new(v)), target)
             }
@@ -1331,7 +1315,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     }
                     Some(other) => {
                         return err(Diagnostic::new(
-                            Category::Type,
+                            L0348,
                             format!("\"nada\" só cabe onde se espera \"talvez\", e aqui se espera {}.", other.describe()),
                             e.span,
                         )
@@ -1348,7 +1332,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let ExprKind::Call(c) = &value.kind else { unreachable!() };
                 if !self.env.prog.sigs[c.sig].fallible {
                     return err(Diagnostic::new(
-                        Category::Syntax,
+                        L0327,
                         format!("\"{}\" não falha, então não precisa de \", ou ...\".", self.env.prog.sigs[c.sig].infinitive),
                         e.span,
                     ));
@@ -1370,7 +1354,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         Ty::List(_) | Ty::Text => Ty::Int(IntTy::I64),
                         other => {
                             return err(Diagnostic::new(
-                                Category::Type,
+                                L0349,
                                 format!("Só lista e texto têm tamanho, e este valor é {}.", other.describe()),
                                 operand.span,
                             ));
@@ -1386,7 +1370,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             _ => "um número",
                         };
                         return err(Diagnostic::new(
-                            Category::Type,
+                            L0350,
                             format!("A operação pede {what}, e este valor é {}.", vt.describe()),
                             operand.span,
                         ));
@@ -1411,10 +1395,10 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         } else {
                             format!("\"{}\" não tem o campo \"{fname}\".", v.name)
                         };
-                        return err(Diagnostic::new(Category::Scope, msg, *fspan));
+                        return err(Diagnostic::new(L0338, msg, *fspan));
                     };
                     if values[i].is_some() {
-                        return err(Diagnostic::new(Category::Syntax, format!("O campo \"{fname}\" aparece duas vezes."), *fspan));
+                        return err(Diagnostic::new(L0351, format!("O campo \"{fname}\" aparece duas vezes."), *fspan));
                     }
                     let fty = v.fields[i].1.clone();
                     values[i] = Some(self.expr(value, Some(&fty))?);
@@ -1424,7 +1408,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if !missing.is_empty() {
                     let art = if v.feminine { "Uma" } else { "Um" };
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0352,
                         format!("{art} {} precisa de todos os campos; faltou {}.", v.name, join_e(&missing)),
                         *word_span,
                     )
@@ -1439,14 +1423,14 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     let Some(i) = r.fields.iter().position(|(f, _)| f == fname) else {
                         let names: Vec<String> = r.fields.iter().map(|(f, _)| format!("\"{f}\"")).collect();
                         return err(Diagnostic::new(
-                            Category::Scope,
+                            L0338,
                             format!("{} não tem o campo \"{fname}\".", capitalize(&Ty::Record(r.clone()).describe())),
                             *fspan,
                         )
                         .hint(format!("Os campos são: {}.", names.join(", "))));
                     };
                     if values[i].is_some() {
-                        return err(Diagnostic::new(Category::Syntax, format!("O campo \"{fname}\" aparece duas vezes."), *fspan));
+                        return err(Diagnostic::new(L0351, format!("O campo \"{fname}\" aparece duas vezes."), *fspan));
                     }
                     let fty = r.fields[i].1.clone();
                     let plural_field = self.env.prog.records[r.id].fields[i].name.number() == Number::Plural;
@@ -1472,7 +1456,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     .collect();
                 if !missing.is_empty() {
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0352,
                         format!(
                             "{} precisa de todos os campos; faltou {}.",
                             capitalize(&Ty::Record(r.clone()).describe()),
@@ -1484,7 +1468,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 }
                 (hir::ExprKind::Record(values.into_iter().map(Option::unwrap).collect()), Ty::Record(r))
             }
-            _ => return err(Diagnostic::new(Category::Syntax, "Expressão ainda não suportada.", e.span)),
+            _ => return err(Diagnostic::new(L0353, "Expressão ainda não suportada.", e.span)),
         };
         let mut out = hir::Expr { kind, ty, span: e.span };
         // Um valor onde se espera "talvez": é o valor presente.
@@ -1499,11 +1483,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             && !self.unify(exp, &out.ty)
         {
             let (exp, got) = (self.resolve_ty(exp), self.resolve_ty(&out.ty));
-            return err(Diagnostic::new(
-                Category::Type,
-                format!("Esperava {}, mas este valor é {}.", exp.describe(), got.describe()),
-                e.span,
-            ));
+            return err(Diagnostic::new(L0354, format!("Esperava {}, mas este valor é {}.", exp.describe(), got.describe()), e.span));
         }
         Ok(out)
     }
@@ -1514,7 +1494,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ast::Fallback::Value(v) => {
                 if *ty == Ty::Unit {
                     return err(Diagnostic::new(
-                        Category::Type,
+                        L0355,
                         "A função não devolve valor, então não há valor de reserva: use \", ou desisto\".",
                         v.span,
                     ));
@@ -1524,11 +1504,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ast::Fallback::Desist(msg) => {
                 self.require_fallible(span)?;
                 if msg.is_some() {
-                    return err(Diagnostic::new(
-                        Category::Syntax,
-                        "\", ou desisto\" passa adiante a falha que veio; o motivo já é o dela.",
-                        span,
-                    ));
+                    return err(Diagnostic::new(L0356, "\", ou desisto\" passa adiante a falha que veio; o motivo já é o dela.", span));
                 }
                 Ok(None)
             }
@@ -1539,7 +1515,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         let sig = &self.env.prog.sigs[self.sig.unwrap()];
         if !sig.fallible {
             return err(Diagnostic::new(
-                Category::Type,
+                L0357,
                 format!("\"{}\" não pode desistir: o cabeçalho não diz \"salvo uma falha\".", sig.infinitive),
                 span,
             )
@@ -1551,13 +1527,13 @@ impl<'e, 'a> FnCx<'e, 'a> {
 
     fn binary_type(&self, op: BinOp, l: &hir::Expr, r: &hir::Expr, span: Span) -> Result<Ty> {
         if op == BinOp::Add && (l.ty == Ty::Text || r.ty == Ty::Text) {
-            return err(Diagnostic::new(Category::Type, "Texto não se soma: se junta.", span)
+            return err(Diagnostic::new(L0358, "Texto não se soma: se junta.", span)
                 .hint("Para juntar textos, use \"seguido de\": Escrevo \"total: \" seguido do total."));
         }
         if !l.ty.is_numeric() || !r.ty.is_numeric() {
             let bad = if l.ty.is_numeric() { r } else { l };
             return err(Diagnostic::new(
-                Category::Type,
+                L0359,
                 format!("\"{}\" só opera números, e este valor é {}.", op.words(), bad.ty.describe()),
                 bad.span,
             ));
@@ -1565,7 +1541,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         let bits = matches!(op, BinOp::BitAnd | BinOp::BitOr | BinOp::BitXor | BinOp::Shl | BinOp::Shr);
         if bits && !matches!(l.ty, Ty::Int(_)) {
             return err(Diagnostic::new(
-                Category::Type,
+                L0360,
                 format!("\"{}\" opera bits de inteiros, e este valor é {}.", op.words(), l.ty.describe()),
                 l.span,
             ));
@@ -1575,7 +1551,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         }
         if l.ty != r.ty && !l.ty.is_error() && !r.ty.is_error() {
             return err(Diagnostic::new(
-                Category::Type,
+                L0361,
                 format!("\"{}\" entre {} e {}: os dois lados precisam ter o mesmo tipo.", op.words(), l.ty.describe(), r.ty.describe()),
                 span,
             )
@@ -1609,7 +1585,7 @@ fn breaks(b: &hir::Block) -> bool {
 
 fn top_level_error(span: Span) -> Box<Diagnostic> {
     Box::new(
-        Diagnostic::new(Category::Syntax, "No nível de fora só se definem constantes (\"A taxa é 0,05.\"), funções e tipos.", span)
+        Diagnostic::new(L0362, "No nível de fora só se definem constantes (\"A taxa é 0,05.\"), funções e tipos.", span)
             .hint("O que o programa faz vai dentro de \"Para começar:\"."),
     )
 }

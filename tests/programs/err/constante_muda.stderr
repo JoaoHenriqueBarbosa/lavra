@@ -1,4 +1,4 @@
-Erro de mutabilidade: A taxa é uma constante do programa e não vira.
+Erro de mutabilidade [L0342]: A taxa é uma constante do programa e não vira.
  --> tests/programs/err/constante_muda.lav:4:5
   |
 1 | A taxa é 0,05.

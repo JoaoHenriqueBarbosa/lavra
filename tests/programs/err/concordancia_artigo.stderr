@@ -1,4 +1,4 @@
-Erro de concordância: "o prova" não concorda: "prova" é feminino singular. Escreva "a prova".
+Erro de concordância [L0336]: "o prova" não concorda: "prova" é feminino singular. Escreva "a prova".
  --> tests/programs/err/concordancia_artigo.lav:3:5
   |
 2 |     A prova começa em 8.

@@ -1,4 +1,4 @@
-Erro de concordância: "as notas" está no plural, então é uma coleção, mas o valor é um inteiro.
+Erro de concordância [L0317]: "as notas" está no plural, então é uma coleção, mas o valor é um inteiro.
  --> tests/programs/err/plural_sem_colecao.lav:2:5
   |
 2 |     As notas, um inteiro, são 7.

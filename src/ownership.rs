@@ -8,7 +8,8 @@
 //! caminhos do programa (Se, laços, Paro).
 
 use crate::ast::ParamMode;
-use crate::diagnostics::{Category, Diagnostic, Result, err};
+use crate::codes::*;
+use crate::diagnostics::{Diagnostic, Result, err};
 use crate::hir::{self, Cond, ExprKind, Place, PlaceProj, Stmt, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::sema::capitalize;
@@ -400,8 +401,7 @@ impl<'a> Checker<'a> {
             format!("{} {} na linha {line} e não volta.", capitalize(&name), m.how.finite(&name))
         };
         let given = agree("entregue", &name);
-        let mut d =
-            Diagnostic::new(Category::Ownership, message, span).primary(format!("{} aqui depois de {given}", agree("usado", &name)));
+        let mut d = Diagnostic::new(L0400, message, span).primary(format!("{} aqui depois de {given}", agree("usado", &name)));
         if m.span != span {
             d = d.label(m.span, format!("{given} aqui"));
         }
@@ -437,7 +437,7 @@ impl<'a> Checker<'a> {
             let (inf, rest) = what.split_once(' ').unwrap_or((what, ""));
             let verb = format!("{} {rest}", verb3(inf, &name)).trim_end().to_string();
             return err(Diagnostic::new(
-                Category::Borrow,
+                L0401,
                 format!(
                     "{} {are} {} {} da linha {} e não {verb} enquanto ele durar.",
                     capitalize(&name),
@@ -520,12 +520,8 @@ impl<'a> Checker<'a> {
     fn move_out(&mut self, p: &Place, span: Span, how: &How, callee: Option<(String, String, String)>) -> Result<()> {
         let name = self.display(p.root);
         if let Var::Global(_) = p.root {
-            return err(Diagnostic::new(
-                Category::Ownership,
-                format!("{} é constante do programa e não se entrega.", capitalize(&name)),
-                span,
-            )
-            .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))));
+            return err(Diagnostic::new(L0402, format!("{} é constante do programa e não se entrega.", capitalize(&name)), span)
+                .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))));
         }
         if !p.proj.is_empty() {
             let whole = place_display(self, p);
@@ -536,7 +532,7 @@ impl<'a> Checker<'a> {
                 format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&whole))
             };
             return err(Diagnostic::new(
-                Category::Ownership,
+                L0403,
                 format!("Não se tira \"{whole}\" de dentro de \"{name}\" entregando: o valor tem dono."),
                 span,
             )
@@ -546,7 +542,7 @@ impl<'a> Checker<'a> {
             && self.func.locals[id].borrowed
         {
             return err(Diagnostic::new(
-                Category::Ownership,
+                L0404,
                 format!("{} aqui é só uma vista emprestada do valor de fora e não se entrega.", capitalize(&name)),
                 span,
             )
@@ -555,7 +551,7 @@ impl<'a> Checker<'a> {
         if let Some(l) = self.loans.iter().find(|l| l.var == p.root) {
             let are = morphology::third_person("estar", gn(&name).1).unwrap_or_default();
             return err(Diagnostic::new(
-                Category::Borrow,
+                L0405,
                 format!(
                     "{} {are} {} ao laço \"Para cada\" e não se {} enquanto ele durar.",
                     capitalize(&name),
@@ -616,7 +612,7 @@ impl<'a> Checker<'a> {
                                 "Passe uma cópia no lugar do emprestado: \"uma cópia ...\"."
                             };
                             return err(Diagnostic::new(
-                                Category::Borrow,
+                                L0406,
                                 format!(
                                     "{} já vai {first} a \"{}\" como \"{}\" e não pode ir {again} de novo, como \"{}\", na mesma chamada.",
                                     capitalize(&name),

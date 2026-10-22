@@ -1,4 +1,4 @@
-Erro de mutabilidade: A carta chega emprestada só para leitura e não vira.
+Erro de mutabilidade [L0342]: A carta chega emprestada só para leitura e não vira.
  --> tests/programs/err/emprestado_nao_muda.lav:2:5
   |
 1 | Para assinar a carta, sendo a carta um texto emprestado:

@@ -1,4 +1,4 @@
-Erro de posse: A carta pode já ter sido entregue a "arquivar" na linha 8, num dos caminhos até aqui.
+Erro de posse [L0400]: A carta pode já ter sido entregue a "arquivar" na linha 8, num dos caminhos até aqui.
  --> tests/programs/err/posse_talvez.lav:9:13
   |
 8 |         Arquivo a carta.

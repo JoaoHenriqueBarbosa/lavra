@@ -2,6 +2,7 @@
 //! saída, byte a byte.
 
 use crate::ast::{BinOp, ParamMode, Rel, UnOp};
+use crate::codes::*;
 use crate::hir::{self, Cond, ExprKind, PlaceProj, Stmt, Var};
 use crate::span::Span;
 use crate::textfmt;
@@ -32,9 +33,11 @@ enum Step {
     Index(usize),
 }
 
-/// Falha de execução: a mensagem e onde aconteceu.
+/// Falha de execução: o código, a mensagem e onde aconteceu.
 #[derive(Debug)]
 pub struct Fault {
+    /// O código do erro de execução; a falha declarada pelo programa não tem.
+    pub code: Option<Code>,
     pub message: String,
     pub span: Span,
     /// Falha declarada ("Desisto com ..."), que sobe até quem a trata.
@@ -84,7 +87,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
     fn call(&mut self, func: hir::FuncId, args: Vec<Value>, span: Span) -> Exec<(Result<Value, Fault>, Vec<Value>)> {
         let f = &self.prog.funcs[func];
         if self.depth >= MAX_DEPTH {
-            return fault(textfmt::stack_overflow(), span);
+            return fault(L0914, textfmt::stack_overflow(), span);
         }
         self.depth += 1;
         let mut frame = vec![Value::Unit; f.locals.len()];
@@ -150,14 +153,14 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     let Value::Int(n) = self.expr(e, frame)? else { unreachable!() };
                     let len = self.len_at(p.root, &steps, frame);
                     if n < 1 || n as usize > len {
-                        return fault(position_error(n, len), *span);
+                        return fault(L0909, position_error(n, len), *span);
                     }
                     steps.push(Step::Index(n as usize - 1));
                 }
                 PlaceProj::Last(span) => {
                     let len = self.len_at(p.root, &steps, frame);
                     if len == 0 {
-                        return fault(textfmt::EMPTY_LAST, *span);
+                        return fault(L0910, textfmt::EMPTY_LAST, *span);
                     }
                     steps.push(Step::Index(len - 1));
                 }
@@ -331,7 +334,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             }
             Stmt::Desist(m) => {
                 let Value::Text(msg) = self.expr(m, frame)? else { unreachable!() };
-                return Err(Fault { message: msg, span: m.span, desist: true });
+                return Err(Fault { code: None, message: msg, span: m.span, desist: true });
             }
         }
         Ok(Flow::Normal)
@@ -371,7 +374,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         let _ = self.out.flush();
         let mut line = String::new();
         match self.input.read_line(&mut line) {
-            Ok(0) | Err(_) => return fault(textfmt::INPUT_ENDED, span),
+            Ok(0) | Err(_) => return fault(L0912, textfmt::INPUT_ENDED, span),
             Ok(_) => {}
         }
         let line = line.trim_end_matches(['\n', '\r']).to_string();
@@ -383,7 +386,12 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
 
     fn input(&mut self, ty: &Ty, span: Span) -> Exec<Value> {
         let line = self.read_line(span)?;
-        parse_input(&line, ty).ok_or_else(|| Fault { message: textfmt::bad_input(&ty.describe(), &line), span, desist: false })
+        parse_input(&line, ty).ok_or_else(|| Fault {
+            code: Some(L0913),
+            message: textfmt::bad_input(&ty.describe(), &line),
+            span,
+            desist: false,
+        })
     }
 
     fn expr(&mut self, e: &hir::Expr, frame: &mut [Value]) -> Exec<Value> {
@@ -495,12 +503,12 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                 match i {
                     None => match list.pop() {
                         Some(v) => v,
-                        None => return fault(textfmt::EMPTY_TAKE, e.span),
+                        None => return fault(L0911, textfmt::EMPTY_TAKE, e.span),
                     },
                     Some((n, span)) => {
                         if n < 1 || n as usize > list.len() {
                             let len = list.len();
-                            return fault(position_error(n, len), span);
+                            return fault(L0909, position_error(n, len), span);
                         }
                         list.remove(n as usize - 1)
                     }
@@ -543,14 +551,14 @@ fn unary(op: UnOp, v: Value, ty: &Ty, span: Span) -> Exec<Value> {
         (UnOp::Abs, Value::Int(x)) => {
             let r = x.abs();
             if !int_ty(ty).contains(r) {
-                return fault(textfmt::abs_overflow(x, int_ty(ty).bits, int_ty(ty).signed), span);
+                return fault(L0902, textfmt::abs_overflow(x, int_ty(ty).bits, int_ty(ty).signed), span);
             }
             Value::Int(r)
         }
         (UnOp::Abs, Value::Real(x)) => Value::Real(x.abs()),
         (UnOp::Sqrt, Value::Real(x)) => {
             if x < 0.0 {
-                return fault(textfmt::negative_sqrt(x), span);
+                return fault(L0907, textfmt::negative_sqrt(x), span);
             }
             Value::Real(x.sqrt())
         }
@@ -567,14 +575,14 @@ fn convert(v: Value, from: &Ty, to: &Ty, span: Span) -> Exec<Value> {
         (v, Ty::Text) => Value::Text(format_value(&v, from)),
         (Value::Int(x), Ty::Int(it)) => {
             if !it.contains(x) {
-                return fault(textfmt::convert_error(&x.to_string(), it.bits, it.signed), span);
+                return fault(L0908, textfmt::convert_error(&x.to_string(), it.bits, it.signed), span);
             }
             Value::Int(x)
         }
         (Value::Int(x), Ty::Real(b)) => Value::Real(if *b == 32 { x as f64 as f32 as f64 } else { x as f64 }),
         (Value::Real(x), Ty::Int(it)) => {
             if !textfmt::real_fits(x, it.bits, it.signed) {
-                return fault(textfmt::convert_error(&format_real(x), it.bits, it.signed), span);
+                return fault(L0908, textfmt::convert_error(&format_real(x), it.bits, it.signed), span);
             }
             Value::Int(x.trunc() as i128)
         }
@@ -635,8 +643,8 @@ pub fn compare(rel: Rel, a: &Value, b: &Value) -> bool {
     }
 }
 
-fn fault<T>(message: impl Into<String>, span: Span) -> Exec<T> {
-    Err(Fault { message: message.into(), span, desist: false })
+fn fault<T>(code: Code, message: impl Into<String>, span: Span) -> Exec<T> {
+    Err(Fault { code: Some(code), message: message.into(), span, desist: false })
 }
 
 pub fn arith(op: BinOp, a: Value, b: Value, ty: &Ty, span: Span) -> Exec<Value> {
@@ -665,17 +673,18 @@ pub fn int_arith(op: BinOp, x: i128, y: i128, it: IntTy, span: Span) -> Exec<i12
         BinOp::Mul => x.checked_mul(y).unwrap_or(i128::MAX),
         BinOp::Div | BinOp::Rem => {
             if y == 0 {
-                return fault(if op == BinOp::Div { textfmt::DIV_ZERO } else { textfmt::REM_ZERO }, span);
+                return if op == BinOp::Div { fault(L0904, textfmt::DIV_ZERO, span) } else { fault(L0905, textfmt::REM_ZERO, span) };
             }
             if op == BinOp::Div { x / y } else { x % y }
         }
         BinOp::Pow => {
             if y < 0 {
-                return fault(textfmt::NEG_POW, span);
+                return fault(L0906, textfmt::NEG_POW, span);
             }
             let mut r: i128 = 1;
             for _ in 0..y.min(200) {
                 r = r.checked_mul(x).filter(|r| it.contains(*r)).ok_or_else(|| Fault {
+                    code: Some(L0901),
                     message: textfmt::pow_overflow(it.bits, it.signed),
                     span,
                     desist: false,
@@ -688,14 +697,14 @@ pub fn int_arith(op: BinOp, x: i128, y: i128, it: IntTy, span: Span) -> Exec<i12
         BinOp::BitXor => return Ok(wrap(x ^ y, it)),
         BinOp::Shl | BinOp::Shr => {
             if y < 0 || y >= it.bits as i128 {
-                return fault(textfmt::shift_range(y, it.bits, it.signed), span);
+                return fault(L0903, textfmt::shift_range(y, it.bits, it.signed), span);
             }
             let bits = x & ((1i128 << it.bits) - 1);
             return Ok(wrap(if op == BinOp::Shl { bits << y } else { bits >> y }, it));
         }
     };
     if !it.contains(r) {
-        return fault(textfmt::overflow(it.bits, it.signed), span);
+        return fault(L0900, textfmt::overflow(it.bits, it.signed), span);
     }
     Ok(r)
 }

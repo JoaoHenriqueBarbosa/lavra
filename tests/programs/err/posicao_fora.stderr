@@ -1,4 +1,4 @@
-Erro de execução: Não há item na posição 4: a coleção tem 3 itens.
+Erro de execução [L0909]: Não há item na posição 4: a coleção tem 3 itens.
  --> tests/programs/err/posicao_fora.lav:3:13
   |
 3 |     Escrevo o item 4 das notas.

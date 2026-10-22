@@ -88,7 +88,7 @@ fn without_warnings(stderr: &str) -> String {
     for line in stderr.split_inclusive('\n') {
         let starts_block = !line.starts_with(' ') && !line.starts_with(|c: char| c.is_ascii_digit()) && !line.trim().is_empty();
         if starts_block {
-            skipping = line.starts_with("Aviso:");
+            skipping = line.starts_with("Aviso:") || line.starts_with("Aviso [");
         }
         if !skipping {
             out.push_str(line);

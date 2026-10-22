@@ -1,4 +1,4 @@
-Erro de sintaxe: "Paro" só faz sentido dentro de um laço.
+Erro de sintaxe [L0324]: "Paro" só faz sentido dentro de um laço.
  --> tests/programs/err/paro_fora.lav:2:5
   |
 2 |     Paro.

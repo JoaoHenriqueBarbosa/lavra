@@ -1,4 +1,4 @@
-Erro de tipo: "vezes" entre um inteiro e um real: os dois lados precisam ter o mesmo tipo.
+Erro de tipo [L0361]: "vezes" entre um inteiro e um real: os dois lados precisam ter o mesmo tipo.
  --> tests/programs/err/tipos_mistos.lav:4:13
   |
 4 |     Escrevo o total vezes a taxa.

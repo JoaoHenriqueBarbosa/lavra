@@ -1,4 +1,4 @@
-Erro de morfologia: Antes do sujeito de um infinitivo não se contrai: escreva "o fato de o ...", não "o fato do ...".
+Erro de morfologia [L0135]: Antes do sujeito de um infinitivo não se contrai: escreva "o fato de o ...", não "o fato do ...".
  --> tests/programs/err/fato_contraido.lav:3:20
   |
 3 |     Escrevo o fato do saldo ser maior que 3.
