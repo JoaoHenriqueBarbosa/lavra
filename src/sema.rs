@@ -304,9 +304,14 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let name = format!("{} {}", morphology::definite_article(l.gender, l.number), l.local.name);
                 let verb = morphology::third_person("ser", l.number).unwrap_or_default();
                 let begin = morphology::third_person("começar", l.number).unwrap_or_default();
+                let change = morphology::third_person("mudar", l.number).unwrap_or_default();
                 self.env.warnings.push(
-                    Diagnostic::new(Category::Warning, format!("{} {begin} com um valor e nunca muda.", capitalize(&name)), l.decl_span)
-                        .hint(format!("Se é definição, escreva \"{} {verb} ...\".", capitalize(&name))),
+                    Diagnostic::new(
+                        Category::Warning,
+                        format!("{} {begin} com um valor e nunca {change}.", capitalize(&name)),
+                        l.decl_span,
+                    )
+                    .hint(format!("Se é definição, escreva \"{} {verb} ...\".", capitalize(&name))),
                 );
             }
         }

@@ -4,3 +4,9 @@ Aviso: O total começa com um valor e nunca muda.
 2 |     O total começa em 3.
   |     ^^^^^^^
   = dica: Se é definição, escreva "O total é ...".
+Aviso: As notas começam com um valor e nunca mudam.
+ --> tests/programs/ok/aviso_nunca_muda.lav:4:5
+  |
+4 |     As notas começam com 7 e 8.
+  |     ^^^^^^^^
+  = dica: Se é definição, escreva "As notas são ...".
