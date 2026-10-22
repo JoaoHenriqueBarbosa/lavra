@@ -88,3 +88,23 @@ Quatro bugs do compilador que esses programas revelaram, já corrigidos:
 A leitura ambígua do Ab urbe condita, que dá 689 em vez de 691, é erro de compilação, e virou teste.
 
 Ficaram de fora do completo as conversões de texto para número e de caractere para inteiro, que a Lavra ainda não tem.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, plano de tooling e de crescimento da língua (notes/roadmap.md), metade da fase 0, registro do Claude depois de aproximadamente 60 minutos de trabalho:
+
+Feito e enviado, com a suíte verde em cada passo:
+- CI no GitHub Actions: formato, clippy, testes, extensão e valgrind em cada push (o repositório virou público para isso).
+- Robustez: cerca de 16 mil versões mutiladas dos programas do corpus passam pela análise sem pânico, sem travar e sem apontar para fora do texto. A primeira rodada achou um laço infinito (parêntese sem par), um unwrap em "Para cada i:" sem coleção e um sublinhado que partia uma letra acentuada; os três viraram testes.
+- Léxico como fonte única (src/lexicon.rs): toda palavra da língua com papel e documentação. O parser só consulta palavras do léxico (um teste confere), as formas reservadas saem dele, e a gramática do VS Code e o conferidor da morfologia leem a exportação (editors/lexicon.json). Contra os 15 267 verbos do Verbiste, só emprestadar e vaziar passaram a ser proibidos (registrado em Mudanças).
+- Vocabulário do programa numa struct própria, base das bibliotecas e do completar.
+- Códigos estáveis em todos os diagnósticos ("Erro de escopo [L0334]: ..."), inclusive nos erros de execução dos dois back-ends.
+
+Em andamento: a análise que continua depois do primeiro erro (léxico e parser prontos, falta a semântica e a posse).
+
+Decisões para revisar:
+- O código aparece no cabeçalho do erro, entre colchetes.
+- As formas recusadas com dica ("guardo", "seja", "há") não ficam reservadas: o usuário pode definir "guardar".
+- O artigo antes de "o tamanho", "o resultado" e "o item" ganhou a cor da palavra que ele determina.
+
+Um travamento do fluxo de resposta interrompeu o trabalho uma vez; para não depender de alguém acordar a sessão, há agora um despertador a cada 10 minutos que só dispara com a sessão parada, e o estado exato da execução fica gravado na memória do projeto.
