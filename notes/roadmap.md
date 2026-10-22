@@ -379,7 +379,7 @@ Cada item termina com a suíte verde, um commit e um push.
 | 6 | Builtins e `Uso a biblioteca de textos.` **(feito)** | biblioteca no servidor sem mudar o servidor |
 | 7 | Releases, README, CHANGELOG, publicação **(feito; crates.io e lojas esperam os tokens)** | instalação limpa num contêiner |
 | 8 | tree-sitter e configs de editores | corpus sem ERROR; `hx --health` |
-| 9 | Site e playground | um poema rodando no navegador |
+| 9 | Site e playground **(feito)** | um poema rodando no navegador |
 
 ## Procedimento
 

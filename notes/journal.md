@@ -244,3 +244,57 @@ Decisões para revisar:
 - Ir para a definição de um verbo de biblioteca não leva a lugar nenhum por enquanto. Mostrar o cabeçalho dela pede um documento virtual no editor, e fica para quando o site da fase 9 publicar as bibliotecas.
 
 Próximo: a fase 7, as releases: binários, VSIX por plataforma, README, LICENSE e CHANGELOG na raiz.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim da fase 7 do roadmap (releases), registro do Claude às 20h11, cerca de 4 horas e 45 minutos depois do começo:
+
+A Lavra tem a primeira release, a v0.1.0 no GitHub, com:
+- o lavrac pronto para Linux, x86_64 (o PC comum) e aarch64 (ARM): um arquivo só, estático, que roda em qualquer Linux sem instalar nada;
+- a extensão do VS Code de cada plataforma, com o lavrac dentro.
+
+Conferido como um usuário faria, num Debian limpo e baixando da página da release. O checksum confere, e o lavrac roda um poema com a saída esperada. O de aarch64 também roda, pelo QEMU. A extensão traz o lavrac que roda, e com o gcc instalado o executável nativo dá a mesma saída. A cada release isso se repete sozinho no CI, com todos os poemas. Antes, provei que o lavrac estático compila para nativo tanto num sistema com glibc quanto num com musl, com o corpus inteiro.
+
+Um defeito apareceu antes da release: o runtime embutido saía para a máquina que compila, e não para a máquina em que o lavrac roda. Um lavrac para ARM feito num PC levaria o runtime errado. Corrigido.
+
+README, LICENSE e CHANGELOG estão na raiz, com a instalação explicada em linguagem simples. O release-plz abre o PR de cada versão, e só o seu merge publica; já há um aberto, o da 0.2.0, com o site.
+
+Bloqueado, dependendo de você, porque são credenciais suas em serviços de fora:
+- crates.io: o token de publicação. Não há token nesta máquina, e o navegador automatizado não está nesta sessão.
+- Visual Studio Marketplace: o publisher joaohenriquebarbosa e o token (VSCE_PAT).
+- Open VSX: a conta e o token (OVSX_PAT).
+
+Com os tokens guardados como secrets do repositório, a pipeline publica sozinha. O crates.io pede ainda, uma vez, um cargo publish e a troca do release-plz para o modo do registro, e isso eu faço.
+
+Decisões para revisar:
+- A versão mínima do Rust é a 1.97, que é a do Cranelift.
+- O release-plz tira as versões das tags enquanto a crate não está no crates.io, porque no modo do registro ele recusa a tag que o registro não tem.
+- A primeira versão no crates.io vai ser a da última tag quando o token chegar.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim da fase 9 do roadmap (o site e o playground), registro do Claude às 20h16, cerca de 4 horas e 50 minutos depois do começo:
+
+A Lavra tem site: https://joaohenriquebarbosa.github.io/lavra/. Ele sai inteiro do repositório, com:
+- a apresentação;
+- a referência da língua;
+- o catálogo dos 185 códigos de erro, cada um com a explicação e os exemplos errado e certo;
+- o léxico;
+- uma página por poema, com a entrada e a saída.
+
+Todo o código sai realçado pela mesma gramática da extensão do VS Code, no tema claro ou escuro do sistema. Ele se publica sozinho a cada envio para a main.
+
+O playground roda o próprio compilador no navegador, compilado para wasm. Os erros aparecem no editor enquanto se escreve, o programa roda sem travar a página, e o botão de parar interrompe até um laço sem fim. O link de compartilhar leva o código junto. Conferido em três lugares:
+- no Node, o wasm contra o corpus: 28 programas com a saída esperada;
+- num Chromium de verdade: os 13 poemas rodam no playground com a saída esperada;
+- no site publicado, a partir desta máquina: os mesmos 13. A captura mostra "A partilha", que lê entrada, rodando até o fim.
+
+O workflow do site repete a conferência no Node e no navegador antes de publicar.
+
+Um achado no caminho: no navegador, a pilha do motor JavaScript acaba por volta de 1 500 chamadas aninhadas da Lavra, bem antes das 10 000 do lavrac. O interpretador ganhou um limite configurável. No navegador ele vale 1 000, e quem passa dele recebe a falha da própria língua ("Estouro de pilha"), em vez de um erro do navegador.
+
+Decisões para revisar:
+- O playground limita a recursão a 1 000 chamadas aninhadas.
+- O último programa escrito fica guardado no navegador de quem usa.
+
+Falta a fase 8, a gramática tree-sitter com as configurações de Helix, Neovim e Zed. Um agente a está fazendo em paralelo, numa branch própria, e eu integro quando ele terminar.
