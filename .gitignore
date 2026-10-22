@@ -3,5 +3,6 @@
 /tools/morphology/.venv
 /tools/morphology/data
 /tools/morphology/target
+__pycache__/
 verbecc.log
 .vscode
