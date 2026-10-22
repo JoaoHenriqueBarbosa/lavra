@@ -53,6 +53,13 @@ interpretador e pelo runtime (a paridade vem daí).
 Desempenho medido (2026-10-22): contar os primos até 2 000 000 por divisão leva 0,35 s no
 nativo e 28,7 s no interpretador.
 
+Custo de cópia no interpretador: ler um lugar inteiro como valor clona o valor. Por isso
+`o tamanho de` mede no próprio lugar (`len_at` sobre o caminho), sem ler a coleção; antes
+disso, o crivo até 100 000 levava minutos e crescia de forma quadrática. Continua
+proporcional ao tamanho, no interpretador, passar coleção, texto ou registro para uma
+função: o argumento é copiado na ida e, se confiado, na volta. O nativo passa ponteiro e
+não tem esse custo.
+
 ## Testes
 
 - `cargo test`: unitários de morfologia e léxico; golden (`tests/golden.rs`) sobre

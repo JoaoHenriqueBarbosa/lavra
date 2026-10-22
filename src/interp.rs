@@ -431,10 +431,18 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                 ret
             }
             ExprKind::Fact(c) => Value::Bool(self.cond(c, frame)?),
-            ExprKind::Unary(op, a) => {
-                let v = self.expr(a, frame)?;
-                unary(*op, v, &e.ty, e.span)?
-            }
+            ExprKind::Unary(op, a) => match (op, &a.kind) {
+                // O tamanho de um lugar se mede no próprio lugar: ler o valor inteiro
+                // copiaria a coleção, e a conta ficaria proporcional ao tamanho dela.
+                (UnOp::Len, ExprKind::Read(p)) => {
+                    let steps = self.path(p, frame)?;
+                    Value::Int(self.len_at(p.root, &steps, frame) as i128)
+                }
+                _ => {
+                    let v = self.expr(a, frame)?;
+                    unary(*op, v, &e.ty, e.span)?
+                }
+            },
             ExprKind::List(items) => {
                 let mut v = Vec::with_capacity(items.len());
                 for it in items {
