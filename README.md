@@ -26,6 +26,10 @@ enumerações, bibliotecas, e dois jeitos de rodar que dão a mesma saída, byte
 interpretador e o compilador para executável nativo. Os programas também podem ser poemas:
 veja [`samples/`](samples).
 
+**Experimente no navegador:** o [playground](https://joaohenriquebarbosa.github.io/lavra/playground.html)
+roda o próprio compilador, com os erros ao digitar. O [site](https://joaohenriquebarbosa.github.io/lavra/)
+tem a referência da língua, os poemas e a explicação de cada erro.
+
 ## Instalar
 
 **1. O programa pronto (Linux).** Na página da
@@ -104,6 +108,8 @@ qualquer editor que fale esses protocolos.
 
 ## Documentação
 
+- [O site](https://joaohenriquebarbosa.github.io/lavra/): a referência, o catálogo de erros, o
+  léxico e os poemas, gerados do repositório.
 - [`notes/lavra.md`](notes/lavra.md): a referência da língua.
 - `lavrac explain <código>`: cada erro explicado, com um exemplo errado e um certo.
 - [`notes/compiler.md`](notes/compiler.md) e [`notes/tooling.md`](notes/tooling.md): o

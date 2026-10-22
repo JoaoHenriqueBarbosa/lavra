@@ -220,7 +220,7 @@ pub unsafe extern "C" fn rt_failure_drop(f: *mut Failure) {
 pub unsafe extern "C" fn rt_enter(lo: u32, hi: u32) {
     unsafe {
         if DEPTH >= textfmt::MAX_DEPTH {
-            report(L0914, textfmt::stack_overflow(), lo, hi);
+            report(L0914, textfmt::stack_overflow(textfmt::MAX_DEPTH), lo, hi);
         }
         DEPTH += 1;
     }

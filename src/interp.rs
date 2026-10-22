@@ -108,6 +108,8 @@ pub struct Machine<'p, W: Write, R: BufRead> {
     stopped: bool,
     /// A falha já foi mostrada ao acompanhante (ela ainda sobe pelos blocos de fora).
     fault_seen: bool,
+    /// Quantas chamadas aninhadas cabem antes do "Estouro de pilha".
+    max_depth: usize,
     /// Ecoa a entrada lida na saída (útil quando a entrada vem de arquivo).
     pub echo: bool,
 }
@@ -123,8 +125,15 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             tracer: None,
             stopped: false,
             fault_seen: false,
+            max_depth: MAX_DEPTH,
             echo: false,
         }
+    }
+
+    /// Menos chamadas aninhadas que o padrão: no navegador, a pilha do motor JavaScript acaba
+    /// bem antes da do lavrac, e a falha tem de ser a da língua, não a do motor.
+    pub fn limit_depth(&mut self, depth: usize) {
+        self.max_depth = depth.min(MAX_DEPTH);
     }
 
     /// Acompanha a execução com `tracer` (o depurador).
@@ -164,8 +173,8 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
     /// o quadro volta junto para os parâmetros confiados.
     fn call(&mut self, func: hir::FuncId, args: Vec<Value>, span: Span) -> Exec<(Result<Value, Fault>, Vec<Value>)> {
         let f = &self.prog.funcs[func];
-        if self.frames.len() >= MAX_DEPTH {
-            return fault(L0914, textfmt::stack_overflow(), span);
+        if self.frames.len() >= self.max_depth {
+            return fault(L0914, textfmt::stack_overflow(self.max_depth as u64), span);
         }
         let mut values = vec![Value::Unit; f.locals.len()];
         for ((id, _), v) in f.params.iter().zip(args) {

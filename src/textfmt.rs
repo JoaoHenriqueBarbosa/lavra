@@ -37,8 +37,10 @@ pub const REM_ZERO: &str = "Resto de divisão por zero.";
 pub const NEG_POW: &str = "Potência de inteiro com expoente negativo: use reais.";
 pub const INPUT_ENDED: &str = "A entrada acabou antes da hora: o programa esperava ler mais.";
 
-pub fn stack_overflow() -> String {
-    format!("Estouro de pilha: chamadas demais aninhadas (mais de {MAX_DEPTH}). Recursão sem fim?")
+/// A falha de chamadas aninhadas demais, com o limite de quem roda (`MAX_DEPTH` no lavrac e
+/// no nativo; menos no navegador, onde a pilha é a do motor JavaScript).
+pub fn stack_overflow(limit: u64) -> String {
+    format!("Estouro de pilha: chamadas demais aninhadas (mais de {limit}). Recursão sem fim?")
 }
 
 /// "inteiro", "natural de 32 bits", "byte".

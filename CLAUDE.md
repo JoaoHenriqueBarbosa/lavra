@@ -62,6 +62,9 @@ cp ../../target/release/lavrac server/ && npx vsce package --target linux-x64 --
 code --install-extension lavra.vsix --force
 ```
 
+Site e playground (`site/`, ver `notes/tooling.md`): o wasm em `playground/`, depois
+`cd site && npm ci && node test-wasm.mjs && node build.mjs && node check-browser.mjs`.
+
 Operação embutida nova? O cabeçalho numa biblioteca (`src/libraries/`), a variante em
 `src/builtins.rs` (com `interpret`) e a função `rt_*` em `runtime/lib.rs`; ver `notes/compiler.md`.
 

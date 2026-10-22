@@ -222,7 +222,38 @@ Roda sobre o interpretador, que é a referência da língua: ver a frase executa
   Code e o adaptador. O VS Code só abre o primeiro escopo sozinho se a vista de depuração
   já está à mostra quando o programa para; por isso o teste a abre antes de começar.
 
+## Site e playground
+
+O site (`site/`, publicado pelo GitHub Pages em `.github/workflows/pages.yml`) sai inteiro do
+repositório: `site/build.mjs` gera a apresentação, a referência (`notes/lavra.md`), o catálogo
+de erros (`src/codes.rs` e `src/explain`), o léxico (`editors/lexicon.json`), uma página por
+poema (`samples/`, com a entrada e a saída) e o playground. O código da Lavra sai realçado pela
+gramática TextMate da extensão (shiki, temas Light+ e Dark+), e o site segue o tema claro ou
+escuro do sistema.
+
+O playground roda o próprio compilador no navegador: o crate `playground/` (fora do pacote do
+`lavrac`, com o `[workspace]` próprio) compila a análise e o interpretador para wasm32, e o
+`wasm-bindgen` gera o pacote. A página usa o CodeMirror com a língua tirada do léxico
+(`site/src/lavra-language.js`) e os diagnósticos do compilador ao digitar; rodar acontece num
+Web Worker (`site/src/worker.js`), com a saída saindo aos pedaços e o botão de parar
+encerrando o worker, e o link de compartilhar leva o código no endereço. A pilha do motor
+JavaScript (cerca de 1 MiB no V8) acaba por volta de 1 500 chamadas aninhadas da Lavra, então o
+playground limita a 1 000 (`Machine::limit_depth`), e a falha é a da língua ("Estouro de pilha").
+
+```bash
+cd playground && CARGO_TARGET_DIR=../target/playground cargo build --release --target wasm32-unknown-unknown
+wasm-bindgen --target web --out-dir ../target/playground/web ../target/playground/wasm32-unknown-unknown/release/lavra_playground.wasm
+wasm-bindgen --target nodejs --out-dir ../target/playground/node ../target/playground/wasm32-unknown-unknown/release/lavra_playground.wasm
+cd ../site && npm ci
+node test-wasm.mjs        # o interpretador em wasm contra o corpus, no Node
+node build.mjs            # gera site/dist
+node check-browser.mjs    # cada poema roda no playground do Chromium e dá a saída esperada
+```
+
+Aqui o wasm se compila no contêiner `rust:1` (o alvo wasm32 e o `wasm-bindgen-cli` da mesma
+versão do crate, instalado em `target/tools`), chamado de dentro de `playground/` para valer a
+configuração dele, e com `--locked` para o contêiner não reescrever o `Cargo.lock`.
+
 ## Próximos passos
 
-As releases, a gramática tree-sitter com as configurações de outros editores, e o site com o
-playground: `notes/roadmap.md`, fases 7 a 9.
+A gramática tree-sitter com as configurações de outros editores: `notes/roadmap.md`, fase 8.

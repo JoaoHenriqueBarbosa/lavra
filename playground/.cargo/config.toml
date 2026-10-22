@@ -1,0 +1,4 @@
+# O interpretador é recursivo (até 10 000 chamadas aninhadas da Lavra, como no lavrac): a
+# pilha do wasm precisa caber essa profundidade.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=-zstack-size=67108864"]

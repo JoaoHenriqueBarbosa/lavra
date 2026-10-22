@@ -11,7 +11,7 @@ readme = "README.md"
 authors = ["João Henrique Barbosa <joaohenriquebarbosa21@gmail.com>"]
 keywords = ["compiler", "programming-language", "portuguese", "interpreter", "language-server"]
 categories = ["compilers", "command-line-utilities", "development-tools"]
-exclude = [".github/", "editors/", "notes/", "tools/", "release-plz.toml", "CLAUDE.md"]
+exclude = [".github/", "editors/", "notes/", "tools/", "playground/", "site/", "release-plz.toml", "CLAUDE.md"]
 default-run = "lavrac"
 build = "build.rs"
 
