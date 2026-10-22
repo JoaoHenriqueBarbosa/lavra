@@ -3,7 +3,7 @@
 
 use crate::ast::{BinOp, ParamMode, Rel, UnOp};
 use crate::codes::*;
-use crate::hir::{self, Cond, ExprKind, PlaceProj, Stmt, Var};
+use crate::hir::{self, Cond, ExprKind, PlaceProj, Stmt, StmtKind, Var};
 use crate::span::Span;
 use crate::textfmt;
 use crate::types::{IntTy, Ty};
@@ -211,28 +211,28 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
     }
 
     fn stmt(&mut self, s: &Stmt, frame: &mut [Value]) -> Exec<Flow> {
-        match s {
-            Stmt::Let { var, value } => {
+        match &s.kind {
+            StmtKind::Let { var, value } => {
                 let v = self.expr(value, frame)?;
                 self.set(*var, v, frame);
             }
-            Stmt::Assign { place, value } => {
+            StmtKind::Assign { place, value } => {
                 let v = self.expr(value, frame)?;
                 self.write_place(place, v, frame)?;
             }
-            Stmt::Compound { place, op, value, span } => {
+            StmtKind::Compound { place, op, value, span } => {
                 let cur = self.read_place(place, frame)?;
                 let v = self.expr(value, frame)?;
                 let r = arith(*op, cur, v, &place.ty, *span)?;
                 self.write_place(place, r, frame)?;
             }
-            Stmt::Push { place, value } => {
+            StmtKind::Push { place, value } => {
                 let v = self.expr(value, frame)?;
                 let steps = self.path(place, frame)?;
                 let Value::List(list) = self.place_mut(place.root, &steps, frame) else { unreachable!() };
                 list.push(v);
             }
-            Stmt::ForEach { var, source, body } => {
+            StmtKind::ForEach { var, source, body } => {
                 let items: Vec<Value> = match self.expr(source, frame)? {
                     Value::List(v) => v,
                     Value::Text(t) => t.chars().map(Value::Char).collect(),
@@ -247,14 +247,14 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     }
                 }
             }
-            Stmt::Write { value, newline } => {
+            StmtKind::Write { value, newline } => {
                 let v = self.expr(value, frame)?;
                 let _ = write!(self.out, "{}", format_value(&v, &value.ty));
                 if *newline {
                     let _ = writeln!(self.out);
                 }
             }
-            Stmt::If { arms, otherwise } => {
+            StmtKind::If { arms, otherwise } => {
                 for (c, b) in arms {
                     if self.cond(c, frame)? {
                         return self.block(b, frame);
@@ -264,7 +264,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     return self.block(b, frame);
                 }
             }
-            Stmt::While { cond, body } => {
+            StmtKind::While { cond, body } => {
                 while self.cond(cond, frame)? {
                     match self.block(body, frame)? {
                         Flow::Break => break,
@@ -273,7 +273,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     }
                 }
             }
-            Stmt::Repeat { count, body } => {
+            StmtKind::Repeat { count, body } => {
                 let n = match count {
                     Some(c) => match self.expr(c, frame)? {
                         Value::Int(n) => Some(n),
@@ -291,7 +291,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     i += 1;
                 }
             }
-            Stmt::ForRange { var, from, to, body } => {
+            StmtKind::ForRange { var, from, to, body } => {
                 let (Value::Int(a), Value::Int(b)) = (self.expr(from, frame)?, self.expr(to, frame)?) else { unreachable!() };
                 let step = if a <= b { 1 } else { -1 };
                 let mut i = a;
@@ -308,20 +308,20 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     i += step;
                 }
             }
-            Stmt::Error(_) => unreachable!("programa com erro não chega aos back-ends"),
-            Stmt::Break => return Ok(Flow::Break),
-            Stmt::Continue => return Ok(Flow::Continue),
-            Stmt::Return(v) => {
+            StmtKind::Error => unreachable!("programa com erro não chega aos back-ends"),
+            StmtKind::Break => return Ok(Flow::Break),
+            StmtKind::Continue => return Ok(Flow::Continue),
+            StmtKind::Return(v) => {
                 let v = match v {
                     Some(e) => self.expr(e, frame)?,
                     None => Value::Unit,
                 };
                 return Ok(Flow::Return(v));
             }
-            Stmt::Expr(e) => {
+            StmtKind::Expr(e) => {
                 self.expr(e, frame)?;
             }
-            Stmt::Match { scrutinee, arms, otherwise } => {
+            StmtKind::Match { scrutinee, arms, otherwise } => {
                 let Value::Variant(tag, fields) = self.expr(scrutinee, frame)? else { unreachable!() };
                 for arm in arms {
                     if arm.tags.contains(&tag) {
@@ -335,7 +335,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     return self.block(b, frame);
                 }
             }
-            Stmt::Desist(m) => {
+            StmtKind::Desist(m) => {
                 let Value::Text(msg) = self.expr(m, frame)? else { unreachable!() };
                 return Err(Fault { code: None, message: msg, span: m.span, desist: true });
             }

@@ -10,16 +10,16 @@
 use crate::ast::ParamMode;
 use crate::codes::*;
 use crate::diagnostics::{Diagnostic, Diagnostics, Result};
-use crate::hir::{self, Cond, ExprKind, Place, PlaceProj, Stmt, Var};
+use crate::hir::{self, Cond, ExprKind, Place, PlaceProj, Stmt, StmtKind, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::sema::capitalize;
-use crate::span::Span;
+use crate::span::{LineIndex, Span};
 use std::collections::HashSet;
 
 /// Confere posse e empréstimo em cada função sem erro (numa função com erro, a HIR está
 /// incompleta e acusaria o que não é). Cada erro é relatado uma vez e a análise segue.
 pub fn check(prog: &hir::Program, src: &str, diags: &mut Diagnostics) {
-    let lines = LineIndex::new(src);
+    let lines = Lines { index: LineIndex::new(src), text: src };
     for f in std::iter::once(&prog.init).chain(&prog.funcs) {
         if !f.has_errors {
             diags.list.extend(Checker::new(prog, f, &lines).run());
@@ -27,22 +27,15 @@ pub fn check(prog: &hir::Program, src: &str, diags: &mut Diagnostics) {
     }
 }
 
-struct LineIndex {
-    starts: Vec<usize>,
+/// Linha (a partir de 1) de um trecho, para as mensagens ("na linha 6").
+struct Lines<'t> {
+    index: LineIndex,
+    text: &'t str,
 }
 
-impl LineIndex {
-    fn new(src: &str) -> Self {
-        let mut starts = vec![0];
-        starts.extend(src.match_indices('\n').map(|(i, _)| i + 1));
-        LineIndex { starts }
-    }
-
+impl Lines<'_> {
     fn line(&self, span: Span) -> usize {
-        match self.starts.binary_search(&(span.start as usize)) {
-            Ok(i) => i + 1,
-            Err(i) => i,
-        }
+        self.index.line_col(self.text, span.start as usize).0
     }
 }
 
@@ -142,7 +135,7 @@ impl LoanKind {
 struct Checker<'a> {
     prog: &'a hir::Program,
     func: &'a hir::Func,
-    lines: &'a LineIndex,
+    lines: &'a Lines<'a>,
     state: State,
     loans: Vec<Loan>,
     /// Estados que saem dos laços abertos por "Paro" e voltam ao topo por "Pulo".
@@ -176,7 +169,7 @@ fn join(a: &State, b: &State) -> State {
 }
 
 impl<'a> Checker<'a> {
-    fn new(prog: &'a hir::Program, func: &'a hir::Func, lines: &'a LineIndex) -> Self {
+    fn new(prog: &'a hir::Program, func: &'a hir::Func, lines: &'a Lines<'a>) -> Self {
         Checker {
             prog,
             func,
@@ -220,15 +213,15 @@ impl<'a> Checker<'a> {
     }
 
     fn stmt(&mut self, s: &Stmt) -> Result<()> {
-        match s {
-            Stmt::Let { var, value } => {
+        match &s.kind {
+            StmtKind::Let { var, value } => {
                 let how = How::Passed(self.display(*var));
                 self.expr(value, Use::Move, &how)?;
                 if let (Var::Local(id), Some(st)) = (var, &mut self.state) {
                     st[*id] = St::Live;
                 }
             }
-            Stmt::Assign { place, value } => {
+            StmtKind::Assign { place, value } => {
                 let how = How::Passed(place_display(self, place));
                 self.expr(value, Use::Move, &how)?;
                 self.mutate(place, "mudar")?;
@@ -238,18 +231,18 @@ impl<'a> Checker<'a> {
                     st[id] = St::Live;
                 }
             }
-            Stmt::Compound { place, value, .. } => {
+            StmtKind::Compound { place, value, .. } => {
                 self.expr(value, Use::Read, &How::Other)?;
                 self.mutate(place, "mudar")?;
             }
-            Stmt::Push { place, value } => {
+            StmtKind::Push { place, value } => {
                 let how = How::Stored(place_display(self, place));
                 self.expr(value, Use::Move, &how)?;
                 self.mutate(place, "ganhar itens")?;
             }
-            Stmt::Write { value, .. } => self.expr(value, Use::Read, &How::Other)?,
-            Stmt::Error(_) => {}
-            Stmt::Match { scrutinee, arms, otherwise } => {
+            StmtKind::Write { value, .. } => self.expr(value, Use::Read, &How::Other)?,
+            StmtKind::Error => {}
+            StmtKind::Match { scrutinee, arms, otherwise } => {
                 self.expr(scrutinee, Use::Read, &How::Other)?;
                 // Os campos vistos dentro dos braços são empréstimos do valor: ele não muda.
                 let loan = match &scrutinee.kind {
@@ -279,30 +272,30 @@ impl<'a> Checker<'a> {
                     self.loans.pop();
                 }
             }
-            Stmt::Desist(v) => {
+            StmtKind::Desist(v) => {
                 self.expr(v, Use::Move, &How::Returned)?;
                 self.state = None;
             }
-            Stmt::Expr(e) => self.expr(e, Use::Move, &How::Other)?,
-            Stmt::Return(v) => {
+            StmtKind::Expr(e) => self.expr(e, Use::Move, &How::Other)?,
+            StmtKind::Return(v) => {
                 if let Some(v) = v {
                     self.expr(v, Use::Move, &How::Returned)?;
                 }
                 self.state = None;
             }
-            Stmt::Break => {
+            StmtKind::Break => {
                 if let (Some(st), Some(acc)) = (&self.state, self.breaks.last_mut()) {
                     acc.push(st.clone());
                 }
                 self.state = None;
             }
-            Stmt::Continue => {
+            StmtKind::Continue => {
                 if let (Some(st), Some(acc)) = (&self.state, self.breaks.last_mut()) {
                     acc.push(st.clone());
                 }
                 self.state = None;
             }
-            Stmt::If { arms, otherwise } => {
+            StmtKind::If { arms, otherwise } => {
                 let start = self.state.clone();
                 let mut out: State = None;
                 for (c, b) in arms {
@@ -322,22 +315,22 @@ impl<'a> Checker<'a> {
                 let _ = start;
                 self.state = out;
             }
-            Stmt::While { cond, body } => {
+            StmtKind::While { cond, body } => {
                 self.cond(cond)?;
                 self.looping(body, None, |me| me.cond(cond))?;
             }
-            Stmt::Repeat { count, body } => {
+            StmtKind::Repeat { count, body } => {
                 if let Some(c) = count {
                     self.expr(c, Use::Read, &How::Other)?;
                 }
                 self.looping(body, None, |_| Ok(()))?;
             }
-            Stmt::ForRange { from, to, body, .. } => {
+            StmtKind::ForRange { from, to, body, .. } => {
                 self.expr(from, Use::Read, &How::Other)?;
                 self.expr(to, Use::Read, &How::Other)?;
                 self.looping(body, None, |_| Ok(()))?;
             }
-            Stmt::ForEach { source, body, .. } => {
+            StmtKind::ForEach { source, body, .. } => {
                 self.expr(source, Use::Read, &How::Other)?;
                 let loan = match &source.kind {
                     ExprKind::Read(p) => Some(Loan { var: p.root, span: source.span, what: LoanKind::Loop }),

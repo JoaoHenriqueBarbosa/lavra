@@ -4,7 +4,8 @@
 use crate::ast::{BinOp, ParamMode, Rel, UnOp};
 use crate::morphology::{Gender, Number};
 use crate::span::Span;
-use crate::types::Ty;
+use crate::types::{EnumTy, RecordTy, Ty};
+use std::sync::Arc;
 
 pub type LocalId = usize;
 pub type GlobalId = usize;
@@ -18,6 +19,9 @@ pub struct Program {
     pub init: Func,
     /// "Para começar"; só falta em programa com erro, que não chega aos back-ends.
     pub main: Option<FuncId>,
+    /// Os registros e as enumerações, pelo índice da definição.
+    pub records: Vec<Arc<RecordTy>>,
+    pub enums: Vec<Arc<EnumTy>>,
 }
 
 #[derive(Debug)]
@@ -25,6 +29,8 @@ pub struct Global {
     pub name: String,
     pub display: String,
     pub ty: Ty,
+    /// O nome na declaração.
+    pub span: Span,
 }
 
 #[derive(Debug)]
@@ -40,6 +46,8 @@ pub struct Func {
     /// A função teve erro (dela ou do cabeçalho): a posse não a analisa, e os
     /// back-ends nunca a recebem.
     pub has_errors: bool,
+    /// A assinatura da AST (`ast::Program::sigs`); o nível de fora não tem.
+    pub sig: Option<usize>,
 }
 
 #[derive(Debug, Clone)]
@@ -68,8 +76,27 @@ pub enum Var {
 #[derive(Debug, Default)]
 pub struct Block(pub Vec<Stmt>);
 
+/// Uma oração da HIR, com o trecho do texto de onde ela veio (o depurador para nela, o
+/// editor aponta para ela).
 #[derive(Debug)]
-pub enum Stmt {
+pub struct Stmt {
+    pub kind: StmtKind,
+    pub span: Span,
+}
+
+/// Acrescenta uma oração com o trecho dela.
+pub trait PushStmt {
+    fn push_at(&mut self, span: Span, kind: StmtKind);
+}
+
+impl PushStmt for Vec<Stmt> {
+    fn push_at(&mut self, span: Span, kind: StmtKind) {
+        self.push(Stmt { kind, span });
+    }
+}
+
+#[derive(Debug)]
+pub enum StmtKind {
     Let {
         var: Var,
         value: Expr,
@@ -135,7 +162,7 @@ pub enum Stmt {
     },
     /// Oração que não se conferiu (o erro já foi relatado). Programa com erro não chega
     /// aos back-ends.
-    Error(Span),
+    Error,
 }
 
 #[derive(Debug)]

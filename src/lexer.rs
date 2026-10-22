@@ -92,7 +92,13 @@ impl Token {
 /// Os tokens do texto. Um erro léxico vira diagnóstico e um token `Error` no lugar do
 /// trecho recusado; a varredura segue.
 pub fn tokenize(src: &str, diags: &mut Diagnostics) -> Vec<Token> {
-    let raw = scan(src, diags);
+    tokenize_at(src, 0, diags)
+}
+
+/// Como `tokenize`, com as posições a partir de `base` (a base do arquivo no
+/// `SourceMap`, quando a compilação tiver vários arquivos).
+pub fn tokenize_at(src: &str, base: usize, diags: &mut Diagnostics) -> Vec<Token> {
+    let raw = scan(src, base, diags);
     let protected = fuse(raw, crate::lexicon::PROTECTED_LOCUTIONS, false);
     let split = split_contractions(protected);
     fuse(split, crate::lexicon::LOCUTIONS, true)
@@ -117,12 +123,12 @@ fn is_word_char(c: char) -> bool {
     c.is_alphabetic() || c.is_ascii_digit() || c == '_'
 }
 
-fn scan(src: &str, diags: &mut Diagnostics) -> Vec<Token> {
+fn scan(src: &str, base: usize, diags: &mut Diagnostics) -> Vec<Token> {
     let mut out: Vec<Token> = Vec::new();
     let mut indents: Vec<usize> = vec![0];
     // Verdadeiro quando a próxima linha física começa uma linha lógica nova.
     let mut at_logical_start = true;
-    let mut offset = 0usize;
+    let mut offset = base;
     for raw_line in src.split_inclusive('\n') {
         let line_start = offset;
         offset += raw_line.len();
@@ -193,7 +199,7 @@ fn scan(src: &str, diags: &mut Diagnostics) -> Vec<Token> {
         }
         at_logical_start = ends_period || (out.len() == before && at_logical_start);
     }
-    let end = src.len();
+    let end = base + src.len();
     if !matches!(out.last().map(|t| &t.kind), None | Some(TokenKind::Newline)) {
         out.push(Token { kind: TokenKind::Newline, span: Span::new(end, end), orig: String::new(), contraction: None, line_start: false });
     }

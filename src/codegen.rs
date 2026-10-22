@@ -8,7 +8,7 @@
 
 use crate::ast::{BinOp, ParamMode, Rel, UnOp};
 use crate::codes::{Code, L0900, L0904, L0905};
-use crate::hir::{self, Cond, ExprKind, PlaceProj, Stmt, Var};
+use crate::hir::{self, Cond, ExprKind, PlaceProj, Stmt, StmtKind, Var};
 use crate::span::Span;
 use crate::textfmt;
 use crate::types::{IntTy, Ty};
@@ -788,9 +788,9 @@ impl<'a, 'b> Fx<'a, 'b> {
     }
 
     fn stmt(&mut self, s: &Stmt) {
-        match s {
-            Stmt::Error(_) => unreachable!("programa com erro não chega aos back-ends"),
-            Stmt::Let { var, value } => {
+        match &s.kind {
+            StmtKind::Error => unreachable!("programa com erro não chega aos back-ends"),
+            StmtKind::Let { var, value } => {
                 let v = self.expr(value, true).unwrap();
                 match var {
                     Var::Local(id) => self.assign_local(*id, v),
@@ -802,24 +802,24 @@ impl<'a, 'b> Fx<'a, 'b> {
                     }
                 }
             }
-            Stmt::Assign { place, value } => {
+            StmtKind::Assign { place, value } => {
                 let v = self.expr(value, true).unwrap();
                 self.write_place(place, v);
             }
-            Stmt::Compound { place, op, value, span } => {
+            StmtKind::Compound { place, op, value, span } => {
                 let rhs = self.expr(value, false).unwrap();
                 let cur = self.read_place(place);
                 let r = self.arith(*op, cur, rhs, &place.ty, &value.ty, *span);
                 self.write_place(place, r);
             }
-            Stmt::Push { place, value } => {
+            StmtKind::Push { place, value } => {
                 let list = self.read_place(place);
                 let v = self.expr(value, true).unwrap();
                 let Ty::List(elem) = &place.ty else { unreachable!() };
                 let s = self.slot_of(v, elem);
                 self.rt("rt_list_push", &[list, s]);
             }
-            Stmt::Write { value, newline } => {
+            StmtKind::Write { value, newline } => {
                 let v = self.expr(value, false).unwrap();
                 let d = self.desc(&value.ty);
                 let s = self.slot_of(v, &value.ty);
@@ -828,7 +828,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                     self.rt("rt_newline", &[]);
                 }
             }
-            Stmt::If { arms, otherwise } => {
+            StmtKind::If { arms, otherwise } => {
                 let end = self.b.create_block();
                 for (c, body) in arms {
                     let yes = self.b.create_block();
@@ -850,7 +850,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                 }
                 self.b.switch_to_block(end);
             }
-            Stmt::While { cond, body } => {
+            StmtKind::While { cond, body } => {
                 let head = self.b.create_block();
                 let inner = self.b.create_block();
                 let exit = self.b.create_block();
@@ -862,7 +862,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                 self.loop_body(body, head, exit);
                 self.b.switch_to_block(exit);
             }
-            Stmt::Repeat { count, body } => {
+            StmtKind::Repeat { count, body } => {
                 let head = self.b.create_block();
                 let inner = self.b.create_block();
                 let next = self.b.create_block();
@@ -901,7 +901,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                 }
                 self.b.switch_to_block(exit);
             }
-            Stmt::ForRange { var, from, to, body } => {
+            StmtKind::ForRange { var, from, to, body } => {
                 let a = self.expr(from, false).unwrap();
                 let z = self.expr(to, false).unwrap();
                 let Ty::Int(it) = from.ty else { unreachable!() };
@@ -933,7 +933,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                 self.b.ins().jump(head, &[]);
                 self.b.switch_to_block(exit);
             }
-            Stmt::ForEach { var, source, body } => {
+            StmtKind::ForEach { var, source, body } => {
                 let src = self.expr(source, false).unwrap();
                 let list = if source.ty == Ty::Text {
                     let l = self.rt1("rt_text_chars", &[src]);
@@ -974,14 +974,14 @@ impl<'a, 'b> Fx<'a, 'b> {
                 self.b.ins().jump(head, &[]);
                 self.b.switch_to_block(exit);
             }
-            Stmt::Break | Stmt::Continue => {
+            StmtKind::Break | StmtKind::Continue => {
                 let (cont, brk) = *self.loops.last().unwrap();
-                let target = if matches!(s, Stmt::Break) { brk } else { cont };
+                let target = if matches!(s.kind, StmtKind::Break) { brk } else { cont };
                 self.b.ins().jump(target, &[]);
                 let dead = self.b.create_block();
                 self.b.switch_to_block(dead);
             }
-            Stmt::Return(v) => {
+            StmtKind::Return(v) => {
                 let val = v.as_ref().and_then(|e| self.expr(e, true));
                 let temps = std::mem::take(&mut self.temps);
                 for (v, t) in temps.iter().rev() {
@@ -991,7 +991,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                 self.drop_locals();
                 self.ret(val, None);
             }
-            Stmt::Match { scrutinee, arms, otherwise } => {
+            StmtKind::Match { scrutinee, arms, otherwise } => {
                 let v = self.expr(scrutinee, false).unwrap();
                 let tag = self.b.ins().load(types::I64, flags(), v, 0);
                 let Ty::Enum(e) = &scrutinee.ty else { unreachable!() };
@@ -1026,13 +1026,13 @@ impl<'a, 'b> Fx<'a, 'b> {
                 }
                 self.b.switch_to_block(end);
             }
-            Stmt::Desist(m) => {
+            StmtKind::Desist(m) => {
                 let text = self.expr(m, true).unwrap();
                 let (lo, hi) = self.span_vals(m.span);
                 let f = self.rt1("rt_failure_new", &[text, lo, hi]);
                 self.fail_out(f);
             }
-            Stmt::Expr(e) => {
+            StmtKind::Expr(e) => {
                 if let Some(v) = self.expr(e, true) {
                     self.drop_value(v, &e.ty);
                 }
@@ -1693,10 +1693,12 @@ fn mark_addressed(b: &hir::Block, out: &mut [bool]) {
 }
 
 fn stmt_addressed(s: &Stmt, out: &mut [bool]) {
-    match s {
-        Stmt::Let { value, .. } | Stmt::Write { value, .. } | Stmt::Expr(value) | Stmt::Desist(value) => expr_addressed(value, out),
-        Stmt::Assign { value, .. } | Stmt::Compound { value, .. } | Stmt::Push { value, .. } => expr_addressed(value, out),
-        Stmt::If { arms, otherwise } => {
+    match &s.kind {
+        StmtKind::Let { value, .. } | StmtKind::Write { value, .. } | StmtKind::Expr(value) | StmtKind::Desist(value) => {
+            expr_addressed(value, out)
+        }
+        StmtKind::Assign { value, .. } | StmtKind::Compound { value, .. } | StmtKind::Push { value, .. } => expr_addressed(value, out),
+        StmtKind::If { arms, otherwise } => {
             for (c, b) in arms {
                 cond_addressed(c, out);
                 mark_addressed(b, out);
@@ -1705,12 +1707,12 @@ fn stmt_addressed(s: &Stmt, out: &mut [bool]) {
                 mark_addressed(o, out);
             }
         }
-        Stmt::While { cond, body } => {
+        StmtKind::While { cond, body } => {
             cond_addressed(cond, out);
             mark_addressed(body, out);
         }
-        Stmt::Repeat { body, .. } | Stmt::ForRange { body, .. } | Stmt::ForEach { body, .. } => mark_addressed(body, out),
-        Stmt::Match { arms, otherwise, .. } => {
+        StmtKind::Repeat { body, .. } | StmtKind::ForRange { body, .. } | StmtKind::ForEach { body, .. } => mark_addressed(body, out),
+        StmtKind::Match { arms, otherwise, .. } => {
             for a in arms {
                 mark_addressed(&a.body, out);
             }
@@ -1718,7 +1720,7 @@ fn stmt_addressed(s: &Stmt, out: &mut [bool]) {
                 mark_addressed(o, out);
             }
         }
-        Stmt::Return(Some(v)) => expr_addressed(v, out),
+        StmtKind::Return(Some(v)) => expr_addressed(v, out),
         _ => {}
     }
 }

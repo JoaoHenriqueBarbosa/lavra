@@ -8,7 +8,18 @@ Dependências: o Cranelift 0.137 (`codegen`, `frontend`, `module`, `object`, `na
 lavrac run    arquivo.lav          interpreta
 lavrac build  arquivo.lav [-o x]   executável nativo (padrão: o nome sem .lav)
 lavrac check  arquivo.lav          só confere
+lavrac check --json arquivo.lav    os diagnósticos em JSON (para editores e ferramentas)
+lavrac explain L0334               explica um erro, com exemplo errado e certo
+lavrac lexicon --json              exporta o léxico
 ```
+
+Os diagnósticos levam correções (`Fix`) onde o compilador sabe a forma certa
+(contração, concordância, subjuntivo da condição, ponto final, vírgula de "Senão, se"):
+o trecho e o texto novo, marcados como seguros. O terminal mostra só a dica em prosa; o
+JSON e o servidor de linguagem levam as correções. As explicações ficam em
+`src/explain/LXXXX.md` (o `build.rs` embute todas), e `tests/explain.rs` confere que todo
+código tem a sua, com o título do registro, e que o exemplo errado dá o código e o certo
+não dá nada (os de execução rodam no interpretador).
 
 ## Pipeline
 
@@ -54,6 +65,16 @@ execução sair igual nos dois back-ends.
 conferidas contra o dicionário (ver [morphology.md](morphology.md)). `diagnostics.rs`: categorias e renderização no
 estilo do rustc. `textfmt.rs`: formatação e mensagens de execução, compartilhadas pelo
 interpretador e pelo runtime (a paridade vem daí).
+
+## Posições
+
+`span.rs`: `Span` é um intervalo de bytes; `LineIndex` converte byte em linha e coluna, em
+caracteres para as mensagens e em unidades UTF-16 para o protocolo dos editores, e volta;
+`SourceMap` dá a cada arquivo uma faixa própria de posições (o primeiro começa em 0), para
+um `Span` identificar o arquivo sem levá-lo junto, como no rustc; o léxico aceita a base
+do arquivo (`tokenize_at`). Toda oração da HIR leva o trecho de onde veio
+(`hir::Stmt { kind, span }`), e a HIR leva também o trecho das constantes, os registros e
+as enumerações, e o índice da assinatura de cada função.
 
 ## Análise tolerante a erro
 

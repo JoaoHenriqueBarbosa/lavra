@@ -4,7 +4,7 @@
 use crate::ast::{self, BinOp, ClauseKind, ExprKind, Init, ParamMode, Rel, UnOp};
 use crate::codes::*;
 use crate::diagnostics::{Diagnostic, Diagnostics, Result, err};
-use crate::hir::{self, Var};
+use crate::hir::{self, PushStmt, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
 use crate::types::{EnumTy, IntTy, RecordTy, Ty, VariantTy};
@@ -92,10 +92,15 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> hir::Program {
             display: format!("{} {}", morphology::definite_article(g.gender, g.number), g.name),
             name: g.name,
             ty: g.ty,
+            span: g.span,
         })
         .collect();
+    let mut records: Vec<Arc<RecordTy>> = env.records.values().cloned().collect();
+    records.sort_by_key(|r| r.id);
+    let mut enums: Vec<Arc<EnumTy>> = env.enums.values().cloned().collect();
+    enums.sort_by_key(|e| e.id);
     diags.list.extend(env.diags);
-    hir::Program { funcs, globals, init, main: prog.main.map(|m| env.sig_func[m]) }
+    hir::Program { funcs, globals, init, main: prog.main.map(|m| env.sig_func[m]), records, enums }
 }
 
 fn env_param_types(cx: &FnCx, sig: usize) -> Vec<Ty> {
@@ -398,7 +403,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
         };
         let fallible = self.sig.is_some_and(|s| self.env.prog.sigs[s].fallible);
         let has_errors = self.tainted;
-        hir::Func { name, params, fallible, locals: self.locals.into_iter().map(|l| l.local).collect(), body, ret, span, has_errors }
+        let sig = self.sig;
+        hir::Func { name, params, fallible, locals: self.locals.into_iter().map(|l| l.local).collect(), body, ret, span, has_errors, sig }
     }
 
     fn fresh(&mut self, span: Span) -> Ty {
@@ -551,6 +557,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
     }
 
     fn stmt(&mut self, s: &ast::Stmt, out: &mut Vec<hir::Stmt>) -> Result<()> {
+        let span = stmt_span(s);
         if self.top && !matches!(s, ast::Stmt::Period(_) | ast::Stmt::Error { .. }) {
             return Err(top_level_error(stmt_span(s)));
         }
@@ -565,7 +572,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 for b in blocks {
                     let _ = self.block(b);
                 }
-                out.push(hir::Stmt::Error(*span));
+                out.push_at(*span, hir::StmtKind::Error);
             }
             ast::Stmt::Period(p) => {
                 self.result = None;
@@ -614,7 +621,9 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             self.locals[id].local.display = name.display();
                             let unwrap = hir::Expr { kind: hir::ExprKind::Unwrap(Box::new(src.clone())), ty: inner, span: *word_span };
                             let mut inner_block = self.block(b);
-                            inner_block.0.insert(0, hir::Stmt::Let { var: Var::Local(id), value: unwrap });
+                            inner_block
+                                .0
+                                .insert(0, hir::Stmt { kind: hir::StmtKind::Let { var: Var::Local(id), value: unwrap }, span: *word_span });
                             self.scopes.pop();
                             inner_block
                         }
@@ -639,12 +648,12 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     harms.push((hc, body));
                 }
                 let otherwise = otherwise.as_ref().map(|b| self.block(b));
-                out.push(hir::Stmt::If { arms: harms, otherwise });
+                out.push_at(span, hir::StmtKind::If { arms: harms, otherwise });
             }
             ast::Stmt::While { cond, body, .. } => {
                 let cond = self.cond_or_error(cond);
                 let body = self.loop_body(body);
-                out.push(hir::Stmt::While { cond, body });
+                out.push_at(span, hir::StmtKind::While { cond, body });
             }
             ast::Stmt::Repeat { count, body, .. } => {
                 let count = match count {
@@ -662,7 +671,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     None => None,
                 };
                 let body = self.loop_body(body);
-                out.push(hir::Stmt::Repeat { count, body });
+                out.push_at(span, hir::StmtKind::Repeat { count, body });
             }
             ast::Stmt::ForRange { var, from, to, body, .. } => {
                 let from = self.expr_or_error(from, None);
@@ -685,7 +694,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let body = self.loop_body(body);
                 self.scopes.pop();
                 if let Some(id) = id {
-                    out.push(hir::Stmt::ForRange { var: id, from, to, body });
+                    out.push_at(span, hir::StmtKind::ForRange { var: id, from, to, body });
                 }
             }
             ast::Stmt::ForEach { item, source, body, .. } => {
@@ -741,7 +750,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let body = self.loop_body(body);
                 self.scopes.pop();
                 if let Some(id) = id {
-                    out.push(hir::Stmt::ForEach { var: id, source: src, body });
+                    out.push_at(span, hir::StmtKind::ForEach { var: id, source: src, body });
                 }
             }
             ast::Stmt::Match { scrutinee, arms, otherwise, .. } => {
@@ -833,7 +842,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     ));
                 }
                 let otherwise = otherwise.as_ref().map(|b| self.block(b));
-                out.push(hir::Stmt::Match { scrutinee: v, arms: harms, otherwise });
+                out.push_at(span, hir::StmtKind::Match { scrutinee: v, arms: harms, otherwise });
             }
         }
         Ok(())
@@ -888,6 +897,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
 
     /// Guarda o valor num local escondido que "o resultado" retoma.
     fn set_result(&mut self, value: hir::Expr, out: &mut Vec<hir::Stmt>) {
+        let span = value.span;
         let id = self.locals.len();
         self.locals.push(LocalInfo {
             local: hir::Local {
@@ -907,11 +917,12 @@ impl<'e, 'a> FnCx<'e, 'a> {
             decl_span: value.span,
             hidden: true,
         });
-        out.push(hir::Stmt::Let { var: Var::Local(id), value });
+        out.push_at(span, hir::StmtKind::Let { var: Var::Local(id), value });
         self.result = Some(id);
     }
 
     fn clause(&mut self, c: &ast::Clause, out: &mut Vec<hir::Stmt>) -> Result<()> {
+        let span = c.span;
         match &c.kind {
             ClauseKind::Decl { name, ann, mutable, init } => {
                 let annotated = ann.as_ref().map(|a| self.env.type_of(a)).transpose()?;
@@ -1010,10 +1021,10 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         number: name.number(),
                         span: name.span,
                     });
-                    out.push(hir::Stmt::Let { var: Var::Global(id), value });
+                    out.push_at(span, hir::StmtKind::Let { var: Var::Global(id), value });
                 } else {
                     let id = self.declare(name, ty, *mutable)?;
-                    out.push(hir::Stmt::Let { var: Var::Local(id), value });
+                    out.push_at(span, hir::StmtKind::Let { var: Var::Local(id), value });
                 }
                 self.result = None;
             }
@@ -1031,7 +1042,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     }
                 };
                 let v = self.expr(value, Some(&elem))?;
-                out.push(hir::Stmt::Push { place: p, value: v });
+                out.push_at(span, hir::StmtKind::Push { place: p, value: v });
                 self.result = None;
             }
             ClauseKind::Remove { place, which } | ClauseKind::Take { place, which } => {
@@ -1061,7 +1072,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if take {
                     self.set_result(e, out);
                 } else {
-                    out.push(hir::Stmt::Expr(e));
+                    out.push_at(span, hir::StmtKind::Expr(e));
                     self.result = None;
                 }
             }
@@ -1069,7 +1080,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let p = self.place_mut(place, "vira")?;
                 let Init::Expr(e) = value else { unreachable!() };
                 let v = self.expr(e, Some(&p.ty))?;
-                out.push(hir::Stmt::Assign { place: p, value: v });
+                out.push_at(span, hir::StmtKind::Assign { place: p, value: v });
                 self.result = None;
             }
             ClauseKind::Grow { place, value } | ClauseKind::Shrink { place, value } => {
@@ -1084,7 +1095,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 }
                 let v = self.expr(value, Some(&p.ty))?;
                 let op = if grow { BinOp::Add } else { BinOp::Sub };
-                out.push(hir::Stmt::Compound { place: p.clone(), op, value: v, span: c.span });
+                out.push_at(span, hir::StmtKind::Compound { place: p.clone(), op, value: v, span: c.span });
                 let ty = p.ty.clone();
                 let span = p.span;
                 self.set_result(hir::Expr { kind: hir::ExprKind::Read(p), ty, span }, out);
@@ -1094,7 +1105,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if value.ty == Ty::Unit {
                     return err(Diagnostic::new(L0322, "Esse valor não existe: a função não devolve nada.", parts[0].span));
                 }
-                out.push(hir::Stmt::Write { value, newline: *newline });
+                out.push_at(span, hir::StmtKind::Write { value, newline: *newline });
                 self.result = None;
             }
             ClauseKind::ReadInto { place } => {
@@ -1103,7 +1114,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     return err(Diagnostic::new(L0323, format!("Não se lê {} da entrada.", p.ty.describe()), place.span));
                 }
                 let value = hir::Expr { kind: hir::ExprKind::Input, ty: p.ty.clone(), span: c.span };
-                out.push(hir::Stmt::Assign { place: p.clone(), value });
+                out.push_at(span, hir::StmtKind::Assign { place: p.clone(), value });
                 let span = p.span;
                 let ty = p.ty.clone();
                 let read = hir::Expr { kind: hir::ExprKind::Read(p), ty: ty.clone(), span };
@@ -1118,7 +1129,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ClauseKind::Desist(msg) => {
                 self.require_fallible(c.span)?;
                 let m = self.expr(msg, Some(&Ty::Text))?;
-                out.push(hir::Stmt::Desist(m));
+                out.push_at(span, hir::StmtKind::Desist(m));
             }
             ClauseKind::Break | ClauseKind::Continue => {
                 let brk = matches!(c.kind, ClauseKind::Break);
@@ -1126,7 +1137,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     let w = if brk { "Paro" } else { "Pulo" };
                     return err(Diagnostic::new(L0324, format!("\"{w}\" só faz sentido dentro de um laço."), c.span));
                 }
-                out.push(if brk { hir::Stmt::Break } else { hir::Stmt::Continue });
+                out.push_at(span, if brk { hir::StmtKind::Break } else { hir::StmtKind::Continue });
             }
             ClauseKind::Return(value) => {
                 let sig = &self.env.prog.sigs[self.sig.unwrap()];
@@ -1149,7 +1160,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     }
                     (Some(e), t) => Some(self.expr(e, Some(t))?),
                 };
-                out.push(hir::Stmt::Return(v));
+                out.push_at(span, hir::StmtKind::Return(v));
             }
             ClauseKind::Call { call, handler } => {
                 let e = match handler {
@@ -1172,7 +1183,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     }
                 };
                 if e.ty == Ty::Unit {
-                    out.push(hir::Stmt::Expr(e));
+                    out.push_at(span, hir::StmtKind::Expr(e));
                     self.result = None;
                 } else {
                     self.set_result(e, out);
@@ -1888,11 +1899,11 @@ fn error_cond() -> hir::Cond {
 
 /// Todo caminho do bloco termina em "Devolvo"?
 fn always_returns(b: &hir::Block) -> bool {
-    b.0.iter().any(|s| match s {
-        hir::Stmt::Return(_) | hir::Stmt::Desist(_) => true,
-        hir::Stmt::If { arms, otherwise: Some(o) } => arms.iter().all(|(_, b)| always_returns(b)) && always_returns(o),
-        hir::Stmt::Repeat { count: None, body } => !breaks(body),
-        hir::Stmt::Match { arms, otherwise, .. } => {
+    b.0.iter().any(|s| match &s.kind {
+        hir::StmtKind::Return(_) | hir::StmtKind::Desist(_) => true,
+        hir::StmtKind::If { arms, otherwise: Some(o) } => arms.iter().all(|(_, b)| always_returns(b)) && always_returns(o),
+        hir::StmtKind::Repeat { count: None, body } => !breaks(body),
+        hir::StmtKind::Match { arms, otherwise, .. } => {
             arms.iter().all(|a| always_returns(&a.body)) && otherwise.as_ref().is_none_or(always_returns)
         }
         _ => false,
@@ -1900,10 +1911,10 @@ fn always_returns(b: &hir::Block) -> bool {
 }
 
 fn breaks(b: &hir::Block) -> bool {
-    b.0.iter().any(|s| match s {
-        hir::Stmt::Break => true,
-        hir::Stmt::If { arms, otherwise } => arms.iter().any(|(_, b)| breaks(b)) || otherwise.as_ref().is_some_and(breaks),
-        hir::Stmt::Match { arms, otherwise, .. } => arms.iter().any(|a| breaks(&a.body)) || otherwise.as_ref().is_some_and(breaks),
+    b.0.iter().any(|s| match &s.kind {
+        hir::StmtKind::Break => true,
+        hir::StmtKind::If { arms, otherwise } => arms.iter().any(|(_, b)| breaks(b)) || otherwise.as_ref().is_some_and(breaks),
+        hir::StmtKind::Match { arms, otherwise, .. } => arms.iter().any(|a| breaks(&a.body)) || otherwise.as_ref().is_some_and(breaks),
         _ => false,
     })
 }
@@ -1959,8 +1970,8 @@ fn resolve_block(b: &mut hir::Block, s: &[(Option<Ty>, Span)]) {
 }
 
 fn resolve_stmt(st: &mut hir::Stmt, s: &[(Option<Ty>, Span)]) {
-    use hir::Stmt::*;
-    match st {
+    use hir::StmtKind::*;
+    match &mut st.kind {
         Let { value, .. } | Write { value, .. } | Expr(value) => resolve_expr(value, s),
         Assign { place, value } | Compound { place, value, .. } | Push { place, value } => {
             resolve_place(place, s);
@@ -2009,7 +2020,7 @@ fn resolve_stmt(st: &mut hir::Stmt, s: &[(Option<Ty>, Span)]) {
                 resolve_block(b, s);
             }
         }
-        Break | Continue | Error(_) => {}
+        Break | Continue | Error => {}
     }
 }
 
