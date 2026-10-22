@@ -1,0 +1,5 @@
+Erro de execução: A coleção está vazia: não há último para tirar.
+ --> tests/programs/err/vazia_ultimo.lav:3:5
+  |
+3 |     As compras perdem a última.
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,6 @@
+Um nó é um registro de:
+    o valor, um inteiro;
+    o próximo, um nó.
+
+Para começar:
+    Escrevo 1.

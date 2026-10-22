@@ -1,0 +1,7 @@
+Uma conta é um registro de:
+    o titular, um texto;
+    o saldo, um real;
+    a agência, um inteiro.
+
+Para começar:
+    A carteira é uma conta com o titular "Ana".

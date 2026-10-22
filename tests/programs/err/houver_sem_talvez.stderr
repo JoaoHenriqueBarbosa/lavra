@@ -1,0 +1,5 @@
+Erro de tipo: "o nome" é um texto e sempre existe; "houver" é para o que foi declarado com "talvez".
+ --> tests/programs/err/houver_sem_talvez.lav:3:15
+  |
+3 |     Se houver nome: escrevo o nome.
+  |               ^^^^

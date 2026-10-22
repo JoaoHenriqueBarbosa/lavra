@@ -1,0 +1,29 @@
+Nota: posse, empréstimo e cópia.
+
+Para arquivar a carta, sendo a carta um texto:
+    Escrevo "arquivada: " seguido da carta.
+
+Para medir a carta, sendo a carta um texto emprestado, devolvendo um inteiro:
+    Devolvo o tamanho da carta.
+
+Para assinar a carta, sendo a carta um texto confiado:
+    A carta vira a carta seguido de " (assinado)".
+
+Para começar:
+    A carta começa em "Querida Ana".
+    Escrevo "tamanho: " seguido do resultado de medir a carta.
+    Assino a carta.
+    Arquivo uma cópia da carta.
+    Escrevo "ainda tenho: " seguido da carta.
+    Arquivo a carta.
+    A carta vira "nova".
+    Escrevo "e de novo: " seguido da carta.
+
+    O rascunho é "rascunho".
+    O texto é o rascunho.
+    Escrevo o texto.
+
+    As cartas começam vazias.
+    O bilhete é "oi".
+    As cartas ganham o bilhete.
+    Escrevo as cartas.

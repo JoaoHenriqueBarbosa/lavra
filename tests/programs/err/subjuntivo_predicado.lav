@@ -1,0 +1,5 @@
+Para o guarda ver o ladrão, sendo o guarda e o ladrão inteiros, devolvendo um lógico:
+    Devolvo o fato de o guarda ser igual ao ladrão.
+
+Para começar:
+    Se 1 ver 2: escrevo "visto".

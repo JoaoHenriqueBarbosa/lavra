@@ -1,0 +1,5 @@
+Erro de morfologia: Em condição, o predicado vai no futuro do subjuntivo: "vir", não "ver".
+ --> tests/programs/err/subjuntivo_predicado.lav:5:10
+  |
+5 |     Se 1 ver 2: escrevo "visto".
+  |          ^^^

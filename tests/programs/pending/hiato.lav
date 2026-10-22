@@ -1,0 +1,11 @@
+Nota: espera a tabela da 1ª pessoa (hiato acentuado).
+
+Para saudar a pessoa, sendo a pessoa um texto:
+    Escrevo "Olá, " seguido da pessoa seguido de "!".
+
+Para reunir o grupo, sendo o grupo um texto:
+    Escrevo "reunido: " seguido do grupo.
+
+Para começar:
+    Saúdo "Ana".
+    Reúno "a turma".

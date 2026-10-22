@@ -1,0 +1,5 @@
+Erro de morfologia: Contração obrigatória: "em o" se escreve "no".
+ --> tests/programs/err/contracao.lav:3:19
+  |
+3 |     O teto começa em o saldo.
+  |                   ^^^^

@@ -5,6 +5,7 @@ edition = "2024"
 description = "Compilador da Lavra: um Rust com gramática e morfologia, escrito em português."
 license = "MIT"
 default-run = "lavrac"
+build = "build.rs"
 
 [lib]
 name = "lavra"
@@ -15,6 +16,11 @@ name = "lavrac"
 path = "src/main.rs"
 
 [dependencies]
+cranelift-codegen = "0.137"
+cranelift-frontend = "0.137"
+cranelift-module = "0.137"
+cranelift-object = "0.137"
+cranelift-native = "0.137"
 
 [profile.release]
 debug = false

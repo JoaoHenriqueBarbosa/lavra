@@ -1,0 +1,51 @@
+Nota: funções com regência, predicados, complemento fixo e parâmetro confiado.
+
+A taxa é 0,05.
+
+Para elevar x a n, sendo x um real e n um natural, devolvendo um real:
+    O produto começa em 1,0.
+    Repito n vezes: o produto vira o produto vezes x.
+    Devolvo o produto.
+
+Para o valor exceder o limite, sendo ambos inteiros, devolvendo um lógico:
+    Devolvo o fato de o valor ser maior que o limite.
+
+Para o número ser par, sendo o número um inteiro, devolvendo um lógico:
+    Devolvo o fato de o número módulo 2 ser igual a 0.
+
+Para render o saldo, sendo o saldo um real confiado:
+    O saldo cresce o saldo vezes a taxa.
+
+Para transferir a quantia da origem para o destino,
+        sendo a quantia um inteiro e a origem e o destino inteiros confiados:
+    A origem diminui a quantia.
+    O destino cresce a quantia.
+
+Para contar os dias até a data, sendo a data um inteiro, devolvendo um inteiro:
+    Devolvo a data vezes 365.
+
+Para cumprimentar a pessoa, sendo a pessoa um texto:
+    Escrevo "Olá, " seguido da pessoa seguido de "!".
+
+Para medir a distância entre p e q, sendo p e q reais, devolvendo um real:
+    Se p for maior que q: devolvo p menos q.
+    Devolvo q menos p.
+
+Para começar:
+    Escrevo "2 elevado a 10 = " seguido do resultado de elevar 2 a 10.
+    Elevo 1,5 a 2 e escrevo o resultado.
+    O saldo começa em 1000,0.
+    Repito 2 vezes: rendo o saldo.
+    Escrevo "rendido: " seguido do saldo.
+    A conta começa em 1000.
+    A poupança começa em 250.
+    Transfiro 300 da conta para a poupança.
+    Escrevo "conta: " seguido da conta seguido de " | poupança: " seguido da poupança.
+    O teto é 100.
+    Se 120 exceder o teto: escrevo "estourou o teto".
+    Se o teto não exceder 120: escrevo "o teto não excede".
+    Para cada i de 1 até 4:
+        Se i for par: escrevo i seguido de " é par".
+    Escrevo o resultado de contar os dias até 2.
+    Cumprimento "Ana".
+    Escrevo o resultado de medir a distância entre 3,0 e 10,5.

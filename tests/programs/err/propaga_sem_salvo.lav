@@ -1,0 +1,8 @@
+Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto, salvo uma falha:
+    Desisto com "emperrou".
+
+Para mostrar a gaveta, sendo a gaveta um inteiro:
+    Escrevo o resultado de abrir a gaveta, ou desisto.
+
+Para começar:
+    Mostro 2.

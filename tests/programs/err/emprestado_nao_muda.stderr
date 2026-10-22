@@ -1,0 +1,8 @@
+Erro de mutabilidade: A carta chega emprestada só para leitura e não vira.
+ --> tests/programs/err/emprestado_nao_muda.lav:2:5
+  |
+1 | Para assinar a carta, sendo a carta um texto emprestado:
+  |              ------- parâmetro sem "confiado"
+2 |     A carta vira "assinada".
+  |     ^^^^^^^
+  = dica: Para a função poder mudar o valor de quem chama, declare o parâmetro como "confiado" no cabeçalho.

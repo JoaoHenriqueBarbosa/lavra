@@ -1,0 +1,8 @@
+Erro de posse: A carta foi entregue a "arquivar" numa volta anterior do laço e não volta.
+ --> tests/programs/err/posse_laco.lav:7:17
+  |
+7 |         Arquivo a carta.
+  |                 ^^^^^^^ usada aqui depois de entregue
+  = Depois de entregue, "a carta" não se usa mais.
+  = Cada volta do laço entrega de novo o que a anterior já entregou.
+  = dica: Se "arquivar" só precisa ler, peça emprestado no cabeçalho ("sendo a carta um texto emprestado"), ou entregue uma cópia da carta: "Arquivo uma cópia da carta."

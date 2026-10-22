@@ -1,0 +1,8 @@
+Para transferir a quantia da origem para o destino,
+        sendo a quantia um inteiro e a origem e o destino inteiros confiados:
+    A origem diminui a quantia.
+    O destino cresce a quantia.
+
+Para começar:
+    A conta começa em 1000.
+    Transfiro 300 da conta para a conta.

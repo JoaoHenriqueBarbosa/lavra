@@ -1,5 +1,7 @@
 //! Tipos da Lavra depois da análise, e como se dizem em português.
 
+use std::sync::Arc;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct IntTy {
     pub bits: u8,
@@ -36,6 +38,18 @@ impl IntTy {
     }
 }
 
+/// Um tipo registro definido pelo usuário ("Uma conta é um registro de: ...").
+#[derive(Debug, PartialEq)]
+pub struct RecordTy {
+    pub id: usize,
+    pub name: String,
+    pub plural: String,
+    pub feminine: bool,
+    pub fields: Vec<(String, Ty)>,
+    /// Artigo de cada campo ("o saldo", "a origem"), para escrever o registro.
+    pub field_articles: Vec<(String, &'static str)>,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Ty {
     Int(IntTy),
@@ -43,7 +57,13 @@ pub enum Ty {
     Bool,
     Char,
     Text,
+    List(Box<Ty>),
+    Record(Arc<RecordTy>),
+    /// "talvez um texto": um valor ou nada.
+    Maybe(Box<Ty>),
     Unit,
+    /// Ainda por inferir (lista vazia antes do primeiro uso).
+    Infer(u32),
     /// Tipo de uma expressão que já deu erro (não gera erros em cascata).
     Error,
 }
@@ -57,7 +77,23 @@ impl Ty {
         matches!(self, Ty::Error)
     }
 
-    /// O substantivo do tipo ("inteiro", "texto").
+    /// Tipos de valor se copiam; os donos (texto, lista, registro) se movem.
+    pub fn is_copy(&self) -> bool {
+        match self {
+            Ty::Maybe(t) => t.is_copy(),
+            _ => matches!(self, Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Unit | Ty::Error),
+        }
+    }
+
+    pub fn is_feminine(&self) -> bool {
+        match self {
+            Ty::List(_) => true,
+            Ty::Record(r) => r.feminine,
+            _ => false,
+        }
+    }
+
+    /// O substantivo do tipo ("inteiro", "texto", "lista de reais").
     pub fn noun(&self, plural: bool) -> String {
         let pick = |s: &str, p: &str| if plural { p.to_string() } else { s.to_string() };
         match self {
@@ -67,13 +103,19 @@ impl Ty {
             Ty::Bool => pick("lógico", "lógicos"),
             Ty::Char => pick("caractere", "caracteres"),
             Ty::Text => pick("texto", "textos"),
+            Ty::List(t) => format!("{} de {}", if plural { "listas" } else { "lista" }, t.noun(true)),
+            Ty::Record(r) => pick(&r.name, &r.plural),
+            Ty::Maybe(t) => format!("talvez {}", if plural { t.noun(true) } else { t.describe() }),
             Ty::Unit => pick("nada", "nada"),
-            Ty::Error => pick("valor", "valores"),
+            Ty::Infer(_) | Ty::Error => pick("valor", "valores"),
         }
     }
 
-    /// Com artigo indefinido: "um inteiro", "um texto".
+    /// Com artigo indefinido: "um inteiro", "uma lista de textos".
     pub fn describe(&self) -> String {
-        format!("um {}", self.noun(false))
+        if let Ty::Maybe(_) = self {
+            return self.noun(false);
+        }
+        format!("{} {}", if self.is_feminine() { "uma" } else { "um" }, self.noun(false))
     }
 }

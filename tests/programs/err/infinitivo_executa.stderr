@@ -1,0 +1,5 @@
+Erro de morfologia: "Saudar" está no infinitivo, que define. Para executar, a 1ª pessoa: "saúdo".
+ --> tests/programs/err/infinitivo_executa.lav:5:5
+  |
+5 |     Saudar "Ana".
+  |     ^^^^^^

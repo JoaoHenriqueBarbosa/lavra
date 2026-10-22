@@ -1,0 +1,6 @@
+Erro de posse: O apelido aqui é só uma vista emprestada do valor de fora e não se entrega.
+ --> tests/programs/err/talvez_entregue.lav:6:31
+  |
+6 |     Se houver apelido: guardo o apelido.
+  |                               ^^^^^^^^^
+  = dica: Entregue uma cópia: "uma cópia do apelido".

@@ -1,0 +1,6 @@
+Erro de escopo: Nenhum registro tem o campo "cor".
+ --> tests/programs/err/campo_inexistente.lav:7:15
+  |
+7 |     Escrevo a cor da carteira.
+  |               ^^^
+  = dica: Campos conhecidos: "saldo", "titular".

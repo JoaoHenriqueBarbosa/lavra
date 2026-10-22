@@ -1,0 +1,9 @@
+Erro de regência: A chamada não segue a regência de "contar": "os dias" faz parte do verbo.
+ --> tests/programs/err/complemento_fixo.lav:5:35
+  |
+1 | Para contar os dias até a data, sendo a data um inteiro, devolvendo um inteiro:
+  |      ------ definido aqui
+...
+5 |     Escrevo o resultado de contar até 3.
+  |                                   ^^^ encontrei "até"
+  = dica: Escreva: conto os dias até DATA

@@ -1,0 +1,9 @@
+Para transferir a quantia da origem para o destino,
+        sendo a quantia um inteiro e a origem e o destino inteiros confiados:
+    A origem diminui a quantia.
+    O destino cresce a quantia.
+
+Para começar:
+    A conta começa em 10.
+    A poupança começa em 0.
+    Transfiro 5 para a poupança da conta.

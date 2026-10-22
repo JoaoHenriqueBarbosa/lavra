@@ -1,0 +1,6 @@
+Para a posição ser acesa, sendo a posição um inteiro, devolvendo um lógico:
+    Devolvo o fato de a posição ser maior que 0.
+
+Para começar:
+    O pino é 13.
+    Se o pino for acesa: escrevo "aceso".

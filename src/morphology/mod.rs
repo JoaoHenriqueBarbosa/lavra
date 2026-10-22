@@ -1,11 +1,12 @@
 //! Morfologia do português que a Lavra usa: gênero, número, artigos, contrações,
 //! conjugação, plural, flexão de adjetivo e particípio, ordinais.
 
-pub mod conjugation;
-pub mod plural;
+pub mod adjectives;
+pub mod nouns;
+pub mod verbs;
 
-pub use conjugation::{first_person, future_subjunctive, third_person};
-pub use plural::pluralize;
+pub use nouns::pluralize;
+pub use verbs::{first_person, future_subjunctive, personal_infinitive, third_person};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Gender {
@@ -133,16 +134,11 @@ pub fn is_preposition(w: &str) -> bool {
 
 /// Flexão de adjetivo ou particípio. A base vem escrita no gênero `g0`.
 pub fn inflect_adjective(base: &str, g0: Gender, g: Gender, n: Number) -> String {
-    let mut f = base.to_string();
-    if g != g0 {
-        if g == Gender::Feminine && base.ends_with('o') {
-            f = format!("{}a", &base[..base.len() - 1]);
-        } else if g == Gender::Feminine && base.ends_with("ês") {
-            f = format!("{}esa", &base[..base.len() - "ês".len()]);
-        } else if g == Gender::Masculine && base.ends_with('a') {
-            f = format!("{}o", &base[..base.len() - 1]);
-        }
-    }
+    let f = match (g0, g) {
+        (Gender::Masculine, Gender::Feminine) => adjectives::feminine(base),
+        (Gender::Feminine, Gender::Masculine) => adjectives::masculine(base),
+        _ => base.to_string(),
+    };
     if n == Number::Plural { pluralize(&f) } else { f }
 }
 

@@ -1,7 +1,7 @@
 //! `lavrac`: compila e roda programas Lavra.
 
 use lavra::diagnostics::{Category, Diagnostic, Style, render};
-use lavra::span::{SourceFile, Span};
+use lavra::span::SourceFile;
 use std::io::IsTerminal;
 use std::process::ExitCode;
 
@@ -46,14 +46,28 @@ fn main() -> ExitCode {
     match cmd {
         "check" => ExitCode::SUCCESS,
         "run" => {
-            let stdout = std::io::stdout().lock();
-            let stdin = std::io::stdin().lock();
-            let mut m = lavra::interp::Machine::new(&prog, std::io::BufWriter::new(stdout), stdin);
-            m.echo = std::env::var_os("LAVRA_ECO").is_some();
-            match m.run() {
+            // Pilha grande: o interpretador é recursivo e a recursão da Lavra vai fundo.
+            let result = std::thread::scope(|s| {
+                std::thread::Builder::new()
+                    .stack_size(1 << 30)
+                    .spawn_scoped(s, || {
+                        let stdout = std::io::stdout().lock();
+                        let stdin = std::io::stdin().lock();
+                        let mut m = lavra::interp::Machine::new(&prog, std::io::BufWriter::new(stdout), stdin);
+                        m.echo = std::env::var_os("LAVRA_ECO").is_some();
+                        m.run()
+                    })
+                    .expect("thread do interpretador")
+                    .join()
+                    .expect("interpretador")
+            });
+            match result {
                 Ok(()) => ExitCode::SUCCESS,
+                Err(f) if f.desist => {
+                    report(&Diagnostic::new(Category::Failure, f.message, f.span).primary("o programa desistiu aqui"));
+                    ExitCode::from(1)
+                }
                 Err(f) => {
-                    drop(m);
                     report(&Diagnostic::new(Category::Runtime, f.message, f.span));
                     ExitCode::from(101)
                 }
@@ -61,7 +75,6 @@ fn main() -> ExitCode {
         }
         _ => {
             eprint!("{USAGE}");
-            let _ = Span::default();
             ExitCode::from(2)
         }
     }

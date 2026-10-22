@@ -1,0 +1,6 @@
+Erro de tipo: "nada" só cabe onde se espera "talvez", e aqui se espera um texto.
+ --> tests/programs/err/nada_sem_talvez.lav:3:17
+  |
+3 |     O nome vira nada.
+  |                 ^^^^
+  = dica: Para um valor que pode faltar, declare com "talvez": "O apelido, talvez um texto, começa em nada."

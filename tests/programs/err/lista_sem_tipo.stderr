@@ -1,0 +1,6 @@
+Erro de tipo: Não sei o tipo dos itens de "as compras": nada entra nem sai dela.
+ --> tests/programs/err/lista_sem_tipo.lav:2:5
+  |
+2 |     As compras começam vazias.
+  |     ^^^^^^^^^^
+  = dica: Diga no aposto: "As compras, uma lista de inteiros, ...".

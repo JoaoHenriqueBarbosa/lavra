@@ -1,0 +1,8 @@
+Erro de empréstimo: A conta já vai confiada a "transferir" como "a origem" e não pode ir confiada de novo, como "o destino", na mesma chamada.
+ --> tests/programs/err/emprestimo_duplo.lav:8:33
+  |
+8 |     Transfiro 300 da conta para a conta.
+  |                   -------- confiada aqui
+  |                                 ^^^^^^^
+  = Quem é confiado a uma função fica só com ela até a chamada terminar.
+  = dica: Cada parâmetro confiado precisa de um lugar diferente.

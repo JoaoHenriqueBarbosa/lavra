@@ -1,0 +1,6 @@
+Erro de posse: A carta aqui é só uma vista emprestada do valor de fora e não se entrega.
+ --> tests/programs/err/item_entregue.lav:6:40
+  |
+6 |     Para cada carta das cartas: guardo a carta.
+  |                                        ^^^^^^^
+  = dica: Entregue uma cópia: "uma cópia da carta".

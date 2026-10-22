@@ -1,0 +1,9 @@
+Erro de posse: A carta foi entregue a "arquivar" na linha 6 e não volta.
+ --> tests/programs/err/posse_entregue.lav:7:13
+  |
+6 |     Arquivo a carta.
+  |             ------- entregue aqui
+7 |     Escrevo a carta.
+  |             ^^^^^^^ usada aqui depois de entregue
+  = Depois de entregue, "a carta" não se usa mais.
+  = dica: Se "arquivar" só precisa ler, peça emprestado no cabeçalho ("sendo a carta um texto emprestado"), ou entregue uma cópia da carta: "Arquivo uma cópia da carta."

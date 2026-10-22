@@ -13,6 +13,14 @@ use crate::span::Span;
 const CORE_INFINITIVES: &[&str] =
     &["escrever", "ler", "devolver", "desistir", "parar", "pular", "tomar", "repetir", "ser", "começar", "virar", "crescer", "diminuir", "ganhar", "perder"];
 
+/// Palavras da língua que não podem ser a 1ª pessoa de um verbo do usuário.
+const RESERVED_FORMS: &[&str] = &[
+    "como", "caso", "pelo", "salvo", "para", "se", "senão", "enquanto", "cada", "mais", "menos", "vezes", "módulo",
+    "talvez", "nada", "sempre", "quarto", "quinto", "oitavo", "segundo", "terceiro", "sexto",
+    "sétimo", "nono", "décimo", "último", "primeiro", "falso", "verdadeiro", "inteiro", "natural", "real", "texto", "registro",
+    "resto", "produto", "quociente", "tamanho", "negativo", "inverso", "deslocamento", "item", "resultado", "fato",
+];
+
 impl Parser {
     /// Acha os cabeçalhos do nível de fora antes de ler os corpos, para que uma função
     /// possa ser chamada antes de definida.
@@ -49,11 +57,30 @@ impl Parser {
     }
 
     fn register(&mut self, id: usize, sig: &FuncSig) -> Result<()> {
+        if let SigKind::Adjective { .. } = sig.kind {
+            return Ok(());
+        }
+        if sig.kind == SigKind::Predicate && sig.infinitive == "ir" {
+            return err(Diagnostic::new(
+                Category::Morphology,
+                "Predicado com \"ir\" não pode: no subjuntivo ele dá \"for\", igual a \"ser\", que a língua usa nas comparações.",
+                sig.name_span,
+            )
+            .hint("Escolha outro verbo: \"seguir\", \"partir\", \"chegar\"."));
+        }
         if CORE_INFINITIVES.contains(&sig.infinitive.as_str()) {
             return err(Diagnostic::new(Category::Morphology, format!("\"{}\" é verbo da própria língua e não se redefine.", sig.infinitive), sig.name_span)
                 .hint("Escolha outro verbo para a sua função."));
         }
         if sig.kind == SigKind::Action {
+            if RESERVED_FORMS.contains(&sig.first_person.as_str()) {
+                return err(Diagnostic::new(
+                    Category::Morphology,
+                    format!("A 1ª pessoa de \"{}\" é \"{}\", que já é palavra da língua; a oração ficaria ambígua.", sig.infinitive, sig.first_person),
+                    sig.name_span,
+                )
+                .hint("Escolha outro verbo."));
+            }
             if Self::is_core_verb(&sig.first_person) {
                 return err(Diagnostic::new(Category::Morphology, format!("A 1ª pessoa de \"{}\" é \"{}\", que já é verbo da língua.", sig.infinitive, sig.first_person), sig.name_span));
             }
@@ -111,7 +138,7 @@ impl Parser {
             params.push((subject, Slot::Subject));
         }
         let vt = self.bump();
-        let Some(infinitive) = vt.word().map(str::to_string).filter(|w| morphology::conjugation::is_infinitive(w)) else {
+        let Some(infinitive) = vt.word().map(str::to_string).filter(|w| morphology::verbs::is_infinitive(w)) else {
             return err(Diagnostic::new(Category::Morphology, format!("Depois de \"Para\" vem um verbo no infinitivo, mas encontrei {}.", vt.describe()), vt.span)
                 .hint("Exemplos: \"Para somar x e y\", \"Para medir a carta\"."));
         };
@@ -126,14 +153,23 @@ impl Parser {
             let base = if params[0].0.number() == Number::Plural { a.trim_end_matches('s').to_string() } else { a };
             kind = SigKind::Adjective { adjective: base, base_gender: g };
         }
-        let mut first_person = morphology::first_person(&infinitive).unwrap_or_else(|| infinitive.clone());
+        let regular = morphology::first_person(&infinitive);
+        let mut first_person = regular.clone();
         if self.at_punct('(') {
             self.bump();
             let f = self.bump();
             let Some(w) = f.word() else { return Err(self.expected("a 1ª pessoa do verbo entre parênteses")) };
-            first_person = w.to_string();
+            first_person = Some(w.to_string());
             self.expect_punct(')', "o parêntese de fechamento")?;
         }
+        let first_person = match first_person {
+            Some(f) => f,
+            None if kind == SigKind::Action => {
+                return err(Diagnostic::new(Category::Morphology, format!("\"{infinitive}\" é defectivo: não tem 1ª pessoa do presente, e é ela que executa."), name_span)
+                    .hint(format!("Escolha outro verbo, ou declare a forma entre parênteses: \"Para {infinitive} (...) ...\".")));
+            }
+            None => infinitive.clone(),
+        };
         let mut slots = Vec::new();
         if !params.is_empty() {
             slots.push(Slot::Subject);
@@ -369,14 +405,26 @@ impl Parser {
             Number::Singular => w.clone(),
             Number::Plural => match plural_type_word(&w) {
                 Some(s) => s.to_string(),
+                None if self.record_plurals.contains_key(&w) => w.clone(),
                 None => {
                     return err(Diagnostic::new(Category::Type, format!("Tipo desconhecido: \"{}\".", t.orig), t.span)
                         .hint("No plural: inteiros, naturais, reais, bytes, lógicos, caracteres, textos."));
                 }
             },
         };
-        if number == Number::Singular && plural_type_word(&w).is_some() {
+        if number == Number::Singular && (plural_type_word(&w).is_some() || self.record_plurals.contains_key(&w)) {
             return err(Diagnostic::new(Category::Agreement, format!("Depois do artigo singular, o tipo vai no singular: não \"{w}\"."), t.span));
+        }
+        if sing == "lista" {
+            if number == Number::Plural && w != "listas" {
+                unreachable!();
+            }
+            self.expect_word("de")?;
+            let (elem, _) = self.type_word(Number::Plural)?;
+            return Ok((TypeExpr::List(Box::new(elem)), Gender::Feminine));
+        }
+        if let Some((name, g)) = self.record_type_word(&w, number) {
+            return Ok((TypeExpr::Named(name), g));
         }
         let ty = match sing.as_str() {
             "inteiro" | "natural" => TypeExpr::Int { bits: self.bits()?.unwrap_or(64), signed: sing == "inteiro" },
@@ -393,7 +441,7 @@ impl Parser {
             "texto" => TypeExpr::Text,
             _ => {
                 let mut d = Diagnostic::new(Category::Type, format!("Tipo desconhecido: \"{}\".", t.orig), t.span)
-                    .hint("Tipos: inteiro, natural, real, byte, lógico, caractere, texto.");
+                    .hint("Tipos: inteiro, natural, real, byte, lógico, caractere, texto, lista de ..., ou um registro definido com \"Uma conta é um registro de:\".");
                 if let Some(fix) = ["lógico", "lógicos"].iter().find(|c| morphology::strip_accents(c) == w) {
                     d = d.hint(format!("Faltou acento? Escreva \"{fix}\"."));
                 }
@@ -484,6 +532,7 @@ fn plural_type_word(w: &str) -> Option<&'static str> {
         "lógicos" => "lógico",
         "caracteres" => "caractere",
         "textos" => "texto",
+        "listas" => "lista",
         _ => return None,
     })
 }

@@ -1,0 +1,5 @@
+Erro de concordância: O adjetivo concorda com o sujeito (masculino singular): "aceso", não "acesa".
+ --> tests/programs/err/adjetivo_concordancia.lav:6:19
+  |
+6 |     Se o pino for acesa: escrevo "aceso".
+  |                   ^^^^^

@@ -1,0 +1,9 @@
+Para arquivar a carta, sendo a carta um texto:
+    Escrevo a carta.
+
+Para começar:
+    A carta é "oi".
+    O dia é 3.
+    Se o dia for maior que 2:
+        Arquivo a carta.
+    Escrevo a carta.

@@ -1,0 +1,33 @@
+Nota: ausência sem null, falha sem exceção escondida.
+
+Para dividir a conta entre as pessoas, sendo a conta e as pessoas inteiros,
+        devolvendo um inteiro, salvo uma falha:
+    Se as pessoas forem menores que 1:
+        Desisto com "ninguém para dividir".
+    Devolvo a conta dividido pelas pessoas.
+
+Para repartir a conta entre as pessoas, sendo a conta e as pessoas inteiros,
+        devolvendo um inteiro, salvo uma falha:
+    A parte é o resultado de dividir a conta entre as pessoas, ou desisto.
+    Devolvo a parte mais 1.
+
+Para começar:
+    O apelido, talvez um texto, começa em nada.
+    Se houver apelido: escrevo "tem apelido".
+    Senão: escrevo "sem apelido".
+    O apelido vira "Zé".
+    Se houver apelido:
+        Escrevo "o apelido é " seguido do apelido.
+    Se o apelido for nada: escrevo "nunca".
+    Escrevo o apelido.
+
+    O troco, talvez um inteiro, é 5.
+    Se não houver troco: escrevo "sem troco".
+    Senão: escrevo "troco presente".
+
+    Escrevo o resultado de dividir 100 entre 4, ou 0.
+    Escrevo o resultado de dividir 100 entre 0, ou 0.
+    Escrevo o resultado de repartir 90 entre 3, ou desisto.
+    Escrevo "agora vou desistir".
+    Escrevo o resultado de repartir 90 entre 0, ou desisto.
+    Escrevo "nunca chega aqui".

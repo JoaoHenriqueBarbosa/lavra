@@ -1,2 +1,6 @@
 /target
 *.o
+/tools/morphology/.venv
+/tools/morphology/data
+/tools/morphology/target
+verbecc.log

@@ -17,6 +17,8 @@ pub enum Category {
     Ownership,
     Borrow,
     Runtime,
+    /// Falha declarada pelo programa ("Desisto com ...") que ninguém tratou.
+    Failure,
     Warning,
 }
 
@@ -34,6 +36,7 @@ impl Category {
             Category::Ownership => "Erro de posse",
             Category::Borrow => "Erro de empréstimo",
             Category::Runtime => "Erro de execução",
+            Category::Failure => "Falha",
             Category::Warning => "Aviso",
         }
     }

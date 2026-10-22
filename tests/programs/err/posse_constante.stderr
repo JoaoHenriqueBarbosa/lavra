@@ -1,0 +1,6 @@
+Erro de posse: A saudação é constante do programa e não se entrega.
+ --> tests/programs/err/posse_constante.lav:4:15
+  |
+4 |     A frase é a saudação.
+  |               ^^^^^^^^^^
+  = dica: Entregue uma cópia: "uma cópia da saudação".

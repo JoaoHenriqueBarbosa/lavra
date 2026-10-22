@@ -1,0 +1,6 @@
+Erro de sintaxe: No nível de fora só se definem constantes ("A taxa é 0,05."), funções e tipos.
+ --> tests/programs/err/nivel_de_fora.lav:1:1
+  |
+1 | Escrevo "fora".
+  | ^^^^^^^^^^^^^^
+  = dica: O que o programa faz vai dentro de "Para começar:".

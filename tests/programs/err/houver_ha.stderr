@@ -1,0 +1,5 @@
+Erro de morfologia: Em condição, o verbo vai no futuro do subjuntivo: "houver", não "há".
+ --> tests/programs/err/houver_ha.lav:3:8
+  |
+3 |     Se há apelido: escrevo "sim".
+  |        ^^

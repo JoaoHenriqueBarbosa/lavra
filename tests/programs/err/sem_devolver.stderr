@@ -1,0 +1,6 @@
+Erro de tipo: "dobrar" promete devolver um inteiro, mas pode terminar sem devolver.
+ --> tests/programs/err/sem_devolver.lav:1:6
+  |
+1 | Para dobrar x, sendo x um inteiro, devolvendo um inteiro:
+  |      ^^^^^^
+  = dica: Garanta um "Devolvo ..." em todo caminho até o fim da função.

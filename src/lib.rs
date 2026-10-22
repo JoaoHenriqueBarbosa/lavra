@@ -7,9 +7,11 @@ pub mod hir;
 pub mod interp;
 pub mod lexer;
 pub mod morphology;
+pub mod ownership;
 pub mod parser;
 pub mod sema;
 pub mod span;
+pub mod textfmt;
 pub mod types;
 
 use diagnostics::Diagnostic;
@@ -18,5 +20,7 @@ use diagnostics::Diagnostic;
 pub fn compile(text: &str) -> Result<(hir::Program, Vec<Diagnostic>), Box<Diagnostic>> {
     let tokens = lexer::tokenize(text)?;
     let ast = parser::parse(tokens)?;
-    sema::check(&ast)
+    let (prog, warnings) = sema::check(&ast)?;
+    ownership::check(&prog, text)?;
+    Ok((prog, warnings))
 }

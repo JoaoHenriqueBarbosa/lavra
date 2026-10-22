@@ -1,0 +1,8 @@
+Erro de tipo: "mostrar" não pode desistir: o cabeçalho não diz "salvo uma falha".
+ --> tests/programs/err/propaga_sem_salvo.lav:5:13
+  |
+4 | Para mostrar a gaveta, sendo a gaveta um inteiro:
+  |      ------- definido sem "salvo uma falha"
+5 |     Escrevo o resultado de abrir a gaveta, ou desisto.
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = dica: Acrescente ", salvo uma falha" ao cabeçalho, ou trate a falha aqui com ", ou VALOR".

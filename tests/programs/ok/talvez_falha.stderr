@@ -1,0 +1,5 @@
+Falha: ninguém para dividir
+ --> tests/programs/ok/talvez_falha.lav:6:21
+  |
+6 |         Desisto com "ninguém para dividir".
+  |                     ^^^^^^^^^^^^^^^^^^^^^^ o programa desistiu aqui

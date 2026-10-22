@@ -1,0 +1,9 @@
+Erro de posse: O rascunho passou para "o texto" na linha 3 e não volta.
+ --> tests/programs/err/posse_declaracao.lav:4:13
+  |
+3 |     O texto é o rascunho.
+  |               ---------- entregue aqui
+4 |     Escrevo o rascunho.
+  |             ^^^^^^^^^^ usado aqui depois de entregue
+  = Depois de entregue, "o rascunho" não se usa mais.
+  = dica: Se precisa dos dois, entregue uma cópia do rascunho.

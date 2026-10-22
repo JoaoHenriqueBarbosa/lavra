@@ -1,0 +1,9 @@
+Erro de posse: O bilhete foi guardado em "as cartas" na linha 4 e não volta.
+ --> tests/programs/err/posse_lista.lav:5:13
+  |
+4 |     As cartas ganham o bilhete.
+  |                      --------- entregue aqui
+5 |     Escrevo o bilhete.
+  |             ^^^^^^^^^ usado aqui depois de entregue
+  = Depois de entregue, "o bilhete" não se usa mais.
+  = dica: Se precisa dos dois, entregue uma cópia do bilhete.

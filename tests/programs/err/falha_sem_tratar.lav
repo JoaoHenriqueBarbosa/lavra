@@ -1,0 +1,6 @@
+Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto, salvo uma falha:
+    Se a gaveta for maior que 3: desisto com "não há gaveta".
+    Devolvo "papéis".
+
+Para começar:
+    Escrevo o resultado de abrir 5.

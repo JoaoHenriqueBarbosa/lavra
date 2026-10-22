@@ -55,7 +55,7 @@ fn ok_programs() {
     let mut failures = Vec::new();
     for p in programs("tests/programs/ok") {
         let (ok, out, err) = run(&p);
-        if !ok && !p.with_extension("stderr").exists() {
+        if !ok && !p.with_extension("stderr").exists() && std::env::var_os("LAVRA_BLESS").is_none() {
             failures.push(format!("{} falhou:\n{err}", p.display()));
             continue;
         }

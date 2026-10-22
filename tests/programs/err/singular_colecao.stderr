@@ -1,0 +1,6 @@
+Erro de concordância: "a nota" está no singular, mas o valor é uma coleção.
+ --> tests/programs/err/singular_colecao.lav:2:5
+  |
+2 |     A nota começa com 1 e 2.
+  |     ^^^^^^
+  = dica: Use o plural ("as notas") ou diga no aposto que é uma lista: "A nota, uma lista de inteiros, começa com ...".

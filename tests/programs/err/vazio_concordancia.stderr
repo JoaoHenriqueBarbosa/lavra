@@ -1,0 +1,5 @@
+Erro de concordância: "vazios" concorda com as compras: "vazias".
+ --> tests/programs/err/vazio_concordancia.lav:2:24
+  |
+2 |     As compras começam vazios.
+  |                        ^^^^^^

@@ -1,0 +1,9 @@
+Erro de regência: A chamada não segue a regência de "transferir": aqui vem "de".
+ --> tests/programs/err/regencia_chamada.lav:9:17
+  |
+1 | Para transferir a quantia da origem para o destino,
+  |      ---------- definido aqui
+...
+9 |     Transfiro 5 para a poupança da conta.
+  |                 ^^^^ encontrei "para"
+  = dica: Escreva: transfiro QUANTIA de ORIGEM para DESTINO

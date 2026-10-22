@@ -1,0 +1,49 @@
+Nota: coleções, registros, operações por extenso.
+
+Uma conta é um registro de:
+    o titular, um texto;
+    o saldo, um real;
+    as movimentações, uma lista de reais.
+
+As notas são 7, 8,5 e 9.
+
+Para somar as parcelas, sendo as parcelas uma lista de reais emprestada, devolvendo um real:
+    O total começa em 0,0.
+    Para cada parcela das parcelas: o total cresce a parcela.
+    Devolvo o total.
+
+Para começar:
+    Escrevo as notas.
+    Escrevo "a segunda: " seguido da segunda das notas seguido de "; a última: " seguido da última das notas.
+    Escrevo "são " seguido do tamanho das notas seguido de " notas".
+    Para cada nota: escrevo "nota " seguido da nota.
+
+    As compras começam vazias.
+    As compras ganham "pão".
+    As compras ganham "café" e as compras ganham "leite".
+    As compras perdem a primeira.
+    Escrevo as compras.
+    Tomo a última das compras e escrevo "tomei " seguido do resultado.
+    Escrevo as compras.
+
+    A fila, uma lista de inteiros, começa com 3 e 8.
+    O item 2 da fila vira 80.
+    A primeira da fila cresce 1.
+    Escrevo a fila.
+
+    A carteira começa em uma conta com o titular "Ana", o saldo 100,0 e as movimentações 100,0.
+    O saldo da carteira cresce 50,0.
+    As movimentações da carteira ganham 50,0.
+    Escrevo a carteira.
+    Escrevo "soma das movimentações: " seguido do resultado de somar as movimentações da carteira.
+
+    Escrevo a soma de 10 e 3.
+    Escrevo (a diferença de 10 e 3) mais 1.
+    Escrevo a diferença de 10 e (3 mais 1).
+    Escrevo a potência de 2 e 10.
+    Escrevo a raiz de 2,0.
+    Escrevo o deslocamento de 1 por 4 à esquerda.
+    Escrevo a união de 12 e 3.
+    Escrevo o tamanho de "ação".
+    Para cada letra de "olá": escrevo a letra.
+    Se as notas forem iguais às notas: escrevo "iguais".

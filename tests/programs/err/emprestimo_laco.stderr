@@ -1,0 +1,8 @@
+Erro de empréstimo: As notas estão emprestadas ao laço "Para cada" da linha 3 e não ganham itens enquanto ele durar.
+ --> tests/programs/err/emprestimo_laco.lav:4:9
+  |
+3 |     Para cada nota das notas:
+  |                    --------- emprestado ao laço aqui
+4 |         As notas ganham a nota vezes 2.
+  |         ^^^^^^^^
+  = dica: Junte as mudanças numa lista nova e aplique depois do laço.

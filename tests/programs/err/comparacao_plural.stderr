@@ -1,0 +1,5 @@
+Erro de concordância: A comparação concorda com o sujeito, que é plural: "iguais a", não "igual a".
+ --> tests/programs/err/comparacao_plural.lav:3:23
+  |
+3 |     Se as notas forem igual às notas: escrevo "sim".
+  |                       ^^^^^^

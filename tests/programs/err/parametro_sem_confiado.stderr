@@ -1,0 +1,8 @@
+Erro de mutabilidade: O saldo é parâmetro sem "confiado" e não cresce: a função recebeu o valor, não o lugar.
+ --> tests/programs/err/parametro_sem_confiado.lav:2:5
+  |
+1 | Para render o saldo, sendo o saldo um real:
+  |             ------- parâmetro sem "confiado"
+2 |     O saldo cresce 1,0.
+  |     ^^^^^^^
+  = dica: Para a função poder mudar o valor de quem chama, declare o parâmetro como "confiado" no cabeçalho.
