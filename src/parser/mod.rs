@@ -363,8 +363,12 @@ impl Parser {
                 break;
             }
             if !self.eat_word("sendo") {
-                return err(Diagnostic::new(Category::Syntax, format!("Dentro de \"Conforme\", cada caso começa com \"Sendo\", mas encontrei {}.", t.describe()), t.span)
-                    .hint("Escreva \"Sendo um círculo: ...\", ou \"Senão: ...\" para o resto."));
+                return err(Diagnostic::new(
+                    Category::Syntax,
+                    format!("Dentro de \"Conforme\", cada caso começa com \"Sendo\", mas encontrei {}.", t.describe()),
+                    t.span,
+                )
+                .hint("Escreva \"Sendo um círculo: ...\", ou \"Senão: ...\" para o resto."));
             }
             let mut patterns = vec![self.variant_pattern()?];
             while self.eat_word("ou") {
@@ -542,7 +546,11 @@ impl Parser {
                 && self.peek_at(1).word().is_some_and(|w| self.variants.contains_key(w))
             {
                 let Pattern::Variant { word, gender, span } = self.variant_pattern()? else { unreachable!() };
-                return Ok(Cond::Atom { negated, kind: Box::new(CondKind::Variant { subject, word, gender, word_span: span }), span: start.to(span) });
+                return Ok(Cond::Atom {
+                    negated,
+                    kind: Box::new(CondKind::Variant { subject, word, gender, word_span: span }),
+                    span: start.to(span),
+                });
             }
             // Predicado adjetivo: "Se o número for par".
             if let Some(adj_tok) = self.peek().word().map(str::to_string) {
@@ -1169,7 +1177,10 @@ impl Parser {
                     || morphology::is_symbol(w)
                     || matches!(w.as_str(), "verdadeiro" | "falso" | "nada")
                     || (morphology::article(w).is_some_and(|a| !a.definite)
-                        && self.peek_at(k + 1).word().is_some_and(|n| n == "cópia" || self.records.contains_key(n) || self.variants.contains_key(n)))
+                        && self
+                            .peek_at(k + 1)
+                            .word()
+                            .is_some_and(|n| n == "cópia" || self.records.contains_key(n) || self.variants.contains_key(n)))
             }
             _ => false,
         }

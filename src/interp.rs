@@ -576,24 +576,21 @@ pub fn parse_input(line: &str, ty: &Ty) -> Option<Value> {
 }
 
 pub fn compare(rel: Rel, a: &Value, b: &Value) -> bool {
-    let ord = match (a, b) {
-        (Value::Int(x), Value::Int(y)) => x.partial_cmp(y),
-        (Value::Real(x), Value::Real(y)) => x.partial_cmp(y),
-        (Value::Char(x), Value::Char(y)) => x.partial_cmp(y),
-        (Value::Text(x), Value::Text(y)) => x.partial_cmp(y),
-        (Value::Bool(x), Value::Bool(y)) => x.partial_cmp(y),
-        // Coleções e registros só se comparam por igualdade.
-        (Value::Nothing, Value::Nothing) => Some(Ordering::Equal),
-        (Value::Nothing, _) | (_, Value::Nothing) => Some(Ordering::Less),
-        (Value::List(_), Value::List(_)) | (Value::Record(_), Value::Record(_)) | (Value::Variant(..), Value::Variant(..)) => {
-            if a == b {
-                Some(Ordering::Equal)
-            } else {
-                Some(Ordering::Less)
+    let ord =
+        match (a, b) {
+            (Value::Int(x), Value::Int(y)) => x.partial_cmp(y),
+            (Value::Real(x), Value::Real(y)) => x.partial_cmp(y),
+            (Value::Char(x), Value::Char(y)) => x.partial_cmp(y),
+            (Value::Text(x), Value::Text(y)) => x.partial_cmp(y),
+            (Value::Bool(x), Value::Bool(y)) => x.partial_cmp(y),
+            // Coleções e registros só se comparam por igualdade.
+            (Value::Nothing, Value::Nothing) => Some(Ordering::Equal),
+            (Value::Nothing, _) | (_, Value::Nothing) => Some(Ordering::Less),
+            (Value::List(_), Value::List(_)) | (Value::Record(_), Value::Record(_)) | (Value::Variant(..), Value::Variant(..)) => {
+                if a == b { Some(Ordering::Equal) } else { Some(Ordering::Less) }
             }
-        }
-        _ => None,
-    };
+            _ => None,
+        };
     let Some(ord) = ord else { return rel == Rel::Different };
     match rel {
         Rel::Greater => ord == Ordering::Greater,

@@ -1,0 +1,12 @@
+Nota: caixa de poupança.
+
+A taxa é 0,05.
+
+Para render o saldo, sendo o saldo um real confiado:
+    O saldo cresce o saldo vezes a taxa.
+
+Para começar:
+    O saldo, um real, começa em 1000.
+    Repito 12 vezes:
+        Rendo o saldo.
+    Escrevo "Depois de um ano: " seguido do saldo.

@@ -161,11 +161,18 @@ impl Env<'_> {
             for f in &v.fields {
                 fields.push((f.name.word.clone(), self.type_in_record(&f.ty.ty, f.ty.span, stack)?));
             }
-            let field_articles = v.fields.iter().map(|f| (f.name.word.clone(), morphology::definite_article(f.name.gender(), f.name.number()))).collect();
+            let field_articles =
+                v.fields.iter().map(|f| (f.name.word.clone(), morphology::definite_article(f.name.gender(), f.name.number()))).collect();
             variants.push(VariantTy { name: v.word.clone(), feminine: v.gender == Gender::Feminine, fields, field_articles });
         }
         stack.pop();
-        let e = Arc::new(EnumTy { id: i, name: def.word.clone(), plural: def.plural.clone(), feminine: def.gender == Gender::Feminine, variants });
+        let e = Arc::new(EnumTy {
+            id: i,
+            name: def.word.clone(),
+            plural: def.plural.clone(),
+            feminine: def.gender == Gender::Feminine,
+            variants,
+        });
         self.enums.insert(def.word.clone(), e.clone());
         Ok(e)
     }
@@ -491,10 +498,17 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 self.scopes.pop();
                 out.push(hir::Stmt::ForEach { var: id, source: src, body });
             }
-            ast::Stmt::Match { scrutinee, arms, otherwise, span } => {
+            ast::Stmt::Match { scrutinee, arms, otherwise, .. } => {
                 let v = self.expr(scrutinee, None)?;
                 let Ty::Enum(e) = self.resolve_ty(&v.ty) else {
-                    return err(Diagnostic::new(Category::Type, format!("\"Conforme\" escolhe entre os casos de uma enumeração, e este valor é {}.", self.resolve_ty(&v.ty).describe()), scrutinee.span));
+                    return err(Diagnostic::new(
+                        Category::Type,
+                        format!(
+                            "\"Conforme\" escolhe entre os casos de uma enumeração, e este valor é {}.",
+                            self.resolve_ty(&v.ty).describe()
+                        ),
+                        scrutinee.span,
+                    ));
                 };
                 let mut seen = vec![None::<Span>; e.variants.len()];
                 let mut harms = Vec::new();
@@ -504,7 +518,12 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let ast::Pattern::Variant { word, span, .. } = pat else { unreachable!() };
                         let tag = self.variant_of(&e, word, *span)?;
                         if let Some(prev) = seen[tag] {
-                            return err(Diagnostic::new(Category::Syntax, format!("O caso \"{} {word}\" já foi tratado.", if e.variants[tag].feminine { "uma" } else { "um" }), *span).label(prev, "tratado aqui"));
+                            return err(Diagnostic::new(
+                                Category::Syntax,
+                                format!("O caso \"{} {word}\" já foi tratado.", if e.variants[tag].feminine { "uma" } else { "um" }),
+                                *span,
+                            )
+                            .label(prev, "tratado aqui"));
                         }
                         seen[tag] = Some(*span);
                         tags.push(tag);
@@ -534,11 +553,15 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if otherwise.is_none() && !missing.is_empty() {
                     let cases = join_e(&missing);
                     let word = if missing.len() == 1 { "o caso" } else { "os casos" };
-                    return err(Diagnostic::new(Category::Type, format!("\"Conforme\" não trata {word} {cases}.", ), scrutinee.span)
+                    return err(Diagnostic::new(Category::Type, format!("\"Conforme\" não trata {word} {cases}.",), scrutinee.span)
                         .hint("Trate cada caso com \"Sendo ...:\", ou junte o resto num \"Senão:\"."));
                 }
                 if otherwise.is_some() && missing.is_empty() {
-                    self.env.warnings.push(Diagnostic::new(Category::Warning, "Este \"Senão\" nunca acontece: todos os casos já foram tratados.", scrutinee.span));
+                    self.env.warnings.push(Diagnostic::new(
+                        Category::Warning,
+                        "Este \"Senão\" nunca acontece: todos os casos já foram tratados.",
+                        scrutinee.span,
+                    ));
                 }
                 let otherwise = otherwise.as_ref().map(|b| self.block(b)).transpose()?;
                 out.push(hir::Stmt::Match { scrutinee: v, arms: harms, otherwise });
@@ -933,7 +956,11 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     ast::CondKind::Variant { subject, word, word_span, .. } => {
                         let v = self.expr(subject, None)?;
                         let Ty::Enum(e) = self.resolve_ty(&v.ty) else {
-                            return err(Diagnostic::new(Category::Type, format!("Só enumeração tem casos, e este valor é {}.", self.resolve_ty(&v.ty).describe()), subject.span));
+                            return err(Diagnostic::new(
+                                Category::Type,
+                                format!("Só enumeração tem casos, e este valor é {}.", self.resolve_ty(&v.ty).describe()),
+                                subject.span,
+                            ));
                         };
                         let tag = self.variant_of(&e, word, *word_span)?;
                         hir::Cond::IsVariant(v, tag)
@@ -965,9 +992,14 @@ impl<'e, 'a> FnCx<'e, 'a> {
             Some(i) => Ok(i),
             None => {
                 let (other, _) = self.find_variant(word);
-                let cases: Vec<String> = e.variants.iter().map(|v| format!("\"{} {}\"", if v.feminine { "uma" } else { "um" }, v.name)).collect();
-                err(Diagnostic::new(Category::Type, format!("\"{word}\" é caso de {}, não de {}.", Ty::Enum(other).describe(), Ty::Enum(e.clone()).describe()), span)
-                    .hint(format!("Os casos são: {}.", join_e(&cases))))
+                let cases: Vec<String> =
+                    e.variants.iter().map(|v| format!("\"{} {}\"", if v.feminine { "uma" } else { "um" }, v.name)).collect();
+                err(Diagnostic::new(
+                    Category::Type,
+                    format!("\"{word}\" é caso de {}, não de {}.", Ty::Enum(other).describe(), Ty::Enum(e.clone()).describe()),
+                    span,
+                )
+                .hint(format!("Os casos são: {}.", join_e(&cases))))
             }
         }
     }
@@ -1349,11 +1381,16 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     let fty = v.fields[i].1.clone();
                     values[i] = Some(self.expr(value, Some(&fty))?);
                 }
-                let missing: Vec<String> = def.fields.iter().zip(&values).filter(|(_, x)| x.is_none()).map(|(f, _)| format!("\"{}\"", f.name.display())).collect();
+                let missing: Vec<String> =
+                    def.fields.iter().zip(&values).filter(|(_, x)| x.is_none()).map(|(f, _)| format!("\"{}\"", f.name.display())).collect();
                 if !missing.is_empty() {
                     let art = if v.feminine { "Uma" } else { "Um" };
-                    return err(Diagnostic::new(Category::Type, format!("{art} {} precisa de todos os campos; faltou {}.", v.name, join_e(&missing)), *word_span)
-                        .hint("Nada começa sem valor: diga cada campo depois de \"com\"."));
+                    return err(Diagnostic::new(
+                        Category::Type,
+                        format!("{art} {} precisa de todos os campos; faltou {}.", v.name, join_e(&missing)),
+                        *word_span,
+                    )
+                    .hint("Nada começa sem valor: diga cada campo depois de \"com\"."));
                 }
                 (hir::ExprKind::Variant { tag, fields: values.into_iter().map(Option::unwrap).collect() }, Ty::Enum(e.clone()))
             }
@@ -1516,7 +1553,9 @@ fn always_returns(b: &hir::Block) -> bool {
         hir::Stmt::Return(_) | hir::Stmt::Desist(_) => true,
         hir::Stmt::If { arms, otherwise: Some(o) } => arms.iter().all(|(_, b)| always_returns(b)) && always_returns(o),
         hir::Stmt::Repeat { count: None, body } => !breaks(body),
-        hir::Stmt::Match { arms, otherwise, .. } => arms.iter().all(|a| always_returns(&a.body)) && otherwise.as_ref().is_none_or(always_returns),
+        hir::Stmt::Match { arms, otherwise, .. } => {
+            arms.iter().all(|a| always_returns(&a.body)) && otherwise.as_ref().is_none_or(always_returns)
+        }
         _ => false,
     })
 }

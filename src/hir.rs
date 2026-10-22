@@ -119,7 +119,11 @@ pub enum Stmt {
     /// "Desisto com ...": a função falha com a mensagem.
     Desist(Expr),
     /// "Conforme a figura: Sendo um círculo: ...".
-    Match { scrutinee: Expr, arms: Vec<Arm>, otherwise: Option<Block> },
+    Match {
+        scrutinee: Expr,
+        arms: Vec<Arm>,
+        otherwise: Option<Block>,
+    },
 }
 
 #[derive(Debug)]
@@ -229,7 +233,13 @@ pub enum ExprKind {
         fallback: Option<Box<Expr>>,
     },
     /// Valor de enumeração: o caso e os campos.
-    Variant { tag: usize, fields: Vec<Expr> },
+    Variant {
+        tag: usize,
+        fields: Vec<Expr>,
+    },
     /// Campo do caso já conhecido (dentro de um braço de "Conforme").
-    VariantField { value: Box<Expr>, field: usize },
+    VariantField {
+        value: Box<Expr>,
+        field: usize,
+    },
 }

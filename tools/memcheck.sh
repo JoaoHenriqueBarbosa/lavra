@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$(mktemp -d)"
 cargo build -q --manifest-path "$ROOT/Cargo.toml"
-for f in "$ROOT"/tests/programs/ok/*.lav "$ROOT"/tests/programs/err/*.lav; do
+for f in "$ROOT"/tests/programs/ok/*.lav "$ROOT"/tests/programs/err/*.lav "$ROOT"/samples/*.lav; do
   name="$(basename "$(dirname "$f")")_$(basename "$f" .lav)"
   if (cd "$ROOT" && ./target/debug/lavrac build "${f#$ROOT/}" -o "$OUT/$name" 2>/dev/null); then
     [ -f "${f%.lav}.stdin" ] && cp "${f%.lav}.stdin" "$OUT/$name.stdin"

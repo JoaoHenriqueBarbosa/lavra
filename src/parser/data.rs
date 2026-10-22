@@ -77,7 +77,11 @@ impl Parser {
                 return err(Diagnostic::new(Category::Syntax, "Esperava o nome do tipo.", name_tok.span));
             };
             if art.number != Number::Singular {
-                return err(Diagnostic::new(Category::Agreement, "Um tipo se define no singular: \"Uma forma é uma destas:\".", art_tok.span));
+                return err(Diagnostic::new(
+                    Category::Agreement,
+                    "Um tipo se define no singular: \"Uma forma é uma destas:\".",
+                    art_tok.span,
+                ));
             }
             if self.records.contains_key(&name) || self.enums.contains_key(&name) {
                 return err(Diagnostic::new(Category::Scope, format!("O tipo \"{name}\" já foi definido."), name_tok.span));
@@ -86,7 +90,13 @@ impl Parser {
             let plural = morphology::pluralize(&name);
             self.enums.insert(name.clone(), id);
             self.enum_plurals.insert(plural.clone(), id);
-            self.prog.enums.push(EnumDef { word: name, plural, gender: art.gender, span: art_tok.span.to(name_tok.span), variants: Vec::new() });
+            self.prog.enums.push(EnumDef {
+                word: name,
+                plural,
+                gender: art.gender,
+                span: art_tok.span.to(name_tok.span),
+                variants: Vec::new(),
+            });
         }
         for &k in &starts {
             let art_tok = self.toks[k].clone();
@@ -206,7 +216,11 @@ impl Parser {
         loop {
             let at = self.bump();
             let Some(a) = at.word().and_then(morphology::article).filter(|a| !a.definite && a.number == Number::Singular) else {
-                return err(Diagnostic::new(Category::Syntax, format!("Cada caso começa com artigo indefinido (\"um círculo\"), mas encontrei {}.", at.describe()), at.span));
+                return err(Diagnostic::new(
+                    Category::Syntax,
+                    format!("Cada caso começa com artigo indefinido (\"um círculo\"), mas encontrei {}.", at.describe()),
+                    at.span,
+                ));
             };
             let wt = self.bump();
             let Some(word) = wt.word().map(str::to_string) else {
@@ -536,7 +550,11 @@ impl Parser {
         let a = at.word().and_then(morphology::article).filter(|a| !a.definite);
         if a.is_none_or(|a| a.gender != var.gender || a.number != Number::Singular) {
             let right = morphology::indefinite_article(var.gender, Number::Singular);
-            return err(Diagnostic::new(Category::Agreement, format!("O caso se diz com artigo indefinido: \"{right} {w}\"."), at.span.to(wt.span)));
+            return err(Diagnostic::new(
+                Category::Agreement,
+                format!("O caso se diz com artigo indefinido: \"{right} {w}\"."),
+                at.span.to(wt.span),
+            ));
         }
         Ok(Pattern::Variant { word: w, gender: var.gender, span: at.span.to(wt.span) })
     }
@@ -558,7 +576,11 @@ impl Parser {
         };
         if gender != art.gender || art.number != Number::Singular {
             let right = morphology::indefinite_article(gender, Number::Singular);
-            return err(Diagnostic::new(Category::Agreement, format!("\"{w}\" é {}: \"{right} {w}\".", gender.describe()), at.span.to(wt.span)));
+            return err(Diagnostic::new(
+                Category::Agreement,
+                format!("\"{w}\" é {}: \"{right} {w}\".", gender.describe()),
+                at.span.to(wt.span),
+            ));
         }
         self.bump();
         self.bump();
