@@ -2,8 +2,14 @@
 # Só publica quando o PR de release que o release-plz abre é aceito: cortar uma versão é
 # decisão de quem mantém o projeto.
 release_always = false
+# As versões vêm das tags (v0.1.0 em diante), e o crates.io fica de fora, enquanto a crate
+# não está nele: no modo do registro, o release-plz recusa uma tag que o crates.io não tem.
+# Para passar a publicar: `cargo publish` da versão da última tag, uma vez, e então
+# `git_only = false` e `semver_check = true`.
+git_only = true
 features_always_increment_minor = true
-semver_check = true
+# Sem versão no crates.io, não há com o que comparar a API.
+semver_check = false
 publish_timeout = "10m"
 pr_labels = ["release"]
 
