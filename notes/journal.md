@@ -129,3 +129,15 @@ Decisões para revisar:
 Pendências de mensagem que os agentes anotaram e ficaram para depois: "sendo p e q um real" dá um erro genérico em vez do L0165; "Uns dados são um registro de:" não é reconhecido como definição.
 
 Próximo: a fase 1, o servidor de linguagem (lavrac lsp) e o cliente do VS Code.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim da fase 1 do roadmap (o servidor de linguagem), registro do Claude às 17h20, cerca de 2 horas depois do começo:
+
+O VS Code agora fala com o próprio compilador. lavrac lsp mostra todos os erros ao digitar, com o código e o link para a explicação; pinta os verbos do programa (também nos predicados), os parâmetros emprestados e confiados, o que é fixo e o que muda, campos, tipos e casos; mostra no hover o tipo por extenso, o modo de posse e a regência de cada verbo; e leva à definição, às referências e aos símbolos. A extensão ganhou os comandos de rodar, compilar e verificar, o botão de rodar, tarefas com os erros no painel Problemas e snippets dos blocos; a versão 0.2.0 está instalada no seu VS Code, com o lavrac dentro.
+
+Conferido de duas formas: o servidor em processo, por uma conexão em memória, e a extensão num VS Code de verdade, sob xvfb num contêiner, que abriu um programa com erro e conferiu diagnósticos, hover, tokens e definição pela API do editor (o CI roda o mesmo teste). A captura mostra o hover "o saldo: variável, um inteiro. Declarado na linha 5." e o erro sublinhado.
+
+Ainda não estão no hover o estado de posse naquele ponto ("entregue a arquivar na linha 6") e o modificador de valor já entregue: a análise de posse ainda não guarda o estado por uso. Fica para quando o depurador mexer no interpretador e nas tabelas.
+
+Próximo: a fase 2, o formatador (lavrac fmt), que não mexe em quebra de linha nenhuma, por causa dos poemas.
