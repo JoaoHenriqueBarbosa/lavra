@@ -108,3 +108,24 @@ Decisões para revisar:
 - O artigo antes de "o tamanho", "o resultado" e "o item" ganhou a cor da palavra que ele determina.
 
 Um travamento do fluxo de resposta interrompeu o trabalho uma vez; para não depender de alguém acordar a sessão, há agora um despertador a cada 10 minutos que só dispara com a sessão parada, e o estado exato da execução fica gravado na memória do projeto.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim da fase 0 do roadmap (as fundações), registro do Claude depois de aproximadamente 3 horas e meia de trabalho:
+
+A fase 0 terminou, com a suíte verde e o CI verde em cada envio. Desde o registro anterior:
+- A análise não para mais no primeiro erro. O léxico, o parser, a semântica e a posse relatam e seguem, sem cascata: nenhum dos 72 programas errados mudou de saída, e seis programas novos com vários erros mostram cada um uma vez.
+- Correções automáticas onde o compilador sabe a forma certa (contração, concordância, subjuntivo, ponto final, vírgula de "Senão, se"), para o editor e para o lavrac fix.
+- lavrac explain: 183 explicações, uma por código, com exemplo errado e certo, conferidas por teste. Cinco agentes escreveram em paralelo, e escrever os exemplos revelou defeitos que corrigi: o nativo quebrava em "o módulo de" inteiro de 64 bits; lista de enumeração não era tipo; registro e enumeração podiam ter o mesmo nome; a sobrecarga sem preposição saía errada; e mensagens sem contração ou concordância.
+- lavrac check --json, HIR com o trecho de cada oração, posições em UTF-16 para os editores e o mapa de arquivos.
+- Tabelas de símbolos: cada nome declarado e usado, os escopos e o tipo de cada expressão, que o servidor de linguagem vai consultar. Daí vieram os avisos de função nunca chamada e de nome nunca usado; os samples não têm nenhum.
+- Linha de comando própria e em português, com --version e o commit; o back-end nativo virou opcional, e a análise com o interpretador compila para wasm32 (o playground).
+
+Decisões para revisar:
+- Os avisos de não uso só aparecem em programa sem erro nenhum.
+- Fiquei com uma linha de comando própria em vez do clap, porque o clap mostraria a ajuda e os erros de uso em inglês.
+- Títulos de dois códigos mudaram para dizer o que o compilador faz: L0401 é mudar enquanto emprestado, L0405 é entregar enquanto emprestado.
+
+Pendências de mensagem que os agentes anotaram e ficaram para depois: "sendo p e q um real" dá um erro genérico em vez do L0165; "Uns dados são um registro de:" não é reconhecido como definição.
+
+Próximo: a fase 1, o servidor de linguagem (lavrac lsp) e o cliente do VS Code.
