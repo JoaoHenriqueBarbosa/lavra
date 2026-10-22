@@ -25,6 +25,7 @@ export function serverPath(context: vscode.ExtensionContext): string {
 
 async function startClient(context: vscode.ExtensionContext): Promise<void> {
   const command = serverPath(context);
+  const hints = vscode.workspace.getConfiguration("lavra.inlayHints");
   const serverOptions: ServerOptions = { command, args: ["lsp"], transport: TransportKind.stdio };
   const clientOptions: LanguageClientOptions = {
     // Só os arquivos do programa: o texto de uma biblioteca aberto pela definição não é
@@ -33,7 +34,13 @@ async function startClient(context: vscode.ExtensionContext): Promise<void> {
       { scheme: "file", language: "lavra" },
       { scheme: "untitled", language: "lavra" },
     ],
-    initializationOptions: { libraryDocuments: true },
+    // A configuração "lavra" vai ao servidor ao iniciar e a cada mudança (os inlay hints
+    // que se quer); as opções de inicialização já levam a de agora.
+    initializationOptions: {
+      libraryDocuments: true,
+      inlayHints: { types: hints.get("types", true), modes: hints.get("modes", true), result: hints.get("result", true) },
+    },
+    synchronize: { configurationSection: "lavra" },
     outputChannelName: "Lavra",
   };
   client = new LanguageClient("lavra", "Lavra", serverOptions, clientOptions);

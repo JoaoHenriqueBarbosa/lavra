@@ -261,7 +261,35 @@ pub fn signature_help(a: &Analysis, offset: u32) -> Option<lsp::SignatureHelp> {
 
 /// Dicas no texto: o tipo das declarações sem aposto, o modo dos argumentos emprestados e
 /// confiados, e o tipo de "o resultado".
-pub fn inlay_hints(a: &Analysis, src: &str, text: &Text, range: lsp::Range) -> Vec<lsp::InlayHint> {
+/// Quais inlay hints o editor quer: o tipo das declarações sem aposto, o modo dos
+/// argumentos e o tipo de "o resultado". Todos começam ligados; o editor desliga pela
+/// configuração "inlayHints" (nas opções de inicialização ou em
+/// `workspace/didChangeConfiguration`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InlayOptions {
+    pub types: bool,
+    pub modes: bool,
+    pub result: bool,
+}
+
+impl Default for InlayOptions {
+    fn default() -> Self {
+        InlayOptions { types: true, modes: true, result: true }
+    }
+}
+
+impl InlayOptions {
+    /// Lê `{ "types": false, ... }`; o que não vier fica como estava.
+    pub fn update(&mut self, v: &serde_json::Value) {
+        for (key, field) in [("types", &mut self.types), ("modes", &mut self.modes), ("result", &mut self.result)] {
+            if let Some(on) = v.get(key).and_then(serde_json::Value::as_bool) {
+                *field = on;
+            }
+        }
+    }
+}
+
+pub fn inlay_hints(a: &Analysis, src: &str, text: &Text, range: lsp::Range, options: InlayOptions) -> Vec<lsp::InlayHint> {
     let (from, to) = (text.offset(range.start), text.offset(range.end));
     let inside = |s: Span| s.start >= from && s.start <= to;
     let mut out = Vec::new();
@@ -278,7 +306,7 @@ pub fn inlay_hints(a: &Analysis, src: &str, text: &Text, range: lsp::Range) -> V
         data: None,
     };
     let declares = |w: &str| lexicon::lookup(w).iter().any(|e| e.role == Role::Declaration);
-    for d in &a.tables.defs {
+    for d in a.tables.defs.iter().filter(|_| options.types) {
         if !matches!(d.kind, DefKind::Local | DefKind::Constant) || !inside(d.span) {
             continue;
         }
@@ -291,7 +319,7 @@ pub fn inlay_hints(a: &Analysis, src: &str, text: &Text, range: lsp::Range) -> V
             out.push(hint(d.span.end, format!(", {},", ty.describe()), false, lsp::InlayHintKind::TYPE));
         }
     }
-    for &(span, mode) in &a.tables.args {
+    for &(span, mode) in a.tables.args.iter().filter(|_| options.modes) {
         if !inside(span) {
             continue;
         }
@@ -302,7 +330,7 @@ pub fn inlay_hints(a: &Analysis, src: &str, text: &Text, range: lsp::Range) -> V
         };
         out.push(hint(span.start, label.into(), true, lsp::InlayHintKind::PARAMETER));
     }
-    for t in &a.tokens {
+    for t in a.tokens.iter().filter(|_| options.result) {
         if t.is_word("resultado")
             && inside(t.span)
             && !src[t.span.end as usize..].trim_start().starts_with("de ")

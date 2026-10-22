@@ -128,7 +128,7 @@ Roda sobre o interpretador, que é a referência. Isso realiza o "ver a frase ex
 - TypeScript, `vscode-languageclient` e esbuild.
 
 **Configuração e servidor**
-- Settings: `lavra.server.path`, `lavra.trace.server` e `lavra.inlayHints.*`.
+- Settings: `lavra.server.path`, `lavra.trace.server` e `lavra.inlayHints.*`. **(feito)**
 - Servidor procurado nesta ordem: o setting, depois `lavrac` no PATH, depois o binário embutido na VSIX da plataforma.
 
 **Comandos**

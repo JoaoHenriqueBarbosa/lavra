@@ -13,7 +13,7 @@ pub mod semantic;
 use crate::span::LineIndex;
 use crate::{Analysis, analyze};
 use convert::{Encoding, Text};
-use lsp_server::{Connection, ErrorCode, Message, Notification, Request, Response};
+use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
 use lsp_types as lsp;
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -54,6 +54,12 @@ struct Server {
     /// O cliente abre o texto das bibliotecas pelo pedido `lavra/library` (ele avisa nas
     /// opções de inicialização, com `libraryDocuments`).
     library_documents: bool,
+    /// Os inlay hints que o editor quer.
+    inlay: assist::InlayOptions,
+    /// O cliente aceita o pedido de buscar de novo os inlay hints.
+    inlay_refresh: bool,
+    /// Os pedidos que o servidor faz ao cliente.
+    asked: u32,
 }
 
 /// Roda o servidor numa conexão já aberta (os testes usam uma em memória).
@@ -67,8 +73,14 @@ pub fn run(conn: &Connection) -> Fallible<()> {
         .and_then(|g| g.position_encodings.as_ref())
         .is_some_and(|e| e.contains(&lsp::PositionEncodingKind::UTF8));
     let encoding = if utf8 { Encoding::Utf8 } else { Encoding::Utf16 };
-    let library_documents =
-        init.initialization_options.as_ref().and_then(|o| o.get("libraryDocuments")).and_then(Value::as_bool).unwrap_or(false);
+    let options = init.initialization_options.clone().unwrap_or_default();
+    let library_documents = options.get("libraryDocuments").and_then(Value::as_bool).unwrap_or(false);
+    let mut inlay = assist::InlayOptions::default();
+    if let Some(v) = options.get("inlayHints") {
+        inlay.update(v);
+    }
+    let inlay_refresh =
+        init.capabilities.workspace.as_ref().and_then(|w| w.inlay_hint.as_ref()).and_then(|i| i.refresh_support).unwrap_or(false);
     #[allow(deprecated)] // `root_uri` ainda é o que muitos clientes mandam.
     let roots: Vec<PathBuf> = init
         .workspace_folders
@@ -115,7 +127,7 @@ pub fn run(conn: &Connection) -> Fallible<()> {
         ..Default::default()
     };
     conn.initialize_finish(id, json!({ "capabilities": caps, "serverInfo": { "name": "lavrac", "version": env!("CARGO_PKG_VERSION") } }))?;
-    let mut server = Server { encoding, docs: HashMap::new(), roots, library_documents };
+    let mut server = Server { encoding, docs: HashMap::new(), roots, library_documents, inlay, inlay_refresh, asked: 0 };
     for msg in &conn.receiver {
         match msg {
             Message::Request(req) => {
@@ -132,8 +144,8 @@ pub fn run(conn: &Connection) -> Fallible<()> {
             }
             Message::Notification(n) => {
                 let out = catch_unwind(AssertUnwindSafe(|| server.notification(n))).unwrap_or_default();
-                for n in out {
-                    conn.sender.send(Message::Notification(n))?;
+                for m in out {
+                    conn.sender.send(m)?;
                 }
             }
             Message::Response(_) => {}
@@ -230,7 +242,7 @@ impl Server {
             "textDocument/inlayHint" => {
                 let p: lsp::InlayHintParams = params(&req)?;
                 let doc = self.doc(&p.text_document.uri)?;
-                json!(assist::inlay_hints(&doc.analysis, &doc.text, &self.text(doc), p.range))
+                json!(assist::inlay_hints(&doc.analysis, &doc.text, &self.text(doc), p.range, self.inlay))
             }
             "textDocument/codeAction" => {
                 let p: lsp::CodeActionParams = params(&req)?;
@@ -283,7 +295,9 @@ impl Server {
         Ok(v)
     }
 
-    fn notification(&mut self, n: Notification) -> Vec<Notification> {
+    /// O que o servidor manda de volta: os diagnósticos, ou o pedido de buscar de novo os
+    /// inlay hints.
+    fn notification(&mut self, n: Notification) -> Vec<Message> {
         match n.method.as_str() {
             "textDocument/didOpen" => {
                 let Ok(p) = serde_json::from_value::<lsp::DidOpenTextDocumentParams>(n.params) else { return Vec::new() };
@@ -302,18 +316,33 @@ impl Server {
                 let Ok(p) = serde_json::from_value::<lsp::DidCloseTextDocumentParams>(n.params) else { return Vec::new() };
                 self.docs.remove(p.text_document.uri.as_str());
                 let params = lsp::PublishDiagnosticsParams { uri: p.text_document.uri, diagnostics: Vec::new(), version: None };
-                vec![Notification::new("textDocument/publishDiagnostics".into(), params)]
+                vec![Message::Notification(Notification::new("textDocument/publishDiagnostics".into(), params))]
+            }
+            // A configuração do editor: { "lavra": { "inlayHints": { ... } } }, ou sem o
+            // "lavra" de fora, como alguns editores mandam.
+            "workspace/didChangeConfiguration" => {
+                let settings = &n.params["settings"];
+                let section = if settings.get("lavra").is_some() { &settings["lavra"] } else { settings };
+                let Some(v) = section.get("inlayHints") else { return Vec::new() };
+                let before = self.inlay;
+                self.inlay.update(v);
+                if self.inlay == before || !self.inlay_refresh {
+                    return Vec::new();
+                }
+                self.asked += 1;
+                let id = RequestId::from(format!("lavra-{}", self.asked));
+                vec![Message::Request(Request::new(id, "workspace/inlayHint/refresh".into(), Value::Null))]
             }
             _ => Vec::new(),
         }
     }
 
-    fn publish(&self, key: &str) -> Vec<Notification> {
+    fn publish(&self, key: &str) -> Vec<Message> {
         let Some(doc) = self.docs.get(key) else { return Vec::new() };
         let text = self.text(doc);
         let diagnostics = doc.analysis.diagnostics.iter().map(|d| convert::diagnostic(d, &text, &doc.uri)).collect();
         let params = lsp::PublishDiagnosticsParams { uri: doc.uri.clone(), diagnostics, version: None };
-        vec![Notification::new("textDocument/publishDiagnostics".into(), params)]
+        vec![Message::Notification(Notification::new("textDocument/publishDiagnostics".into(), params))]
     }
 
     /// Funções, tipos e constantes dos documentos abertos e dos `.lav` das pastas do

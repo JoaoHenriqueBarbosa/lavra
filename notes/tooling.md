@@ -45,7 +45,9 @@ Extensão `joaohenriquebarbosa.lavra`, instalada no VS Code do WSL em 2026-10-22
 `editors/vscode/src/extension.ts`, em TypeScript com `vscode-languageclient` 11,
 empacotado pelo esbuild em `dist/extension.js` (o `tsc` só confere os tipos). Procura o
 `lavrac` no setting `lavra.server.path`, depois em `server/lavrac` dentro da extensão (a VSIX
-por plataforma leva o binário), depois no PATH. Comandos "Lavra: Rodar o arquivo",
+por plataforma leva o binário), depois no PATH. Os settings `lavra.inlayHints.types`,
+`lavra.inlayHints.modes` e `lavra.inlayHints.result` vão ao servidor pela seção `lavra`
+(`synchronize.configurationSection`), e `lavra.trace.server` registra a conversa. Comandos "Lavra: Rodar o arquivo",
 "Compilar para nativo", "Verificar" e "Reiniciar o servidor de linguagem"; botão de rodar no
 título do editor; tarefas do tipo `lavra` com os casadores de problema `$lavrac` (erros) e
 `$lavrac-aviso` (avisos), separados porque "Erro" e "Aviso" não são as severidades em
@@ -124,7 +126,11 @@ erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro s�
 - **Ajuda de assinatura**: a regência do verbo da oração, com o parâmetro ativo pela última
   preposição da regência já escrita.
 - **Inlay hints**: o tipo das declarações sem aposto (", um inteiro,"), "confiado:" e
-  "emprestado:" antes dos argumentos, e o tipo de "o resultado".
+  "emprestado:" antes dos argumentos, e o tipo de "o resultado". Cada um se desliga pela
+  configuração `inlayHints` (`types`, `modes`, `result`), que o servidor lê nas opções de
+  inicialização (o Helix manda a configuração por ali) e em `workspace/didChangeConfiguration`
+  (com ou sem a seção `lavra` por fora). Quando a escolha muda, o servidor pede ao editor
+  `workspace/inlayHint/refresh`, se o editor aceita.
 - **Ações rápidas**: as correções que vêm nos diagnósticos (contração, concordância, ponto
   final...), a segura como preferida.
 - **Dobra e seleção**: pelo papel das linhas que o léxico informa (blocos recuados,

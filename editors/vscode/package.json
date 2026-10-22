@@ -58,6 +58,21 @@
           ],
           "default": "off",
           "description": "Registra a conversa com o servidor de linguagem no canal de saída \"Lavra\"."
+        },
+        "lavra.inlayHints.types": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Mostra o tipo das declarações sem aposto: `O saldo, um inteiro, começa em 0.`"
+        },
+        "lavra.inlayHints.modes": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Mostra `confiado:` e `emprestado:` antes dos argumentos que a função pode mudar ou só lê."
+        },
+        "lavra.inlayHints.result": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Mostra o tipo de \"o resultado\"."
         }
       }
     },

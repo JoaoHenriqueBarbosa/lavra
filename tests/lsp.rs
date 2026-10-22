@@ -8,6 +8,8 @@ struct Client {
     conn: Connection,
     next: i32,
     notes: Vec<Notification>,
+    /// Os pedidos que o servidor fez ao cliente.
+    asked: Vec<Request>,
 }
 
 impl Client {
@@ -17,10 +19,18 @@ impl Client {
 
     /// O servidor, com as opções de inicialização do cliente.
     fn start_with(options: Value) -> (Client, std::thread::JoinHandle<()>) {
+        Client::start_full(json!({}), options)
+    }
+
+    /// O servidor, com as capacidades e as opções de inicialização do cliente.
+    fn start_full(capabilities: Value, options: Value) -> (Client, std::thread::JoinHandle<()>) {
         let (server, client) = Connection::memory();
         let handle = std::thread::spawn(move || lavra::lsp::run(&server).expect("servidor"));
-        let mut c = Client { conn: client, next: 1, notes: Vec::new() };
-        c.request("initialize", json!({ "capabilities": {}, "processId": null, "rootUri": null, "initializationOptions": options }));
+        let mut c = Client { conn: client, next: 1, notes: Vec::new(), asked: Vec::new() };
+        c.request(
+            "initialize",
+            json!({ "capabilities": capabilities, "processId": null, "rootUri": null, "initializationOptions": options }),
+        );
         c.notify("initialized", json!({}));
         (c, handle)
     }
@@ -38,6 +48,7 @@ impl Client {
             match self.conn.receiver.recv().unwrap() {
                 Message::Response(r) if r.id == id => return r.response_result.map_err(|e| e.message),
                 Message::Notification(n) => self.notes.push(n),
+                Message::Request(r) => self.asked.push(r),
                 _ => {}
             }
         }
@@ -54,8 +65,10 @@ impl Client {
                 let n = self.notes.remove(i);
                 return n.params["diagnostics"].as_array().unwrap().clone();
             }
-            if let Message::Notification(n) = self.conn.receiver.recv().unwrap() {
-                self.notes.push(n);
+            match self.conn.receiver.recv().unwrap() {
+                Message::Notification(n) => self.notes.push(n),
+                Message::Request(r) => self.asked.push(r),
+                _ => {}
             }
         }
     }
@@ -476,5 +489,36 @@ fn ownership_in_hover_and_tokens() {
     assert!(mods(7, 15) & moved != 0, "\"cartas\" entrega o valor em \"Arquivo as cartas.\"");
     assert!(mods(8, 23) & moved != 0, "\"rascunhos\" passa o valor para \"as cartas\"");
     assert!(mods(8, 7) & moved == 0 && mods(9, 15) & moved == 0, "só o ponto da entrega leva o modificador");
+    c.stop(handle);
+}
+
+fn hint_labels(c: &mut Client) -> Vec<String> {
+    let range = json!({ "start": { "line": 0, "character": 0 }, "end": { "line": 9, "character": 0 } });
+    let hints = c.request("textDocument/inlayHint", json!({ "textDocument": { "uri": URI }, "range": range }));
+    hints.as_array().unwrap().iter().map(|h| h["label"].as_str().unwrap().to_string()).collect()
+}
+
+/// O editor escolhe os inlay hints, nas opções de inicialização ou na configuração; quando a
+/// escolha muda, o servidor pede ao editor que busque as dicas de novo.
+#[test]
+fn inlay_hints_follow_the_configuration() {
+    let capabilities = json!({ "workspace": { "inlayHint": { "refreshSupport": true } } });
+    let (mut c, handle) = Client::start_full(capabilities, json!({ "inlayHints": { "modes": false } }));
+    c.notify("textDocument/didOpen", json!({ "textDocument": { "uri": URI, "languageId": "lavra", "version": 1, "text": PROGRAM } }));
+    c.diagnostics();
+    let l = hint_labels(&mut c);
+    assert!(l.contains(&", um inteiro,".to_string()) && !l.contains(&"confiado:".to_string()), "{l:?}");
+
+    let settings = json!({ "settings": { "lavra": { "inlayHints": { "modes": true, "types": false } } } });
+    c.notify("workspace/didChangeConfiguration", settings.clone());
+    let l = hint_labels(&mut c);
+    assert!(l.contains(&"confiado:".to_string()) && !l.contains(&", um inteiro,".to_string()), "{l:?}");
+    let refreshes = |c: &Client| c.asked.iter().filter(|r| r.method == "workspace/inlayHint/refresh").count();
+    assert_eq!(refreshes(&c), 1);
+
+    // A mesma escolha de novo não muda nada, e não há o que buscar.
+    c.notify("workspace/didChangeConfiguration", settings);
+    hint_labels(&mut c);
+    assert_eq!(refreshes(&c), 1);
     c.stop(handle);
 }

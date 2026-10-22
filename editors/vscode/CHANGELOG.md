@@ -7,6 +7,8 @@
   onde vinha.
 - Ir para a definição de um verbo de biblioteca abre o texto da biblioteca, só para
   leitura, no cabeçalho do verbo.
+- As configurações `lavra.inlayHints.types`, `lavra.inlayHints.modes` e
+  `lavra.inlayHints.result` desligam cada tipo de inlay hint.
 
 ## 0.6.0
 

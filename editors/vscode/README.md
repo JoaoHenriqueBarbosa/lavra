@@ -21,7 +21,8 @@ em que cada instrução é uma oração em português.
   que você escreveu, os campos e os tipos.
 - **Ajuda de assinatura**: a regência do verbo da oração, com o parâmetro ativo.
 - **Inlay hints**: o tipo das declarações sem aposto, "confiado:" e "emprestado:" antes dos
-  argumentos, e o tipo de "o resultado".
+  argumentos, e o tipo de "o resultado". Cada um se desliga na configuração
+  (`lavra.inlayHints.types`, `lavra.inlayHints.modes`, `lavra.inlayHints.result`).
 - **Ações rápidas**: as correções que o compilador já sabe fazer (contração, concordância,
   ponto final, acento...).
 - **Formatação** (`lavrac fmt`): recuo e espaços, sem nunca mexer em quebra de linha, porque

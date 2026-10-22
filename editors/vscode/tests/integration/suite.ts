@@ -195,6 +195,20 @@ export async function run(): Promise<void> {
   for (const want of [", um inteiro,", "confiado:"]) {
     assert.ok(labels.includes(want), `falta o inlay hint "${want}": ${labels.join(" | ")}`);
   }
+  // Desligar uma das dicas na configuração chega ao servidor; religar a traz de volta.
+  const hintLabels = async () => {
+    const h = await vscode.commands.executeCommand<vscode.InlayHint[]>("vscode.executeInlayHintProvider", uri, new vscode.Range(0, 0, 8, 0));
+    return h.map((x) => (typeof x.label === "string" ? x.label : x.label.map((p) => p.value).join("")));
+  };
+  const lavraConfig = vscode.workspace.getConfiguration("lavra");
+  await lavraConfig.update("inlayHints.modes", false, vscode.ConfigurationTarget.Workspace);
+  const without = await until("as dicas sem o modo", async () => {
+    const l = await hintLabels();
+    return l.includes("confiado:") ? undefined : l;
+  });
+  assert.ok(without.includes(", um inteiro,"), without.join(" | "));
+  await lavraConfig.update("inlayHints.modes", undefined, vscode.ConfigurationTarget.Workspace);
+  await until("o modo de volta", async () => ((await hintLabels()).includes("confiado:") ? true : undefined));
 
   // Rename com morfologia: "o saldo" vira "a reserva", e o artigo vai junto.
   const renamed = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
