@@ -2,6 +2,7 @@
 //! português, e a gramática é verificação.
 
 pub mod ast;
+#[cfg(feature = "native")]
 pub mod codegen;
 pub mod codes;
 pub mod diagnostics;

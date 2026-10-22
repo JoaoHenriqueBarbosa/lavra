@@ -32,6 +32,18 @@ jobs:
       - name: Testes (unitários, golden e paridade com o nativo)
         run: cargo test
 
+  wasm:
+    name: Biblioteca em wasm32 (playground)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Análise e interpretador sem o back-end nativo
+        run: cargo check --lib --no-default-features --target wasm32-unknown-unknown
+
   editor:
     name: Extensão do VS Code
     runs-on: ubuntu-latest

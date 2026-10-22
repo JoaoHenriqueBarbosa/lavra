@@ -1,6 +1,11 @@
 # O compilador (`lavrac`)
 
-Crate único em Rust 2024 (`Cargo.toml`): biblioteca `lavra` e binário `lavrac`.
+Crate único em Rust 2024 (`Cargo.toml`): biblioteca `lavra` e binário `lavrac`. A feature
+`native` (padrão) traz o Cranelift e o runtime; sem ela, a biblioteca (análise e
+interpretador) compila para wasm32 (`cargo check --lib --no-default-features --target
+wasm32-unknown-unknown`, conferido no CI), para o playground. A linha de comando é própria e
+em português (o `clap` daria ajuda e erros de uso em inglês); `lavrac --version` mostra o
+commit, e um pânico do compilador avisa que é defeito do compilador e pede o relato.
 Dependências: o Cranelift 0.137 (`codegen`, `frontend`, `module`, `object`, `native`) e o
 `serde_json` (exportação do léxico).
 

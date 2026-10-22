@@ -5,6 +5,12 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
+    commit();
+    explain_table();
+    // Sem o back-end nativo (o playground em wasm32), o runtime não entra.
+    if std::env::var_os("CARGO_FEATURE_NATIVE").is_none() {
+        return;
+    }
     for f in ["runtime/lib.rs", "src/span.rs", "src/codes.rs", "src/diagnostics.rs", "src/textfmt.rs"] {
         println!("cargo:rerun-if-changed={f}");
     }
@@ -35,7 +41,20 @@ fn main() {
         .status()
         .expect("rustc para o runtime");
     assert!(status.success(), "o runtime não compilou");
-    explain_table();
+}
+
+/// O commit de onde o compilador foi construído, para o `lavrac --version`.
+fn commit() {
+    println!("cargo:rerun-if-changed=.git/HEAD");
+    println!("cargo:rerun-if-changed=.git/refs/heads");
+    let hash = Command::new("git")
+        .args(["rev-parse", "--short=10", "HEAD"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .unwrap_or_else(|| "commit desconhecido".into());
+    println!("cargo:rustc-env=LAVRA_COMMIT={hash}");
 }
 
 /// A tabela dos textos de `lavrac explain`: um `include_str!` por `src/explain/LXXXX.md`.

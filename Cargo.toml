@@ -14,13 +14,20 @@ path = "src/lib.rs"
 [[bin]]
 name = "lavrac"
 path = "src/main.rs"
+required-features = ["native"]
+
+[features]
+default = ["native"]
+# O back-end nativo: o Cranelift e o runtime que o build.rs compila. Sem ele, a biblioteca
+# (análise e interpretador) compila também para wasm32, para o playground.
+native = ["dep:cranelift-codegen", "dep:cranelift-frontend", "dep:cranelift-module", "dep:cranelift-object", "dep:cranelift-native"]
 
 [dependencies]
-cranelift-codegen = "0.137"
-cranelift-frontend = "0.137"
-cranelift-module = "0.137"
-cranelift-object = "0.137"
-cranelift-native = "0.137"
+cranelift-codegen = { version = "0.137", optional = true }
+cranelift-frontend = { version = "0.137", optional = true }
+cranelift-module = { version = "0.137", optional = true }
+cranelift-object = { version = "0.137", optional = true }
+cranelift-native = { version = "0.137", optional = true }
 serde_json = "1"
 
 [profile.release]

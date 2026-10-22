@@ -370,7 +370,7 @@ Cada item termina com a suíte verde, um commit e um push.
 | 0.5 | F1 e F2, tolerância e códigos **(feito)** | `check` lista todos os erros; golden revisado; teste do explain |
 | 0.6 | F3 e F4, HIR e posições **(feito)** | suíte verde |
 | 0.7 | F5, tabelas e não uso **(feito)** | testes de tabela sobre fixtures |
-| 0.8 | F8, clap, versão, panic hook | `cargo check --lib --no-default-features --target wasm32-unknown-unknown` |
+| 0.8 | F8, CLI própria em português, versão, panic hook **(feito)** | `cargo check --lib --no-default-features --target wasm32-unknown-unknown` |
 | 1 | Servidor (diagnósticos, tokens, hover, navegação, símbolos) e cliente | teste de integração e captura no VS Code |
 | 2 | Formatador | `fmt --check` no corpus sem alterar os poemas |
 | 3 | Completar pelo parser, signature help, inlay, code actions, folding | fixtures em `tests/lsp` |

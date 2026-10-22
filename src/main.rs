@@ -5,79 +5,166 @@ use lavra::span::SourceFile;
 use std::io::IsTerminal;
 use std::process::ExitCode;
 
-const USAGE: &str = "\
-uso: lavrac <comando> <arquivo.lav> [-o saída]
+const HELP: &str = "\
+lavrac: compilador da Lavra, a linguagem em que cada instrução é uma oração.
 
-comandos:
-  run     interpreta o programa
-  build   compila para um executável nativo (padrão: o nome do arquivo sem .lav)
-  check   só confere gramática, tipos e posse
+uso:
+  lavrac <arquivo.lav>                  roda o programa (o mesmo que run)
+  lavrac run <arquivo.lav>              interpreta o programa
+  lavrac build <arquivo.lav> [-o saída] compila para um executável nativo
+                                        (padrão: o nome do arquivo sem .lav)
+  lavrac check <arquivo.lav> [--json]   só confere gramática, tipos e posse;
+                                        com --json, os diagnósticos em JSON
+  lavrac explain <código>               explica um erro, com exemplo errado e certo
+                                        (ex.: lavrac explain L0334)
+  lavrac lexicon --json                 exporta o léxico da língua
+  lavrac --version                      a versão e o commit
+  lavrac --help                         esta ajuda
 
-  lavrac check --json <arquivo.lav>   os diagnósticos em JSON (linhas e colunas a partir de 1, colunas em caracteres)
-  lavrac explain <código>             explica um erro, com exemplo errado e certo (ex.: lavrac explain L0334)
-  lavrac lexicon --json               exporta o léxico da língua (palavras, papéis, documentação)
+Variáveis: NO_COLOR desliga as cores; LAVRA_ECO=1 repete a entrada lida.
 ";
 
 /// O runtime, compilado pelo build.rs e embutido no compilador.
 const RUNTIME: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/liblavra_rt.a"));
 
-fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    if let [cmd, flag] = args.as_slice()
-        && cmd == "lexicon"
-        && flag == "--json"
-    {
-        print!("{}", lavra::lexicon::to_json());
-        return ExitCode::SUCCESS;
-    }
-    if let [cmd, code] = args.as_slice()
-        && cmd == "explain"
-    {
-        return match lavra::explain::text(code) {
-            Some(t) => {
-                print!("{t}");
-                ExitCode::SUCCESS
-            }
-            None => {
-                eprintln!("lavrac: não há explicação para \"{code}\" (os códigos vão de L0001 em diante; veja o cabeçalho do erro)");
-                ExitCode::from(2)
-            }
-        };
-    }
-    if let [cmd, a, b] = args.as_slice()
-        && cmd == "check"
-        && (a == "--json" || b == "--json")
-    {
-        let path = if a == "--json" { b } else { a };
-        let text = match std::fs::read_to_string(path) {
-            Ok(t) => t,
-            Err(e) => {
-                eprintln!("lavrac: não consegui ler {path}: {e}");
-                return ExitCode::from(2);
-            }
-        };
-        let src = SourceFile::new(path, text);
-        let analysis = lavra::analyze(&src.text);
-        println!("{}", json_report(&analysis.diagnostics, &src));
-        return if analysis.has_errors() { ExitCode::from(1) } else { ExitCode::SUCCESS };
-    }
-    let (cmd, path, output) = match args.as_slice() {
-        [cmd, path] => (cmd.as_str(), path.as_str(), None),
-        [cmd, path, flag, out] if flag == "-o" => (cmd.as_str(), path.as_str(), Some(out.clone())),
-        [path] if path.ends_with(".lav") => ("run", path.as_str(), None),
-        _ => {
-            eprint!("{USAGE}");
-            return ExitCode::from(2);
+/// O que a linha de comando pediu.
+enum Command {
+    Run { path: String },
+    Build { path: String, output: Option<String> },
+    Check { path: String, json: bool },
+    Explain { code: String },
+    Lexicon,
+    Version,
+    Help,
+}
+
+/// Lê os argumentos; o erro é a mensagem para quem chamou.
+fn parse_args(args: &[String]) -> Result<Command, String> {
+    let rest = |from: usize| args.get(from..).unwrap_or_default();
+    let one_path = |cmd: &str, xs: &[String]| -> Result<String, String> {
+        match xs {
+            [p] => Ok(p.clone()),
+            [] => Err(format!("\"{cmd}\" pede o arquivo .lav")),
+            _ => Err(format!("\"{cmd}\" recebe um arquivo só")),
         }
     };
-    let text = match std::fs::read_to_string(path) {
-        Ok(t) => t,
+    match args.first().map(String::as_str) {
+        None | Some("--help" | "-h" | "help" | "ajuda") => Ok(Command::Help),
+        Some("--version" | "-V" | "version" | "versão") => Ok(Command::Version),
+        Some("run") => Ok(Command::Run { path: one_path("run", rest(1))? }),
+        Some("build") => {
+            let mut path = None;
+            let mut output = None;
+            let mut xs = rest(1).iter();
+            while let Some(x) = xs.next() {
+                if x == "-o" {
+                    output = Some(xs.next().ok_or("depois de -o vem o nome do executável")?.clone());
+                } else if path.is_none() {
+                    path = Some(x.clone());
+                } else {
+                    return Err("\"build\" recebe um arquivo só".into());
+                }
+            }
+            Ok(Command::Build { path: path.ok_or("\"build\" pede o arquivo .lav")?, output })
+        }
+        Some("check") => {
+            let json = rest(1).iter().any(|x| x == "--json");
+            let files: Vec<String> = rest(1).iter().filter(|x| *x != "--json").cloned().collect();
+            Ok(Command::Check { path: one_path("check", &files)?, json })
+        }
+        Some("explain") => match rest(1) {
+            [code] => Ok(Command::Explain { code: code.clone() }),
+            _ => Err("\"explain\" pede um código, como L0334".into()),
+        },
+        Some("lexicon") => match rest(1) {
+            [flag] if flag == "--json" => Ok(Command::Lexicon),
+            _ => Err("\"lexicon\" só exporta em JSON: lavrac lexicon --json".into()),
+        },
+        Some(p) if p.ends_with(".lav") && args.len() == 1 => Ok(Command::Run { path: p.to_string() }),
+        Some(other) => Err(format!("comando desconhecido: \"{other}\"")),
+    }
+}
+
+/// Um defeito do compilador (pânico) não é erro do programa: diz isso e pede o relato.
+fn install_panic_hook() {
+    std::panic::set_hook(Box::new(|info| {
+        eprintln!("lavrac: isto é um defeito do compilador, não do seu programa.");
+        eprintln!("{info}");
+        eprintln!(
+            "Abra uma issue em https://github.com/JoaoHenriqueBarbosa/lavra/issues com o programa que causou o defeito \
+             e a versão (lavrac --version: {} {}).",
+            env!("CARGO_PKG_VERSION"),
+            env!("LAVRA_COMMIT")
+        );
+    }));
+}
+
+fn read_source(path: &str) -> Result<SourceFile, ExitCode> {
+    match std::fs::read_to_string(path) {
+        Ok(t) => Ok(SourceFile::new(path, t)),
         Err(e) => {
             eprintln!("lavrac: não consegui ler {path}: {e}");
+            Err(ExitCode::from(2))
+        }
+    }
+}
+
+fn main() -> ExitCode {
+    install_panic_hook();
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let cmd = match parse_args(&args) {
+        Ok(c) => c,
+        Err(msg) => {
+            eprintln!("lavrac: {msg}.\n");
+            eprint!("{HELP}");
             return ExitCode::from(2);
         }
     };
-    let src = SourceFile::new(path, text);
+    let (path, action) = match cmd {
+        Command::Help => {
+            print!("{HELP}");
+            return ExitCode::SUCCESS;
+        }
+        Command::Version => {
+            println!("lavrac {} ({})", env!("CARGO_PKG_VERSION"), env!("LAVRA_COMMIT"));
+            return ExitCode::SUCCESS;
+        }
+        Command::Lexicon => {
+            print!("{}", lavra::lexicon::to_json());
+            return ExitCode::SUCCESS;
+        }
+        Command::Explain { code } => {
+            return match lavra::explain::text(&code) {
+                Some(t) => {
+                    print!("{t}");
+                    ExitCode::SUCCESS
+                }
+                None => {
+                    eprintln!("lavrac: não há explicação para \"{code}\" (os códigos vão de L0001 em diante; veja o cabeçalho do erro)");
+                    ExitCode::from(2)
+                }
+            };
+        }
+        Command::Check { path, json: true } => {
+            let src = match read_source(&path) {
+                Ok(s) => s,
+                Err(code) => return code,
+            };
+            let analysis = lavra::analyze(&src.text);
+            println!("{}", json_report(&analysis.diagnostics, &src));
+            return if analysis.has_errors() { ExitCode::from(1) } else { ExitCode::SUCCESS };
+        }
+        Command::Check { path, json: false } => (path, Action::Check),
+        Command::Run { path } => (path, Action::Run),
+        Command::Build { path, output } => {
+            let out = output.unwrap_or_else(|| path.strip_suffix(".lav").unwrap_or(&path).to_string());
+            (path, Action::Build(out))
+        }
+    };
+    let src = match read_source(&path) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
     let style = Style { color: std::io::stderr().is_terminal() && std::env::var_os("NO_COLOR").is_none() };
     let report = |d: &Diagnostic| eprint!("{}", render(d, &src, style));
     let (prog, warnings) = match lavra::compile(&src.text) {
@@ -92,19 +179,16 @@ fn main() -> ExitCode {
     for w in &warnings {
         report(w);
     }
-    match cmd {
-        "check" => ExitCode::SUCCESS,
-        "build" => {
-            let out = output.unwrap_or_else(|| path.strip_suffix(".lav").unwrap_or(path).to_string());
-            match build(&prog, &src, &out) {
-                Ok(()) => ExitCode::SUCCESS,
-                Err(e) => {
-                    eprintln!("lavrac: {e}");
-                    ExitCode::from(1)
-                }
+    match action {
+        Action::Check => ExitCode::SUCCESS,
+        Action::Build(out) => match build(&prog, &src, &out) {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(e) => {
+                eprintln!("lavrac: {e}");
+                ExitCode::from(1)
             }
-        }
-        "run" => {
+        },
+        Action::Run => {
             // Pilha grande: o interpretador é recursivo e a recursão da Lavra vai fundo.
             let result = std::thread::scope(|s| {
                 std::thread::Builder::new()
@@ -134,11 +218,14 @@ fn main() -> ExitCode {
                 },
             }
         }
-        _ => {
-            eprint!("{USAGE}");
-            ExitCode::from(2)
-        }
     }
+}
+
+/// O que fazer com o programa depois de compilado.
+enum Action {
+    Check,
+    Run,
+    Build(String),
 }
 
 /// Gera o objeto, junta com o runtime e linka com o `cc` do sistema.
