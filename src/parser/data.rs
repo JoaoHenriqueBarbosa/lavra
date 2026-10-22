@@ -63,13 +63,13 @@ impl Parser {
                     art_tok.span,
                 ));
             }
-            if self.records.contains_key(&name) || self.enums.contains_key(&name) {
+            if self.vocab.records.contains_key(&name) || self.vocab.enums.contains_key(&name) {
                 return err(Diagnostic::new(Category::Scope, format!("O tipo \"{name}\" já foi definido."), name_tok.span));
             }
             let id = self.prog.enums.len();
             let plural = morphology::pluralize(&name);
-            self.enums.insert(name.clone(), id);
-            self.enum_plurals.insert(plural.clone(), id);
+            self.vocab.enums.insert(name.clone(), id);
+            self.vocab.enum_plurals.insert(plural.clone(), id);
             self.prog.enums.push(EnumDef {
                 word: name,
                 plural,
@@ -92,13 +92,13 @@ impl Parser {
                     art_tok.span,
                 ));
             }
-            if self.records.contains_key(&name) {
+            if self.vocab.records.contains_key(&name) {
                 return err(Diagnostic::new(Category::Scope, format!("O registro \"{name}\" já foi definido."), name_tok.span));
             }
             let id = self.prog.records.len();
             let plural = morphology::pluralize(&name);
-            self.records.insert(name.clone(), id);
-            self.record_plurals.insert(plural.clone(), id);
+            self.vocab.records.insert(name.clone(), id);
+            self.vocab.record_plurals.insert(plural.clone(), id);
             self.prog.records.push(RecordDef {
                 word: name,
                 plural,
@@ -109,7 +109,7 @@ impl Parser {
         }
         for &k in &starts {
             self.pos = k + 2;
-            let id = self.records[self.toks[k + 1].word().unwrap()];
+            let id = self.vocab.records[self.toks[k + 1].word().unwrap()];
             self.expect_word("é")?;
             let um = self.bump();
             if !um.is_word("um") {
@@ -138,7 +138,7 @@ impl Parser {
                 }
                 self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
                 let ann = self.aposto()?;
-                self.field_names.insert(name.word.clone());
+                self.vocab.field_names.insert(name.word.clone());
                 fields.push(FieldDef { name, ty: ann });
                 if self.eat_punct(';') {
                     self.skip_newlines();
@@ -166,7 +166,7 @@ impl Parser {
 
     /// "Uma forma é uma destas: um círculo, com o raio, um real; ...; um ponto."
     fn enum_body(&mut self, k: usize) -> Result<()> {
-        let id = self.enums[self.toks[k + 1].word().unwrap()];
+        let id = self.vocab.enums[self.toks[k + 1].word().unwrap()];
         let gender = self.prog.enums[id].gender;
         self.pos = k + 2;
         self.expect_word("é")?;
@@ -203,7 +203,7 @@ impl Parser {
             let Some(word) = wt.word().map(str::to_string) else {
                 return err(Diagnostic::new(Category::Syntax, "Esperava o nome do caso.", wt.span));
             };
-            if self.variants.contains_key(&word) || self.records.contains_key(&word) || self.enums.contains_key(&word) {
+            if self.vocab.variants.contains_key(&word) || self.vocab.records.contains_key(&word) || self.vocab.enums.contains_key(&word) {
                 return err(Diagnostic::new(Category::Scope, format!("\"{word}\" já é nome de outro tipo ou caso."), wt.span));
             }
             let mut fields: Vec<FieldDef> = Vec::new();
@@ -220,7 +220,7 @@ impl Parser {
                     }
                     self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
                     let ann = self.aposto()?;
-                    self.field_names.insert(name.word.clone());
+                    self.vocab.field_names.insert(name.word.clone());
                     fields.push(FieldDef { name, ty: ann });
                     if self.at_punct(',') && self.peek_at(1).is_word("e") {
                         self.bump();
@@ -234,7 +234,7 @@ impl Parser {
                     break;
                 }
             }
-            self.variants.insert(word.clone(), (id, variants.len()));
+            self.vocab.variants.insert(word.clone(), (id, variants.len()));
             variants.push(VariantDef { word, gender: a.gender, span: at.span.to(wt.span), fields });
             if self.eat_punct(';') {
                 self.skip_newlines();
@@ -255,16 +255,16 @@ impl Parser {
     /// Tipo de registro no número pedido; devolve o nome do registro e o gênero.
     pub(super) fn record_type_word(&self, w: &str, number: Number) -> Option<(String, Gender)> {
         let rec = match number {
-            Number::Singular => self.records.get(w),
-            Number::Plural => self.record_plurals.get(w),
+            Number::Singular => self.vocab.records.get(w),
+            Number::Plural => self.vocab.record_plurals.get(w),
         };
         if let Some(id) = rec {
             let r = &self.prog.records[*id];
             return Some((r.word.clone(), r.gender));
         }
         let id = match number {
-            Number::Singular => self.enums.get(w),
-            Number::Plural => self.enum_plurals.get(w),
+            Number::Singular => self.vocab.enums.get(w),
+            Number::Plural => self.vocab.enum_plurals.get(w),
         }?;
         let e = &self.prog.enums[*id];
         Some((e.word.clone(), e.gender))
@@ -275,7 +275,7 @@ impl Parser {
     /// Um segmento de lugar pode ser seguido de "de" + outro lugar?
     fn projects(&self, seg: &Segment) -> bool {
         match seg {
-            Segment::Name(n) => self.field_names.contains(&n.word) && !n.is_symbol(),
+            Segment::Name(n) => self.vocab.field_names.contains(&n.word) && !n.is_symbol(),
             Segment::Index(..) | Segment::Ordinal { .. } => true,
         }
     }
@@ -419,7 +419,7 @@ impl Parser {
         let at = self.peek().clone();
         let wt = self.peek_at(1).clone();
         let Some(w) = wt.word() else { return Ok(None) };
-        if self.field_names.contains(w) || !is_nominal_word(w) {
+        if self.vocab.field_names.contains(w) || !is_nominal_word(w) {
             return Ok(None);
         }
         let next = self.peek_at(2);
@@ -531,7 +531,7 @@ impl Parser {
         let at = self.bump();
         let wt = self.bump();
         let w = wt.word().unwrap_or_default().to_string();
-        let Some(&(e, v)) = self.variants.get(&w) else {
+        let Some(&(e, v)) = self.vocab.variants.get(&w) else {
             return err(Diagnostic::new(Category::Scope, format!("\"{}\" não é caso de nenhuma enumeração.", wt.orig), wt.span));
         };
         let var = &self.prog.enums[e].variants[v];
@@ -553,10 +553,10 @@ impl Parser {
         let Some(art) = at.word().and_then(morphology::article).filter(|a| !a.definite) else { return Ok(None) };
         let wt = self.peek_at(1).clone();
         let Some(w) = wt.word() else { return Ok(None) };
-        let (word, gender) = if let Some(&id) = self.records.get(w) {
+        let (word, gender) = if let Some(&id) = self.vocab.records.get(w) {
             let r = &self.prog.records[id];
             (r.word.clone(), r.gender)
-        } else if let Some(&(e, v)) = self.variants.get(w) {
+        } else if let Some(&(e, v)) = self.vocab.variants.get(w) {
             let v = &self.prog.enums[e].variants[v];
             (v.word.clone(), v.gender)
         } else {
@@ -579,8 +579,9 @@ impl Parser {
                 let value = self.expr()?;
                 fields.push((n.word.clone(), n.span, value));
                 if (self.at_word("e") || self.at_punct(','))
-                    && ((self.definite_article_at(1).is_some() && self.peek_at(2).word().is_some_and(|w| self.field_names.contains(w)))
-                        || self.peek_at(1).word().is_some_and(|w| morphology::is_symbol(w) && self.field_names.contains(w)))
+                    && ((self.definite_article_at(1).is_some()
+                        && self.peek_at(2).word().is_some_and(|w| self.vocab.field_names.contains(w)))
+                        || self.peek_at(1).word().is_some_and(|w| morphology::is_symbol(w) && self.vocab.field_names.contains(w)))
                 {
                     self.bump();
                     continue;

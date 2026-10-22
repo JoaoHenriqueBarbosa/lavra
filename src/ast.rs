@@ -4,6 +4,7 @@
 
 use crate::morphology::{Gender, Number};
 use crate::span::Span;
+use std::collections::{HashMap, HashSet};
 
 /// Um nome como aparece no texto: com artigo definido ("a carta") ou símbolo ("x").
 #[derive(Clone, Debug)]
@@ -454,4 +455,30 @@ pub struct Program {
     /// Definições e orações do nível de fora.
     pub top: Vec<Stmt>,
     pub main: Option<usize>,
+    /// Os nomes que o programa declara, como o parser os achou.
+    pub vocab: Vocabulary,
+}
+
+/// O que o programa declara e o parser precisa conhecer antes de ler os corpos: os
+/// verbos (pela 1ª pessoa e pelo infinitivo), os registros, as enumerações, os casos e os
+/// campos. As pré-varreduras produzem; a leitura dos corpos consulta. Os índices apontam
+/// para `Program::sigs`, `Program::records` e `Program::enums`.
+///
+/// É também o que uma biblioteca acrescenta ao programa que a usa, e o que o servidor de
+/// linguagem oferece ao completar.
+#[derive(Clone, Debug, Default)]
+pub struct Vocabulary {
+    /// Verbos de ação pela 1ª pessoa: "transfiro" → a assinatura.
+    pub by_first_person: HashMap<String, usize>,
+    /// Todas as assinaturas de um infinitivo (a mesma ação com regências diferentes).
+    pub by_infinitive: HashMap<String, Vec<usize>>,
+    pub records: HashMap<String, usize>,
+    pub record_plurals: HashMap<String, usize>,
+    pub enums: HashMap<String, usize>,
+    pub enum_plurals: HashMap<String, usize>,
+    /// Caso → (enumeração, posição do caso).
+    pub variants: HashMap<String, (usize, usize)>,
+    /// Nomes de campo de todos os registros: "a soma de" é operação por extenso só se
+    /// nenhum registro tiver o campo "soma".
+    pub field_names: HashSet<String>,
 }

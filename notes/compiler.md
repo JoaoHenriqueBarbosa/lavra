@@ -18,6 +18,11 @@ lavrac check  arquivo.lav          só confere
    `header.rs` (pré-varredura e cabeçalhos de função; chamadas guiadas pela regência),
    `data.rs` (registros, enumerações, lugares, coleções, operações por extenso).
    Confere a gramática local: concordância verbal, contração, regência, ordinais.
+   As pré-varreduras (registros e enumerações, depois os cabeçalhos "Para ...") produzem
+   o `ast::Vocabulary` (verbos pela 1ª pessoa e pelo infinitivo, registros, enumerações,
+   casos, nomes de campo), que a leitura dos corpos consulta e que vai junto no
+   `ast::Program`; é por ele que uma biblioteca acrescenta nomes e o servidor de
+   linguagem completa.
 3. `sema.rs`: escopos, concordância nominal com a declaração, tipos com inferência
    (variáveis de tipo unificadas e resolvidas no fim de cada função), mutabilidade,
    exaustividade do "Conforme". Baixa para `hir.rs`.

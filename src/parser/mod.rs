@@ -11,7 +11,7 @@ use crate::span::Span;
 mod data;
 mod header;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub fn parse(tokens: Vec<Token>) -> Result<Program> {
     let mut p = Parser {
@@ -19,21 +19,15 @@ pub fn parse(tokens: Vec<Token>) -> Result<Program> {
         pos: 0,
         prog: Program::default(),
         headers: HashMap::new(),
-        by_first_person: HashMap::new(),
-        by_infinitive: HashMap::new(),
+        vocab: Vocabulary::default(),
         allow_uncontracted: false,
-        records: HashMap::new(),
-        record_plurals: HashMap::new(),
-        enums: HashMap::new(),
-        enum_plurals: HashMap::new(),
-        variants: HashMap::new(),
-        field_names: HashSet::new(),
         skip_spans: HashMap::new(),
         last_nominal: false,
     };
     p.prescan_records()?;
     p.prescan()?;
     p.program()?;
+    p.prog.vocab = p.vocab;
     Ok(p.prog)
 }
 
@@ -43,17 +37,10 @@ struct Parser {
     prog: Program,
     /// Cabeçalhos lidos na pré-varredura: posição do "Para" → (assinatura, fim do cabeçalho).
     headers: HashMap<usize, (usize, usize)>,
-    by_first_person: HashMap<String, usize>,
-    by_infinitive: HashMap<String, Vec<usize>>,
+    /// Os nomes do programa, das pré-varreduras; vai para `Program::vocab` no fim.
+    vocab: Vocabulary,
     /// "o fato de o valor ser ...": antes do sujeito de infinitivo não se contrai.
     allow_uncontracted: bool,
-    records: HashMap<String, usize>,
-    record_plurals: HashMap<String, usize>,
-    enums: HashMap<String, usize>,
-    enum_plurals: HashMap<String, usize>,
-    /// Caso → (enumeração, posição do caso).
-    variants: HashMap<String, (usize, usize)>,
-    field_names: HashSet<String>,
     /// Definições já lidas na pré-varredura: início → fim.
     skip_spans: HashMap<usize, usize>,
     /// O último termo lido foi uma operação por extenso (para a regra dos parênteses).
@@ -550,7 +537,7 @@ impl Parser {
             }
             // Caso de enumeração: "Se a figura for um círculo".
             if self.peek().word().and_then(morphology::article).is_some_and(|a| !a.definite)
-                && self.peek_at(1).word().is_some_and(|w| self.variants.contains_key(w))
+                && self.peek_at(1).word().is_some_and(|w| self.vocab.variants.contains_key(w))
             {
                 let Pattern::Variant { word, gender, span } = self.variant_pattern()? else { unreachable!() };
                 return Ok(Cond::Atom {
@@ -695,13 +682,13 @@ impl Parser {
             if self.at_word("de")
                 && self.pos >= 2
                 && let Some(prev) = self.toks[self.pos - 1].word()
-                && !self.field_names.contains(prev)
+                && !self.vocab.field_names.contains(prev)
                 && self.toks[self.pos - 2].word().and_then(morphology::article).is_some_and(|a| a.definite)
             {
                 let t = &self.toks[self.pos - 1];
                 let mut d = Diagnostic::new(Category::Scope, format!("Nenhum registro tem o campo \"{prev}\"."), t.span);
-                if !self.field_names.is_empty() {
-                    let mut names: Vec<&String> = self.field_names.iter().collect();
+                if !self.vocab.field_names.is_empty() {
+                    let mut names: Vec<&String> = self.vocab.field_names.iter().collect();
                     names.sort();
                     let near =
                         names.iter().min_by_key(|n| morphology::edit_distance(n, prev)).filter(|n| morphology::edit_distance(n, prev) <= 2);
@@ -738,7 +725,7 @@ impl Parser {
     fn is_clause_start(&self) -> bool {
         let t = self.peek();
         if let Some(w) = t.word()
-            && (Self::is_core_verb(w) || self.by_first_person.contains_key(w))
+            && (Self::is_core_verb(w) || self.vocab.by_first_person.contains_key(w))
         {
             return true;
         }
@@ -829,9 +816,9 @@ impl Parser {
                 ClauseKind::Continue
             }
             _ if self.definite_article_at(0).is_some() || morphology::is_symbol(&w) => self.subject_clause()?,
-            _ if self.by_first_person.contains_key(&w) => {
+            _ if self.vocab.by_first_person.contains_key(&w) => {
                 let vt = self.bump();
-                let sig = self.pick_overload(self.by_first_person[&w], vt.span)?;
+                let sig = self.pick_overload(self.vocab.by_first_person[&w], vt.span)?;
                 let args = self.call_args(sig, false, vt.span)?;
                 let call = Call { sig, args, span: vt.span.to(self.prev_span()), verb_span: vt.span };
                 let handler = self.fallback()?;
@@ -847,11 +834,15 @@ impl Parser {
         // Verbos conhecidos (da língua e do programa) cuja 3ª pessoa é a palavra escrita.
         let known = lexicon::clause_verb_infinitives()
             .map(String::from)
-            .chain(self.by_first_person.values().map(|&i| self.prog.sigs[i].infinitive.clone()));
+            .chain(self.vocab.by_first_person.values().map(|&i| self.prog.sigs[i].infinitive.clone()));
         let third = known
             .filter(|inf| [Number::Singular, Number::Plural].iter().any(|n| morphology::third_person(inf, *n).as_deref() == Some(w)))
             .find_map(|inf| {
-                self.by_infinitive.get(&inf).map(|v| self.prog.sigs[v[0]].first_person.clone()).or_else(|| morphology::first_person(&inf))
+                self.vocab
+                    .by_infinitive
+                    .get(&inf)
+                    .map(|v| self.prog.sigs[v[0]].first_person.clone())
+                    .or_else(|| morphology::first_person(&inf))
             });
         if let Some(f) = third {
             return Box::new(Diagnostic::new(
@@ -860,7 +851,7 @@ impl Parser {
                 t.span,
             ));
         }
-        if let Some(&sig) = self.by_infinitive.get(w).and_then(|v| v.first()) {
+        if let Some(&sig) = self.vocab.by_infinitive.get(w).and_then(|v| v.first()) {
             let f = &self.prog.sigs[sig].first_person;
             return Box::new(Diagnostic::new(
                 Category::Morphology,
@@ -869,6 +860,7 @@ impl Parser {
             ));
         }
         let near = self
+            .vocab
             .by_first_person
             .keys()
             .map(String::as_str)
@@ -1043,7 +1035,7 @@ impl Parser {
     /// Escolhe entre verbos de mesmo infinitivo pela preposição que vem depois.
     fn pick_overload(&self, first: usize, _span: Span) -> Result<usize> {
         let inf = &self.prog.sigs[first].infinitive;
-        let cands = &self.by_infinitive[inf];
+        let cands = &self.vocab.by_infinitive[inf];
         if cands.len() == 1 {
             return Ok(first);
         }
@@ -1208,7 +1200,7 @@ impl Parser {
                         && self
                             .peek_at(k + 1)
                             .word()
-                            .is_some_and(|n| n == "cópia" || self.records.contains_key(n) || self.variants.contains_key(n)))
+                            .is_some_and(|n| n == "cópia" || self.vocab.records.contains_key(n) || self.vocab.variants.contains_key(n)))
             }
             _ => false,
         }
@@ -1216,12 +1208,12 @@ impl Parser {
 
     fn construct_ahead(&self) -> bool {
         self.peek().word().and_then(morphology::article).is_some_and(|a| !a.definite)
-            && self.peek_at(1).word().is_some_and(|w| self.records.contains_key(w) || self.variants.contains_key(w))
+            && self.peek_at(1).word().is_some_and(|w| self.vocab.records.contains_key(w) || self.vocab.variants.contains_key(w))
     }
 
     fn nominal_ahead(&self) -> bool {
         self.definite_article_at(0).is_some()
-            && self.peek_at(1).word().is_some_and(|w| data::is_nominal_word(w) && !self.field_names.contains(w))
+            && self.peek_at(1).word().is_some_and(|w| data::is_nominal_word(w) && !self.vocab.field_names.contains(w))
             && (self.peek_at(2).is_word("de") || self.peek_at(2).is_word("entre"))
     }
 
@@ -1267,7 +1259,7 @@ impl Parser {
                 let r = self.bump();
                 if self.at_word("de")
                     && let Some(inf) = self.peek_at(1).word()
-                    && let Some(&sig) = self.by_infinitive.get(inf).and_then(|v| v.first())
+                    && let Some(&sig) = self.vocab.by_infinitive.get(inf).and_then(|v| v.first())
                 {
                     let de = self.bump();
                     if de.contraction.is_some() {
