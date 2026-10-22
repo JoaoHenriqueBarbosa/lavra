@@ -51,6 +51,9 @@ struct Server {
     encoding: Encoding,
     docs: HashMap<String, Doc>,
     roots: Vec<PathBuf>,
+    /// O cliente abre o texto das bibliotecas pelo pedido `lavra/library` (ele avisa nas
+    /// opções de inicialização, com `libraryDocuments`).
+    library_documents: bool,
 }
 
 /// Roda o servidor numa conexão já aberta (os testes usam uma em memória).
@@ -64,6 +67,8 @@ pub fn run(conn: &Connection) -> Fallible<()> {
         .and_then(|g| g.position_encodings.as_ref())
         .is_some_and(|e| e.contains(&lsp::PositionEncodingKind::UTF8));
     let encoding = if utf8 { Encoding::Utf8 } else { Encoding::Utf16 };
+    let library_documents =
+        init.initialization_options.as_ref().and_then(|o| o.get("libraryDocuments")).and_then(Value::as_bool).unwrap_or(false);
     #[allow(deprecated)] // `root_uri` ainda é o que muitos clientes mandam.
     let roots: Vec<PathBuf> = init
         .workspace_folders
@@ -110,7 +115,7 @@ pub fn run(conn: &Connection) -> Fallible<()> {
         ..Default::default()
     };
     conn.initialize_finish(id, json!({ "capabilities": caps, "serverInfo": { "name": "lavrac", "version": env!("CARGO_PKG_VERSION") } }))?;
-    let mut server = Server { encoding, docs: HashMap::new(), roots };
+    let mut server = Server { encoding, docs: HashMap::new(), roots, library_documents };
     for msg in &conn.receiver {
         match msg {
             Message::Request(req) => {
@@ -169,7 +174,13 @@ impl Server {
             "textDocument/definition" => {
                 let p: lsp::GotoDefinitionParams = params(&req)?;
                 let (doc, offset) = self.at(&p.text_document_position_params)?;
-                json!(features::definition(&doc.analysis, &self.text(doc), &doc.uri, offset))
+                json!(features::definition(&doc.analysis, &self.text(doc), &doc.uri, offset, self.library_documents))
+            }
+            // O texto de uma biblioteca, para o editor mostrar a definição dos verbos dela.
+            "lavra/library" => {
+                let uri = req.params.get("uri").and_then(Value::as_str).unwrap_or_default();
+                let text = features::library_source(uri).ok_or((ErrorCode::InvalidParams, format!("não há biblioteca em \"{uri}\"")))?;
+                json!({ "text": text })
             }
             "textDocument/references" => {
                 let p: lsp::ReferenceParams = params(&req)?;

@@ -181,11 +181,11 @@ pre code {
   font-size: inherit;
 }
 
-/* O realce do shiki nos dois temas: as cores vêm em variáveis por elemento. */
+/* O realce do shiki nos dois temas: as cores vêm em variáveis por elemento. O fundo é o
+   do bloco, e os trechos não pintam o deles (o do tema do VS Code destoaria no escuro). */
 .shiki,
 .shiki span {
   color: var(--shiki-light);
-  background-color: var(--shiki-light-bg);
 }
 
 .shiki {
@@ -196,11 +196,6 @@ pre code {
   .shiki,
   .shiki span {
     color: var(--shiki-dark);
-    background-color: var(--shiki-dark-bg);
-  }
-
-  .shiki {
-    background-color: var(--bg-code) !important;
   }
 }
 

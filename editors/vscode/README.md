@@ -14,7 +14,8 @@ em que cada instrução é uma oração em português.
 - **Hover**: o tipo por extenso e o modo de posse de cada nome, a quem o valor é entregue
   ali, a regência de cada verbo, e a explicação das palavras da língua.
 - **Navegação**: ir para a definição, referências, destaque das ocorrências, símbolos do
-  arquivo e do workspace.
+  arquivo e do workspace. A definição de um verbo de biblioteca abre o texto da biblioteca,
+  só para leitura, no cabeçalho do verbo.
 - **Completar** guiado pelo próprio parser: as palavras que cabem ali, os verbos do
   programa com a regência como snippet, os nomes visíveis do gênero e do número do artigo
   que você escreveu, os campos e os tipos.

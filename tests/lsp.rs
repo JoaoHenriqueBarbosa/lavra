@@ -12,10 +12,15 @@ struct Client {
 
 impl Client {
     fn start() -> (Client, std::thread::JoinHandle<()>) {
+        Client::start_with(Value::Null)
+    }
+
+    /// O servidor, com as opções de inicialização do cliente.
+    fn start_with(options: Value) -> (Client, std::thread::JoinHandle<()>) {
         let (server, client) = Connection::memory();
         let handle = std::thread::spawn(move || lavra::lsp::run(&server).expect("servidor"));
         let mut c = Client { conn: client, next: 1, notes: Vec::new() };
-        c.request("initialize", json!({ "capabilities": {}, "processId": null, "rootUri": null }));
+        c.request("initialize", json!({ "capabilities": {}, "processId": null, "rootUri": null, "initializationOptions": options }));
         c.notify("initialized", json!({}));
         (c, handle)
     }
@@ -389,7 +394,7 @@ fn a_library_is_served_like_the_program() {
     // Ajuda de assinatura depois do verbo.
     let sig = c.request("textDocument/signatureHelp", at3(4, 11));
     assert_eq!(sig["signatures"][0]["label"], "divido TEXTO por SEPARADOR");
-    // A definição fica na biblioteca: nada no documento.
+    // A definição fica na biblioteca: sem um cliente que saiba abrir o texto dela, nada.
     assert!(c.request("textDocument/definition", at3(4, 5)).is_null());
     // Tokens semânticos: o verbo e o predicado da biblioteca são funções.
     let found: Vec<(u64, u64, &str)> = semantic_tokens(&mut c, URI3).into_iter().map(|t| (t.0, t.1, t.2)).collect();
@@ -399,6 +404,29 @@ fn a_library_is_served_like_the_program() {
     params["newName"] = json!("partir");
     let e = c.try_request("textDocument/rename", params).unwrap_err();
     assert!(e.contains("vem da biblioteca de textos"), "{e}");
+    c.stop(handle);
+}
+
+/// No cliente que sabe abrir o texto das bibliotecas, a definição de um verbo de biblioteca
+/// leva ao cabeçalho dele, e o texto vem do pedido `lavra/library`.
+#[test]
+fn the_definition_of_a_library_verb_opens_the_library() {
+    let (mut c, handle) = Client::start_with(json!({ "libraryDocuments": true }));
+    c.notify("textDocument/didOpen", json!({ "textDocument": { "uri": URI3, "languageId": "lavra", "version": 1, "text": PROGRAM3 } }));
+    assert!(c.diagnostics().is_empty());
+    let loc = c.request("textDocument/definition", at3(4, 5));
+    assert_eq!(loc["uri"], "lavra-library:/textos.lav");
+    let source = c.request("lavra/library", json!({ "uri": "lavra-library:/textos.lav" }))["text"].as_str().unwrap().to_string();
+    assert_eq!(source, lavra::builtins::LIBRARIES[0].source);
+    let line = loc["range"]["start"]["line"].as_u64().unwrap() as usize;
+    let (start, end) =
+        (loc["range"]["start"]["character"].as_u64().unwrap() as usize, loc["range"]["end"]["character"].as_u64().unwrap() as usize);
+    let header = source.lines().nth(line).unwrap();
+    assert!(header.starts_with("Para dividir"), "{header}");
+    assert_eq!(&header[start..end], "dividir");
+    // Um endereço que não é de biblioteca é recusado.
+    let e = c.try_request("lavra/library", json!({ "uri": "lavra-library:/nada.lav" })).unwrap_err();
+    assert!(e.contains("não há biblioteca"), "{e}");
     c.stop(handle);
 }
 

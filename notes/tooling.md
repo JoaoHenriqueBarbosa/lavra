@@ -106,7 +106,13 @@ erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro s�
   novo ("foram entregues a \"arquivar\" na linha 8; aqui ganham um valor novo").
 - **Navegação**: definição, referências (com leitura e escrita), destaque, símbolos do
   documento (funções com a regência, registros com campos, enumerações com casos,
-  constantes) e do workspace (documentos abertos e `.lav` das pastas).
+  constantes) e do workspace (documentos abertos e `.lav` das pastas). A definição de um
+  verbo de biblioteca fica no texto da biblioteca, no endereço `lavra-library:/textos.lav`,
+  e o servidor só a devolve ao cliente que avisa, nas opções de inicialização
+  (`libraryDocuments`), que sabe abrir esse endereço; o texto vem do pedido `lavra/library`.
+  O cliente do VS Code abre o texto só para leitura e não o manda ao servidor (o seletor de
+  documentos fica com `file` e `untitled`); nos outros editores, o hover diz de que
+  biblioteca o verbo vem.
 - **Completar guiado pelo parser**: o servidor põe a palavra `lavracursorx` no lugar da
   palavra em que está o cursor e roda o parser com ela marcada; os auxiliares do parser
   (`at_word`, `eat_word`, `expect_word`), o começo de oração, o nome depois do artigo, o
@@ -233,10 +239,11 @@ Roda sobre o interpretador, que é a referência da língua: ver a frase executa
 
 O site (`site/`, publicado pelo GitHub Pages em `.github/workflows/pages.yml`) sai inteiro do
 repositório: `site/build.mjs` gera a apresentação, a referência (`notes/lavra.md`), o catálogo
-de erros (`src/codes.rs` e `src/explain`), o léxico (`editors/lexicon.json`), uma página por
-poema (`samples/`, com a entrada e a saída) e o playground. O código da Lavra sai realçado pela
-gramática TextMate da extensão (shiki, temas Light+ e Dark+), e o site segue o tema claro ou
-escuro do sistema.
+de erros (`src/codes.rs` e `src/explain`), o léxico (`editors/lexicon.json`), as bibliotecas
+(`src/libraries`), uma página por poema (`samples/`, com a entrada e a saída) e o playground.
+O código da Lavra sai realçado pela gramática TextMate da extensão (shiki, temas Light+ e
+Dark+), e o site segue o tema claro ou escuro do sistema. O fundo dos blocos é o do site: os
+trechos realçados só levam a cor do texto.
 
 O playground roda o próprio compilador no navegador: o crate `playground/` (fora do pacote do
 `lavrac`, com o `[workspace]` próprio) compila a análise e o interpretador para wasm32, e o

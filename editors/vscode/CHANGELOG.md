@@ -5,6 +5,8 @@
 - A posse no editor: o nome que entrega o valor sai em itálico (modificador semântico
   `moved`), e o hover diz a quem ele foi entregue e, onde o nome ganha um valor novo, de
   onde vinha.
+- Ir para a definição de um verbo de biblioteca abre o texto da biblioteca, só para
+  leitura, no cabeçalho do verbo.
 
 ## 0.6.0
 

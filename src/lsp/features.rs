@@ -105,10 +105,41 @@ pub fn hover(a: &Analysis, text: &Text, offset: u32) -> Option<lsp::Hover> {
     Some(lsp::Hover { contents: lsp::HoverContents::Markup(lsp::MarkupContent { kind: lsp::MarkupKind::Markdown, value }), range: None })
 }
 
-pub fn definition(a: &Analysis, text: &Text, uri: &lsp::Uri, offset: u32) -> Option<lsp::Location> {
+/// A definição do nome na posição. A de um verbo de biblioteca fica no texto da biblioteca,
+/// que só se abre no editor que sabe pedir esse texto (`library_documents`); nos outros, não
+/// há lugar para onde ir.
+pub fn definition(a: &Analysis, text: &Text, uri: &lsp::Uri, offset: u32, library_documents: bool) -> Option<lsp::Location> {
     let def = a.tables.def_at(offset)?;
     let span = a.tables.defs[def].span;
-    here(span).then(|| lsp::Location { uri: uri.clone(), range: text.range(span) })
+    if here(span) {
+        Some(lsp::Location { uri: uri.clone(), range: text.range(span) })
+    } else if library_documents {
+        library_location(span, text.encoding)
+    } else {
+        None
+    }
+}
+
+/// O esquema dos endereços das bibliotecas no editor: "lavra-library:/textos.lav". O texto
+/// vem do pedido `lavra/library`.
+pub const LIBRARY_SCHEME: &str = "lavra-library";
+
+/// O trecho de uma biblioteca no endereço dela, com a posição contada no texto da biblioteca.
+fn library_location(span: crate::span::Span, encoding: super::convert::Encoding) -> Option<lsp::Location> {
+    let lib = crate::builtins::library_at(span.start)?;
+    let (base, _) = crate::builtins::library(lib.name)?;
+    let lines = crate::span::LineIndex::new(lib.source);
+    let text = Text { text: lib.source, lines: &lines, encoding };
+    let local = crate::span::Span { start: span.start - base, end: span.end - base };
+    let uri: lsp::Uri = format!("{LIBRARY_SCHEME}:/{}.lav", lib.name).parse().ok()?;
+    Some(lsp::Location { uri, range: text.range(local) })
+}
+
+/// O texto da biblioteca de um endereço "lavra-library:/textos.lav".
+pub fn library_source(uri: &str) -> Option<&'static str> {
+    let path = uri.strip_prefix(LIBRARY_SCHEME)?.strip_prefix(':')?;
+    let name = path.rsplit('/').next()?.strip_suffix(".lav")?;
+    crate::builtins::library(name).map(|(_, l)| l.source)
 }
 
 pub fn references(a: &Analysis, text: &Text, uri: &lsp::Uri, offset: u32, declaration: bool) -> Vec<lsp::Location> {

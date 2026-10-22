@@ -94,31 +94,31 @@
       "editor/title": [
         {
           "command": "lavra.run",
-          "when": "resourceLangId == lavra",
+          "when": "resourceLangId == lavra && resourceScheme != lavra-library",
           "group": "navigation"
         },
         {
           "command": "lavra.debug",
-          "when": "resourceLangId == lavra",
+          "when": "resourceLangId == lavra && resourceScheme != lavra-library",
           "group": "navigation"
         }
       ],
       "commandPalette": [
         {
           "command": "lavra.run",
-          "when": "editorLangId == lavra"
+          "when": "editorLangId == lavra && resourceScheme != lavra-library"
         },
         {
           "command": "lavra.debug",
-          "when": "editorLangId == lavra"
+          "when": "editorLangId == lavra && resourceScheme != lavra-library"
         },
         {
           "command": "lavra.build",
-          "when": "editorLangId == lavra"
+          "when": "editorLangId == lavra && resourceScheme != lavra-library"
         },
         {
           "command": "lavra.check",
-          "when": "editorLangId == lavra"
+          "when": "editorLangId == lavra && resourceScheme != lavra-library"
         }
       ]
     },

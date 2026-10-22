@@ -9,6 +9,10 @@ import { LanguageClient, type LanguageClientOptions, type ServerOptions, Transpo
 
 let client: LanguageClient | undefined;
 
+/** O esquema dos endereços das bibliotecas ("lavra-library:/textos.lav"): a definição de um
+ * verbo de biblioteca abre o texto dela, só de leitura, pedido ao servidor. */
+const LIBRARY_SCHEME = "lavra-library";
+
 /** O `lavrac`: o do setting, o embutido na extensão, ou o do PATH. */
 export function serverPath(context: vscode.ExtensionContext): string {
   const configured = vscode.workspace.getConfiguration("lavra").get<string>("server.path");
@@ -23,7 +27,13 @@ async function startClient(context: vscode.ExtensionContext): Promise<void> {
   const command = serverPath(context);
   const serverOptions: ServerOptions = { command, args: ["lsp"], transport: TransportKind.stdio };
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ language: "lavra" }],
+    // Só os arquivos do programa: o texto de uma biblioteca aberto pela definição não é
+    // programa e não se analisa.
+    documentSelector: [
+      { scheme: "file", language: "lavra" },
+      { scheme: "untitled", language: "lavra" },
+    ],
+    initializationOptions: { libraryDocuments: true },
     outputChannelName: "Lavra",
   };
   client = new LanguageClient("lavra", "Lavra", serverOptions, clientOptions);
@@ -48,7 +58,7 @@ function quote(s: string): string {
 /** Roda `lavrac <comando>` no arquivo aberto, num terminal chamado "Lavra". */
 async function inTerminal(context: vscode.ExtensionContext, command: "run" | "build" | "check"): Promise<void> {
   const editor = vscode.window.activeTextEditor;
-  if (!editor || editor.document.languageId !== "lavra") {
+  if (!editor || editor.document.languageId !== "lavra" || editor.document.uri.scheme === LIBRARY_SCHEME) {
     vscode.window.showWarningMessage("Abra um arquivo .lav primeiro.");
     return;
   }
@@ -140,7 +150,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.debug.registerDebugConfigurationProvider("lavra", configurationProvider),
     vscode.commands.registerCommand("lavra.debug", async () => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== "lavra") {
+      if (!editor || editor.document.languageId !== "lavra" || editor.document.uri.scheme === LIBRARY_SCHEME) {
         vscode.window.showWarningMessage("Abra um arquivo .lav primeiro.");
         return;
       }
@@ -155,6 +165,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await startClient(context);
     }),
     vscode.tasks.registerTaskProvider("lavra", taskProvider(context)),
+    vscode.workspace.registerTextDocumentContentProvider(LIBRARY_SCHEME, {
+      provideTextDocumentContent: async (uri) => {
+        const answer = await client?.sendRequest<{ text: string }>("lavra/library", { uri: uri.toString() });
+        return answer?.text ?? "";
+      },
+    }),
   );
   await startClient(context);
 }

@@ -119,6 +119,32 @@ async function ownership(folder: string, shot: string | undefined): Promise<void
   }
 }
 
+/** A definição de um verbo de biblioteca abre o texto dela, só de leitura, na linha do
+ * cabeçalho, sem que o servidor o analise como programa. Com a captura, a biblioteca aberta. */
+async function libraryDefinition(folder: string, shot: string | undefined): Promise<void> {
+  const uri = vscode.Uri.file(path.join(folder, "textos.lav"));
+  const doc = await vscode.workspace.openTextDocument(uri);
+  const editor = await vscode.window.showTextDocument(doc);
+  const at = new vscode.Position(4, 5);
+  const locations = await until("a definição na biblioteca", async () => {
+    const found = await vscode.commands.executeCommand<vscode.Location[]>("vscode.executeDefinitionProvider", uri, at);
+    return found && found.length > 0 ? found : undefined;
+  });
+  const location = locations[0];
+  assert.strictEqual(location.uri.toString(), "lavra-library:/textos.lav");
+  const library = await vscode.workspace.openTextDocument(location.uri);
+  assert.strictEqual(library.languageId, "lavra");
+  const header = library.lineAt(location.range.start.line).text;
+  assert.ok(header.startsWith("Para dividir"), header);
+  assert.strictEqual(vscode.languages.getDiagnostics(location.uri).length, 0);
+  if (shot) {
+    editor.selection = new vscode.Selection(at, at);
+    await vscode.commands.executeCommand("editor.action.revealDefinition");
+    await sleep(2500);
+    execFileSync("import", ["-window", "root", shot]);
+  }
+}
+
 export async function run(): Promise<void> {
   const folder = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const uri = vscode.Uri.file(path.join(folder, "conta.lav"));
@@ -187,6 +213,9 @@ export async function run(): Promise<void> {
   // A posse: o hover e o itálico no nome que entrega o valor.
   const shotOf = process.env.LAVRA_SHOT;
   await ownership(folder, shotOf ? shotOf.replace(/\.png$/, "-posse.png") : undefined);
+
+  // A definição de um verbo de biblioteca.
+  await libraryDefinition(folder, shotOf ? shotOf.replace(/\.png$/, "-biblioteca.png") : undefined);
 
   // A depuração, num programa sem erro (o de cima tem um, de propósito).
   await debugSession(folder, shotOf ? (what) => shotOf.replace(/\.png$/, `-${what}.png`) : undefined);

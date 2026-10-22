@@ -1,6 +1,7 @@
 // Gera o site estático da Lavra em site/dist, a partir do que o repositório já tem: a
 // referência (notes/lavra.md), o catálogo de erros (src/codes.rs e src/explain), o léxico
-// (editors/lexicon.json), os poemas (samples/) e o playground com o interpretador em wasm
+// (editors/lexicon.json), as bibliotecas (src/libraries), os poemas (samples/) e o
+// playground com o interpretador em wasm
 // (target/playground/web, que o crate playground/ gera). O código da Lavra sai realçado
 // pela mesma gramática da extensão do VS Code.
 import fs from "node:fs";
@@ -64,6 +65,7 @@ const NAV = [
   ["referencia.html", "Referência"],
   ["erros.html", "Erros"],
   ["lexico.html", "Léxico"],
+  ["bibliotecas.html", "Bibliotecas"],
 ];
 
 function page({ file, title, description, body, wide = false, scripts = "" }) {
@@ -244,6 +246,28 @@ ${keywordSections}
 <p>Preposições da regência: ${lexicon.prepositions.map((p) => `<code>${p}</code>`).join(", ")}.</p>
 <p>Ordinais: ${lexicon.ordinals.map((o) => `<code>${o.stem}o</code>`).join(", ")}.</p>`;
   page({ file: "lexico.html", title: "O léxico da Lavra", description: "As palavras da língua, pelo papel, com a documentação de cada uma.", body });
+}
+
+// As bibliotecas: o texto de cada uma, como o compilador o lê.
+{
+  const files = fs
+    .readdirSync(path.join(root, "src/libraries"))
+    .filter((f) => f.endsWith(".lav"))
+    .sort();
+  const sections = files.map((f) => {
+    const name = f.slice(0, -4);
+    return `<h2 id="${slug(name)}">A biblioteca de ${escape(name)}</h2>
+<p>O programa a traz com <code>Uso a biblioteca de ${escape(name)}.</code>, no nível de fora.</p>
+${highlight(read(`src/libraries/${f}`))}`;
+  });
+  page({
+    file: "bibliotecas.html",
+    title: "As bibliotecas da Lavra",
+    description: "As bibliotecas que um programa traz com \"Uso a biblioteca de ...\", com o cabeçalho de cada operação.",
+    body: `<h1>As bibliotecas</h1>
+<p>Uma biblioteca traz verbos para o programa inteiro. Eles se usam como os do programa: na 1ª pessoa, no infinitivo depois de "o resultado de" e no subjuntivo das condições, com a regência do cabeçalho. Cada operação é um cabeçalho que termina em ponto, sem corpo, e a própria língua a faz. No VS Code, ir para a definição de um desses verbos abre este mesmo texto.</p>
+${sections.join("\n")}`,
+  });
 }
 
 // Os poemas: a lista e uma página por poema, com o código, a entrada e a saída.
