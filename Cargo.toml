@@ -1,0 +1,20 @@
+[package]
+name = "lavrac"
+version = "0.1.0"
+edition = "2024"
+description = "Compilador da Lavra: um Rust com gramática e morfologia, escrito em português."
+license = "MIT"
+default-run = "lavrac"
+
+[lib]
+name = "lavra"
+path = "src/lib.rs"
+
+[[bin]]
+name = "lavrac"
+path = "src/main.rs"
+
+[dependencies]
+
+[profile.release]
+debug = false
