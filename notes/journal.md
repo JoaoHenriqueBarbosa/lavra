@@ -1,4 +1,4 @@
-Dia 22/10/2026, reescrita da Lavra em Rust, mensagem final do Claude, depois de aproximadamente 60 minutos de trabalho contínuo:
+Dia 22/10/2026, implementação da Lavra em Rust, mensagem final do Claude, depois de aproximadamente 60 minutos de trabalho contínuo:
 
 A Lavra está implementada do início ao fim do plano, da F0 à F4. Programas certos e errados rodam no interpretador e viram executáveis nativos pelo Cranelift, com saída idêntica nos dois.
 
@@ -10,7 +10,7 @@ O que funciona
   - talvez/Se houver, e falha com salvo uma falha, Desisto com e , ou desisto.
 - O verificador de posse responde em português: "A carta foi entregue a "arquivar" na linha 6 e não volta", com a dica de pedir emprestado ou entregar uma cópia. Ele segue o programa pelos caminhos de Se e pelas voltas dos laços, e acusa o duplo confiado na mesma chamada e a coleção que muda dentro do próprio Para cada.
 - Desempenho: o nativo foi 82 vezes mais rápido que o interpretador (0,35 s contra 28,7 s para contar os primos até 2 milhões), com checagem de estouro em toda operação.
-- "Lavra dos dias" reescrito na língua nova: a saída é idêntica à do draft. Perdeu o duplo sentido de "endereço" e ganhou "uma data com o dia o sol, o mês a lua e o ano o tempo".
+- "Lavra dos dias" escrito em Lavra, como teste de regressão: ganhou "uma data com o dia o sol, o mês a lua e o ano o tempo".
 
 Verificação: 76 programas na suíte (10 certos, 66 errados com a mensagem exata) e 2 exemplos. A paridade entre interpretador e nativo compara stdout, stderr e código de saída. O valgrind, num contêiner, não achou vazamento nem acesso inválido nos 18 executáveis. Clippy passa com -D warnings.
 
@@ -44,47 +44,47 @@ Limites: ainda não há referências guardadas em variáveis, tempos de vida, ge
 
 ----------------------------------------------------------------------------------------
 
-Depois pedi, ainda nesse dia, que o Claude trouxesse todos os programas do draft. Resposta dele depois de mais ou menos 10 minutos:
+Depois pedi, ainda nesse dia, que o Claude escrevesse em Lavra os outros programas e poemas. Resposta dele depois de mais ou menos 10 minutos:
 
-Os samples/ agora têm os três poemas e os sete exemplos do draft reescritos na língua nova. Todos rodam e entram na suíte golden e na de paridade; a suíte, a paridade e o valgrind (28 executáveis, nenhum problema de memória) passam, e o clippy está limpo.
+Os samples/ agora têm os três poemas e sete exemplos. Todos rodam e entram na suíte golden e na de paridade; a suíte, a paridade e o valgrind (28 executáveis, nenhum problema de memória) passam, e o clippy está limpo.
 
 ┌─────────────────────────────────┬───────────────────────────────────────────────┬────────────────────────────────┐
 │             Sample              │                    O que é                    │          Conferência           │
 ├─────────────────────────────────┼───────────────────────────────────────────────┼────────────────────────────────┤
-│ catilinaria.lav                 │ Primeira Catilinária                          │ idêntica ao draft nos dois     │
-│                                 │                                               │ desfechos                      │
+│ catilinaria.lav                 │ Primeira Catilinária                          │ os dois desfechos conferidos   │
+│                                 │                                               │                                │
 ├─────────────────────────────────┼───────────────────────────────────────────────┼────────────────────────────────┤
-│ a-partilha.lav                  │ A partilha                                    │ idêntica ao draft (13 por 21   │
-│                                 │                                               │ braças, três herdeiros)        │
+│ a-partilha.lav                  │ A partilha                                    │ conferida (13 por 21 braças,   │
+│                                 │                                               │ três herdeiros)                │
 ├─────────────────────────────────┼───────────────────────────────────────────────┼────────────────────────────────┤
 │ ab-urbe-condita.lav             │ reconstruído a partir do cabeçalho, da        │ reproduz os 690 anos, 6 meses  │
 │                                 │ chamada e da saída registrados na conversa    │ e 17 dias, ano 691             │
 ├─────────────────────────────────┼───────────────────────────────────────────────┼────────────────────────────────┤
-│ lavra-dos-dias.lav              │ (já estava)                                   │ idêntico ao draft              │
+│ lavra-dos-dias.lav              │ (já estava)                                   │ conferido                      │
 ├─────────────────────────────────┼───────────────────────────────────────────────┼────────────────────────────────┤
-│ script, media, regencia,        │ exemplos do draft                             │ adaptados à língua nova        │
+│ script, media, regencia,        │ exemplos                                      │ rodam e entram na suíte        │
 │ sequencias, completo            │                                               │                                │
 ├─────────────────────────────────┼───────────────────────────────────────────────┼────────────────────────────────┤
-│ pilha.lav                       │ o antigo lista2, com lista no lugar de        │ 385                            │
-│                                 │ ponteiro                                      │                                │
+│ pilha.lav                       │ pilha de números numa lista                   │ 385                            │
+│                                 │                                               │                                │
 ├─────────────────────────────────┼───────────────────────────────────────────────┼────────────────────────────────┤
 │ tropeco.lav                     │ erro de concordância de propósito             │ a expectativa é a mensagem de  │
 │                                 │                                               │ erro                           │
 └─────────────────────────────────┴───────────────────────────────────────────────┴────────────────────────────────┘
 
-O que a reescrita mudou nos versos. A língua nova não tem variável global que muda, então o estado passou a viajar por parâmetros confiados, e isso entrou no texto:
+O que a língua pediu dos versos. A Lavra não tem variável global que muda, então o estado viaja por parâmetros confiados, e isso entrou no texto:
 - Na Catilinária, os oradores passam pela regência, em espelho: "Acuso o réu pelo cônsul com …" e "Respondo ao cônsul pelo réu com …"; e o senado é consultado "sobre o cônsul e o réu".
-- Na Partilha, "Corto os quadrados da sobra no dia". O "Viro a sobra" virou "Giro a sobra", porque "virar" agora é verbo da língua.
-- "Reservo a prole pessoas" saiu: os herdeiros são uma lista que se libera sozinha.
+- Na Partilha, "Corto os quadrados da sobra no dia" e "Giro a sobra" ("virar" é verbo da língua).
+- Os herdeiros são uma lista que se libera sozinha.
 
 Está tudo registrado em notes/poems.md.
 
-Quatro bugs do compilador que as reescritas revelaram, já corrigidos:
+Quatro bugs do compilador que esses programas revelaram, já corrigidos:
 - Ambiguidade silenciosa do seguido de. O último argumento de uma chamada engolia o resto da frase, e como o resultado era um texto válido, nenhum erro aparecia. Agora o seguido de fica fora dos argumentos; para juntar texto dentro de um argumento, parênteses. Ganhou teste próprio.
 - Leio o nome da viúva tirava o texto de dentro do registro ao guardar "o resultado". Agora o resultado é uma cópia.
 - ambas contava o complemento fixo como parâmetro. Agora se refere aos dois regidos.
-- Campo de registro com símbolo (x, um real;) e a mistura de números escritos (a potência de 2 e 0,5) passaram a funcionar, como no completo do draft.
+- Campo de registro com símbolo (x, um real;) e a mistura de números escritos (a potência de 2 e 0,5) passaram a funcionar.
 
-O rascunho do Ab urbe condita que deu 689 em vez de 691 agora é erro de compilação, e virou teste.
+A leitura ambígua do Ab urbe condita, que dá 689 em vez de 691, é erro de compilação, e virou teste.
 
-Ficaram de fora do completo as demonstrações de estouro que "dá a volta" (agora são erros de execução, já cobertos por testes), os ponteiros e as conversões de texto para número e de caractere para inteiro, que a língua nova ainda não tem.
+Ficaram de fora do completo as conversões de texto para número e de caractere para inteiro, que a Lavra ainda não tem.

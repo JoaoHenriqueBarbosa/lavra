@@ -2,8 +2,7 @@
 
 "Um Rust com gramática e morfologia": compilada, segura e rápida, em que cada instrução é
 uma oração em português e cada traço gramatical é verificado pelo compilador. Esta nota
-descreve a língua como o compilador em Rust (`src/`) implementa. O protótipo antigo está
-descrito em [language.md](language.md), só como referência histórica.
+descreve a língua como o compilador em Rust (`src/`) implementa.
 
 ## Princípios
 

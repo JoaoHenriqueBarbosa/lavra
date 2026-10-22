@@ -2,75 +2,83 @@
 
 A proposta do user: programas que sejam ao mesmo tempo **úteis, que compilem e que
 sejam poesia**. Os versos funcionam porque o vocabulário técnico da Lavra (registro,
-resto, resultado, endereço, apontado, inteiro) também é vocabulário comum, e o poema
-usa as duas leituras ao mesmo tempo.
+resto, resultado, cópia, emprestado, confiado) também é vocabulário comum, e o poema usa
+as duas leituras ao mesmo tempo. Os quatro estão em `samples/`, com entrada e saída
+esperadas, na suíte golden e na de paridade entre interpretador e nativo.
 
-## Lavra dos dias (`draft/lavra-dos-dias.lav`)
+## Lavra dos dias (`samples/lavra-dos-dias.lav`)
 
 Pergunta quando a pessoa nasceu e que dia é hoje; responde o dia da semana do
 nascimento, quantos dias já viveu, se hoje é aniversário e quanto falta para o próximo
 milhar de dias.
 
-Sentidos duplos:
-
 - **"Uma data é um registro de"**: struct, e registro de cartório.
-- **"Seja o vivido um inteiro"**: declaração, e desejo de que o vivido seja inteiro.
-- **"Pergunto pelo endereço do nascimento"**: passa ponteiro, e pergunta onde a
-  pessoa nasceu. "O apontado pela data" é a memória e é o que a data indica.
-- **"O resto ... e 7"**: dia da semana como resto da divisão por sete.
-- **"Se o nascimento rimar com o agora"**: compara dia e mês sem o ano; aniversário
-  como rima (o fim se repete, o resto muda).
-- **"A lua" e "o tempo"**: mês e ano dentro da contagem. "Se a lua for menor que 3:
-  subtraio 1 do tempo e acrescento 12 à lua".
+- **`Devolvo uma data com o dia o sol, o mês a lua e o ano o tempo.`**: a data perguntada
+  volta inteira, e o ciclo de sol, lua e tempo, que está no cálculo, vira verso.
+- **`O tempo começa no ano da data.` / `A lua começa no mês da data.`**: declarações que
+  se leem como frase.
+- **"O resto ... e 7"**: dia da semana como resto da divisão por sete (`N é 1 mais o
+  resto ... e 7`, porque as posições começam em 1).
+- **`Se o nascimento rimar com o agora`**: aniversário como rima (o fim se repete, o
+  resto muda); `sendo ambas datas emprestadas`, o empréstimo dentro do verso.
+- O cálculo começa o ano em março (o 29 de fevereiro fica no fim, como no calendário
+  romano; por isso setembro a dezembro são sétimo a décimo). "A lua diminui 3" põe o ano
+  romano no programa. Termina na ladainha gregoriana (mais /4, menos /100, mais /400).
+  O 153 é março a julho (31+30+31+30+31) e o número de peixes de João 21. A semana
+  começa na terça porque o resto zero cai numa terça.
 
-O cálculo: ano começando em março (o 29 de fevereiro fica no fim do ano, como no
-calendário romano, por isso setembro a dezembro são sétimo a décimo). "Subtraio 3 da
-lua" põe o ano romano no programa. Termina na ladainha gregoriana (mais /4, menos
-/100, mais /400) e em "mais o dia da data". O 153 é março a julho (31+30+31+30+31) e o
-número de peixes de João 21. A semana começa na terça porque o resto zero cai numa
-terça.
+Recursos formais que viraram verso: **enjambement** (linha sem `.`, `:` ou `;`
+continua, com recuo livre: os sete dias da semana na vertical); **complemento fixo**
+("contar os dias até" é obrigatório em toda chamada; a repetição é exigência do
+compilador); **a gramática protege o poema** ("a nascimento" ou "rima" no lugar de
+"rimar" não compilam).
 
-Recursos formais da gramática que viraram verso:
+Conferido: 13/05/1990 a 22/10/2026 dá domingo e 13 311 dias; 29/02/2000 a 29/02/2024
+dá terça-feira, 8 766 dias e o aniversário.
 
-1. **Enjambement**: linha sem `.`, `:` ou `;` continua, com recuo livre (os sete dias
-   da semana na vertical).
-2. **Complemento fixo**: "contar os dias até" é obrigatório em toda chamada; a
-   repetição é exigência do compilador.
-3. **A gramática protege o poema**: "a nascimento" ou "rima" (em vez de "rimar") não
-   compilam.
-
-Conferido contra o calendário do Python: nascimento comum, 29/02/2000, aniversário no
-dia, data no futuro ("Ainda não nasceste"), exatamente 10 mil dias (5/6/1999).
-
-## A partilha (`draft/a-partilha.lav`)
+## A partilha (`samples/a-partilha.lav`)
 
 Um agrimensor reparte a terra de um morto: corta quadrados do terreno até sobrar um
 quadrado (algoritmo de Euclides, o máximo divisor comum como medida do lote), conta os
-lotes, reparte entre os herdeiros com memória reservada (`Reservo a prole pessoas`), e
-o que "não se deixou partir" fica com a viúva. Predicados adjetivos `ser quadrado` e
-`ser vazio`; verbo `flexionar a quantidade entre o singular e o plural`.
+lotes, reparte entre os herdeiros, e o que "não se deixou partir" fica com a viúva.
 
-## Primeira Catilinária (`draft/catilinaria.lav`)
+- `Corto os quadrados da sobra no dia.` e `Giro a sobra.`: a sobra e o dia passam como
+  parâmetros confiados, e a regência ("da sobra no dia") entra no verso.
+- `A sobra começa numa cópia da herança.`: a cópia é dita.
+- `Enquanto a sobra não for quadrada:` e `Se a herança for vazia:`: predicados
+  adjetivos que flexionam ("o terreno ser quadrado" aceita "a sobra for quadrada").
+- Os herdeiros são uma lista que ganha uma pessoa por nome lido.
+
+Conferido com 13 por 21 braças e três herdeiros: seis dias de corte (no sétimo, sobra o
+quadrado de 1 braça), 273 lotes, 91 para cada um, a viúva sem lote.
+
+## Primeira Catilinária (`samples/catilinaria.lav`)
 
 Templo de Júpiter Estator, 8 de novembro de 63 a.C. Cícero acusa, Catilina responde, o
 senado é consultado a cada rodada (`s/n`); a paciência do senado decide se Catilina é
-expulso ou se a acusação é retirada. Registros `orador` e `assembleia`, predicado
-`ser paciente`, verbos com regência (`Acuso o réu com ...`, `Respondo ao cônsul com
-...`). Foi este programa que exigiu o patch de contração no cabeçalho
-([draft-status.md](draft-status.md)).
+expulso ou se a acusação é retirada.
 
-## Ab urbe condita (só na conversa, não está no draft)
+- Os oradores passam pela regência, em espelho: `Acuso o réu pelo cônsul com ...` e
+  `Respondo ao cônsul pelo réu com ...`.
+- `Consulto o senado sobre o cônsul e o réu.`: o senado, o cônsul e o réu vão confiados,
+  e a credibilidade muda dentro da consulta.
+- `Ameaço a cidade pelo réu e deixo a cidade com o réu.` e `Retiro a acusação pelo
+  cônsul e permaneço com o réu.`: os dois desfechos.
+- `Enquanto o senado for paciente e n for no máximo 4:`: predicado adjetivo.
 
-Conta o tempo desde a fundação de Roma (21 de abril de 753 a.C., data de Varrão) até
-a reunião na casa de Marco Leca, na rua dos Foiceiros. Cabeçalho:
+## Ab urbe condita (`samples/ab-urbe-condita.lav`)
+
+Conta o tempo desde a fundação de Roma (21 de abril de 753 a.C., data de Varrão) até a
+reunião na casa de Marco Leca, na rua dos Foiceiros.
 
 ```
-Para medir o tempo desde a origem até a data, sendo ambas datas:
+Para medir o tempo desde a origem até a data, sendo ambas datas emprestadas:
+Meço o tempo desde a fundação até a reunião.
 ```
 
-Chamada: "Meço o tempo desde a fundação até a reunião." ("meço" sai da tabela de
-irregulares; "o tempo" é complemento fixo; "desde ... até" é a regência). Saída
-registrada:
+"Meço" sai da conjugação irregular; "o tempo" é complemento fixo; "desde ... até" é a
+regência; "ambas" são os dois regidos. Os nomes da conta repetem os de Lavra dos dias:
+a era, a lua, o sol. Saída:
 
 ```
 Casa de Leca, rua dos Foiceiros, 63 a.C.:
@@ -84,57 +92,19 @@ Hoje:
     é o ano 2779 ab urbe condita.
 ```
 
-O primeiro rascunho deu 689 por causa da ambiguidade nominal + infixa ("a diferença
-do ano da data e do ano da origem mais 1"); a correção foi "1 mais a diferença ...".
+Este programa é a origem da regra dos parênteses: "a diferença do ano da data e do ano
+da origem mais 1" se lê de dois jeitos (e um deles dá 689). Misturar operação por
+extenso com infixa sem parênteses é erro de compilação
+(`tests/programs/err/ab_urbe_ambiguidade.lav`); a forma certa é `1 mais a diferença do
+ano da data e do ano da origem`.
 
 ## Padrões emergentes
 
-O user observou que, entre os programas, palavras e temas reapareceram sem plano
-("um registro de", "a lua", "o resto", a partilha, a foice dos Foiceiros), como
-tambores sobrepostos ou linhas numa pintura abstrata. A leitura que ficou: a paleta
-pequena e obrigatória de palavras acumula sentido de um texto para o outro; os
-programas são sobre ciclos de tamanhos diferentes se sobrepondo (semana, mês, ano,
-MMC/MDC), como em *Clapping Music* e *Drumming* de Steve Reich; e cada frase Lavra tem
-duas vozes, a técnica (que o compilador exige perfeita) e a comum (livre, desde que não
-desafine a primeira).
-
-## Lavra dos dias na língua nova (`samples/lavra-dos-dias.lav`, 2026-10-22)
-
-Reescrito como teste de regressão poética; a saída é idêntica à do protótipo (conferido
-com 13/05/1990 a 22/10/2026 e com 29/02/2000 a 29/02/2024) e roda igual no nativo.
-
-- **Perdeu**: "Pergunto pelo endereço do nascimento" e "o apontado pela data". Sem
-  ponteiros, o duplo sentido de "endereço" (onde a pessoa nasceu) saiu do texto.
-- **Ganhou**: a data agora é perguntada e devolvida inteira, `Devolvo uma data com o dia o
-  sol, o mês a lua e o ano o tempo.`; o ciclo de sol, lua e tempo, que já estava no
-  cálculo, virou verso. `O tempo começa no ano da data.` e `A lua começa no mês da data.`
-  são declarações que se leem como frase.
-- A contagem da semana passou a ser `1 mais o resto ... e 7`, porque as posições começam
-  em 1; a regra dos parênteses não pesa, porque a forma por extenso fica no fim.
-- `Para a data rimar com a outra, sendo ambas datas emprestadas`: o empréstimo entrou no
-  verso; "emprestadas" concorda com "datas".
-
-## A partilha, a Catilinária e Ab urbe condita na língua nova (`samples/`, 2026-10-22)
-
-As duas reescritas saem idênticas ao protótipo (A partilha com 13 por 21 braças e três
-herdeiros; a Catilinária nos dois desfechos). Ab urbe condita foi reconstruído a partir
-do cabeçalho, da chamada e da saída registrados acima, e reproduz a saída exatamente.
-
-O que a língua nova mudou no texto:
-
-- **Sem globais que mudam.** O estado viaja por parâmetros confiados, e isso entrou nos
-  versos. Na Partilha, `Corto os quadrados da sobra no dia.` (antes "Corto os
-  quadrados."). Na Catilinária, os oradores passam pela regência, em espelho:
-  `Acuso o réu pelo cônsul com ...` / `Respondo ao cônsul pelo réu com ...`, e
-  `Consulto o senado sobre o cônsul e o réu.`; no fim, `Ameaço a cidade pelo réu e deixo
-  a cidade com o réu.`, `Retiro a acusação pelo cônsul e permaneço com o réu.`
-- **"virar" é verbo da língua** (`A mensagem vira ...`), então "Viro a sobra" passou a
-  `Giro a sobra.`
-- **Sem memória reservada.** "Reservo a prole pessoas" e "Libero a descendência" saíram;
-  os herdeiros são uma lista que ganha uma pessoa por nome lido e se libera sozinha.
-- `A sobra começa numa cópia da herança.`: a cópia, antes implícita no "Guardo", agora é
-  dita.
-- Ab urbe condita: o rascunho que deu 689 ("a diferença ... mais 1") não compila mais
-  (`tests/programs/err/ab_urbe_ambiguidade.lav`); a versão certa é `1 mais a diferença do
-  ano da data e do ano da origem`. Os nomes da conta repetem os de Lavra dos dias:
-  a era, a lua, o sol.
+O user observou que, entre os programas, palavras e temas reapareceram sem plano ("um
+registro de", "a lua", "o resto", a partilha, a foice dos Foiceiros), como tambores
+sobrepostos ou linhas numa pintura abstrata. A leitura que ficou: a paleta pequena e
+obrigatória de palavras acumula sentido de um texto para o outro; os programas são sobre
+ciclos de tamanhos diferentes se sobrepondo (semana, mês, ano, MMC e MDC), como em
+*Clapping Music* e *Drumming* de Steve Reich; e cada frase Lavra tem duas vozes, a
+técnica (que o compilador exige perfeita) e a comum (livre, desde que não desafine a
+primeira).
