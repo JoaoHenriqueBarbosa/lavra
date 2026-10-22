@@ -505,7 +505,7 @@ impl<'a> Checker<'a> {
                     self.expr(x, Use::Move, how)?;
                 }
             }
-            ExprKind::Call { func, args } => self.call(*func, args, e.span)?,
+            ExprKind::Call { callee, args } => self.call(*callee, args, e.span)?,
             ExprKind::Fact(c) => self.cond(c)?,
             ExprKind::Take { place, index } => {
                 if let Some(i) = index {
@@ -591,9 +591,12 @@ impl<'a> Checker<'a> {
         Ok(())
     }
 
-    fn call(&mut self, func: hir::FuncId, args: &[hir::Arg], span: Span) -> Result<()> {
+    fn call(&mut self, callee: hir::Callee, args: &[hir::Arg], span: Span) -> Result<()> {
         let prog = self.prog;
-        let callee = &prog.funcs[func];
+        let name = match callee {
+            hir::Callee::User(f) => prog.funcs[f].name.clone(),
+            hir::Callee::Builtin(b) => b.infinitive().to_string(),
+        };
         // Empréstimos desta chamada: quem foi confiado ou emprestado, e como.
         let mut lent: Vec<(Var, ParamMode, &str, Span)> = Vec::new();
         for a in args {
@@ -604,11 +607,11 @@ impl<'a> Checker<'a> {
                         self.usable(p, a.value.span)?;
                         if !a.value.ty.is_copy() {
                             let ty = a.value.ty.describe();
-                            let how = How::Given(callee.name.clone());
-                            self.move_out(p, a.value.span, &how, Some((callee.name.clone(), a.param.clone(), ty)))?;
+                            let how = How::Given(name.clone());
+                            self.move_out(p, a.value.span, &how, Some((name.clone(), a.param.clone(), ty)))?;
                         }
                     } else {
-                        let how = How::Given(callee.name.clone());
+                        let how = How::Given(name.clone());
                         self.expr(&a.value, Use::Move, &how)?;
                     }
                 }
@@ -626,9 +629,9 @@ impl<'a> Checker<'a> {
                         if let Some((_, mode0, param0, span0)) =
                             lent.iter().find(|(v, m, _, _)| *v == root && (*m == ParamMode::Lent || a.mode == ParamMode::Lent))
                         {
-                            let name = self.display(root);
-                            let first = agree(if *mode0 == ParamMode::Lent { "confiado" } else { "emprestado" }, &name);
-                            let again = agree(if a.mode == ParamMode::Lent { "confiado" } else { "emprestado" }, &name);
+                            let root_name = self.display(root);
+                            let first = agree(if *mode0 == ParamMode::Lent { "confiado" } else { "emprestado" }, &root_name);
+                            let again = agree(if a.mode == ParamMode::Lent { "confiado" } else { "emprestado" }, &root_name);
                             let both_lent = *mode0 == ParamMode::Lent && a.mode == ParamMode::Lent;
                             let hint = if both_lent {
                                 "Cada parâmetro confiado precisa de um lugar diferente."
@@ -639,8 +642,8 @@ impl<'a> Checker<'a> {
                                 L0406,
                                 format!(
                                     "{} já vai {first} a \"{}\" como \"{}\" e não pode ir {again} de novo, como \"{}\", na mesma chamada.",
-                                    capitalize(&name),
-                                    callee.name,
+                                    capitalize(&root_name),
+                                    name,
                                     param0,
                                     a.param
                                 ),

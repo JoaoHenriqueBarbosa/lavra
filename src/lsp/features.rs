@@ -8,6 +8,12 @@ use crate::lexicon;
 use crate::tables::{Def, DefKind, Use};
 use lsp_types as lsp;
 
+/// O trecho está no documento aberto. O que vem de uma biblioteca tem posição fora dele, e
+/// não vira lugar no documento.
+fn here(span: crate::span::Span) -> bool {
+    span.start < crate::builtins::LIBRARY_BASE
+}
+
 /// A palavra da língua na posição, se houver (para o hover das palavras-chave).
 fn word_at(a: &Analysis, offset: u32) -> Option<String> {
     a.tokens
@@ -43,7 +49,10 @@ pub fn describe(a: &Analysis, text: &Text, def: usize) -> String {
             if sig.is_some_and(|s| s.fallible) {
                 s.push_str(" Pode falhar (\"salvo uma falha\").");
             }
-            s.push_str(&format!("\n\nDefinido na linha {line}."));
+            match crate::builtins::library_at(d.span.start) {
+                Some(lib) => s.push_str(&format!("\n\nVem da biblioteca de {}.", lib.name)),
+                None => s.push_str(&format!("\n\nDefinido na linha {line}.")),
+            }
             s
         }
         DefKind::Param => {
@@ -92,13 +101,14 @@ pub fn hover(a: &Analysis, text: &Text, offset: u32) -> Option<lsp::Hover> {
 
 pub fn definition(a: &Analysis, text: &Text, uri: &lsp::Uri, offset: u32) -> Option<lsp::Location> {
     let def = a.tables.def_at(offset)?;
-    Some(lsp::Location { uri: uri.clone(), range: text.range(a.tables.defs[def].span) })
+    let span = a.tables.defs[def].span;
+    here(span).then(|| lsp::Location { uri: uri.clone(), range: text.range(span) })
 }
 
 pub fn references(a: &Analysis, text: &Text, uri: &lsp::Uri, offset: u32, declaration: bool) -> Vec<lsp::Location> {
     let Some(def) = a.tables.def_at(offset) else { return Vec::new() };
     let mut out = Vec::new();
-    if declaration {
+    if declaration && here(a.tables.defs[def].span) {
         out.push(lsp::Location { uri: uri.clone(), range: text.range(a.tables.defs[def].span) });
     }
     out.extend(a.tables.refs_of(def).iter().map(|r| lsp::Location { uri: uri.clone(), range: text.range(r.span) }));
@@ -107,8 +117,11 @@ pub fn references(a: &Analysis, text: &Text, uri: &lsp::Uri, offset: u32, declar
 
 pub fn highlights(a: &Analysis, text: &Text, offset: u32) -> Vec<lsp::DocumentHighlight> {
     let Some(def) = a.tables.def_at(offset) else { return Vec::new() };
-    let mut out =
-        vec![lsp::DocumentHighlight { range: text.range(a.tables.defs[def].span), kind: Some(lsp::DocumentHighlightKind::WRITE) }];
+    let span = a.tables.defs[def].span;
+    let mut out: Vec<lsp::DocumentHighlight> = Vec::new();
+    if here(span) {
+        out.push(lsp::DocumentHighlight { range: text.range(span), kind: Some(lsp::DocumentHighlightKind::WRITE) });
+    }
     out.extend(a.tables.refs_of(def).iter().map(|r| lsp::DocumentHighlight {
         range: text.range(r.span),
         kind: Some(if r.use_ == Use::Write { lsp::DocumentHighlightKind::WRITE } else { lsp::DocumentHighlightKind::READ }),
@@ -142,7 +155,7 @@ fn symbol(
 pub fn document_symbols(a: &Analysis, text: &Text) -> Vec<lsp::DocumentSymbol> {
     let t = &a.tables;
     let mut out = Vec::new();
-    for (i, d) in t.defs.iter().enumerate() {
+    for (i, d) in t.defs.iter().enumerate().filter(|(_, d)| here(d.span)) {
         match d.kind {
             DefKind::Function => {
                 let body = a

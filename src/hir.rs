@@ -11,6 +11,14 @@ pub type LocalId = usize;
 pub type GlobalId = usize;
 pub type FuncId = usize;
 
+/// Quem uma chamada chama: uma função do programa, ou uma operação que a própria língua
+/// faz (declarada numa biblioteca).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Callee {
+    User(FuncId),
+    Builtin(crate::builtins::Builtin),
+}
+
 #[derive(Debug)]
 pub struct Program {
     pub funcs: Vec<Func>,
@@ -247,7 +255,7 @@ pub enum ExprKind {
     /// Lê uma linha da entrada e converte para o tipo da expressão.
     Input,
     Call {
-        func: FuncId,
+        callee: Callee,
         args: Vec<Arg>,
     },
     Fact(Box<Cond>),

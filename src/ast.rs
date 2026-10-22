@@ -139,6 +139,8 @@ pub struct FuncSig {
     /// O cabeçalho teve erro: os parâmetros lidos até ali existem, com tipo de erro, e
     /// as chamadas não conferem a regência.
     pub broken: bool,
+    /// A operação que a própria língua faz, quando o cabeçalho vem de uma biblioteca.
+    pub builtin: Option<crate::builtins::Builtin>,
 }
 
 impl FuncSig {

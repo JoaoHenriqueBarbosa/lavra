@@ -1484,9 +1484,12 @@ impl<'e, 'a> FnCx<'e, 'a> {
     fn call(&mut self, call: &ast::Call) -> Result<hir::Expr> {
         let sig = &self.env.prog.sigs[call.sig];
         let handled = std::mem::take(&mut self.handled);
+        let callee = match sig.builtin {
+            Some(b) => hir::Callee::Builtin(b),
+            None => hir::Callee::User(self.env.sig_func[call.sig]),
+        };
         if sig.broken {
-            let func = self.env.sig_func[call.sig];
-            return Ok(hir::Expr { kind: hir::ExprKind::Call { func, args: Vec::new() }, ty: Ty::Error, span: call.span });
+            return Ok(hir::Expr { kind: hir::ExprKind::Call { callee, args: Vec::new() }, ty: Ty::Error, span: call.span });
         }
         if sig.fallible && !handled {
             let usage = capitalize(&sig.usage());
@@ -1528,7 +1531,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             let value = self.expr(a, Some(ty))?;
             args.push(hir::Arg { value, param: p.name.display(), mode: p.mode, place });
         }
-        Ok(hir::Expr { kind: hir::ExprKind::Call { func: self.env.sig_func[call.sig], args }, ty: ret, span: call.span })
+        Ok(hir::Expr { kind: hir::ExprKind::Call { callee, args }, ty: ret, span: call.span })
     }
 
     fn cond(&mut self, c: &ast::Cond) -> Result<hir::Cond> {
@@ -2222,6 +2225,10 @@ pub fn unused_warnings(tables: &Tables) -> Vec<Diagnostic> {
         }
         let be = morphology::third_person("ser", d.number).unwrap_or_default();
         let agree = |w: &str| morphology::inflect_adjective(w, Gender::Masculine, d.gender, d.number);
+        // O que vem de uma biblioteca não é do programa.
+        if d.span.start >= crate::builtins::LIBRARY_BASE {
+            continue;
+        }
         let warning = match d.kind {
             DefKind::Function => Diagnostic::new(L0502, format!("\"{}\" é definido e nunca é chamado.", d.name), d.span)
                 .hint("Chame a função em algum lugar, ou apague a definição."),

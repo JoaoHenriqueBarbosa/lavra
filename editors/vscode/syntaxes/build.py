@@ -105,6 +105,16 @@ repository = {
                     "3": {"name": "punctuation.section.block.lavra"},
                 },
             },
+            # "Uso a biblioteca de textos." traz os verbos de uma biblioteca.
+            {
+                "match": r"^\s*(?i:(uso))\s+(a\s+biblioteca\s+de)\s+(" + WORD + r")\s*(\.)",
+                "captures": {
+                    "1": {"name": "keyword.other.definition.lavra"},
+                    "2": {"name": "keyword.other.definition.lavra"},
+                    "3": {"name": "entity.name.namespace.lavra"},
+                    "4": {"name": "punctuation.terminator.period.lavra"},
+                },
+            },
             # "Uma conta é um registro de:", "Uma forma é uma destas:".
             {
                 "match": r"^\s*(?i:(um|uma))\s+(" + WORD + r")\s+(é)\s+((?:um\s+registro\s+de)|(?:uma\s+destas)|(?:um\s+destes))\s*(:)",

@@ -1,0 +1,6 @@
+-- SYNTAX TEST "source.lavra" "bibliotecas"
+Uso a biblioteca de textos.
+--<- keyword.other.definition.lavra
+--  ^^^^^^^^^^^^^^^ keyword.other.definition.lavra
+--                  ^^^^^^ entity.name.namespace.lavra
+--                        ^ punctuation.terminator.period.lavra

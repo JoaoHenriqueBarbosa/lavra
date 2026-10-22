@@ -346,3 +346,64 @@ fn rename_and_fix_all() {
     assert_eq!(fixed, "Para começar:\n    A nota é 7.\n    Se a nota for maior que 5: escrevo \"ok\".\n");
     c.stop(handle);
 }
+
+const URI3: &str = "file:///tmp/textos.lav";
+
+const PROGRAM3: &str = "\
+Uso a biblioteca de textos.
+
+Para começar:
+    A frase é \"a,b\".
+    Divido a frase por \",\" e escrevo o resultado.
+    Se a frase contiver \"a\": escrevo \"sim\".
+";
+
+fn at3(line: u32, character: u32) -> Value {
+    json!({ "textDocument": { "uri": URI3 }, "position": { "line": line, "character": character } })
+}
+
+/// O aceite das bibliotecas: os verbos de uma biblioteca aparecem no editor como os do
+/// programa, sem nada no servidor que saiba de bibliotecas.
+#[test]
+fn a_library_is_served_like_the_program() {
+    let (mut c, handle) = Client::start();
+    c.notify("textDocument/didOpen", json!({ "textDocument": { "uri": URI3, "languageId": "lavra", "version": 1, "text": PROGRAM3 } }));
+    assert!(c.diagnostics().is_empty());
+    // Completar no começo da oração: os verbos da biblioteca, com a regência.
+    let items = c.request("textDocument/completion", at3(4, 4));
+    let l = labels(&items);
+    for want in ["Divido", "Junto", "Aparo"] {
+        assert!(l.contains(&want.to_string()), "falta {want}: {l:?}");
+    }
+    let divido = items.as_array().unwrap().iter().find(|i| i["label"] == "Divido").unwrap();
+    assert_eq!(divido["insertText"], "Divido ${1:texto} por ${2:separador}");
+    // Hover: a regência e de onde vem.
+    let h = c.request("textDocument/hover", at3(4, 5));
+    let text = h["contents"]["value"].as_str().unwrap();
+    assert!(text.contains("divido TEXTO por SEPARADOR") && text.contains("Vem da biblioteca de textos"), "{text}");
+    // Ajuda de assinatura depois do verbo.
+    let sig = c.request("textDocument/signatureHelp", at3(4, 11));
+    assert_eq!(sig["signatures"][0]["label"], "divido TEXTO por SEPARADOR");
+    // A definição fica na biblioteca: nada no documento.
+    assert!(c.request("textDocument/definition", at3(4, 5)).is_null());
+    // Tokens semânticos: o verbo e o predicado da biblioteca são funções.
+    let toks = c.request("textDocument/semanticTokens/full", json!({ "textDocument": { "uri": URI3 } }));
+    let data: Vec<u64> = toks["data"].as_array().unwrap().iter().map(|v| v.as_u64().unwrap()).collect();
+    let (mut line, mut col) = (0, 0);
+    let mut found = Vec::new();
+    for t in data.chunks(5) {
+        if t[0] > 0 {
+            col = 0;
+        }
+        line += t[0];
+        col += t[1];
+        found.push((line, col, lavra::lsp::semantic::TYPES[t[3] as usize]));
+    }
+    assert!(found.contains(&(4, 4, "function")) && found.contains(&(5, 15, "function")), "{found:?}");
+    // O rename de um verbo da biblioteca é recusado, com o motivo.
+    let mut params = at3(4, 5);
+    params["newName"] = json!("partir");
+    let e = c.try_request("textDocument/rename", params).unwrap_err();
+    assert!(e.contains("vem da biblioteca de textos"), "{e}");
+    c.stop(handle);
+}

@@ -351,6 +351,53 @@ pub unsafe extern "C" fn rt_text_chars(t: *const String) -> *mut Vec<u64> {
     unsafe { Box::into_raw(Box::new((*t).chars().map(|c| c as u64).collect())) }
 }
 
+// ------------------------------------------------------- operações embutidas
+
+// As operações que as bibliotecas declaram (`src/builtins.rs`): recebem os argumentos
+// emprestados, mais o trecho da chamada (para relatar uma falha), e devolvem um valor
+// novo. Fazem o mesmo que o interpretador, byte a byte.
+
+/// Um texto novo, como valor de lista.
+fn text_slot(s: String) -> u64 {
+    Box::into_raw(Box::new(s)) as u64
+}
+
+/// "dividir": os pedaços entre as vezes em que o separador aparece; o separador vazio dá
+/// cada caractere.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_split(t: *const String, sep: *const String, _lo: u32, _hi: u32) -> *mut Vec<u64> {
+    unsafe {
+        let (t, sep) = (&*t, &*sep);
+        let parts: Vec<u64> = if sep.is_empty() {
+            t.chars().map(|c| text_slot(c.to_string())).collect()
+        } else {
+            t.split(sep.as_str()).map(|p| text_slot(p.to_string())).collect()
+        };
+        Box::into_raw(Box::new(parts))
+    }
+}
+
+/// "juntar": os textos da lista um depois do outro, com o separador entre eles.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_join(l: *const Vec<u64>, sep: *const String, _lo: u32, _hi: u32) -> *mut String {
+    unsafe {
+        let parts: Vec<&str> = (*l).iter().map(|&slot| (*(slot as *const String)).as_str()).collect();
+        Box::into_raw(Box::new(parts.join((*sep).as_str())))
+    }
+}
+
+/// "conter": se o trecho aparece no texto.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_contains(t: *const String, part: *const String, _lo: u32, _hi: u32) -> u8 {
+    unsafe { (*t).contains((*part).as_str()) as u8 }
+}
+
+/// "aparar": o texto sem o espaço em branco do começo e do fim.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_trim(t: *const String, _lo: u32, _hi: u32) -> *mut String {
+    unsafe { Box::into_raw(Box::new((*t).trim().to_string())) }
+}
+
 // ------------------------------------------------------------------ lista
 
 #[unsafe(no_mangle)]

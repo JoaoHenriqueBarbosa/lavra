@@ -69,8 +69,12 @@ fn reinflect_article(written: &str, g: Gender) -> Option<String> {
 /// O nome na posição, se é do programa.
 fn target_def(a: &Analysis, offset: u32) -> Result<usize, String> {
     let def = a.tables.def_at(offset).ok_or("Aqui não há nome do programa para renomear.")?;
-    if a.tables.defs[def].kind == DefKind::Result {
+    let d = &a.tables.defs[def];
+    if d.kind == DefKind::Result {
         return Err("\"O resultado\" é da língua e não se renomeia.".into());
+    }
+    if let Some(lib) = crate::builtins::library_at(d.span.start) {
+        return Err(format!("\"{}\" vem da biblioteca de {} e não se renomeia.", d.name, lib.name));
     }
     Ok(def)
 }
@@ -554,9 +558,11 @@ fn verify(before: &Analysis, edited: &Edited, new: &str) -> Result<(), String> {
     }
     let lines = crate::span::LineIndex::new(&text);
     let identity = |a: &Analysis, def: usize| a.tables.defs[def].span.start;
+    // O que vem de uma biblioteca fica fora do texto e não se move com as edições.
+    let moved = |pos: u32| if pos >= crate::builtins::LIBRARY_BASE { pos } else { edited.map(pos) };
     for r in before.tables.refs.iter().filter(|r| r.use_ != Use::Mention) {
         let at = edited.map(r.span.start);
-        let expected = edited.map(identity(before, r.def));
+        let expected = moved(identity(before, r.def));
         let now: Vec<_> = after.tables.refs.iter().filter(|x| x.span.start == at).collect();
         if !now.is_empty() && !now.iter().any(|x| identity(&after, x.def) == expected) {
             let line = lines.line(at as usize) + 1;

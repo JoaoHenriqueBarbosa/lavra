@@ -512,6 +512,16 @@ pub const KEYWORDS: &[Keyword] = &[
     },
     Keyword { form: "começar", role: Role::Definition, doc: "\"Para começar:\" é onde o programa começa." },
     Keyword {
+        form: "uso",
+        role: Role::Definition,
+        doc: "\"Uso a biblioteca de textos.\", no começo do programa, traz os verbos de uma biblioteca.",
+    },
+    Keyword {
+        form: "biblioteca",
+        role: Role::Definition,
+        doc: "\"Uso a biblioteca de textos.\", no começo do programa, traz os verbos da biblioteca (dividir, juntar, conter, aparar).",
+    },
+    Keyword {
         form: "registro",
         role: Role::Definition,
         doc: "\"Uma conta é um registro de:\" define um registro, com os campos recuados.",

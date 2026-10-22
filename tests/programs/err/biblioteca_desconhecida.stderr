@@ -1,0 +1,6 @@
+Erro de escopo [L0174]: Não há biblioteca de "texto".
+ --> tests/programs/err/biblioteca_desconhecida.lav:1:21
+  |
+1 | Uso a biblioteca de texto.
+  |                     ^^^^^
+  = dica: As bibliotecas são: textos.

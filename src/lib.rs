@@ -2,6 +2,7 @@
 //! português, e a gramática é verificação.
 
 pub mod ast;
+pub mod builtins;
 #[cfg(feature = "native")]
 pub mod codegen;
 pub mod codes;
@@ -60,8 +61,23 @@ pub fn analyze(text: &str) -> Analysis {
     let mut diagnostics = diags.sorted();
     for d in &mut diagnostics {
         keep_case(d, text);
+        outside_libraries(d);
     }
     Analysis { diagnostics, tokens, ast, hir, tables }
+}
+
+/// O diagnóstico do programa não aponta para dentro de uma biblioteca (as posições dela
+/// ficam fora do arquivo): o rótulo e a correção que cairiam lá saem; a mensagem já diz
+/// de que verbo se trata.
+fn outside_libraries(d: &mut Diagnostic) {
+    let inside = |s: span::Span| s.start >= builtins::LIBRARY_BASE;
+    d.labels.retain(|l| !inside(l.span));
+    d.fixes.retain(|f| !f.edits.iter().any(|e| inside(e.span)));
+    if inside(d.span) {
+        let lib = builtins::library_at(d.span.start).map_or("", |l| l.name);
+        d.notes.push(format!("O erro está na biblioteca de {lib}: é um defeito do compilador."));
+        d.span = span::Span::default();
+    }
 }
 
 /// Uma correção que troca o começo de uma oração mantém a maiúscula ("O saldo" vira "A

@@ -122,6 +122,12 @@ erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro s�
 - **Corrigir tudo** (`source.fixAll`): as correções seguras do documento inteiro numa ação
   só, as mesmas do `lavrac fix`; vale como ação ao salvar
   (`"editor.codeActionsOnSave": {"source.fixAll": "explicit"}`).
+- **Bibliotecas**: os verbos de uma biblioteca trazida ("Uso a biblioteca de textos.") saem
+  do vocabulário e das tabelas como os do programa, então completar, hover, assinatura,
+  tokens semânticos e referências valem sem nada no servidor que saiba de bibliotecas. A
+  única regra do servidor é genérica: o que tem posição fora do documento (a definição na
+  biblioteca) não vira lugar nele; o hover diz "Vem da biblioteca de textos." no lugar da
+  linha. `tests/lsp.rs` tem o aceite.
 - **Testes**: `tests/lsp.rs` roda o servidor em processo (`Connection::memory()`).
 
 ## Rename com morfologia
@@ -218,6 +224,5 @@ Roda sobre o interpretador, que é a referência da língua: ver a frase executa
 
 ## Próximos passos
 
-Os builtins declarados em Lavra e as bibliotecas, as releases, a gramática tree-sitter com
-as configurações de outros editores, e o site com o playground: `notes/roadmap.md`, fases 6
-a 9.
+As releases, a gramática tree-sitter com as configurações de outros editores, e o site com o
+playground: `notes/roadmap.md`, fases 7 a 9.

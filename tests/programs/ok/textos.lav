@@ -1,0 +1,21 @@
+Nota: a biblioteca de textos: dividir, juntar, conter e aparar.
+
+Uso a biblioteca de textos.
+
+Para começar:
+    A frase é "  a lavra, a colheita e o pão  ".
+    A limpa é o resultado de aparar a frase.
+    Escrevo "[" seguido da limpa seguido de "]".
+    As partes são o resultado de dividir a limpa por ", ".
+    Escrevo as partes.
+    Escrevo o resultado de juntar as partes com " | ".
+    Escrevo o resultado de dividir "lavra" por "".
+    Escrevo o resultado de dividir "" por ",".
+    Escrevo o resultado de juntar as partes com "".
+    Se a limpa contiver "colheita": escrevo "tem colheita".
+    Se a limpa não contiver "trigo": escrevo "não tem trigo".
+    Escrevo o fato de a limpa conter "pão".
+    Escrevo o fato de a limpa conter "".
+    Divido "um;dois;três" por ";" e escrevo o tamanho do resultado.
+    Para cada parte das partes:
+        Escrevo "<" seguido do resultado de aparar a parte seguido de ">".

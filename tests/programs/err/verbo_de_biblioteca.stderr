@@ -1,0 +1,12 @@
+Erro de sintaxe [L0122]: "dividir" não é um verbo conhecido.
+ --> tests/programs/err/verbo_de_biblioteca.lav:2:34
+  |
+2 |     As partes são o resultado de dividir "a,b" por ",".
+  |                                  ^^^^^^^
+  = dica: "dividir" vem da biblioteca de textos: escreva "Uso a biblioteca de textos." no começo do programa.
+Erro de sintaxe [L0122]: "Divido" não é um verbo conhecido.
+ --> tests/programs/err/verbo_de_biblioteca.lav:3:5
+  |
+3 |     Divido "a,b" por ",".
+  |     ^^^^^^
+  = dica: "dividir" vem da biblioteca de textos: escreva "Uso a biblioteca de textos." no começo do programa.

@@ -283,6 +283,16 @@
       "role": "definition"
     },
     {
+      "doc": "\"Uso a biblioteca de textos.\", no começo do programa, traz os verbos de uma biblioteca.",
+      "form": "uso",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Uso a biblioteca de textos.\", no começo do programa, traz os verbos da biblioteca (dividir, juntar, conter, aparar).",
+      "form": "biblioteca",
+      "role": "definition"
+    },
+    {
       "doc": "\"Uma conta é um registro de:\" define um registro, com os campos recuados.",
       "form": "registro",
       "role": "definition"
@@ -2111,6 +2121,18 @@
       "doc": "\"Para começar:\" é onde o programa começa.",
       "form": "começar",
       "lemma": "começar",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Uso a biblioteca de textos.\", no começo do programa, traz os verbos de uma biblioteca.",
+      "form": "uso",
+      "lemma": "uso",
+      "role": "definition"
+    },
+    {
+      "doc": "\"Uso a biblioteca de textos.\", no começo do programa, traz os verbos da biblioteca (dividir, juntar, conter, aparar).",
+      "form": "biblioteca",
+      "lemma": "biblioteca",
       "role": "definition"
     },
     {

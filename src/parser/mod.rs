@@ -58,6 +58,7 @@ pub fn expectations(tokens: Vec<Token>, cursor: usize) -> Vec<Expect> {
 /// leitura continua na oração seguinte.
 pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> Program {
     let mut p = Parser::new(tokens);
+    p.imports();
     p.prescan_records();
     p.prescan();
     p.program();
@@ -80,6 +81,7 @@ impl Parser {
             diags: Vec::new(),
             cursor: None,
             expected: RefCell::new(Vec::new()),
+            library: None,
         }
     }
 }
@@ -87,6 +89,8 @@ impl Parser {
 struct Parser {
     toks: Vec<Token>,
     pos: usize,
+    /// A biblioteca cujos cabeçalhos estão sendo lidos.
+    library: Option<&'static str>,
     prog: Program,
     /// Cabeçalhos lidos na pré-varredura: posição do "Para" → (assinatura, fim do cabeçalho).
     headers: HashMap<usize, (usize, usize)>,
@@ -299,6 +303,7 @@ impl Parser {
                     name_span,
                     is_main: true,
                     broken: false,
+                    builtin: None,
                 });
                 let body = self.block();
                 self.prog.funcs.push(FuncDef { sig, body });
@@ -1211,6 +1216,14 @@ impl Parser {
                 Diagnostic::new(L0122, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span).hint(format!("Quis dizer \"{n}\"?")),
             );
         }
+        // Verbo de uma biblioteca que o programa não trouxe.
+        if let Some(b) = crate::builtins::Builtin::ALL.iter().find(|b| morphology::first_person(b.infinitive()).as_deref() == Some(w)) {
+            let (lib, _) = b.declared_as();
+            return Box::new(Diagnostic::new(L0122, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span).hint(format!(
+                "\"{}\" vem da biblioteca de {lib}: escreva \"Uso a biblioteca de {lib}.\" no começo do programa.",
+                b.infinitive()
+            )));
+        }
         let d = Diagnostic::new(L0122, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span);
         // Formas que alguém escreveria no lugar da construção da língua: a dica vem do léxico.
         let hint = matches!(w, "seja" | "sejam" | "guardo" | "acrescento" | "subtraio").then(|| lexicon::rejected_hint(w)).flatten();
@@ -1604,6 +1617,18 @@ impl Parser {
                         de.span,
                         "de",
                     ));
+                }
+                // O verbo de uma biblioteca que o programa não trouxe.
+                if self.at_word("de")
+                    && let Some(inf) = self.peek_at(1).word()
+                    && !self.vocab.by_infinitive.contains_key(inf)
+                    && let Some(b) = crate::builtins::Builtin::ALL.iter().find(|b| b.infinitive() == inf)
+                {
+                    let (lib, _) = b.declared_as();
+                    let vt = self.peek_at(1).clone();
+                    return err(Diagnostic::new(L0122, format!("\"{}\" não é um verbo conhecido.", vt.orig), vt.span).hint(format!(
+                        "\"{inf}\" vem da biblioteca de {lib}: escreva \"Uso a biblioteca de {lib}.\" no começo do programa."
+                    )));
                 }
                 if self.at_word("de")
                     && let Some(inf) = self.peek_at(1).word()

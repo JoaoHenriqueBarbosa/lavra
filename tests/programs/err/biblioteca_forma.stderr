@@ -1,0 +1,6 @@
+Erro de sintaxe [L0173]: A biblioteca se pede assim: "Uso a biblioteca de textos."
+ --> tests/programs/err/biblioteca_forma.lav:1:1
+  |
+1 | Uso a biblioteca textos.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^
+  = dica: As bibliotecas são: textos.

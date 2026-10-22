@@ -335,7 +335,8 @@ fn every_name_of_the_corpus_renames_and_keeps_the_output() {
         }
         let expected = output(&src, &stdin);
         for (i, d) in a.tables.defs.iter().enumerate() {
-            if d.kind == DefKind::Result || d.span.is_empty() {
+            // "o resultado" é da língua, e o que vem de uma biblioteca não se renomeia.
+            if d.kind == DefKind::Result || d.span.is_empty() || d.span.start >= lavra::builtins::LIBRARY_BASE {
                 continue;
             }
             // A palavra da declaração (o fim do trecho), e o nome que está ali.

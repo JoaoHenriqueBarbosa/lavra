@@ -1,0 +1,18 @@
+Nota: A biblioteca de textos. O programa a traz com "Uso a biblioteca de textos.".
+Nota: Cada operação é feita pela própria língua: o cabeçalho termina em ponto, sem
+Nota: corpo. Todas recebem emprestado e devolvem um valor novo.
+
+Nota: Os pedaços do texto entre as vezes em que o separador aparece. Com o separador
+Nota: vazio, cada caractere vira um pedaço.
+Para dividir o texto pelo separador, sendo ambos textos emprestados, devolvendo uma lista de textos.
+
+Nota: Os textos da lista um depois do outro, com o separador entre eles.
+Para juntar os textos com o separador,
+        sendo os textos uma lista de textos emprestada e o separador um texto emprestado,
+        devolvendo um texto.
+
+Nota: Se o trecho aparece no texto; o trecho vazio aparece em todo texto.
+Para o texto conter o trecho, sendo ambos textos emprestados, devolvendo um lógico.
+
+Nota: O texto sem os espaços, as tabulações e as quebras do começo e do fim.
+Para aparar o texto, sendo o texto um texto emprestado, devolvendo um texto.

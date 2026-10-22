@@ -78,6 +78,28 @@ conferidas contra o dicionário (ver [morphology.md](morphology.md)). `diagnosti
 estilo do rustc. `textfmt.rs`: formatação e mensagens de execução, compartilhadas pelo
 interpretador e pelo runtime (a paridade vem daí).
 
+## Operações embutidas e bibliotecas
+
+`builtins.rs`: as operações que a própria língua faz e as bibliotecas declaram em Lavra
+(`src/libraries/textos.lav`, embutida no compilador). "Uso a biblioteca de textos." é lido
+antes da pré-varredura (`Parser::imports`): os tokens da biblioteca, com as posições na faixa
+dela (a partir de `LIBRARY_BASE`, 1 GiB, fora de qualquer programa), passam pelo próprio
+`header()`, e o cabeçalho que termina em ponto vira assinatura com `builtin`. A chamada na
+HIR aponta para `Callee::User` ou `Callee::Builtin`. O interpretador chama
+`builtins::interpret`; o nativo chama a função do runtime de `Builtin::symbol`, com a
+assinatura tirada dos tipos dos argumentos e do valor, e o trecho da chamada (`lo`, `hi`) no
+fim para relatar uma falha. As operações recebem emprestado e devolvem um valor novo (o teste
+de `builtins.rs` confere).
+
+Uma operação nova toca quatro lugares: o cabeçalho na biblioteca, a variante em `Builtin`
+(com a biblioteca, o verbo e o símbolo), o `interpret` e a função `rt_*` em `runtime/lib.rs`.
+Regência, tipos, posse, codegen e o editor saem do cabeçalho. Programa certo (com a
+paridade) e errado, como toda mudança.
+
+Nada do programa aponta para dentro de uma biblioteca: o diagnóstico perde o rótulo e a
+correção que cairiam lá (`outside_libraries` em `analyze`), o aviso de função nunca chamada
+não vale para o que vem de biblioteca, e o rename recusa os verbos dela.
+
 ## Posições
 
 `span.rs`: `Span` é um intervalo de bytes; `LineIndex` converte byte em linha e coluna, em

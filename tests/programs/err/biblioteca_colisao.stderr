@@ -1,0 +1,12 @@
+Erro de escopo [L0175]: "dividir" já vem da biblioteca de textos, que o programa usa.
+ --> tests/programs/err/biblioteca_colisao.lav:3:6
+  |
+3 | Para dividir a conta entre as pessoas, sendo a conta um inteiro e as pessoas um inteiro, devolvendo um inteiro:
+  |      ^^^^^^^
+  = dica: Escolha outro verbo para a sua função, ou deixe de usar a biblioteca de textos.
+Erro de regência [L0171]: A chamada não segue a regência de "dividir": aqui vem "por".
+ --> tests/programs/err/biblioteca_colisao.lav:7:39
+  |
+7 |     Escrevo o resultado de dividir 10 entre 2.
+  |                                       ^^^^^ encontrei "entre"
+  = dica: Escreva: divido TEXTO por SEPARADOR

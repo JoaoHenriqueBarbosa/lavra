@@ -1,5 +1,10 @@
 # Mudanças
 
+## 0.6.0
+
+- "Uso a biblioteca de textos." com o realce de definição; os verbos das bibliotecas
+  aparecem no completar, no hover e na assinatura como os do programa.
+
 ## 0.5.0
 
 - Depurador (`lavrac dap`): F5 sem launch.json, pontos de parada, passos, pilha, variáveis

@@ -215,6 +215,30 @@ junta o resultado ao resto da frase. Para juntar texto dentro de um argumento, p
 vírgula é decimal); real com vírgula e até 12 algarismos; lógico como verdadeiro/falso.
 `LAVRA_ECO=1` ecoa a entrada lida.
 
+## Bibliotecas
+
+```
+Uso a biblioteca de textos.
+
+Para começar:
+    As partes são o resultado de dividir "a,b,c" por ",".
+    Escrevo o resultado de juntar as partes com " | ".
+    Se a frase contiver "lavra": escrevo o resultado de aparar a frase.
+```
+
+- "Uso a biblioteca de X.", no nível de fora, traz os verbos da biblioteca para o programa
+  inteiro. Os verbos se usam como os do programa: na 1ª pessoa, no infinitivo depois de
+  "o resultado de", no subjuntivo das condições, com a regência do cabeçalho.
+- A biblioteca de textos traz "dividir o texto pelo separador" (o separador vazio dá cada
+  caractere), "juntar os textos com o separador", "o texto conter o trecho" (o trecho vazio
+  está em todo texto) e "aparar o texto" (tira o espaço em branco do começo e do fim). Todas
+  recebem emprestado e devolvem um valor novo.
+- Verbo de biblioteca não reserva palavra em programa que não a traz. No programa que a
+  traz, definir um verbo com o mesmo nome (ou a mesma 1ª pessoa) é erro (L0175). Usar o verbo
+  sem trazer a biblioteca dá a dica de como trazer.
+- As bibliotecas são escritas em Lavra (`src/libraries/`): cada operação é um cabeçalho
+  comum que termina em ponto, sem corpo, e a própria língua a faz.
+
 ## Léxico
 
 Períodos com ponto; blocos com dois-pontos e recuo; linha sem `.`, `:` ou `;` continua na
@@ -241,3 +265,6 @@ A Lavra ainda não tem versão estável; mudança incompatível entra quando o c
   erro; a chamada sem preposição escolhe a definição que não pede preposição; "o resultado
   do dobrar" acusa o "de" contraído antes do verbo (L0134); predicado com "ir" dá o erro
   próprio (L0150); real grande demais para o tipo é erro (L0007), e não infinito.
+- **2026-10-22, "uso" é palavra da língua.** "Uso a biblioteca de textos." traz uma
+  biblioteca, e "usar" virou verbo da própria língua, narrado na 1ª pessoa como "Escrevo" e
+  "Leio": o programa não define mais "Para usar ...". Nenhum programa do corpus usava.

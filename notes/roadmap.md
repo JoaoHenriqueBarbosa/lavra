@@ -376,7 +376,7 @@ Cada item termina com a suíte verde, um commit e um push.
 | 3 | Completar pelo parser, signature help, inlay, code actions, folding **(feito)** | fixtures em `tests/lsp` |
 | 4 | Rename com morfologia e `lavrac fix` **(feito)** | rename de verbo num sample, com a suíte verde |
 | 5 | Depurador e F5 **(feito)** | sessão roteirizada; captura parado num breakpoint |
-| 6 | Builtins e `Uso a biblioteca de textos.` | biblioteca no servidor sem mudar o servidor |
+| 6 | Builtins e `Uso a biblioteca de textos.` **(feito)** | biblioteca no servidor sem mudar o servidor |
 | 7 | Releases, README, CHANGELOG, publicação | instalação limpa num contêiner |
 | 8 | tree-sitter e configs de editores | corpus sem ERROR; `hx --health` |
 | 9 | Site e playground | um poema rodando no navegador |

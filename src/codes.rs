@@ -115,6 +115,9 @@ codes! {
     L0170 = Type, "Real com tamanho inválido";
     L0171 = Regency, "Chamada fora da regência";
     L0172 = Type, "Parâmetro sem tipo";
+    L0173 = Syntax, "Biblioteca pedida fora da forma";
+    L0174 = Scope, "Biblioteca que não existe";
+    L0175 = Scope, "Verbo que já vem de uma biblioteca";
 
     // Parser: registros, enumerações, lugares e operações por extenso.
     L0200 = Syntax, "Faltou o nome do tipo";
@@ -218,6 +221,7 @@ codes! {
     L0501 = Warning, "\"Senão\" que nunca acontece";
     L0502 = Warning, "Função que nunca é chamada";
     L0503 = Warning, "Nome que nunca é usado";
+    L0504 = Warning, "Biblioteca trazida duas vezes";
 
     // Execução.
     L0900 = Runtime, "Estouro de inteiro";

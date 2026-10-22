@@ -527,21 +527,26 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                 }
                 Value::Text(s)
             }
-            ExprKind::Call { func, args } => {
+            ExprKind::Call { callee, args } => {
                 let mut vals = Vec::with_capacity(args.len());
                 for a in args {
                     vals.push(self.expr(&a.value)?);
                 }
-                let (ret, callee) = self.call(*func, vals, e.span)?;
+                let func = match callee {
+                    hir::Callee::User(f) => *f,
+                    // A operação da própria língua recebe emprestado e devolve um valor novo.
+                    hir::Callee::Builtin(b) => return crate::builtins::interpret(*b, &vals, e.span),
+                };
+                let (ret, callee) = self.call(func, vals, e.span)?;
                 let ret = match ret {
                     Ok(v) => v,
                     // A falha só chega aqui dentro de um "Try", que a trata.
                     Err(f) => {
-                        self.copy_back(*func, args, &callee)?;
+                        self.copy_back(func, args, &callee)?;
                         return Err(f);
                     }
                 };
-                self.copy_back(*func, args, &callee)?;
+                self.copy_back(func, args, &callee)?;
                 ret
             }
             ExprKind::Fact(c) => Value::Bool(self.cond(c)?),

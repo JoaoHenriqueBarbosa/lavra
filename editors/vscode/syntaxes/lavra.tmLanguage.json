@@ -124,6 +124,23 @@
           }
         },
         {
+          "match": "^\\s*(?i:(uso))\\s+(a\\s+biblioteca\\s+de)\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)\\s*(\\.)",
+          "captures": {
+            "1": {
+              "name": "keyword.other.definition.lavra"
+            },
+            "2": {
+              "name": "keyword.other.definition.lavra"
+            },
+            "3": {
+              "name": "entity.name.namespace.lavra"
+            },
+            "4": {
+              "name": "punctuation.terminator.period.lavra"
+            }
+          }
+        },
+        {
           "match": "^\\s*(?i:(um|uma))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)\\s+(é)\\s+((?:um\\s+registro\\s+de)|(?:uma\\s+destas)|(?:um\\s+destes))\\s*(:)",
           "captures": {
             "1": {
@@ -603,7 +620,7 @@
     "calls": {
       "patterns": [
         {
-          "match": "(?:^|(?<=:\\s)|(?<=,\\s)|(?<=\\se\\s))(\\s*)(?!(?i:deslocamento|emprestadas|emprestados|caracteres|devolvendo|diferentes|emprestada|emprestado|interseção|verdadeiro|caractere|confiadas|confiados|diferente|diferença|disjunção|primeiras|primeiros|quociente|resultado|terceiras|terceiros|confiada|confiado|conforme|desistir|devolver|diminuem|diminuir|dividido|enquanto|escrever|esquerda|inteiros|naturais|negativo|potência|primeira|primeiro|registro|segundas|segundos|terceira|terceiro|começam|começar|crescem|crescer|desisto|devolvo|diminui|direita|décimas|décimos|escrevo|inteiro|inverso|lógicos|maiores|menores|natural|oitavas|oitavos|produto|quartas|quartos|quebrar|quintas|quintos|repetir|seguida|seguido|segunda|segundo|sétimas|sétimos|tamanho|últimas|últimos|começa|contra|cresce|destas|destes|décima|décimo|ganham|ganhar|houver|iguais|listas|lógico|máximo|módulo|oitava|oitavo|perdem|perder|quarta|quarto|quinta|quinto|repito|sempre|sextas|sextos|sétima|sétimo|talvez|textos|vazias|vazios|última|último|ambas|ambos|bytes|cópia|desde|entre|falha|falso|forem|ganha|igual|linha|lista|maior|menor|menos|nonas|nonos|parar|pelas|pelos|perde|pular|reais|resto|salvo|sendo|senão|sexta|sexto|sobre|texto|tomar|união|vazia|vazio|vezes|viram|virar|ante|após|bits|byte|cada|caso|como|duma|fato|item|leio|mais|nada|nona|nono|nota|numa|para|paro|pela|pelo|pulo|raiz|real|soma|tomo|umas|vira|aos|até|com|das|dos|dum|for|ler|nas|nos|num|não|por|que|sem|ser|sob|são|uma|uns|ao|as|da|de|do|em|na|no|os|ou|se|um|às|a|e|o|à|é)(?![\\p{L}\\p{N}_]))(?!(?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+)(?![\\p{L}\\p{N}_]))(\\p{L}[\\p{L}\\p{N}_-]*)(?=\\s|\\.|$)",
+          "match": "(?:^|(?<=:\\s)|(?<=,\\s)|(?<=\\se\\s))(\\s*)(?!(?i:deslocamento|emprestadas|emprestados|biblioteca|caracteres|devolvendo|diferentes|emprestada|emprestado|interseção|verdadeiro|caractere|confiadas|confiados|diferente|diferença|disjunção|primeiras|primeiros|quociente|resultado|terceiras|terceiros|confiada|confiado|conforme|desistir|devolver|diminuem|diminuir|dividido|enquanto|escrever|esquerda|inteiros|naturais|negativo|potência|primeira|primeiro|registro|segundas|segundos|terceira|terceiro|começam|começar|crescem|crescer|desisto|devolvo|diminui|direita|décimas|décimos|escrevo|inteiro|inverso|lógicos|maiores|menores|natural|oitavas|oitavos|produto|quartas|quartos|quebrar|quintas|quintos|repetir|seguida|seguido|segunda|segundo|sétimas|sétimos|tamanho|últimas|últimos|começa|contra|cresce|destas|destes|décima|décimo|ganham|ganhar|houver|iguais|listas|lógico|máximo|módulo|oitava|oitavo|perdem|perder|quarta|quarto|quinta|quinto|repito|sempre|sextas|sextos|sétima|sétimo|talvez|textos|vazias|vazios|última|último|ambas|ambos|bytes|cópia|desde|entre|falha|falso|forem|ganha|igual|linha|lista|maior|menor|menos|nonas|nonos|parar|pelas|pelos|perde|pular|reais|resto|salvo|sendo|senão|sexta|sexto|sobre|texto|tomar|união|vazia|vazio|vezes|viram|virar|ante|após|bits|byte|cada|caso|como|duma|fato|item|leio|mais|nada|nona|nono|nota|numa|para|paro|pela|pelo|pulo|raiz|real|soma|tomo|umas|vira|aos|até|com|das|dos|dum|for|ler|nas|nos|num|não|por|que|sem|ser|sob|são|uma|uns|uso|ao|as|da|de|do|em|na|no|os|ou|se|um|às|a|e|o|à|é)(?![\\p{L}\\p{N}_]))(?!(?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+)(?![\\p{L}\\p{N}_]))(\\p{L}[\\p{L}\\p{N}_-]*)(?=\\s|\\.|$)",
           "captures": {
             "2": {
               "name": "entity.name.function.call.lavra"

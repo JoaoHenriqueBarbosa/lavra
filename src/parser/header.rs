@@ -71,7 +71,135 @@ impl Parser {
         self.pos = 0;
     }
 
+    /// "Uso a biblioteca de textos.", no nível de fora: os cabeçalhos da biblioteca entram
+    /// no programa antes dos dele, e a frase sai da leitura do programa.
+    pub(super) fn imports(&mut self) {
+        let mut depth = 0usize;
+        let mut at_start = true;
+        let mut k = 0;
+        let mut used: Vec<(&'static str, Span)> = Vec::new();
+        while k < self.toks.len() {
+            let t = &self.toks[k];
+            match t.kind {
+                TokenKind::Indent => depth += 1,
+                TokenKind::Dedent => depth = depth.saturating_sub(1),
+                _ => {}
+            }
+            let is_import = depth == 0
+                && at_start
+                && t.is_word("uso")
+                && self.toks.get(k + 1).is_some_and(|x| x.is_word("a"))
+                && self.toks.get(k + 2).is_some_and(|x| x.is_word("biblioteca"));
+            if is_import {
+                let end = self.line_end_from(k);
+                self.skip_spans.insert(k, end);
+                if let Err(d) = self.import_at(k, &mut used) {
+                    self.report(d);
+                }
+                k = end;
+                continue;
+            }
+            at_start = matches!(t.kind, TokenKind::Newline | TokenKind::Dedent | TokenKind::Indent);
+            k += 1;
+        }
+        self.pos = 0;
+    }
+
+    /// Uma frase "Uso a biblioteca de X." que começa no token `k`.
+    fn import_at(&mut self, k: usize, used: &mut Vec<(&'static str, Span)>) -> Result<()> {
+        let tok = |i: usize| self.toks.get(k + i).cloned();
+        let end = self.line_end_from(k);
+        let start = self.toks[k].span.to(self.toks[end.saturating_sub(1).max(k)].span);
+        let names: Vec<&str> = crate::builtins::LIBRARIES.iter().map(|l| l.name).collect();
+        let form = || {
+            Diagnostic::new(L0173, "A biblioteca se pede assim: \"Uso a biblioteca de textos.\"", start)
+                .hint(format!("As bibliotecas são: {}.", names.join(", ")))
+        };
+        let (Some(de), Some(name_tok)) = (tok(3), tok(4)) else { return err(form()) };
+        let Some(name) = name_tok.word().filter(|_| de.is_word("de") && de.contraction.is_none()).map(str::to_string) else {
+            return err(form());
+        };
+        if !tok(5).is_some_and(|t| t.is_punct('.')) {
+            return err(form());
+        }
+        let span = self.toks[k].span.to(name_tok.span);
+        let Some((base, lib)) = crate::builtins::library(&name) else {
+            let near = names.iter().find(|n| morphology::edit_distance(n, &name) <= 2);
+            let d = Diagnostic::new(L0174, format!("Não há biblioteca de \"{}\".", name_tok.orig), name_tok.span)
+                .hint(format!("As bibliotecas são: {}.", names.join(", ")));
+            return err(match near {
+                Some(n) => d.fix(format!("Escrever \"{n}\""), name_tok.span, *n),
+                None => d,
+            });
+        };
+        if let Some((_, first)) = used.iter().find(|(n, _)| *n == lib.name) {
+            self.report(Box::new(
+                Diagnostic::new(L0504, format!("A biblioteca de {} já foi trazida.", lib.name), span).label(*first, "trazida aqui"),
+            ));
+            return Ok(());
+        }
+        used.push((lib.name, span));
+        // Os cabeçalhos da biblioteca, lidos pelo mesmo parser, com as posições na faixa dela.
+        let mut lib_diags = crate::diagnostics::Diagnostics::default();
+        let mut toks = crate::lexer::tokenize(lib.source, &mut lib_diags);
+        for t in &mut toks {
+            t.span = Span { start: t.span.start + base, end: t.span.end + base };
+        }
+        let saved = std::mem::replace(&mut self.toks, toks);
+        self.library = Some(lib.name);
+        self.library_headers();
+        self.library = None;
+        self.toks = saved;
+        Ok(())
+    }
+
+    /// Os cabeçalhos de uma biblioteca: cada um vira assinatura do programa.
+    fn library_headers(&mut self) {
+        let mut at_start = true;
+        let mut k = 0;
+        while k < self.toks.len() {
+            if at_start && self.toks[k].is_word("para") {
+                self.pos = k;
+                let mut draft = Draft::default();
+                match self.header(&mut draft) {
+                    Ok(sig) => {
+                        let id = self.prog.sigs.len();
+                        if let Err(d) = self.register(id, &sig) {
+                            self.report(d);
+                        }
+                        self.prog.sigs.push(sig);
+                        k = self.pos;
+                    }
+                    Err(d) => {
+                        self.report(d);
+                        k = self.line_end_from(k);
+                    }
+                }
+                continue;
+            }
+            at_start = matches!(self.toks[k].kind, TokenKind::Newline | TokenKind::Dedent | TokenKind::Indent);
+            k += 1;
+        }
+        self.pos = 0;
+    }
+
     fn register(&mut self, id: usize, sig: &FuncSig) -> Result<()> {
+        // O verbo do programa não pode ser o de uma biblioteca que ele trouxe.
+        if sig.builtin.is_none()
+            && let Some(o) = self.prog.sigs.iter().find(|o| {
+                o.builtin.is_some()
+                    && (o.infinitive == sig.infinitive
+                        || (o.kind == SigKind::Action && sig.kind == SigKind::Action && o.first_person == sig.first_person))
+            })
+        {
+            let (lib, _) = o.builtin.expect("de biblioteca").declared_as();
+            return err(Diagnostic::new(
+                L0175,
+                format!("\"{}\" já vem da biblioteca de {lib}, que o programa usa.", o.infinitive),
+                sig.name_span,
+            )
+            .hint(format!("Escolha outro verbo para a sua função, ou deixe de usar a biblioteca de {lib}.")));
+        }
         if let SigKind::Adjective { .. } = sig.kind {
             return Ok(());
         }
@@ -299,7 +427,17 @@ impl Parser {
                 return Err(self.expected("\"sendo\", \"devolvendo\" ou \"salvo uma falha\""));
             }
         }
-        self.expect_punct(':', "os dois-pontos que fecham o cabeçalho")?;
+        // Na biblioteca, o cabeçalho que termina em ponto é uma operação da própria língua.
+        let library = self.library;
+        let builtin = match library {
+            Some(lib) if self.eat_punct('.') => {
+                Some(crate::builtins::Builtin::find(lib, &infinitive).expect("toda operação de biblioteca tem implementação"))
+            }
+            _ => {
+                self.expect_punct(':', "os dois-pontos que fecham o cabeçalho")?;
+                None
+            }
+        };
         // Objeto sem tipo vira complemento fixo: parte do nome do verbo.
         let mut final_params = Vec::new();
         let mut final_slots = Vec::new();
@@ -363,6 +501,7 @@ impl Parser {
             name_span,
             is_main: false,
             broken: false,
+            builtin,
         })
     }
 
@@ -685,6 +824,7 @@ impl Draft {
             name_span: self.name_span,
             is_main: false,
             broken: true,
+            builtin: None,
         })
     }
 }

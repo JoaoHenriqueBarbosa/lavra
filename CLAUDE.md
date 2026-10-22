@@ -62,6 +62,9 @@ cp ../../target/release/lavrac server/ && npx vsce package --target linux-x64 --
 code --install-extension lavra.vsix --force
 ```
 
+Operação embutida nova? O cabeçalho numa biblioteca (`src/libraries/`), a variante em
+`src/builtins.rs` (com `interpret`) e a função `rt_*` em `runtime/lib.rs`; ver `notes/compiler.md`.
+
 Palavra nova na língua? Ela entra em `src/lexicon.rs` (com papel e documentação); depois
 `LAVRA_BLESS=1 cargo test --lib lexicon` regrava `editors/lexicon.json`, de onde a
 gramática do editor tira as palavras. Mudou uma regra do realce? Edite

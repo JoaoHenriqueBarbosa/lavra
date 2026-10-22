@@ -7,6 +7,7 @@
 //! entrega; na saída da função, o que ainda tem dono é liberado.
 
 use crate::ast::{BinOp, ParamMode, Rel, UnOp};
+use crate::builtins::Builtin;
 use crate::codes::{Code, L0900, L0904, L0905};
 use crate::hir::{self, Cond, ExprKind, PlaceProj, Stmt, StmtKind, Var};
 use crate::span::Span;
@@ -74,6 +75,7 @@ pub fn compile(prog: &hir::Program, src: &str, path: &str) -> Result<Vec<u8>, St
     let mut cg = Codegen {
         module: ObjectModule::new(builder),
         runtime: HashMap::new(),
+        builtins: HashMap::new(),
         funcs: Vec::new(),
         globals: Vec::new(),
         descs: HashMap::new(),
@@ -131,6 +133,8 @@ fn isa() -> Result<OwnedTargetIsa, String> {
 struct Codegen {
     module: ObjectModule,
     runtime: HashMap<&'static str, FuncId>,
+    /// As operações da própria língua já declaradas.
+    builtins: HashMap<Builtin, FuncId>,
     funcs: Vec<FuncId>,
     globals: Vec<DataId>,
     descs: HashMap<String, DataId>,
@@ -1270,13 +1274,13 @@ impl<'a, 'b> Fx<'a, 'b> {
                 };
                 Some(v)
             }
-            ExprKind::Call { func, args } => {
-                let (v, _) = self.call(*func, args, e.span);
+            ExprKind::Call { callee, args } => {
+                let (v, _) = self.call(*callee, args, &e.ty, e.span);
                 v.and_then(|v| fresh(self, v))
             }
             ExprKind::Try { call, fallback } => {
-                let ExprKind::Call { func, args } = &call.kind else { unreachable!() };
-                let (v, fail) = self.call(*func, args, call.span);
+                let ExprKind::Call { callee, args } = &call.kind else { unreachable!() };
+                let (v, fail) = self.call(*callee, args, &call.ty, call.span);
                 let fail = fail.unwrap();
                 let ok = self.b.create_block();
                 let bad = self.b.create_block();
@@ -1399,7 +1403,7 @@ impl<'a, 'b> Fx<'a, 'b> {
     }
 
     /// Chama a função; devolve o valor (se houver) e a falha (se a função pode falhar).
-    fn call(&mut self, func: hir::FuncId, args: &[hir::Arg], span: Span) -> (Option<Value>, Option<Value>) {
+    fn call(&mut self, callee: hir::Callee, args: &[hir::Arg], ret: &Ty, span: Span) -> (Option<Value>, Option<Value>) {
         let mut vals = Vec::new();
         for a in args {
             let v = match a.mode {
@@ -1412,6 +1416,10 @@ impl<'a, 'b> Fx<'a, 'b> {
             };
             vals.push(v);
         }
+        let func = match callee {
+            hir::Callee::User(f) => f,
+            hir::Callee::Builtin(b) => return (self.builtin(b, args, &vals, ret, span), None),
+        };
         let (lo, hi) = self.span_vals(span);
         self.rt("rt_enter", &[lo, hi]);
         let id = self.cg.funcs[func];
@@ -1424,6 +1432,33 @@ impl<'a, 'b> Fx<'a, 'b> {
         let v = if callee.ret != Ty::Unit { it.next() } else { None };
         let f = if callee.fallible { it.next() } else { None };
         (v, f)
+    }
+
+    /// Uma operação da própria língua: a função do runtime (`Builtin::symbol`), com a
+    /// assinatura tirada dos tipos dos argumentos e do valor, e o trecho da chamada no fim
+    /// para relatar uma falha. Uma operação nova não mexe aqui.
+    fn builtin(&mut self, b: Builtin, args: &[hir::Arg], vals: &[Value], ret: &Ty, span: Span) -> Option<Value> {
+        let id = match self.cg.builtins.get(&b) {
+            Some(id) => *id,
+            None => {
+                let mut sig = self.cg.module.make_signature();
+                for a in args {
+                    let t = if a.mode == ParamMode::Lent { PTR } else { clif(&a.value.ty).expect("argumento com valor") };
+                    sig.params.push(AbiParam::new(t));
+                }
+                sig.params.extend([AbiParam::new(types::I32), AbiParam::new(types::I32)]);
+                sig.returns.extend(clif(ret).map(AbiParam::new));
+                let id = self.cg.module.declare_function(b.symbol(), Linkage::Import, &sig).expect("a operação do runtime");
+                self.cg.builtins.insert(b, id);
+                id
+            }
+        };
+        let r = *self.refs.entry(id).or_insert_with(|| self.cg.module.declare_func_in_func(id, self.b.func));
+        let (lo, hi) = self.span_vals(span);
+        let mut all = vals.to_vec();
+        all.extend([lo, hi]);
+        let call = self.b.ins().call(r, &all);
+        self.b.inst_results(call).first().copied()
     }
 
     /// "x como T": mesma regra do interpretador (não cabe é falha, nunca truncamento).
