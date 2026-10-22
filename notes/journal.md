@@ -332,3 +332,13 @@ A definição de um verbo de biblioteca, que eu tinha deixado para quando o site
 Um defeito antigo do site apareceu na captura do tema escuro: cada trecho realçado pintava o próprio fundo com a cor do tema do VS Code, e isso deixava retângulos sobre o fundo dos blocos de código. Corrigido em todas as páginas.
 
 Decisão para revisar: o endereço da biblioteca no editor é "lavra-library:/textos.lav", e a aba mostra "textos.lav".
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, uma auditoria do roteiro contra o que existe, registro do Claude às 20h59, cerca de 5 horas e 50 minutos depois do começo:
+
+Conferi o roteiro inteiro, item por item, contra o código, e achei duas coisas que o plano pedia e que tinham ficado de fora de fases já marcadas como feitas:
+- As configurações que desligam cada tipo de inlay hint (lavra.inlayHints.types, .modes e .result). Agora existem, e o servidor as lê de um jeito que serve a qualquer editor: nas opções de inicialização, que é por onde o Helix manda a configuração, e na mudança de configuração, que é como o VS Code e o Neovim mandam. Quando a escolha muda, o servidor pede ao editor que busque as dicas de novo. Conferido no VS Code de verdade, desligando e religando.
+- Os roteiros dos pontos de extensão que ainda não têm uso real (módulos, genéricos, referências guardadas, tipos novos no runtime) e a lista do que uma feature nova toca. Estão em notes/compiler.md, na seção "Crescer a língua", cada um partindo do que o código já tem.
+
+Decisão para revisar: a extensão procura o lavrac no setting, depois o que vem dentro dela, e só então no PATH. O plano dizia PATH antes do embutido. Com o embutido primeiro, o servidor é sempre o da mesma versão da extensão, e um lavrac antigo no PATH não tira recursos dela. Quem quiser outro diz o caminho no setting.
