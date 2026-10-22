@@ -221,7 +221,7 @@
     "preview": "node scripts/preview.mjs",
     "package": "npm run build:grammar && npm run compile && vsce package --out lavra.vsix",
     "compile": "tsc -p . && esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js --minify --sourcemap",
-    "test:integration": "esbuild tests/integration/run.ts tests/integration/suite.ts --bundle --platform=node --format=cjs --external:vscode --external:@vscode/test-electron --outdir=out && node out/run.js"
+    "test:integration": "npm run compile && esbuild tests/integration/run.ts tests/integration/suite.ts --bundle --platform=node --format=cjs --external:vscode --external:@vscode/test-electron --outdir=out && node out/run.js"
   },
   "devDependencies": {
     "@vscode/vsce": "4.0.0",

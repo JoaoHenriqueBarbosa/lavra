@@ -2,6 +2,7 @@
 // de linguagem entrega pelo editor.
 import * as assert from "node:assert";
 import { execFileSync } from "node:child_process";
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 
@@ -29,7 +30,10 @@ export async function run(): Promise<void> {
   assert.strictEqual(doc.languageId, "lavra");
 
   // Diagnósticos ao abrir: o nome errado, com o código e o link da explicação.
-  const diags = await until("diagnósticos", () => {
+  const server = vscode.workspace.getConfiguration("lavra").get<string>("server.path") ?? "";
+  const ext = vscode.extensions.all.find((e) => e.id.endsWith(".lavra"));
+  const context = `servidor "${server}" (existe: ${fs.existsSync(server)}), extensão ativa: ${ext?.isActive}`;
+  const diags = await until(`diagnósticos; ${context}`, () => {
     const d = vscode.languages.getDiagnostics(uri);
     return d.length > 0 ? d : undefined;
   });
