@@ -183,3 +183,35 @@ Decisões para revisar:
 - Sem dicionário de substantivos, o singular derivado é o que a própria língua aceita: "os lápis" daria o item "lápi".
 
 Próximo: a fase 5, o depurador (lavrac dap), sobre o interpretador.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim da fase 5 do roadmap (o depurador), registro do Claude às 19h03, cerca de 3 horas e 40 minutos depois do começo:
+
+A Lavra tem depurador. O F5 no VS Code depura o arquivo aberto sem precisar de launch.json, e dá para ver a frase executando:
+- pontos de parada por linha;
+- próxima linha, entrar e sair de função, pausar e parar na entrada;
+- a pilha com a linha de cada chamada ("Para render", "Para começar");
+- os parâmetros, os locais e as constantes, só os que valem naquele ponto, com as listas abrindo em "o item 1", "o item 2" e os registros e casos abrindo nos campos;
+- o valor no hover;
+- a parada no erro de execução, onde ele aconteceu, com a pilha inteira.
+
+O programa que lê a entrada roda no terminal integrado. O editor abre um lavrac debuggee, que liga de volta ao depurador por um socket local. Os outros programas rodam no console de depuração, com a entrada por arquivo se for preciso.
+
+Por dentro, o interpretador passou a ser dono da pilha e a avisar um acompanhante antes de cada oração. O depurador é esse acompanhante e fica na biblioteca, sem depender do editor, então serve também ao playground da fase 9. Nenhuma saída mudou: golden, paridade com o nativo e o resto da suíte passaram iguais.
+
+Conferido em três camadas:
+- o núcleo, por canais;
+- o binário, pelo protocolo, no console e no terminal, com o teste fazendo o papel do editor;
+- o VS Code de verdade, parado num ponto, com a captura mostrando "o saldo = 100" e "as notas = [7; 8; 9]".
+
+A primeira captura mostrava os locais fechados. Gravei o tráfego entre o VS Code e o depurador e comparei com o depurador de JavaScript nas mesmas condições: era o tempo do teste, não o depurador. O VS Code só abre o primeiro escopo sozinho se a vista de depuração já está à mostra quando o programa para.
+
+A extensão foi a 0.5.0 e está instalada no seu VS Code. Recarregue a janela para ela entrar.
+
+Decisões para revisar:
+- Parar numa linha é chegar a ela vindo de outra: as voltas de um laço escrito numa linha só param uma vez.
+- A falha declarada ("Desisto") só para com o filtro ligado; o erro de execução para sempre, com o filtro que vem ligado.
+- Avaliar aceita só nomes, com ou sem artigo, e não expressões inteiras.
+
+Próximo: a fase 6, as operações embutidas declaradas em sintaxe Lavra e a primeira biblioteca, "Uso a biblioteca de textos.".
