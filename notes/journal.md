@@ -111,7 +111,7 @@ Um travamento do fluxo de resposta interrompeu o trabalho uma vez; para não dep
 
 ----------------------------------------------------------------------------------------
 
-Dia 22/10/2026, fim da fase 0 do roadmap (as fundações), registro do Claude depois de aproximadamente 3 horas e meia de trabalho:
+Dia 22/10/2026, fim da fase 0 do roadmap (as fundações), registro do Claude depois de aproximadamente 1 hora e 40 minutos de trabalho:
 
 A fase 0 terminou, com a suíte verde e o CI verde em cada envio. Desde o registro anterior:
 - A análise não para mais no primeiro erro. O léxico, o parser, a semântica e a posse relatam e seguem, sem cascata: nenhum dos 72 programas errados mudou de saída, e seis programas novos com vários erros mostram cada um uma vez.
