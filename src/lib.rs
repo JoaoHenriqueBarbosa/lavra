@@ -11,6 +11,8 @@ pub mod hir;
 pub mod interp;
 pub mod lexer;
 pub mod lexicon;
+#[cfg(feature = "lsp")]
+pub mod lsp;
 pub mod morphology;
 pub mod ownership;
 pub mod parser;

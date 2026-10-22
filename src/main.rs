@@ -18,6 +18,7 @@ uso:
   lavrac explain <código>               explica um erro, com exemplo errado e certo
                                         (ex.: lavrac explain L0334)
   lavrac lexicon --json                 exporta o léxico da língua
+  lavrac lsp                            o servidor de linguagem, para editores (stdio)
   lavrac --version                      a versão e o commit
   lavrac --help                         esta ajuda
 
@@ -34,6 +35,7 @@ enum Command {
     Check { path: String, json: bool },
     Explain { code: String },
     Lexicon,
+    Lsp,
     Version,
     Help,
 }
@@ -76,6 +78,7 @@ fn parse_args(args: &[String]) -> Result<Command, String> {
             [code] => Ok(Command::Explain { code: code.clone() }),
             _ => Err("\"explain\" pede um código, como L0334".into()),
         },
+        Some("lsp") => Ok(Command::Lsp),
         Some("lexicon") => match rest(1) {
             [flag] if flag == "--json" => Ok(Command::Lexicon),
             _ => Err("\"lexicon\" só exporta em JSON: lavrac lexicon --json".into()),
@@ -132,6 +135,15 @@ fn main() -> ExitCode {
         Command::Lexicon => {
             print!("{}", lavra::lexicon::to_json());
             return ExitCode::SUCCESS;
+        }
+        Command::Lsp => {
+            return match lavra::lsp::run_stdio() {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(e) => {
+                    eprintln!("lavrac lsp: {e}");
+                    ExitCode::from(1)
+                }
+            };
         }
         Command::Explain { code } => {
             return match lavra::explain::text(&code) {

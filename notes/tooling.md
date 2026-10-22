@@ -40,6 +40,29 @@ Extensão `joaohenriquebarbosa.lavra`, instalada no VS Code do WSL em 2026-10-22
 - `node scripts/preview.mjs saída.html arquivos...`: renderiza com shiki nos temas
   Dark+ e Light+; a captura sai com `chromium --headless=new --screenshot`.
 
+## Servidor de linguagem (`lavrac lsp`)
+
+`src/lsp/` (feature `lsp`, padrão), síncrono sobre stdio com `lsp-server` e `lsp-types`.
+Cada mudança reanalisa o documento inteiro com `lavra::analyze`, que não para no primeiro
+erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro só dela.
+
+- **Posições**: UTF-8 quando o cliente aceita, UTF-16 nos outros (o VS Code), pelo
+  `LineIndex` de `span.rs`.
+- **Diagnósticos**: todos, com o código, o link para a explicação, a dica e as notas na
+  mensagem, os rótulos como informação relacionada, `Unnecessary` nos avisos de não uso e
+  no "Senão" que nunca acontece, e as correções em `data` (para as ações rápidas).
+- **Tokens semânticos**: das tabelas da análise (funções, também nos predicados e depois de
+  "o resultado de"; parâmetros com `borrowed` e `lent`; variáveis, `readonly` para o que "é";
+  campos, tipos e casos; `declaration` e `modification`) e do vocabulário (tipos e casos
+  citados). As palavras da língua ficam com a gramática TextMate. A contração conta um token.
+- **Hover**: nome com artigo, fixo ou variável, o tipo por extenso, o modo de posse e a linha
+  da declaração; verbo com a regência, o retorno e se pode falhar; palavra da língua com a
+  documentação do léxico.
+- **Navegação**: definição, referências (com leitura e escrita), destaque, símbolos do
+  documento (funções com a regência, registros com campos, enumerações com casos,
+  constantes) e do workspace (documentos abertos e `.lav` das pastas).
+- **Testes**: `tests/lsp.rs` roda o servidor em processo (`Connection::memory()`).
+
 ## Próximos passos
 
 Servidor de linguagem (`lavrac lsp`, reaproveitando léxico, parser, sema e posse):

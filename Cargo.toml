@@ -14,12 +14,14 @@ path = "src/lib.rs"
 [[bin]]
 name = "lavrac"
 path = "src/main.rs"
-required-features = ["native"]
+required-features = ["native", "lsp"]
 
 [features]
-default = ["native"]
+default = ["native", "lsp"]
 # O back-end nativo: o Cranelift e o runtime que o build.rs compila. Sem ele, a biblioteca
 # (análise e interpretador) compila também para wasm32, para o playground.
+# O servidor de linguagem (`lavrac lsp`).
+lsp = ["dep:lsp-server", "dep:lsp-types"]
 native = ["dep:cranelift-codegen", "dep:cranelift-frontend", "dep:cranelift-module", "dep:cranelift-object", "dep:cranelift-native"]
 
 [dependencies]
@@ -29,6 +31,9 @@ cranelift-module = { version = "0.137", optional = true }
 cranelift-object = { version = "0.137", optional = true }
 cranelift-native = { version = "0.137", optional = true }
 serde_json = "1"
+lsp-server = { version = "0.10", optional = true }
+lsp-types = { version = "0.97", optional = true }
+serde = { version = "1", features = ["derive"] }
 
 [profile.release]
 debug = false
