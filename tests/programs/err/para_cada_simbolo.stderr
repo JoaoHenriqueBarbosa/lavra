@@ -1,0 +1,5 @@
+Erro de sintaxe: Esperava "de" com a coleção ou o intervalo ("Para cada i de 1 até 10:"), mas encontrei os dois-pontos.
+ --> tests/programs/err/para_cada_simbolo.lav:4:16
+  |
+4 |     Para cada i:
+  |                ^

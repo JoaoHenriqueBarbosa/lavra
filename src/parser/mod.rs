@@ -85,6 +85,14 @@ impl Parser {
         self.toks[self.pos.saturating_sub(1)].span
     }
 
+    /// O último caractere do token anterior, inteiro mesmo quando acentuado.
+    fn last_char_span(&self) -> Span {
+        let t = &self.toks[self.pos.saturating_sub(1)];
+        let end = t.span.end as usize;
+        let width = t.orig.chars().last().map_or(1, char::len_utf8);
+        Span::new(end.saturating_sub(width).max(t.span.start as usize), end)
+    }
+
     fn at_word(&self, w: &str) -> bool {
         self.peek().is_word(w)
     }
@@ -115,9 +123,8 @@ impl Parser {
     fn expected(&self, what: &str) -> Box<Diagnostic> {
         let t = self.peek();
         if what == "o ponto final" && (matches!(t.kind, TokenKind::Newline | TokenKind::Eof | TokenKind::Dedent) || t.line_start) {
-            let end = self.prev_span().end as usize;
             return Box::new(
-                Diagnostic::new(Category::Syntax, "Faltou o ponto final.", Span::new(end.saturating_sub(1), end))
+                Diagnostic::new(Category::Syntax, "Faltou o ponto final.", self.last_char_span())
                     .hint("Todo período termina em ponto; uma linha sem ponto continua na de baixo."),
             );
         }
@@ -267,6 +274,8 @@ impl Parser {
             if !has_until {
                 let source = if self.eat_word("de") {
                     self.primary()?
+                } else if var.article.is_none() {
+                    return Err(self.expected("\"de\" com a coleção ou o intervalo (\"Para cada i de 1 até 10:\")"));
                 } else {
                     // "Para cada nota:" acha "as notas" pelo plural.
                     let plural = morphology::pluralize(&var.word);
@@ -282,7 +291,7 @@ impl Parser {
                             morphology::join_prep("de", morphology::definite_article(var.gender(), Number::Plural))
                         )));
                     }
-                    let a = var.article.unwrap();
+                    let a = var.article.expect("o nome sem símbolo tem artigo");
                     let name = NameRef {
                         word: plural,
                         span: var.span,
@@ -686,6 +695,7 @@ impl Parser {
             }
             self.pos = save;
             if self.at_word("de")
+                && self.pos >= 2
                 && let Some(prev) = self.toks[self.pos - 1].word()
                 && !self.field_names.contains(prev)
                 && self.toks[self.pos - 2].word().and_then(morphology::article).is_some_and(|a| a.definite)
@@ -745,6 +755,8 @@ impl Parser {
             match &t.kind {
                 TokenKind::Punct('(') => depth += 1,
                 TokenKind::Punct(')') => depth -= 1,
+                // Parêntese sem par: a linha lógica acaba e a busca também.
+                TokenKind::Newline | TokenKind::Eof | TokenKind::Indent | TokenKind::Dedent if depth > 0 => return false,
                 TokenKind::Punct(_) | TokenKind::Newline | TokenKind::Eof | TokenKind::Indent | TokenKind::Dedent if depth <= 0 => {
                     // "O limite, um inteiro, é 100": aposto.
                     return t.is_punct(',')

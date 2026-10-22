@@ -363,8 +363,8 @@ Cada item termina com a suíte verde, um commit e um push.
 
 | # | Item | Pronto quando |
 |---|---|---|
-| 0.1 | CI mínimo; este plano vira `notes/roadmap.md` | Actions verde |
-| 0.2 | F9, robustez | o teste passa sobre o corpus mutilado |
+| 0.1 | CI mínimo; este plano vira `notes/roadmap.md` **(feito)** | Actions verde |
+| 0.2 | F9, robustez **(feito)** | o teste passa sobre o corpus mutilado |
 | 0.3 | F6, léxico | `build.py` lê o JSON; snapshots iguais |
 | 0.4 | F7, vocabulário | suíte verde, sem mudança de saída |
 | 0.5 | F1 e F2, tolerância e códigos | `check` lista todos os erros; golden revisado; teste do explain |

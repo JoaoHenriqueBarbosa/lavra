@@ -1,0 +1,6 @@
+Erro de sintaxe: Faltou o ponto final.
+ --> tests/programs/err/ponto_depois_de_acento.lav:5:18
+  |
+5 |     O chá é o café
+  |                  ^
+  = dica: Todo período termina em ponto; uma linha sem ponto continua na de baixo.

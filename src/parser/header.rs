@@ -484,11 +484,11 @@ impl Parser {
     /// Depois de "e"/"," na tipagem: o nome seguinte é do mesmo grupo plural
     /// ("p e q inteiros") ou abre um grupo novo ("x um real e n um natural")?
     fn continues_group(&self) -> bool {
-        let mut k = self.pos + 1;
-        if self.toks[k].is_word("e") {
+        let mut k = 1;
+        if self.peek_at(k).is_word("e") {
             k += 1;
         }
-        let t = &self.toks[k];
+        let t = self.peek_at(k);
         let len = if t.word().is_some_and(morphology::is_symbol) {
             1
         } else if t.word().and_then(morphology::article).is_some_and(|a| a.definite) {
@@ -496,7 +496,7 @@ impl Parser {
         } else {
             return false;
         };
-        !self.toks[k + len].word().and_then(morphology::article).is_some_and(|a| !a.definite)
+        !self.peek_at(k + len).word().and_then(morphology::article).is_some_and(|a| !a.definite)
     }
 
     /// Lê um substantivo de tipo no número pedido. Devolve o tipo e o gênero.

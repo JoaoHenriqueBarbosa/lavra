@@ -67,8 +67,21 @@ não tem esse custo.
   compila roda no interpretador e no nativo, e stdout, stderr e código de saída precisam
   ser idênticos.
 - `LAVRA_BLESS=1 cargo test --test golden` regrava as expectativas.
-- `tools/memcheck.sh`: compila a suíte para nativo e roda sob valgrind num contêiner
-  efêmero (`debian:trixie-slim`); acusa vazamento e acesso inválido.
+- Robustez (`tests/robustness.rs`): cada programa do corpus é mutilado de formas
+  determinísticas (cortado no fim de cada linha e no meio de palavras, sem uma palavra,
+  sem uma linha, com uma linha repetida, com um caractere a menos ou um sinal a mais,
+  com duas palavras trocadas), cerca de 16 mil versões. A análise nunca pode entrar em
+  pânico nem travar, todo diagnóstico aponta para dentro do texto em fronteira de
+  caractere, e duas rodadas dão o mesmo resultado. As falhas saem agrupadas pelo lugar do
+  pânico, com o menor texto que o provoca. Na primeira rodada achou um laço infinito
+  (parêntese sem par na busca do verbo do sujeito), um `unwrap` em "Para cada i:" sem
+  coleção e um sublinhado que partia uma letra acentuada; os três viraram testes em
+  `tests/programs/err`.
+- `tools/memcheck.sh`: compila a suíte para nativo e roda sob valgrind (o do sistema, se
+  houver; senão num contêiner efêmero `debian:trixie-slim`); acusa vazamento e acesso
+  inválido.
+- CI (`.github/workflows/ci.yml`): formato, clippy, `cargo test`, testes da extensão e,
+  em cada push para `main`, o memcheck.
 - `tools/morphology/`: verificação das tabelas contra o dicionário inteiro (ver
   [morphology.md](morphology.md)).
 - `cargo clippy --all-targets -- -D warnings` e `cargo fmt` (`rustfmt.toml`, largura 140).

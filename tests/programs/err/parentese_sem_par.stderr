@@ -1,0 +1,5 @@
+Erro de sintaxe: Esperava o ponto final, mas encontrei "e".
+ --> tests/programs/err/parentese_sem_par.lav:5:30
+  |
+5 |     As compras ganham "café" e as compras gan(ham "leite".
+  |                              ^
