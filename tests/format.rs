@@ -69,7 +69,7 @@ fn spoil(src: &str, seed: usize) -> String {
             out.push_str(line);
             continue;
         }
-        if (n + seed) % 2 == 0 && indent % 4 == 0 {
+        if (n + seed).is_multiple_of(2) && indent.is_multiple_of(4) {
             out.push_str(&"\t".repeat(indent / 4));
         } else {
             out.push_str(&body[..indent]);
@@ -87,7 +87,7 @@ fn spoil(src: &str, seed: usize) -> String {
             out.push(*c);
             // Entre algarismos o espaço é do milhar ("1 000"): mexer nele muda o número.
             let digits = i > 0 && chars[i - 1].is_ascii_digit() && chars.get(i + 1).is_some_and(|d| d.is_ascii_digit());
-            if *c == ' ' && !quoted && !comment && !digits && (i + n + seed) % 3 == 0 {
+            if *c == ' ' && !quoted && !comment && !digits && (i + n + seed).is_multiple_of(3) {
                 out.push_str("  ");
             }
         }
