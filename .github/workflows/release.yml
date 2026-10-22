@@ -124,3 +124,77 @@ jobs:
           file="lavra-vscode-$version-${{ matrix.platform }}.vsix"
           npx vsce package --target ${{ matrix.platform }} --out "$file"
           gh release upload "$TAG" "$file" --clobber
+
+  # O que um usuário baixa da release: o checksum confere, e cada sample dá a saída esperada
+  # (o aarch64 pelo QEMU; o x86_64 também compilado para nativo, com o gcc do runner).
+  verify:
+    name: Confere ${{ matrix.target }}
+    needs: binaries
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TAG }}
+      - name: Baixa, confere e roda os samples
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          sudo apt-get install -y -qq qemu-user-static >/dev/null
+          f="lavrac-$TAG-$TARGET"
+          gh release download "$TAG" -p "$f.tar.gz" -p "$f.sha256" -D /tmp/rel
+          (cd /tmp/rel && sha256sum -c "$f.sha256" && tar xzf "$f.tar.gz")
+          lavrac() {
+            if [ "$TARGET" = aarch64-unknown-linux-musl ]; then qemu-aarch64-static /tmp/rel/lavrac "$@"; else /tmp/rel/lavrac "$@"; fi
+          }
+          lavrac --version
+          bad=0
+          for s in samples/*.lav; do
+            expected="${s%.lav}.stdout"
+            [ -f "$expected" ] || continue
+            input="${s%.lav}.stdin"
+            [ -f "$input" ] || input=/dev/null
+            if ! diff <(lavrac "$s" < "$input" 2>/dev/null || true) "$expected" >/dev/null; then
+              echo "::error::$s não deu a saída esperada"
+              bad=1
+            fi
+            if [ "$TARGET" = x86_64-unknown-linux-musl ] && lavrac check "$s" >/dev/null 2>&1; then
+              lavrac build "$s" -o /tmp/prog
+              if ! diff <(/tmp/prog < "$input" 2>/dev/null || true) "$expected" >/dev/null; then
+                echo "::error::$s compilado não deu a saída esperada"
+                bad=1
+              fi
+            fi
+          done
+          exit $bad
+
+  # As lojas de extensão, quando os tokens existem como secrets: VSCE_PAT (Visual Studio
+  # Marketplace, publisher joaohenriquebarbosa) e OVSX_PAT (Open VSX). Sem eles, nada sai.
+  marketplaces:
+    name: Lojas de extensão
+    needs: vscode
+    runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Baixa as extensões da release
+        if: env.VSCE_PAT != '' || env.OVSX_PAT != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" -p "lavra-vscode-*.vsix" -D vsix
+      - name: Visual Studio Marketplace
+        if: env.VSCE_PAT != ''
+        run: npx -y @vscode/vsce@4.0.0 publish --packagePath vsix/*.vsix
+      - name: Open VSX
+        if: env.OVSX_PAT != ''
+        run: for f in vsix/*.vsix; do npx -y ovsx@1.3.0 publish "$f" -p "$OVSX_PAT"; done
