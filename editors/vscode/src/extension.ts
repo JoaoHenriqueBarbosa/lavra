@@ -1,5 +1,6 @@
-// Cliente do VS Code para a Lavra: liga o servidor de linguagem (`lavrac lsp`) e oferece
-// os comandos de rodar, compilar e verificar, e tarefas com os erros no painel Problemas.
+// Cliente do VS Code para a Lavra: liga o servidor de linguagem (`lavrac lsp`) e o
+// adaptador de depuração (`lavrac dap`), e oferece os comandos de rodar, depurar, compilar e
+// verificar, e tarefas com os erros no painel Problemas.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -95,8 +96,57 @@ function taskProvider(context: vscode.ExtensionContext): vscode.TaskProvider {
   };
 }
 
+/** O adaptador de depuração é o próprio `lavrac`, o mesmo do servidor de linguagem. */
+function adapterFactory(context: vscode.ExtensionContext): vscode.DebugAdapterDescriptorFactory {
+  return {
+    createDebugAdapterDescriptor: () => new vscode.DebugAdapterExecutable(serverPath(context), ["dap"]),
+  };
+}
+
+/** A configuração de depurar o arquivo aberto. */
+function debugFile(file: string): vscode.DebugConfiguration {
+  return { type: "lavra", request: "launch", name: "Depurar o arquivo", program: file };
+}
+
+/** F5 sem launch.json depura o arquivo .lav aberto; o arquivo é salvo antes. */
+const configurationProvider: vscode.DebugConfigurationProvider = {
+  async resolveDebugConfiguration(_folder, config) {
+    const editor = vscode.window.activeTextEditor;
+    const open = editor?.document.languageId === "lavra" ? editor.document : undefined;
+    if (!config.type && !config.request && !config.name) {
+      if (!open) {
+        return undefined;
+      }
+      config = debugFile(open.fileName);
+    }
+    if (!config.program && open) {
+      config.program = open.fileName;
+    }
+    if (!config.program) {
+      vscode.window.showWarningMessage("Diga o \"program\": o arquivo .lav a depurar.");
+      return undefined;
+    }
+    const doc = vscode.workspace.textDocuments.find((d) => d.fileName === config.program);
+    if (doc?.isDirty) {
+      await doc.save();
+    }
+    return config;
+  },
+};
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   context.subscriptions.push(
+    vscode.debug.registerDebugAdapterDescriptorFactory("lavra", adapterFactory(context)),
+    vscode.debug.registerDebugConfigurationProvider("lavra", configurationProvider),
+    vscode.commands.registerCommand("lavra.debug", async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor || editor.document.languageId !== "lavra") {
+        vscode.window.showWarningMessage("Abra um arquivo .lav primeiro.");
+        return;
+      }
+      await editor.document.save();
+      await vscode.debug.startDebugging(vscode.workspace.getWorkspaceFolder(editor.document.uri), debugFile(editor.document.fileName));
+    }),
     vscode.commands.registerCommand("lavra.run", () => inTerminal(context, "run")),
     vscode.commands.registerCommand("lavra.build", () => inTerminal(context, "build")),
     vscode.commands.registerCommand("lavra.check", () => inTerminal(context, "check")),

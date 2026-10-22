@@ -2,7 +2,7 @@
   "name": "lavra",
   "displayName": "Lavra",
   "description": "Suporte à linguagem Lavra: diagnósticos ao digitar, realce semântico, hover com tipo e posse, navegação, tarefas e realce de sintaxe.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "joaohenriquebarbosa",
   "license": "MIT",
   "repository": {
@@ -69,6 +69,12 @@
         "icon": "$(play)"
       },
       {
+        "command": "lavra.debug",
+        "title": "Depurar o arquivo",
+        "category": "Lavra",
+        "icon": "$(debug-alt)"
+      },
+      {
         "command": "lavra.build",
         "title": "Compilar para nativo",
         "category": "Lavra"
@@ -90,11 +96,20 @@
           "command": "lavra.run",
           "when": "resourceLangId == lavra",
           "group": "navigation"
+        },
+        {
+          "command": "lavra.debug",
+          "when": "resourceLangId == lavra",
+          "group": "navigation"
         }
       ],
       "commandPalette": [
         {
           "command": "lavra.run",
+          "when": "editorLangId == lavra"
+        },
+        {
+          "command": "lavra.debug",
           "when": "editorLangId == lavra"
         },
         {
@@ -212,6 +227,75 @@
         "language": "lavra",
         "path": "./snippets/lavra.json"
       }
+    ],
+    "breakpoints": [
+      {
+        "language": "lavra"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "lavra",
+        "label": "Lavra",
+        "languages": [
+          "lavra"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "O arquivo .lav a depurar.",
+                "default": "${file}"
+              },
+              "stdin": {
+                "type": "string",
+                "description": "Um arquivo com a entrada do programa (o que ele lê com \"Leio\")."
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Parar na primeira oração.",
+                "default": false
+              },
+              "console": {
+                "type": "string",
+                "enum": [
+                  "internalConsole",
+                  "integratedTerminal"
+                ],
+                "enumDescriptions": [
+                  "O console de depuração: a saída aparece ali, e a entrada vem do \"stdin\".",
+                  "O terminal integrado: o programa lê e escreve no terminal."
+                ],
+                "description": "Onde o programa escreve e lê. Sem dizer, o programa que lê a entrada vai para o terminal."
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "lavra",
+            "request": "launch",
+            "name": "Depurar o arquivo",
+            "program": "${file}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Lavra: Depurar o arquivo",
+            "description": "Depura o arquivo .lav aberto no editor.",
+            "body": {
+              "type": "lavra",
+              "request": "launch",
+              "name": "Depurar o arquivo",
+              "program": "^\"\\${file}\""
+            }
+          }
+        ]
+      }
     ]
   },
   "scripts": {
@@ -237,7 +321,9 @@
   },
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onLanguage:lavra"
+    "onLanguage:lavra",
+    "onDebugResolve:lavra",
+    "onDebugDynamicConfigurations:lavra"
   ],
   "dependencies": {
     "vscode-languageclient": "11.0.0"

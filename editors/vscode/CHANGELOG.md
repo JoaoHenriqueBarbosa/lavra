@@ -1,5 +1,11 @@
 # Mudanças
 
+## 0.5.0
+
+- Depurador (`lavrac dap`): F5 sem launch.json, pontos de parada, passos, pilha, variáveis
+  com as partes, hover, parada nos erros de execução, e o terminal integrado para o
+  programa que lê a entrada.
+
 ## 0.4.0
 
 - Rename com morfologia: cada uso na forma em que foi escrito, o artigo e a contração no

@@ -5,6 +5,9 @@ pub mod ast;
 #[cfg(feature = "native")]
 pub mod codegen;
 pub mod codes;
+#[cfg(feature = "dap")]
+pub mod dap;
+pub mod debug;
 pub mod diagnostics;
 pub mod explain;
 pub mod fix;

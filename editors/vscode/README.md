@@ -30,8 +30,13 @@ em que cada instrução é uma oração em português.
   compilador e recusado, com o motivo, se deixaria erro.
 - **Corrigir tudo**: as correções seguras do arquivo numa ação só (também ao salvar, com
   `"editor.codeActionsOnSave": {"source.fixAll": "explicit"}`).
-- **Rodar, compilar e verificar**: botão de rodar no título do editor, comandos na paleta
-  ("Lavra: Rodar o arquivo") e tarefas com os erros no painel Problemas.
+- **Depurar** (F5, sem launch.json): pontos de parada, próxima linha, entrar e sair de
+  função, pausa; a pilha com a linha de cada chamada; parâmetros, locais e constantes, com
+  listas, registros e casos abrindo nas partes; o valor no hover; parada nos erros de
+  execução. O programa que lê a entrada roda no terminal integrado; os outros, no console
+  de depuração (com `"stdin"` para dar a entrada por arquivo).
+- **Rodar, compilar e verificar**: botões de rodar e depurar no título do editor, comandos
+  na paleta ("Lavra: Rodar o arquivo") e tarefas com os erros no painel Problemas.
 - **Snippets** dos blocos: `para começar`, `se`, `para cada`, `conforme`, `registro`.
 - **Edição**: comentário com `--`, pares e aspas, recuo depois de `:`, `Senão` volta o
   recuo; dobra dos blocos e dos comentários, e seleção crescente (palavra, oração, bloco).

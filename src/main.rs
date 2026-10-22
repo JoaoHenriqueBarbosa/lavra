@@ -19,6 +19,10 @@ uso:
                                         (ex.: lavrac explain L0334)
   lavrac lexicon --json                 exporta o léxico da língua
   lavrac lsp                            o servidor de linguagem, para editores (stdio)
+  lavrac dap                            o adaptador de depuração, para editores (stdio)
+  lavrac debuggee --port <n> <arquivo.lav>
+                                        o programa no terminal do editor, ligado ao
+                                        adaptador de depuração (o editor abre este sozinho)
   lavrac fmt [--check] <arquivos ou pastas>
                                         formata os .lav (só recuo e espaços; nunca muda
                                         quebra de linha); com --check, só diz quais mudariam
@@ -42,6 +46,8 @@ enum Command {
     Explain { code: String },
     Lexicon,
     Lsp,
+    Dap,
+    Debuggee { port: u16, path: String },
     Fmt { paths: Vec<String>, check: bool },
     Fix { paths: Vec<String>, check: bool },
     Version,
@@ -87,6 +93,14 @@ fn parse_args(args: &[String]) -> Result<Command, String> {
             _ => Err("\"explain\" pede um código, como L0334".into()),
         },
         Some("lsp") => Ok(Command::Lsp),
+        Some("dap") => Ok(Command::Dap),
+        Some("debuggee") => match rest(1) {
+            [flag, port, path] if flag == "--port" => {
+                let port = port.parse().map_err(|_| format!("\"{port}\" não é uma porta"))?;
+                Ok(Command::Debuggee { port, path: path.clone() })
+            }
+            _ => Err("\"debuggee\" pede --port <n> e o arquivo .lav".into()),
+        },
         Some(cmd @ ("fmt" | "fix")) => {
             let check = rest(1).iter().any(|x| x == "--check");
             let paths: Vec<String> = rest(1).iter().filter(|x| *x != "--check").cloned().collect();
@@ -154,6 +168,16 @@ fn main() -> ExitCode {
         }
         Command::Fmt { paths, check } => return fmt(&paths, check),
         Command::Fix { paths, check } => return fix(&paths, check),
+        Command::Dap => {
+            return match lavra::dap::run_stdio() {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(e) => {
+                    eprintln!("lavrac dap: {e}");
+                    ExitCode::from(1)
+                }
+            };
+        }
+        Command::Debuggee { port, path } => return ExitCode::from(lavra::dap::debuggee(port, &path)),
         Command::Lsp => {
             return match lavra::lsp::run_stdio() {
                 Ok(()) => ExitCode::SUCCESS,
@@ -236,16 +260,10 @@ fn main() -> ExitCode {
             });
             match result {
                 Ok(()) => ExitCode::SUCCESS,
-                Err(f) => match f.code {
-                    Some(code) if !f.desist => {
-                        report(&Diagnostic::new(code, f.message, f.span));
-                        ExitCode::from(101)
-                    }
-                    _ => {
-                        report(&Diagnostic::failure(f.message, f.span).primary("o programa desistiu aqui"));
-                        ExitCode::from(1)
-                    }
-                },
+                Err(f) => {
+                    report(&f.diagnostic());
+                    ExitCode::from(f.exit_code())
+                }
             }
         }
     }

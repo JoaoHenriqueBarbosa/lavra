@@ -22,11 +22,70 @@ async function until<T>(what: string, f: () => T | undefined | Promise<T | undef
   }
 }
 
+/** Uma sessão de depuração de verdade: para no ponto, confere a pilha e as variáveis pelo
+ * adaptador, tira a captura parada (se pedida) e segue até o fim. */
+async function debugSession(folder: string, shot: ((what: string) => string) | undefined): Promise<void> {
+  const file = path.join(folder, "depurar.lav");
+  const uri = vscode.Uri.file(file);
+  const doc = await vscode.workspace.openTextDocument(uri);
+  await vscode.window.showTextDocument(doc);
+  const stopped: string[] = [];
+  let terminated = false;
+  const tracker = vscode.debug.registerDebugAdapterTrackerFactory("lavra", {
+    createDebugAdapterTracker: () => ({
+      onWillReceiveMessage: (m: unknown) => {
+        if (process.env.LAVRA_DAP_LOG) {
+          fs.appendFileSync(process.env.LAVRA_DAP_LOG, `-> ${JSON.stringify(m)}\n`);
+        }
+      },
+      onDidSendMessage: (m: { type: string; event?: string; body?: { reason?: string } }) => {
+        if (process.env.LAVRA_DAP_LOG) {
+          fs.appendFileSync(process.env.LAVRA_DAP_LOG, `<- ${JSON.stringify(m)}\n`);
+        }
+        if (m.type === "event" && m.event === "stopped") {
+          stopped.push(m.body?.reason ?? "");
+        }
+        if (m.type === "event" && m.event === "terminated") {
+          terminated = true;
+        }
+      },
+    }),
+  });
+  vscode.debug.addBreakpoints([new vscode.SourceBreakpoint(new vscode.Location(uri, new vscode.Position(6, 4)))]);
+  // A vista de depuração aberta antes, como fica quando se depura: o VS Code só abre o
+  // primeiro escopo sozinho se ela já está à mostra quando o programa para.
+  await vscode.commands.executeCommand("workbench.view.debug");
+  await sleep(1500);
+  const ok = await vscode.debug.startDebugging(vscode.workspace.workspaceFolders![0], {
+    type: "lavra",
+    request: "launch",
+    name: "Depurar o arquivo",
+    program: file,
+  });
+  assert.ok(ok, "a depuração não começou");
+  await until("a parada no ponto", () => (stopped.length > 0 ? stopped[0] : undefined));
+  assert.strictEqual(stopped[0], "breakpoint");
+  const session = vscode.debug.activeDebugSession!;
+  const st = await session.customRequest("stackTrace", { threadId: 1 });
+  assert.strictEqual(st.stackFrames[0].line, 7);
+  const scopes = await session.customRequest("scopes", { frameId: st.stackFrames[0].id });
+  const locals = scopes.scopes.find((s: { name: string }) => s.name === "Locais");
+  const vars = await session.customRequest("variables", { variablesReference: locals.variablesReference });
+  assert.deepStrictEqual([vars.variables[0].name, vars.variables[0].value], ["o saldo", "100"]);
+  if (shot) {
+    await sleep(2500);
+    execFileSync("import", ["-window", "root", shot("depurador")]);
+  }
+  await session.customRequest("continue", { threadId: 1 });
+  await until("o fim do programa", () => (terminated ? true : undefined));
+  tracker.dispose();
+}
+
 export async function run(): Promise<void> {
   const folder = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const uri = vscode.Uri.file(path.join(folder, "conta.lav"));
   const doc = await vscode.workspace.openTextDocument(uri);
-  const editor = await vscode.window.showTextDocument(doc);
+  let editor = await vscode.window.showTextDocument(doc);
   assert.strictEqual(doc.languageId, "lavra");
 
   // Diagnósticos ao abrir: o nome errado, com o código e o link da explicação.
@@ -86,6 +145,11 @@ export async function run(): Promise<void> {
   // Definição: do uso à declaração.
   const defs = await vscode.commands.executeCommand<vscode.Location[]>("vscode.executeDefinitionProvider", uri, new vscode.Position(6, 15));
   assert.strictEqual(defs[0].range.start.line, 4);
+
+  // A depuração, num programa sem erro (o de cima tem um, de propósito).
+  const shotOf = process.env.LAVRA_SHOT;
+  await debugSession(folder, shotOf ? (what) => shotOf.replace(/\.png$/, `-${what}.png`) : undefined);
+  editor = await vscode.window.showTextDocument(doc);
 
   // As capturas da janela, quando pedidas: o hover com o realce semântico; o campo de
   // rename; uma oração nova com o completar aberto e os inlay hints no texto; a ajuda de

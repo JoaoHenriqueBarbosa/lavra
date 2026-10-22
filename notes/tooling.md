@@ -172,8 +172,52 @@ editor e às concordâncias do rename. `tests/fix.rs`: idempotência sobre os pr
 errados do corpus, e o erro corrigido nunca volta (o que aparece depois é erro que estava
 escondido, com outro código).
 
+## Depurador (`lavrac dap`)
+
+Roda sobre o interpretador, que é a referência da língua: ver a frase executando.
+
+- **Núcleo** (`src/debug.rs`, na biblioteca, sem feature): o `Debugger` é o acompanhante
+  do interpretador. Recebe `Command`s por um canal e manda `Event`s por um `Sink`. Parado
+  num ponto, quem responde às consultas (pilha, escopos, variáveis, avaliar) é a própria
+  thread do programa, com a pilha à vista: não há estado dividido entre threads. Serve
+  também a um playground.
+- **Pontos de parada** por linha. O pedido numa linha sem oração pega na próxima em que
+  começa uma (`statement_lines`, `place_breakpoint`). Parar é chegar à linha vindo de
+  outra; as orações seguintes da mesma linha e as voltas de um laço escrito numa linha só
+  não param de novo.
+- **Passos**: continuar, próxima linha (por cima das chamadas), entrar, sair, pausar (um
+  laço sem fim para na próxima oração). Parar na entrada (`stopOnEntry`).
+- **O que se vê**: a pilha ("Para render", "Para começar", com a linha de cada chamada); os
+  escopos Parâmetros, Locais e Constantes; só os locais que valem naquele ponto (pelas
+  tabelas da análise), sem os escondidos e sem os que ainda não ganharam valor; lista abre
+  em "o item 1", "o item 2"; registro e caso abrem nos campos, com o artigo; "talvez" mostra
+  "nada" ou o valor; o texto vem entre aspas. Avaliar aceita um nome com ou sem artigo
+  ("o saldo", "saldo"), e é o que o hover do editor usa.
+- **Falhas**: os erros de execução param onde aconteceram, com a pilha inteira (filtro
+  "Erros de execução", ligado); com o filtro "Falhas declaradas", para antes de cada
+  "Desisto". A falha que encerra o programa vai para o console como o `lavrac run` a mostra,
+  e o código de saída é o mesmo (101 no erro de execução, 1 na falha declarada).
+- **Adaptador** (`src/dap.rs`, feature `dap`): o protocolo com o editor pela entrada e
+  saída padrão. O programa roda no mesmo processo, numa thread com pilha grande, a saída
+  vai para o console de depuração e a entrada vem do arquivo `"stdin"`. Com
+  `"console": "integratedTerminal"` (o padrão quando o programa tem "Leio" e não há
+  `"stdin"`), o editor abre um terminal com `lavrac debuggee --port N arquivo.lav`, que liga
+  de volta por um socket local: o programa lê e escreve no terminal, e o depurador conversa
+  pelo socket, uma mensagem JSON por linha. Programa com erro não começa: os erros vão para
+  o console de depuração.
+- **No VS Code**: o tipo `lavra`, F5 sem launch.json (depura o arquivo aberto, salvo antes),
+  o botão "Depurar o arquivo" no título do editor, e o mesmo `lavrac` do servidor de
+  linguagem.
+- **Testes**: `tests/debug.rs` (o núcleo por canais: ponto, pilha, variáveis, passos, falha,
+  pausa, entrada), `tests/dap.rs` (o binário pelo protocolo, no console e no terminal, com o
+  teste fazendo o papel do editor no `runInTerminal`) e a integração do VS Code, que para
+  num ponto, confere pilha e variáveis pelo adaptador e tira a captura parada
+  (`-depurador.png`). Com `LAVRA_DAP_LOG=arquivo`, a integração grava o tráfego entre o VS
+  Code e o adaptador. O VS Code só abre o primeiro escopo sozinho se a vista de depuração
+  já está à mostra quando o programa para; por isso o teste a abre antes de começar.
+
 ## Próximos passos
 
-O depurador (`lavrac dap`), os builtins declarados em Lavra e as bibliotecas, as releases,
-a gramática tree-sitter com as configurações de outros editores, e o site com o
-playground: `notes/roadmap.md`, fases 5 a 9.
+Os builtins declarados em Lavra e as bibliotecas, as releases, a gramática tree-sitter com
+as configurações de outros editores, e o site com o playground: `notes/roadmap.md`, fases 6
+a 9.

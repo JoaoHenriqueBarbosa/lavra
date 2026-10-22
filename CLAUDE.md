@@ -44,6 +44,7 @@ LAVRA_BLESS=1 cargo test --test golden       # regrava as expectativas (revise o
 ./target/debug/lavrac explain L0334             # explicação de um código de erro
 ./target/debug/lavrac fmt --check samples        # formatador (sem --check, formata no lugar)
 ./target/debug/lavrac fix --check arquivo.lav     # correções seguras (sem --check, aplica)
+./target/debug/lavrac dap                         # adaptador de depuração (o editor o abre)
 cargo clippy --all-targets -- -D warnings && cargo fmt
 tools/memcheck.sh                            # valgrind sobre toda a suíte (contêiner se o host não tem)
 ```

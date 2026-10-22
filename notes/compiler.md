@@ -1,8 +1,9 @@
 # O compilador (`lavrac`)
 
 Crate único em Rust 2024 (`Cargo.toml`): biblioteca `lavra` e binário `lavrac`. A feature
-`native` (padrão) traz o Cranelift e o runtime; sem ela, a biblioteca (análise e
-interpretador) compila para wasm32 (`cargo check --lib --no-default-features --target
+`native` (padrão) traz o Cranelift e o runtime; `lsp` e `dap` (padrão) trazem o servidor de
+linguagem e o adaptador de depuração; sem elas, a biblioteca (análise, interpretador e o
+núcleo do depurador) compila para wasm32 (`cargo check --lib --no-default-features --target
 wasm32-unknown-unknown`, conferido no CI), para o playground. A linha de comando é própria e
 em português (o `clap` daria ajuda e erros de uso em inglês); `lavrac --version` mostra o
 commit, e um pânico do compilador avisa que é defeito do compilador e pede o relato.
@@ -11,6 +12,7 @@ Dependências: o Cranelift 0.137 (`codegen`, `frontend`, `module`, `object`, `na
 
 ```
 lavrac run    arquivo.lav          interpreta
+lavrac dap                         o adaptador de depuração (Debug Adapter Protocol, stdio)
 lavrac build  arquivo.lav [-o x]   executável nativo (padrão: o nome sem .lav)
 lavrac check  arquivo.lav          só confere
 lavrac check --json arquivo.lav    os diagnósticos em JSON (para editores e ferramentas)
@@ -45,7 +47,12 @@ não dá nada (os de execução rodam no interpretador).
 4. `ownership.rs`: posse e empréstimo, por fluxo sobre a HIR (Se, laços com duas
    passadas, Paro/Pulo).
 5. `interp.rs`: interpretador da HIR, referência de semântica. Parâmetro confiado por
-   cópia na ida e na volta (equivale à referência, porque o empréstimo é exclusivo).
+   cópia na ida e na volta (equivale à referência, porque o empréstimo é exclusivo). A
+   máquina é dona da pilha (`Frame`: a função, onde foi chamada, os valores) e aceita um
+   acompanhante (`Tracer`), avisado antes de cada oração e na falha com a pilha à vista
+   (`View`); é por ele que o depurador (`debug.rs`) para, anda e mostra. A oração que a
+   língua desdobra em duas (o "o resultado" escondido, com o mesmo trecho) é avisada uma
+   vez só. Sem acompanhante, o custo é um teste por oração.
 6. `codegen.rs` + `runtime/lib.rs`: nativo (ver abaixo).
 
 `lexicon.rs`: o léxico, fonte única das palavras da língua (artigos, contrações,
@@ -154,7 +161,8 @@ Custo de cópia no interpretador: ler um lugar inteiro como valor clona o valor.
 disso, o crivo até 100 000 levava minutos e crescia de forma quadrática. Continua
 proporcional ao tamanho, no interpretador, passar coleção, texto ou registro para uma
 função: o argumento é copiado na ida e, se confiado, na volta. O nativo passa ponteiro e
-não tem esse custo.
+não tem esse custo. Com a pilha na máquina, o empréstimo pode virar referência ao quadro
+do chamador; é o próximo passo dessa conta.
 
 ## Testes
 

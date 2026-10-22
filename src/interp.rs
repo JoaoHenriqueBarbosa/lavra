@@ -44,6 +44,21 @@ pub struct Fault {
     pub desist: bool,
 }
 
+impl Fault {
+    /// O diagnóstico que mostra a falha, como o `lavrac run` mostra.
+    pub fn diagnostic(&self) -> crate::diagnostics::Diagnostic {
+        match self.code {
+            Some(code) if !self.desist => crate::diagnostics::Diagnostic::new(code, self.message.clone(), self.span),
+            _ => crate::diagnostics::Diagnostic::failure(self.message.clone(), self.span).primary("o programa desistiu aqui"),
+        }
+    }
+
+    /// O código de saída do processo: 101 no erro de execução, 1 na falha declarada.
+    pub fn exit_code(&self) -> u8 {
+        if self.code.is_some() && !self.desist { 101 } else { 1 }
+    }
+}
+
 type Exec<T> = std::result::Result<T, Fault>;
 
 /// Como um bloco terminou.
@@ -56,24 +71,77 @@ enum Flow {
 
 const MAX_DEPTH: usize = textfmt::MAX_DEPTH as usize;
 
+/// Um quadro da pilha: a função (o nível de fora não tem), onde ela foi chamada e os
+/// valores dos locais.
+#[derive(Debug)]
+pub struct Frame {
+    pub func: Option<hir::FuncId>,
+    pub call_span: Span,
+    pub values: Vec<Value>,
+}
+
+/// O que se vê da máquina num ponto da execução: o programa, a pilha (o quadro de cima é
+/// o último) e as constantes.
+pub struct View<'a> {
+    pub prog: &'a hir::Program,
+    pub frames: &'a [Frame],
+    pub globals: &'a [Value],
+}
+
+/// Quem acompanha a execução, como o depurador: a máquina avisa antes de cada oração e
+/// na falha, com a pilha à vista. Parar num ponto é não voltar de `before` ainda.
+pub trait Tracer {
+    /// Antes da oração `stmt`. Devolve `false` para encerrar a execução ali.
+    fn before(&mut self, stmt: &Stmt, view: &View) -> bool;
+    /// Uma falha de execução onde ela aconteceu, antes de a pilha se desfazer.
+    fn fault(&mut self, fault: &Fault, view: &View);
+}
+
 pub struct Machine<'p, W: Write, R: BufRead> {
     prog: &'p hir::Program,
     out: W,
     input: R,
     globals: Vec<Value>,
-    depth: usize,
+    frames: Vec<Frame>,
+    tracer: Option<Box<dyn Tracer + 'p>>,
+    /// O acompanhante encerrou a execução.
+    stopped: bool,
+    /// A falha já foi mostrada ao acompanhante (ela ainda sobe pelos blocos de fora).
+    fault_seen: bool,
     /// Ecoa a entrada lida na saída (útil quando a entrada vem de arquivo).
     pub echo: bool,
 }
 
 impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
     pub fn new(prog: &'p hir::Program, out: W, input: R) -> Self {
-        Machine { prog, out, input, globals: vec![Value::Unit; prog.globals.len()], depth: 0, echo: false }
+        Machine {
+            prog,
+            out,
+            input,
+            globals: vec![Value::Unit; prog.globals.len()],
+            frames: Vec::new(),
+            tracer: None,
+            stopped: false,
+            fault_seen: false,
+            echo: false,
+        }
+    }
+
+    /// Acompanha a execução com `tracer` (o depurador).
+    pub fn trace(&mut self, tracer: Box<dyn Tracer + 'p>) {
+        self.tracer = Some(tracer);
+    }
+
+    /// A execução terminou porque o acompanhante pediu.
+    pub fn stopped(&self) -> bool {
+        self.stopped
     }
 
     pub fn run(&mut self) -> Exec<()> {
-        let mut frame = vec![Value::Unit; self.prog.init.locals.len()];
-        let r = self.block(&self.prog.init.body, &mut frame).and_then(|_| {
+        self.frames.push(Frame { func: None, call_span: Span::default(), values: vec![Value::Unit; self.prog.init.locals.len()] });
+        let r = self.block(&self.prog.init.body);
+        self.frames.pop();
+        let r = r.and_then(|_| {
             self.call(self.prog.main.expect("programa sem \"Para começar\" não chega ao interpretador"), Vec::new(), Span::default())
         });
         let _ = self.out.flush();
@@ -84,20 +152,28 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         }
     }
 
+    fn frame(&self) -> &[Value] {
+        &self.frames.last().expect("a pilha tem quadro").values
+    }
+
+    fn frame_mut(&mut self) -> &mut [Value] {
+        &mut self.frames.last_mut().expect("a pilha tem quadro").values
+    }
+
     /// Chama a função. O resultado de dentro é o valor devolvido ou a falha declarada;
     /// o quadro volta junto para os parâmetros confiados.
     fn call(&mut self, func: hir::FuncId, args: Vec<Value>, span: Span) -> Exec<(Result<Value, Fault>, Vec<Value>)> {
         let f = &self.prog.funcs[func];
-        if self.depth >= MAX_DEPTH {
+        if self.frames.len() >= MAX_DEPTH {
             return fault(L0914, textfmt::stack_overflow(), span);
         }
-        self.depth += 1;
-        let mut frame = vec![Value::Unit; f.locals.len()];
+        let mut values = vec![Value::Unit; f.locals.len()];
         for ((id, _), v) in f.params.iter().zip(args) {
-            frame[*id] = v;
+            values[*id] = v;
         }
-        let r = self.block(&f.body, &mut frame);
-        self.depth -= 1;
+        self.frames.push(Frame { func: Some(func), call_span: span, values });
+        let r = self.block(&f.body);
+        let frame = self.frames.pop().expect("o quadro da chamada").values;
         let ret = match r {
             Ok(Flow::Return(v)) => Ok(v),
             Ok(_) => Ok(Value::Unit),
@@ -109,58 +185,85 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
 
     /// Parâmetro confiado: o valor final volta para o lugar do chamador. Como o
     /// empréstimo é exclusivo, copiar na ida e na volta equivale a passar a referência.
-    fn copy_back(&mut self, func: hir::FuncId, args: &[hir::Arg], callee: &[Value], frame: &mut [Value]) -> Exec<()> {
+    fn copy_back(&mut self, func: hir::FuncId, args: &[hir::Arg], callee: &[Value]) -> Exec<()> {
         let f = &self.prog.funcs[func];
         for (a, (id, mode)) in args.iter().zip(&f.params) {
             if *mode == ParamMode::Lent
                 && let Some(p) = &a.place
             {
-                self.write_place(p, callee[*id].clone(), frame)?;
+                self.write_place(p, callee[*id].clone())?;
             }
         }
         Ok(())
     }
 
-    fn block(&mut self, b: &hir::Block, frame: &mut [Value]) -> Exec<Flow> {
+    fn block(&mut self, b: &hir::Block) -> Exec<Flow> {
+        let mut prev = None;
         for s in &b.0 {
-            match self.stmt(s, frame)? {
-                Flow::Normal => {}
-                other => return Ok(other),
+            // A língua às vezes faz de uma oração duas (o "o resultado" escondido, com o
+            // mesmo trecho): o acompanhante vê uma só.
+            let repeated = prev == Some(s.span.start);
+            prev = Some(s.span.start);
+            if !repeated
+                && !s.span.is_empty()
+                && let Some(t) = self.tracer.as_mut()
+            {
+                let view = View { prog: self.prog, frames: &self.frames, globals: &self.globals };
+                if !t.before(s, &view) {
+                    self.stopped = true;
+                    return Err(Fault { code: None, message: String::new(), span: s.span, desist: false });
+                }
+            }
+            match self.stmt(s) {
+                Ok(Flow::Normal) => {}
+                Ok(other) => return Ok(other),
+                Err(f) => {
+                    if !f.desist
+                        && !self.fault_seen
+                        && !self.stopped
+                        && let Some(t) = self.tracer.as_mut()
+                    {
+                        self.fault_seen = true;
+                        let view = View { prog: self.prog, frames: &self.frames, globals: &self.globals };
+                        t.fault(&f, &view);
+                    }
+                    return Err(f);
+                }
             }
         }
         Ok(Flow::Normal)
     }
 
-    fn get(&self, v: Var, frame: &[Value]) -> Value {
+    fn get(&self, v: Var) -> Value {
         match v {
-            Var::Local(id) => frame[id].clone(),
+            Var::Local(id) => self.frame()[id].clone(),
             Var::Global(id) => self.globals[id].clone(),
         }
     }
 
-    fn set(&mut self, v: Var, value: Value, frame: &mut [Value]) {
+    fn set(&mut self, v: Var, value: Value) {
         match v {
-            Var::Local(id) => frame[id] = value,
+            Var::Local(id) => self.frame_mut()[id] = value,
             Var::Global(id) => self.globals[id] = value,
         }
     }
 
     /// Calcula o caminho de um lugar, conferindo cada posição contra o tamanho da coleção.
-    fn path(&mut self, p: &hir::Place, frame: &mut [Value]) -> Exec<Vec<Step>> {
+    fn path(&mut self, p: &hir::Place) -> Exec<Vec<Step>> {
         let mut steps = Vec::new();
         for pr in &p.proj {
             match pr {
                 PlaceProj::Field(i) => steps.push(Step::Field(*i)),
                 PlaceProj::Index(e, span) => {
-                    let Value::Int(n) = self.expr(e, frame)? else { unreachable!() };
-                    let len = self.len_at(p.root, &steps, frame);
+                    let Value::Int(n) = self.expr(e)? else { unreachable!() };
+                    let len = self.len_at(p.root, &steps);
                     if n < 1 || n as usize > len {
                         return fault(L0909, position_error(n, len), *span);
                     }
                     steps.push(Step::Index(n as usize - 1));
                 }
                 PlaceProj::Last(span) => {
-                    let len = self.len_at(p.root, &steps, frame);
+                    let len = self.len_at(p.root, &steps);
                     if len == 0 {
                         return fault(L0910, textfmt::EMPTY_LAST, *span);
                     }
@@ -171,9 +274,9 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         Ok(steps)
     }
 
-    fn len_at(&self, root: Var, steps: &[Step], frame: &[Value]) -> usize {
+    fn len_at(&self, root: Var, steps: &[Step]) -> usize {
         let base = match root {
-            Var::Local(id) => &frame[id],
+            Var::Local(id) => &self.frame()[id],
             Var::Global(id) => &self.globals[id],
         };
         match walk(base, steps) {
@@ -183,10 +286,10 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         }
     }
 
-    fn read_place(&mut self, p: &hir::Place, frame: &mut [Value]) -> Exec<Value> {
-        let steps = self.path(p, frame)?;
+    fn read_place(&mut self, p: &hir::Place) -> Exec<Value> {
+        let steps = self.path(p)?;
         let base = match p.root {
-            Var::Local(id) => &frame[id],
+            Var::Local(id) => &self.frame()[id],
             Var::Global(id) => &self.globals[id],
         };
         // A posição num texto é a de um caractere.
@@ -196,51 +299,51 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         Ok(walk(base, &steps).clone())
     }
 
-    fn place_mut<'a>(&'a mut self, root: Var, steps: &[Step], frame: &'a mut [Value]) -> &'a mut Value {
+    fn place_mut(&mut self, root: Var, steps: &[Step]) -> &mut Value {
         let base = match root {
-            Var::Local(id) => &mut frame[id],
+            Var::Local(id) => &mut self.frames.last_mut().expect("a pilha tem quadro").values[id],
             Var::Global(id) => &mut self.globals[id],
         };
         walk_mut(base, steps)
     }
 
-    fn write_place(&mut self, p: &hir::Place, v: Value, frame: &mut [Value]) -> Exec<()> {
-        let steps = self.path(p, frame)?;
-        *self.place_mut(p.root, &steps, frame) = v;
+    fn write_place(&mut self, p: &hir::Place, v: Value) -> Exec<()> {
+        let steps = self.path(p)?;
+        *self.place_mut(p.root, &steps) = v;
         Ok(())
     }
 
-    fn stmt(&mut self, s: &Stmt, frame: &mut [Value]) -> Exec<Flow> {
+    fn stmt(&mut self, s: &Stmt) -> Exec<Flow> {
         match &s.kind {
             StmtKind::Let { var, value } => {
-                let v = self.expr(value, frame)?;
-                self.set(*var, v, frame);
+                let v = self.expr(value)?;
+                self.set(*var, v);
             }
             StmtKind::Assign { place, value } => {
-                let v = self.expr(value, frame)?;
-                self.write_place(place, v, frame)?;
+                let v = self.expr(value)?;
+                self.write_place(place, v)?;
             }
             StmtKind::Compound { place, op, value, span } => {
-                let cur = self.read_place(place, frame)?;
-                let v = self.expr(value, frame)?;
+                let cur = self.read_place(place)?;
+                let v = self.expr(value)?;
                 let r = arith(*op, cur, v, &place.ty, *span)?;
-                self.write_place(place, r, frame)?;
+                self.write_place(place, r)?;
             }
             StmtKind::Push { place, value } => {
-                let v = self.expr(value, frame)?;
-                let steps = self.path(place, frame)?;
-                let Value::List(list) = self.place_mut(place.root, &steps, frame) else { unreachable!() };
+                let v = self.expr(value)?;
+                let steps = self.path(place)?;
+                let Value::List(list) = self.place_mut(place.root, &steps) else { unreachable!() };
                 list.push(v);
             }
             StmtKind::ForEach { var, source, body } => {
-                let items: Vec<Value> = match self.expr(source, frame)? {
+                let items: Vec<Value> = match self.expr(source)? {
                     Value::List(v) => v,
                     Value::Text(t) => t.chars().map(Value::Char).collect(),
                     _ => unreachable!(),
                 };
                 for it in items {
-                    frame[*var] = it;
-                    match self.block(body, frame)? {
+                    self.frame_mut()[*var] = it;
+                    match self.block(body)? {
                         Flow::Break => break,
                         Flow::Return(v) => return Ok(Flow::Return(v)),
                         _ => {}
@@ -248,7 +351,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                 }
             }
             StmtKind::Write { value, newline } => {
-                let v = self.expr(value, frame)?;
+                let v = self.expr(value)?;
                 let _ = write!(self.out, "{}", format_value(&v, &value.ty));
                 if *newline {
                     let _ = writeln!(self.out);
@@ -256,17 +359,17 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             }
             StmtKind::If { arms, otherwise } => {
                 for (c, b) in arms {
-                    if self.cond(c, frame)? {
-                        return self.block(b, frame);
+                    if self.cond(c)? {
+                        return self.block(b);
                     }
                 }
                 if let Some(b) = otherwise {
-                    return self.block(b, frame);
+                    return self.block(b);
                 }
             }
             StmtKind::While { cond, body } => {
-                while self.cond(cond, frame)? {
-                    match self.block(body, frame)? {
+                while self.cond(cond)? {
+                    match self.block(body)? {
                         Flow::Break => break,
                         Flow::Return(v) => return Ok(Flow::Return(v)),
                         _ => {}
@@ -275,7 +378,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             }
             StmtKind::Repeat { count, body } => {
                 let n = match count {
-                    Some(c) => match self.expr(c, frame)? {
+                    Some(c) => match self.expr(c)? {
                         Value::Int(n) => Some(n),
                         _ => unreachable!(),
                     },
@@ -283,7 +386,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                 };
                 let mut i = 0i128;
                 while n.is_none_or(|n| i < n) {
-                    match self.block(body, frame)? {
+                    match self.block(body)? {
                         Flow::Break => break,
                         Flow::Return(v) => return Ok(Flow::Return(v)),
                         _ => {}
@@ -292,12 +395,12 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                 }
             }
             StmtKind::ForRange { var, from, to, body } => {
-                let (Value::Int(a), Value::Int(b)) = (self.expr(from, frame)?, self.expr(to, frame)?) else { unreachable!() };
+                let (Value::Int(a), Value::Int(b)) = (self.expr(from)?, self.expr(to)?) else { unreachable!() };
                 let step = if a <= b { 1 } else { -1 };
                 let mut i = a;
                 loop {
-                    frame[*var] = Value::Int(i);
-                    match self.block(body, frame)? {
+                    self.frame_mut()[*var] = Value::Int(i);
+                    match self.block(body)? {
                         Flow::Break => break,
                         Flow::Return(v) => return Ok(Flow::Return(v)),
                         _ => {}
@@ -313,41 +416,41 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             StmtKind::Continue => return Ok(Flow::Continue),
             StmtKind::Return(v) => {
                 let v = match v {
-                    Some(e) => self.expr(e, frame)?,
+                    Some(e) => self.expr(e)?,
                     None => Value::Unit,
                 };
                 return Ok(Flow::Return(v));
             }
             StmtKind::Expr(e) => {
-                self.expr(e, frame)?;
+                self.expr(e)?;
             }
             StmtKind::Match { scrutinee, arms, otherwise } => {
-                let Value::Variant(tag, fields) = self.expr(scrutinee, frame)? else { unreachable!() };
+                let Value::Variant(tag, fields) = self.expr(scrutinee)? else { unreachable!() };
                 for arm in arms {
                     if arm.tags.contains(&tag) {
                         for (id, i) in &arm.binds {
-                            frame[*id] = fields[*i].clone();
+                            self.frame_mut()[*id] = fields[*i].clone();
                         }
-                        return self.block(&arm.body, frame);
+                        return self.block(&arm.body);
                     }
                 }
                 if let Some(b) = otherwise {
-                    return self.block(b, frame);
+                    return self.block(b);
                 }
             }
             StmtKind::Desist(m) => {
-                let Value::Text(msg) = self.expr(m, frame)? else { unreachable!() };
+                let Value::Text(msg) = self.expr(m)? else { unreachable!() };
                 return Err(Fault { code: None, message: msg, span: m.span, desist: true });
             }
         }
         Ok(Flow::Normal)
     }
 
-    fn cond(&mut self, c: &Cond, frame: &mut [Value]) -> Exec<bool> {
+    fn cond(&mut self, c: &Cond) -> Exec<bool> {
         Ok(match c {
             Cond::And(v) => {
                 for c in v {
-                    if !self.cond(c, frame)? {
+                    if !self.cond(c)? {
                         return Ok(false);
                     }
                 }
@@ -355,21 +458,21 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             }
             Cond::Or(v) => {
                 for c in v {
-                    if self.cond(c, frame)? {
+                    if self.cond(c)? {
                         return Ok(true);
                     }
                 }
                 false
             }
-            Cond::Not(c) => !self.cond(c, frame)?,
+            Cond::Not(c) => !self.cond(c)?,
             Cond::Cmp { rel, lhs, rhs } => {
-                let a = self.expr(lhs, frame)?;
-                let b = self.expr(rhs, frame)?;
+                let a = self.expr(lhs)?;
+                let b = self.expr(rhs)?;
                 compare(*rel, &a, &b)
             }
-            Cond::Test(e) => self.expr(e, frame)? == Value::Bool(true),
-            Cond::IsSome(e) => self.expr(e, frame)? != Value::Nothing,
-            Cond::IsVariant(e, tag) => matches!(self.expr(e, frame)?, Value::Variant(t, _) if t == *tag),
+            Cond::Test(e) => self.expr(e)? == Value::Bool(true),
+            Cond::IsSome(e) => self.expr(e)? != Value::Nothing,
+            Cond::IsVariant(e, tag) => matches!(self.expr(e)?, Value::Variant(t, _) if t == *tag),
         })
     }
 
@@ -397,7 +500,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         })
     }
 
-    fn expr(&mut self, e: &hir::Expr, frame: &mut [Value]) -> Exec<Value> {
+    fn expr(&mut self, e: &hir::Expr) -> Exec<Value> {
         Ok(match &e.kind {
             ExprKind::Int(v) => Value::Int(*v),
             ExprKind::Real(v) => Value::Real(*v),
@@ -406,103 +509,103 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             ExprKind::Bool(b) => Value::Bool(*b),
             ExprKind::Read(p) => {
                 if p.proj.is_empty() {
-                    self.get(p.root, frame)
+                    self.get(p.root)
                 } else {
-                    self.read_place(p, frame)?
+                    self.read_place(p)?
                 }
             }
             ExprKind::Input => self.input(&e.ty, e.span)?,
             ExprKind::Binary(op, l, r) => {
-                let a = self.expr(l, frame)?;
-                let b = self.expr(r, frame)?;
+                let a = self.expr(l)?;
+                let b = self.expr(r)?;
                 arith(*op, a, b, &e.ty, e.span)?
             }
             ExprKind::Concat(parts) => {
                 let mut s = String::new();
                 for p in parts {
-                    s.push_str(&format_value(&self.expr(p, frame)?, &p.ty));
+                    s.push_str(&format_value(&self.expr(p)?, &p.ty));
                 }
                 Value::Text(s)
             }
             ExprKind::Call { func, args } => {
                 let mut vals = Vec::with_capacity(args.len());
                 for a in args {
-                    vals.push(self.expr(&a.value, frame)?);
+                    vals.push(self.expr(&a.value)?);
                 }
                 let (ret, callee) = self.call(*func, vals, e.span)?;
                 let ret = match ret {
                     Ok(v) => v,
                     // A falha só chega aqui dentro de um "Try", que a trata.
                     Err(f) => {
-                        self.copy_back(*func, args, &callee, frame)?;
+                        self.copy_back(*func, args, &callee)?;
                         return Err(f);
                     }
                 };
-                self.copy_back(*func, args, &callee, frame)?;
+                self.copy_back(*func, args, &callee)?;
                 ret
             }
-            ExprKind::Fact(c) => Value::Bool(self.cond(c, frame)?),
+            ExprKind::Fact(c) => Value::Bool(self.cond(c)?),
             ExprKind::Unary(op, a) => match (op, &a.kind) {
                 // O tamanho de um lugar se mede no próprio lugar: ler o valor inteiro
                 // copiaria a coleção, e a conta ficaria proporcional ao tamanho dela.
                 (UnOp::Len, ExprKind::Read(p)) => {
-                    let steps = self.path(p, frame)?;
-                    Value::Int(self.len_at(p.root, &steps, frame) as i128)
+                    let steps = self.path(p)?;
+                    Value::Int(self.len_at(p.root, &steps) as i128)
                 }
                 _ => {
-                    let v = self.expr(a, frame)?;
+                    let v = self.expr(a)?;
                     unary(*op, v, &e.ty, e.span)?
                 }
             },
             ExprKind::List(items) => {
                 let mut v = Vec::with_capacity(items.len());
                 for it in items {
-                    v.push(self.expr(it, frame)?);
+                    v.push(self.expr(it)?);
                 }
                 Value::List(v)
             }
             ExprKind::Record(fields) => {
                 let mut v = Vec::with_capacity(fields.len());
                 for f in fields {
-                    v.push(self.expr(f, frame)?);
+                    v.push(self.expr(f)?);
                 }
                 Value::Record(v)
             }
-            ExprKind::Copy(a) | ExprKind::Wrap(a) | ExprKind::Unwrap(a) => self.expr(a, frame)?,
+            ExprKind::Copy(a) | ExprKind::Wrap(a) | ExprKind::Unwrap(a) => self.expr(a)?,
             ExprKind::Nothing => Value::Nothing,
             ExprKind::Convert(a) => {
-                let v = self.expr(a, frame)?;
+                let v = self.expr(a)?;
                 convert(v, &a.ty, &e.ty, e.span)?
             }
             ExprKind::Variant { tag, fields } => {
                 let mut v = Vec::with_capacity(fields.len());
                 for f in fields {
-                    v.push(self.expr(f, frame)?);
+                    v.push(self.expr(f)?);
                 }
                 Value::Variant(*tag, v)
             }
-            ExprKind::VariantField { value, field } => match self.expr(value, frame)? {
+            ExprKind::VariantField { value, field } => match self.expr(value)? {
                 Value::Variant(_, f) => f[*field].clone(),
                 _ => unreachable!(),
             },
-            ExprKind::Try { call, fallback } => match self.expr(call, frame) {
+            ExprKind::Try { call, fallback } => match self.expr(call) {
                 Ok(v) => v,
                 Err(f) if f.desist => match fallback {
-                    Some(fb) => self.expr(fb, frame)?,
+                    Some(fb) => self.expr(fb)?,
                     None => return Err(f),
                 },
                 Err(f) => return Err(f),
             },
             ExprKind::Take { place, index } => {
                 let i = match index {
-                    Some(ix) => match self.expr(ix, frame)? {
+                    Some(ix) => match self.expr(ix)? {
                         Value::Int(n) => Some((n, ix.span)),
                         _ => unreachable!(),
                     },
                     None => None,
                 };
-                let steps = self.path(place, frame)?;
-                let Value::List(list) = self.place_mut(place.root, &steps, frame) else { unreachable!() };
+                let steps = self.path(place)?;
+                let Value::List(list) = self.place_mut(place.root, &steps) else { unreachable!() };
                 match i {
                     None => match list.pop() {
                         Some(v) => v,
@@ -756,7 +859,7 @@ pub fn format_value(v: &Value, ty: &Ty) -> String {
     }
 }
 
-fn field_article(name: &str, r: &crate::types::RecordTy) -> &'static str {
+pub fn field_article(name: &str, r: &crate::types::RecordTy) -> &'static str {
     r.field_articles.iter().find(|(n, _)| n == name).map(|(_, a)| *a).unwrap_or("o")
 }
 
