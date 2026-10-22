@@ -1,6 +1,10 @@
 node_modules/**
 tests/**
+src/**
+out/**
+tsconfig.json
 syntaxes/build.py
 scripts/**
 *.vsix
 .gitignore
+.vscode-test/**

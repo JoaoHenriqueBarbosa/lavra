@@ -40,6 +40,26 @@ Extensão `joaohenriquebarbosa.lavra`, instalada no VS Code do WSL em 2026-10-22
 - `node scripts/preview.mjs saída.html arquivos...`: renderiza com shiki nos temas
   Dark+ e Light+; a captura sai com `chromium --headless=new --screenshot`.
 
+## Cliente do VS Code
+
+`editors/vscode/src/extension.ts`, em TypeScript com `vscode-languageclient` 11,
+empacotado pelo esbuild em `dist/extension.js` (o `tsc` só confere os tipos). Procura o
+`lavrac` no setting `lavra.server.path`, depois em `server/lavrac` dentro da extensão (a VSIX
+por plataforma leva o binário), depois no PATH. Comandos "Lavra: Rodar o arquivo",
+"Compilar para nativo", "Verificar" e "Reiniciar o servidor de linguagem"; botão de rodar no
+título do editor; tarefas do tipo `lavra` com os casadores de problema `$lavrac` (erros) e
+`$lavrac-aviso` (avisos), separados porque "Erro" e "Aviso" não são as severidades em
+inglês que o VS Code entende; modificadores semânticos `borrowed` e `lent`; snippets dos
+blocos.
+
+Teste de integração (`npm run test:integration`): um VS Code de verdade, baixado pelo
+`@vscode/test-electron`, abre um programa com erro e confere pela API do editor os
+diagnósticos (com código e link), o hover, os tokens semânticos e a definição. Aqui roda
+num contêiner `node:22-trixie` com xvfb (como root, com `--no-sandbox`; a glibc do
+contêiner tem de ser a do host, onde o `lavrac` foi compilado) e tira uma captura da tela
+com `LAVRA_SHOT`; no CI, com o `xvfb-run` do runner. Os arquivos que o contêiner cria ficam
+com o dono do mapeamento de usuários do Docker Desktop: apague `out/` com um contêiner.
+
 ## Servidor de linguagem (`lavrac lsp`)
 
 `src/lsp/` (feature `lsp`, padrão), síncrono sobre stdio com `lsp-server` e `lsp-types`.

@@ -60,6 +60,31 @@ jobs:
       - run: npm ci
       - name: Escopos e snapshots da gramática
         run: npm test
+      - name: Tipos e empacotamento do cliente
+        run: npm run compile
+
+  editor-integration:
+    name: Extensão num VS Code de verdade
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Compila o lavrac
+        run: cargo build --release
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - name: Instala o xvfb
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb
+      - name: Diagnósticos, hover, tokens e definição pelo VS Code
+        working-directory: editors/vscode
+        run: |
+          npm ci
+          xvfb-run -a npm run test:integration
 
   memcheck:
     name: Memória do nativo (valgrind)

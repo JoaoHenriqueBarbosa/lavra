@@ -1,3 +1,7 @@
-node_modules/
+node_modules
 *.vsix
-out/
+dist
+out
+server
+.vscode-test
+tests/integration/fixture/.vscode

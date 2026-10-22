@@ -53,7 +53,10 @@ Extensão do VS Code (`editors/vscode`, ver `notes/tooling.md`):
 ```bash
 cd editors/vscode && npm install
 npm test                                     # escopos e snapshots da gramática
-npm run package && code --install-extension lavra.vsix --force
+npm run compile                              # tipos e empacotamento do cliente
+npm run test:integration                     # num VS Code de verdade (contêiner com xvfb)
+cp ../../target/release/lavrac server/ && npx vsce package --target linux-x64 --out lavra.vsix
+code --install-extension lavra.vsix --force
 ```
 
 Palavra nova na língua? Ela entra em `src/lexicon.rs` (com papel e documentação); depois

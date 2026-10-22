@@ -1,0 +1,37 @@
+{
+  "Para começar": { "prefix": "para começar", "body": ["Para começar:", "\t$0"], "description": "Onde o programa começa." },
+  "Função": {
+    "prefix": "para",
+    "body": ["Para ${1:dobrar} ${2:o valor}, sendo ${2:o valor} ${3:um inteiro}, devolvendo ${4:um inteiro}:", "\t$0"],
+    "description": "Função com regência e tipos."
+  },
+  "Se": { "prefix": "se", "body": ["Se ${1:o saldo} for ${2:maior que 0}:", "\t$0"], "description": "Condição." },
+  "Se e Senão": {
+    "prefix": "se senão",
+    "body": ["Se ${1:o saldo} for ${2:maior que 0}:", "\t$3", "Senão:", "\t$0"],
+    "description": "Condição com o caso contrário."
+  },
+  "Enquanto": { "prefix": "enquanto", "body": ["Enquanto ${1:o saldo} for ${2:maior que 0}:", "\t$0"], "description": "Laço com condição." },
+  "Repito": { "prefix": "repito", "body": ["Repito ${1:3} vezes:", "\t$0"], "description": "Laço contado." },
+  "Para cada item": { "prefix": "para cada", "body": ["Para cada ${1:nota} ${2:das notas}:", "\t$0"], "description": "Percorre uma coleção." },
+  "Para cada número": {
+    "prefix": "para cada i",
+    "body": ["Para cada ${1:i} de ${2:1} até ${3:10}:", "\t$0"],
+    "description": "Conta de um número até outro."
+  },
+  "Conforme": {
+    "prefix": "conforme",
+    "body": ["Conforme ${1:a figura}:", "\tSendo ${2:um círculo}:", "\t\t$0", "\tSenão:", "\t\t"],
+    "description": "Examina uma enumeração caso a caso."
+  },
+  "Registro": {
+    "prefix": "registro",
+    "body": ["${1:Uma conta} é um registro de:", "\t${2:o titular}, ${3:um texto};", "\t${4:o saldo}, ${5:um inteiro}."],
+    "description": "Define um registro."
+  },
+  "Enumeração": {
+    "prefix": "destas",
+    "body": ["${1:Uma figura} é uma destas:", "\t${2:um círculo}, com ${3:o raio}, ${4:um real};", "\t${5:um ponto}."],
+    "description": "Define uma enumeração."
+  }
+}

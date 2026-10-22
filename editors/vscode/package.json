@@ -1,8 +1,8 @@
 {
   "name": "lavra",
   "displayName": "Lavra",
-  "description": "Suporte à linguagem Lavra: realce de sintaxe, recuo, dobra e comentários.",
-  "version": "0.1.0",
+  "description": "Suporte à linguagem Lavra: diagnósticos ao digitar, realce semântico, hover com tipo e posse, navegação, tarefas e realce de sintaxe.",
+  "version": "0.2.0",
   "publisher": "joaohenriquebarbosa",
   "license": "MIT",
   "repository": {
@@ -10,7 +10,7 @@
     "url": "https://github.com/JoaoHenriqueBarbosa/lavra"
   },
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.91.0"
   },
   "categories": [
     "Programming Languages"
@@ -40,6 +40,178 @@
         "scopeName": "source.lavra",
         "path": "./syntaxes/lavra.tmLanguage.json"
       }
+    ],
+    "configuration": {
+      "title": "Lavra",
+      "properties": {
+        "lavra.server.path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Caminho do `lavrac`. Vazio usa o que vem com a extensão, ou o do PATH."
+        },
+        "lavra.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Registra a conversa com o servidor de linguagem no canal de saída \"Lavra\"."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "lavra.run",
+        "title": "Rodar o arquivo",
+        "category": "Lavra",
+        "icon": "$(play)"
+      },
+      {
+        "command": "lavra.build",
+        "title": "Compilar para nativo",
+        "category": "Lavra"
+      },
+      {
+        "command": "lavra.check",
+        "title": "Verificar",
+        "category": "Lavra"
+      },
+      {
+        "command": "lavra.restartServer",
+        "title": "Reiniciar o servidor de linguagem",
+        "category": "Lavra"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "lavra.run",
+          "when": "resourceLangId == lavra",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "lavra.run",
+          "when": "editorLangId == lavra"
+        },
+        {
+          "command": "lavra.build",
+          "when": "editorLangId == lavra"
+        },
+        {
+          "command": "lavra.check",
+          "when": "editorLangId == lavra"
+        }
+      ]
+    },
+    "semanticTokenModifiers": [
+      {
+        "id": "borrowed",
+        "description": "Parâmetro emprestado: a função só lê."
+      },
+      {
+        "id": "lent",
+        "description": "Parâmetro confiado: a função pode mudar o valor de quem chamou."
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "lavra",
+        "scopes": {
+          "parameter.borrowed": [
+            "variable.parameter.borrowed.lavra"
+          ],
+          "parameter.lent": [
+            "variable.parameter.lent.lavra"
+          ],
+          "variable.readonly": [
+            "variable.other.constant.lavra"
+          ],
+          "enumMember": [
+            "entity.name.type.variant.lavra"
+          ]
+        }
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "lavrac",
+        "owner": "lavra",
+        "source": "lavrac",
+        "fileLocation": [
+          "autoDetect",
+          "${workspaceFolder}"
+        ],
+        "severity": "error",
+        "pattern": [
+          {
+            "regexp": "^Erro[^\\[:]*(?: \\[(L\\d{4})\\])?: (.*)$",
+            "code": 1,
+            "message": 2
+          },
+          {
+            "regexp": "^\\s*--> (.*):(\\d+):(\\d+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3
+          }
+        ]
+      },
+      {
+        "name": "lavrac-aviso",
+        "owner": "lavra",
+        "source": "lavrac",
+        "fileLocation": [
+          "autoDetect",
+          "${workspaceFolder}"
+        ],
+        "severity": "warning",
+        "pattern": [
+          {
+            "regexp": "^Aviso(?: \\[(L\\d{4})\\])?: (.*)$",
+            "code": 1,
+            "message": 2
+          },
+          {
+            "regexp": "^\\s*--> (.*):(\\d+):(\\d+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3
+          }
+        ]
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "lavra",
+        "required": [
+          "command"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "enum": [
+              "check",
+              "run",
+              "build"
+            ],
+            "description": "check, run ou build."
+          },
+          "file": {
+            "type": "string",
+            "description": "O arquivo .lav (padrão: o aberto)."
+          }
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "lavra",
+        "path": "./snippets/lavra.json"
+      }
     ]
   },
   "scripts": {
@@ -47,11 +219,30 @@
     "test": "npm run build:grammar && vscode-tmgrammar-test -g syntaxes/lavra.tmLanguage.json 'tests/syntax/*.lav' && vscode-tmgrammar-snap -g syntaxes/lavra.tmLanguage.json 'tests/snap/*.lav'",
     "test:update-snapshots": "vscode-tmgrammar-snap -g syntaxes/lavra.tmLanguage.json --updateSnapshot 'tests/snap/*.lav'",
     "preview": "node scripts/preview.mjs",
-    "package": "npm run build:grammar && vsce package --out lavra.vsix"
+    "package": "npm run build:grammar && npm run compile && vsce package --out lavra.vsix",
+    "compile": "tsc -p . && esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js --minify --sourcemap",
+    "test:integration": "esbuild tests/integration/run.ts tests/integration/suite.ts --bundle --platform=node --format=cjs --external:vscode --external:@vscode/test-electron --outdir=out && node out/run.js"
   },
   "devDependencies": {
     "@vscode/vsce": "4.0.0",
     "shiki": "4.5.0",
-    "vscode-tmgrammar-test": "0.1.3"
+    "vscode-tmgrammar-test": "0.1.3",
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3",
+    "@types/vscode": "1.91.0",
+    "@types/node": "22.20.5",
+    "@types/mocha": "10.0.10",
+    "mocha": "12.0.3",
+    "@vscode/test-electron": "3.1.0"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:lavra"
+  ],
+  "dependencies": {
+    "vscode-languageclient": "11.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }
