@@ -160,3 +160,26 @@ Decisões para revisar:
 - A extensão foi a 0.3.0.
 
 Próximo: a fase 4, o rename com morfologia e o lavrac fix.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim da fase 4 do roadmap (rename e correções), registro do Claude às 18h33, cerca de 3 horas e 10 minutos depois do começo:
+
+O F2 do editor renomeia um nome em todos os lugares e em todas as formas, com a morfologia da língua. Uma função é reescrita em cada uso na forma em que foi escrita: "Rendo", "render", "exceder", "excederem", e o adjetivo do predicado concordando com cada sujeito. Um nome que muda de gênero leva junto o artigo e a contração ("do saldo" vira "da reserva"), com a maiúscula do começo da oração. Também vai junto o que concorda com ele sem citá-lo: "As compras começam vazias", "ambos" no cabeçalho, "é uma destas", "a primeira das notas". O "Se houver", os campos de um "Conforme" e o item de "Para cada" que deriva da coleção vão com o nome. Antes de devolver, o rename analisa o texto renomeado e recusa, dizendo o motivo, se aparecer erro ou se um uso passar a apontar para outro nome.
+
+Conferido renomeando cada nome de cada programa do corpus, um de cada vez: 311 renomes, todos compilam e dão a mesma saída. Esse teste achou três casos que corrigi antes do commit:
+- o adjetivo do cabeçalho tem de acompanhar o sujeito ("Para a peça ser quadrada");
+- o item de "Para cada" tem o gênero da coleção, então trocar o gênero só dele agora é recusado com essa explicação;
+- o item escrito que é o singular da coleção vai junto com ela ("Para cada herdeiro dos herdeiros").
+
+O lavrac fix aplica as correções seguras em voltas, porque uma revela a outra: o ponto final que faltava escondia a concordância da linha de baixo. O editor ganhou o "corrigir tudo", que também roda ao salvar se você quiser. Ganharam correção a comparação no plural ("maiores que"), o adjetivo do predicado, "uma destas", o artigo do campo e a tipagem do cabeçalho. A correção que troca o começo de uma oração agora mantém a maiúscula; antes ela escrevia "a reserva" minúsculo no começo da frase.
+
+A extensão foi a 0.4.0 e está instalada no seu VS Code no WSL, com o lavrac novo dentro. Recarregue a janela para ela entrar. A que estava lá era a 0.1.0: a 0.2.0 da fase 1 não tinha ficado instalada.
+
+Decisões para revisar:
+- Sem artigo, o rename só aceita o nome novo quando a terminação decide o gênero (-o, -a, -ção, -dade, -agem). "valor" e "problema" pedem o artigo.
+- O número do nome não muda num rename, porque nome no plural é coleção. Símbolo troca só por símbolo.
+- O ordinal acompanha a coleção quando tinha o gênero dela, embora a língua não confira essa concordância.
+- Sem dicionário de substantivos, o singular derivado é o que a própria língua aceita: "os lápis" daria o item "lápi".
+
+Próximo: a fase 5, o depurador (lavrac dap), sobre o interpretador.
