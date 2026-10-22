@@ -71,10 +71,6 @@ impl Parser {
         }
     }
 
-    fn error(&self, cat: Category, msg: impl Into<String>, span: Span) -> Box<Diagnostic> {
-        Box::new(Diagnostic::new(cat, msg, span))
-    }
-
     /// Erro de "esperava X, encontrei Y", com o caso especial do ponto final esquecido.
     fn expected(&self, what: &str) -> Box<Diagnostic> {
         let t = self.peek();
@@ -176,7 +172,160 @@ impl Parser {
     }
 
     fn stmt(&mut self) -> Result<Stmt> {
+        let start = self.peek().span;
+        if self.at_word("se") {
+            return self.if_stmt();
+        }
+        if self.eat_word("enquanto") {
+            let cond = self.cond()?;
+            self.expect_punct(':', "os dois-pontos depois da condição")?;
+            let body = self.block()?;
+            return Ok(Stmt::While { cond, body, span: start.to(self.prev_span()) });
+        }
+        if self.eat_word("repito") {
+            let count = if self.eat_word("sempre") {
+                None
+            } else {
+                let n = self.expr()?;
+                if !self.eat_word("vezes") {
+                    if self.at_word("vez") {
+                        let t = self.peek().clone();
+                        return err(Diagnostic::new(Category::Agreement, "\"Repito\" conta em \"vezes\", no plural.", t.span)
+                            .hint("Para uma vez só, não precisa de laço."));
+                    }
+                    return Err(self.expected("\"vezes\" (ou \"Repito sempre:\")"));
+                }
+                Some(n)
+            };
+            self.expect_punct(':', "os dois-pontos")?;
+            let body = self.block()?;
+            return Ok(Stmt::Repeat { count, body, span: start.to(self.prev_span()) });
+        }
+        if self.at_word("para") && self.peek_at(1).is_word("cada") {
+            self.bump();
+            self.bump();
+            let var = self.name_ref()?;
+            if self.eat_word("de") {
+                let from = self.expr()?;
+                self.expect_word("até")?;
+                let to = self.expr()?;
+                self.expect_punct(':', "os dois-pontos")?;
+                let body = self.block()?;
+                return Ok(Stmt::ForRange { var, from, to, body, span: start.to(self.prev_span()) });
+            }
+            return Err(self.expected("\"de\" com o intervalo (\"Para cada i de 1 até 10:\")"));
+        }
+        if self.at_word("senão") {
+            return err(Diagnostic::new(Category::Syntax, "\"Senão\" sem um \"Se\" antes.", self.peek().span)
+                .hint("O \"Senão\" fica alinhado com o \"Se\" a que responde."));
+        }
         Ok(Stmt::Period(self.period()?))
+    }
+
+    fn if_stmt(&mut self) -> Result<Stmt> {
+        let start = self.expect_word("se")?.span;
+        let mut arms = Vec::new();
+        let cond = self.cond()?;
+        self.expect_punct(':', "os dois-pontos depois da condição")?;
+        arms.push((cond, self.block()?));
+        let mut otherwise = None;
+        loop {
+            let save = self.pos;
+            self.skip_newlines();
+            if !self.eat_word("senão") {
+                self.pos = save;
+                break;
+            }
+            if self.eat_punct(',') {
+                self.expect_word("se")?;
+                let cond = self.cond()?;
+                self.expect_punct(':', "os dois-pontos depois da condição")?;
+                arms.push((cond, self.block()?));
+                continue;
+            }
+            if self.at_word("se") {
+                return err(Diagnostic::new(Category::Syntax, "Entre \"senão\" e \"se\" vai vírgula.", self.peek().span)
+                    .hint("Escreva \"Senão, se ...:\"."));
+            }
+            self.expect_punct(':', "os dois-pontos depois de \"Senão\"")?;
+            otherwise = Some(self.block()?);
+            break;
+        }
+        Ok(Stmt::If { arms, otherwise, span: start.to(self.prev_span()) })
+    }
+
+    // ---------------------------------------------------------------- condições
+
+    fn cond(&mut self) -> Result<Cond> {
+        let mut ors = vec![self.cond_and()?];
+        while self.eat_word("ou") {
+            ors.push(self.cond_and()?);
+        }
+        Ok(if ors.len() == 1 { ors.pop().unwrap() } else { Cond::Or(ors) })
+    }
+
+    fn cond_and(&mut self) -> Result<Cond> {
+        let mut ands = vec![self.cond_atom()?];
+        while self.eat_word("e") {
+            ands.push(self.cond_atom()?);
+        }
+        Ok(if ands.len() == 1 { ands.pop().unwrap() } else { Cond::And(ands) })
+    }
+
+    fn cond_atom(&mut self) -> Result<Cond> {
+        let start = self.peek().span;
+        let subject = self.expr()?;
+        let number = expr_number(&subject);
+        let negated = self.eat_word("não");
+        let vt = self.peek().clone();
+        let w = vt.word().unwrap_or_default().to_string();
+        if w == "for" || w == "forem" {
+            self.bump();
+            let got = if w == "for" { Number::Singular } else { Number::Plural };
+            if got != number {
+                let right = morphology::future_subjunctive("ser", number);
+                return err(Diagnostic::new(
+                    Category::Agreement,
+                    format!("O verbo não concorda com o sujeito, que é {}: \"{right}\", não \"{w}\".", number.describe()),
+                    vt.span,
+                ));
+            }
+            let rt = self.peek().clone();
+            let rel = match rt.word() {
+                Some("maior que") => Rel::Greater,
+                Some("menor que") => Rel::Less,
+                Some("igual a") => Rel::Equal,
+                Some("diferente de") => Rel::Different,
+                Some("pelo menos") => Rel::AtLeast,
+                Some("no máximo") => Rel::AtMost,
+                Some("verdadeiro" | "falso") => {
+                    self.bump();
+                    let rhs = Expr { kind: ExprKind::Bool(rt.is_word("verdadeiro")), span: rt.span };
+                    return Ok(Cond::Atom { negated, kind: CondKind::Rel { subject, rel: Rel::Equal, rhs }, span: start.to(rt.span) });
+                }
+                Some("maior" | "menor" | "igual" | "diferente") => {
+                    let need = match rt.word().unwrap() {
+                        "maior" | "menor" => "que",
+                        "igual" => "a",
+                        _ => "de",
+                    };
+                    return err(Diagnostic::new(Category::Regency, format!("\"{}\" rege \"{need}\": \"{} {need}\".", rt.orig, rt.orig), rt.span));
+                }
+                _ => return Err(self.expected("a comparação (\"maior que\", \"menor que\", \"igual a\", \"diferente de\", \"pelo menos\", \"no máximo\")")),
+            };
+            self.bump();
+            let rhs = self.expr()?;
+            return Ok(Cond::Atom { negated, kind: CondKind::Rel { subject, rel, rhs }, span: start.to(self.prev_span()) });
+        }
+        if matches!(w.as_str(), "é" | "são" | "seja" | "sejam" | "fosse" | "fossem" | "está" | "estão") {
+            let right = morphology::future_subjunctive("ser", number);
+            return err(Diagnostic::new(
+                Category::Morphology,
+                format!("Em condição, o verbo vai no futuro do subjuntivo: \"{right}\", não \"{}\".", vt.orig),
+                vt.span,
+            ));
+        }
+        Err(self.expected("o verbo da condição no futuro do subjuntivo (\"for\", \"exceder\"...)"))
     }
 
     // ------------------------------------------------------------------ período
@@ -272,6 +421,25 @@ impl Parser {
                 }
                 ClauseKind::Write { parts: vec![value], newline }
             }
+            "leio" => {
+                self.bump();
+                if let Some(art) = self.peek().word().and_then(morphology::article).filter(|a| !a.definite) {
+                    let at = self.bump();
+                    let s0 = at.span;
+                    let ty = self.type_noun(art, at.span)?;
+                    ClauseKind::ReadValue { ty: TypeAnn { ty, span: s0.to(self.prev_span()) } }
+                } else {
+                    ClauseKind::ReadInto { place: self.place()? }
+                }
+            }
+            "paro" => {
+                self.bump();
+                ClauseKind::Break
+            }
+            "pulo" => {
+                self.bump();
+                ClauseKind::Continue
+            }
             _ if self.definite_article_at(0).is_some() || morphology::is_symbol(&w) => self.subject_clause()?,
             _ => return Err(self.unknown_verb(&t)),
         };
@@ -280,19 +448,23 @@ impl Parser {
 
     fn unknown_verb(&self, t: &Token) -> Box<Diagnostic> {
         let w = t.word().unwrap_or_default();
+        let third = morphology::conjugation::infinitive_from_third_person(w)
+            .iter()
+            .find_map(|inf| morphology::first_person(inf).filter(|f| Self::is_core_verb(f)));
+        if let Some(f) = third {
+            return Box::new(Diagnostic::new(
+                Category::Morphology,
+                format!("\"{}\" está na 3ª pessoa. Quando o programa age, narra em 1ª pessoa: \"{f}\".", t.orig),
+                t.span,
+            ));
+        }
         let d = Diagnostic::new(Category::Syntax, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span);
         let hint = match w {
-            "seja" | "sejam" => Some("A Lavra nova declara pelo sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).".to_string()),
+            "seja" | "sejam" => Some("Quem se declara é o sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).".to_string()),
             "guardo" => Some("Para mudar um valor, o dado é o sujeito: \"O saldo vira 10.\"".to_string()),
             "acrescento" => Some("Para somar ao valor, o dado é o sujeito: \"O saldo cresce 10.\"".to_string()),
             "subtraio" => Some("Para tirar do valor, o dado é o sujeito: \"O saldo diminui 10.\"".to_string()),
-            _ => {
-                let third = morphology::conjugation::infinitive_from_third_person(w);
-                third
-                    .iter()
-                    .find_map(|inf| morphology::first_person(inf).filter(|f| Self::is_core_verb(f)))
-                    .map(|f| format!("\"{}\" está na 3ª pessoa. Quando o programa age, narra em 1ª pessoa: \"{f}\".", t.orig))
-            }
+            _ => None,
         };
         Box::new(d.maybe_hint(hint))
     }
@@ -521,6 +693,11 @@ impl Parser {
                 e.span = t.span.to(close.span);
                 Ok(e)
             }
+            TokenKind::Word(w) if w == "o" && self.peek_at(1).is_word("resultado") && t.contraction.is_none_or(|c| c.part == 2) => {
+                self.bump();
+                let r = self.bump();
+                Ok(Expr { kind: ExprKind::Anaphora, span: t.span.to(r.span) })
+            }
             TokenKind::Word(w) if w == "verdadeiro" || w == "falso" => {
                 self.bump();
                 lit(ExprKind::Bool(w == "verdadeiro"))
@@ -544,6 +721,14 @@ fn subject_verb(w: &str) -> Option<(&'static str, Number)> {
         }
     }
     None
+}
+
+/// Número gramatical de uma expressão usada como sujeito.
+fn expr_number(e: &Expr) -> Number {
+    match &e.kind {
+        ExprKind::Place(p) => p.number(),
+        _ => Number::Singular,
+    }
 }
 
 pub fn describe_place(p: &Place) -> String {

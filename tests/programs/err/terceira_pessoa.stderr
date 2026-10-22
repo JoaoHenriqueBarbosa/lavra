@@ -1,0 +1,6 @@
+Erro de sintaxe: "Escreve" não é um verbo conhecido.
+ --> tests/programs/err/terceira_pessoa.lav:2:5
+  |
+2 |     Escreve "oi".
+  |     ^^^^^^^
+  = dica: "Escreve" está na 3ª pessoa. Quando o programa age, narra em 1ª pessoa: "escrevo".

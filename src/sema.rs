@@ -194,7 +194,8 @@ impl FnCx {
             let name = place_name(p);
             let be = morphology::third_person("ser", l.number).unwrap_or_default();
             let begin = morphology::third_person("começar", l.number).unwrap_or_default();
-            return err(Diagnostic::new(Category::Mutability, format!("{} {be} fixo por definição e não {verb}.", capitalize(&name)), p.span)
+            let fixed = morphology::inflect_adjective("fixo", Gender::Masculine, l.gender, l.number);
+            return err(Diagnostic::new(Category::Mutability, format!("{} {be} {fixed} por definição e não {verb}.", capitalize(&name)), p.span)
                 .label(l.decl_span, format!("definido com \"{be}\""))
                 .hint(format!("Quem varia se declara com \"{begin} em\": \"{} {begin} em ...\".", capitalize(&name))));
         }
@@ -257,7 +258,7 @@ impl FnCx {
     fn binary_type(&self, op: BinOp, l: &hir::Expr, r: &hir::Expr, span: Span) -> Result<Ty> {
         if op == BinOp::Add && (l.ty == Ty::Text || r.ty == Ty::Text) {
             return err(Diagnostic::new(Category::Type, "Texto não se soma: se junta.", span)
-                .hint("Para juntar textos, use \"seguido de\": \"Escrevo \\\"total: \\\" seguido do total.\""));
+                .hint("Para juntar textos, use \"seguido de\": Escrevo \"total: \" seguido do total."));
         }
         if !l.ty.is_numeric() || !r.ty.is_numeric() {
             let bad = if l.ty.is_numeric() { r } else { l };

@@ -16,6 +16,7 @@ pub enum Category {
     Mutability,
     Ownership,
     Borrow,
+    Runtime,
     Warning,
 }
 
@@ -32,6 +33,7 @@ impl Category {
             Category::Mutability => "Erro de mutabilidade",
             Category::Ownership => "Erro de posse",
             Category::Borrow => "Erro de empréstimo",
+            Category::Runtime => "Erro de execução",
             Category::Warning => "Aviso",
         }
     }

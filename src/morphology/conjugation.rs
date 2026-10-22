@@ -1,5 +1,5 @@
 //! Conjugação: 1ª pessoa do presente (executar), futuro do subjuntivo (condição) e
-//! 3ª pessoa do presente (dados-sujeito e dicas). Tabelas portadas do draft.
+//! 3ª pessoa do presente (dados-sujeito e dicas).
 
 use super::Number;
 

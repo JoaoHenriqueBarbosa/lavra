@@ -1,4 +1,4 @@
-//! Plural dos substantivos (portado do draft): liga "Para cada nota" a "as notas" e dá
+//! Plural dos substantivos: liga "Para cada nota" a "as notas" e dá
 //! o plural dos tipos definidos pelo usuário ("Uma data" → "datas").
 
 use super::{has_accent, strip_accents};

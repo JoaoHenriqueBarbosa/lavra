@@ -1,0 +1,13 @@
+Nota: declarações fixas e variáveis, e as mutações com o dado como sujeito.
+
+Para começar:
+    A taxa é 0,05.
+    O saldo, um real, começa em 1000.
+    O saldo cresce o saldo vezes a taxa.
+    O saldo diminui 30.
+    Escrevo "Saldo: " seguido do saldo.
+    O limite, um inteiro de 32 bits, é 100.
+    Escrevo o limite mais 1, e escrevo "fim".
+    A mensagem começa em "pendente".
+    A mensagem vira "pago".
+    Escrevo a mensagem.

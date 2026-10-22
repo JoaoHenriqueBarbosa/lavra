@@ -1,7 +1,7 @@
 //! Léxico: quebra o texto em palavras, números, textos e pontuação; calcula os recuos
 //! (INDENT/DEDENT); desfaz as contrações e junta as locuções.
 //!
-//! Regras herdadas do draft: comentário é a linha que começa com "Nota:" ou "--" (e
+//! Comentário é a linha que começa com "Nota:" ou "--" (e
 //! "--" no meio da linha corta o resto); a linha só termina o período se acabar em
 //! ".", ":" ou ";", senão continua na de baixo com recuo livre (enjambement).
 

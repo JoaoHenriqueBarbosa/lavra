@@ -1,0 +1,8 @@
+Erro de mutabilidade: A gravidade é fixa por definição e não vira.
+ --> tests/programs/err/mutabilidade.lav:3:5
+  |
+2 |     A gravidade é 9,81.
+  |     ----------- definido com "é"
+3 |     A gravidade vira 10.
+  |     ^^^^^^^^^^^
+  = dica: Quem varia se declara com "começa em": "A gravidade começa em ...".

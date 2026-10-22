@@ -1,0 +1,6 @@
+Aviso: O total começa com um valor e nunca muda.
+ --> tests/programs/ok/aviso_nunca_muda.lav:2:5
+  |
+2 |     O total começa em 3.
+  |     ^^^^^^^
+  = dica: Se é definição, escreva "O total é ...".

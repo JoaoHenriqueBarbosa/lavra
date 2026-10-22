@@ -1,0 +1,5 @@
+Erro de execução: Estouro: o resultado não cabe num byte (vai de 0 a 255).
+ --> tests/programs/err/estouro.lav:3:5
+  |
+3 |     O pequeno cresce 10.
+  |     ^^^^^^^^^^^^^^^^^^^

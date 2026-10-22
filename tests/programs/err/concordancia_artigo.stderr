@@ -1,0 +1,7 @@
+Erro de concordância: "o prova" não concorda: "prova" é feminino singular. Escreva "a prova".
+ --> tests/programs/err/concordancia_artigo.lav:3:5
+  |
+2 |     A prova começa em 8.
+  |     ------- declarado aqui
+3 |     O prova cresce 1.
+  |     ^^^^^^^

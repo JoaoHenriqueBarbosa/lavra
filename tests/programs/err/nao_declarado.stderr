@@ -1,0 +1,6 @@
+Erro de escopo: "o sado" não foi declarado.
+ --> tests/programs/err/nao_declarado.lav:3:5
+  |
+3 |     O sado cresce 1.
+  |     ^^^^^^
+  = dica: Quis dizer "saldo"?
