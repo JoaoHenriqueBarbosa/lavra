@@ -1,0 +1,26 @@
+Para começar:
+    Sejam as notas uma sequência de 5 reais, valendo 7, 8,5, 6, 9,25 e 10.
+    Seja a soma-total um real, valendo 0.
+    Para cada nota:
+        Acrescento a nota à soma-total.
+    Escrevo "Notas: " seguido das notas.
+    Escrevo "Primeira: " seguido da primeira das notas seguido de ", última: " seguido da última das notas.
+    Escrevo "Média: " seguido da soma-total dividido pelo tamanho das notas.
+    Para cada nota das notas:
+        Multiplico a nota por 2.
+    Escrevo "Dobradas: " seguido das notas.
+    Seja i um inteiro, valendo 0.
+    Enquanto i for menor que o tamanho das notas:
+        Se o item i das notas for maior que 15:
+            Escrevo "posição " seguido de i seguido de " passou de 15".
+        Acrescento 1 a i.
+    Seja o contador um byte, valendo 250.
+    Acrescento 10 ao contador.
+    Escrevo "byte 250 + 10 = " seguido do contador.
+    Seja o grande um inteiro de 32 bits, valendo 2147483647.
+    Acrescento 1 ao grande.
+    Escrevo "int32 máximo + 1 = " seguido do grande.
+    Escrevo "13 módulo 4 = " seguido de 13 módulo 4 seguido de "; deslocamento: " seguido do deslocamento de 1 por 10 à esquerda.
+    Escrevo "interseção de 12 e 10 = " seguido da interseção de 12 e 10.
+    Escrevo "raiz de 2 = " seguido da raiz de 2.
+    Escrevo "65 como caractere = " seguido de 65 como caractere.

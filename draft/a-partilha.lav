@@ -1,0 +1,106 @@
+Nota: A partilha.
+
+Uma pessoa é um registro de:
+    o nome, um texto;
+    a parte, um inteiro.
+
+Um terreno é um registro de:
+    a largura, um inteiro;
+    o comprimento, um inteiro.
+
+Seja a sobra um terreno.
+Seja o dia um inteiro, valendo 0.
+
+Para começar:
+    Escrevo "Chamaram-me para partir a terra de um morto.".
+
+    Seja a viúva uma pessoa.
+    Seja a herança um terreno.
+    Escrevo "Como se chama a viúva? " e leio o nome da viúva.
+    Escrevo "Quantas braças tem a terra de largura? " e leio a largura da herança.
+    Escrevo "E de comprimento? " e leio o comprimento da herança.
+
+    Se a herança for vazia:
+        Escrevo "Não há terra nenhuma. Volto para casa.".
+    Senão:
+        Guardo a herança na sobra.
+        Se o comprimento da sobra for menor que a largura da sobra: viro a sobra.
+        Enquanto a sobra não for quadrada:
+            Corto os quadrados.
+
+        Seja o lado um inteiro, valendo a largura da sobra.
+        Se o dia for igual a 0:
+            Escrevo "A terra já é um quadrado de "
+                seguido do resultado de flexionar o lado entre "braça" e "braças"
+                seguido de ". Não há o que cortar.".
+        Senão:
+            Escrevo "No " seguido do dia mais 1 seguido de "º dia, o que sobra é um quadrado de "
+                seguido do resultado de flexionar o lado entre "braça" e "braças"
+                seguido de ". É a medida do lote.".
+
+        Seja o loteamento um inteiro, valendo
+            (a largura da herança dividido pelo lado)
+            vezes (o comprimento da herança dividido pelo lado).
+        Escrevo "A terra dá " seguido do resultado de flexionar o loteamento entre "lote" e "lotes"
+            seguido de ".".
+
+        Seja a prole um inteiro.
+        Escrevo "Quantos são os herdeiros? " e leio a prole.
+        Guardo o loteamento na parte da viúva.
+
+        Se a prole for pelo menos 1:
+            Seja a descendência um endereço de pessoa.
+            Reservo a prole pessoas e guardo o resultado na descendência.
+            Para cada i de 0 até a prole menos 1:
+                Escrevo "Nome do " seguido de i mais 1 seguido de "º herdeiro: "
+                    e leio o nome do apontado pela descendência mais i.
+                Guardo o loteamento dividido pela prole
+                    na parte do apontado pela descendência mais i.
+                Subtraio a parte do apontado pela descendência mais i
+                    da parte da viúva.
+            Para cada i de 0 até a prole menos 1:
+                Escrevo o nome do apontado pela descendência mais i seguido de " recebe "
+                    seguido do resultado de flexionar a parte do apontado pela descendência mais i
+                        entre "lote" e "lotes"
+                    seguido de ".".
+            Libero a descendência.
+
+        Se a parte da viúva for igual a 0:
+            Escrevo o nome da viúva
+                seguido de " não fica com lote nenhum. Diz que a parte dela foi com ele.".
+        Senão:
+            Escrevo o nome da viúva seguido de " fica com "
+                seguido do resultado de flexionar a parte da viúva entre "lote" e "lotes"
+                seguido de ", o que não se deixou partir.".
+        Escrevo "Enrolo a corrente e volto para casa.".
+
+Para cortar os quadrados:
+    Acrescento 1 ao dia.
+    Seja a quantidade um inteiro, valendo
+        (o comprimento da sobra menos 1) dividido pela largura da sobra.
+    Subtraio a quantidade vezes a largura da sobra do comprimento da sobra.
+    Escrevo "No " seguido do dia seguido de "º dia, corto "
+        seguido do resultado de flexionar a quantidade entre "quadrado" e "quadrados"
+        seguido de " de " seguido do resultado de flexionar a largura da sobra entre "braça" e "braças"
+        seguido de " de lado.".
+    Se o comprimento da sobra for menor que a largura da sobra: viro a sobra.
+    Escrevo "    Sobra um terreno de " seguido da largura da sobra
+        seguido de " por " seguido do comprimento da sobra seguido de ".".
+
+Para virar a sobra:
+    Seja a medida um inteiro, valendo a largura da sobra.
+    Guardo o comprimento da sobra na largura da sobra.
+    Guardo a medida no comprimento da sobra.
+
+Para o terreno ser quadrado, sendo o terreno um terreno, devolvendo um lógico:
+    Devolvo o fato de a largura do terreno ser igual ao comprimento do terreno.
+
+Para o terreno ser vazio, sendo o terreno um terreno, devolvendo um lógico:
+    Se a largura do terreno for no máximo 0: devolvo verdadeiro.
+    Devolvo o fato de o comprimento do terreno ser no máximo 0.
+
+Para flexionar a quantidade entre o singular e o plural,
+        sendo a quantidade um inteiro e o singular e o plural textos,
+        devolvendo um texto:
+    Se a quantidade for igual a 1: devolvo "1 " mais o singular.
+    Devolvo a quantidade como texto mais " " mais o plural.

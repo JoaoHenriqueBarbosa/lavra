@@ -1,0 +1,104 @@
+Nota: teste amplo da linguagem.
+Um ponto é um registro de:
+    x, um real;
+    y, um real.
+
+Um aluno é um registro de:
+    o nome, um texto;
+    a idade, um byte;
+    as notas, uma sequência de 3 reais;
+    a matrícula, um natural de 32 bits.
+
+Seja o contador-global um inteiro, valendo 0.
+
+Para fatorar n, sendo n um natural, devolvendo um natural:
+    Acrescento 1 ao contador-global.
+    Se n for no máximo 1: devolvo 1.
+    Devolvo n vezes o resultado de fatorar n menos 1.
+
+Para fibonar n, sendo n um inteiro, devolvendo um inteiro:
+    Se n for menor que 2: devolvo n.
+    Devolvo a soma do resultado de fibonar n menos 1 e do resultado de fibonar n menos 2.
+
+Para medir a distância entre p e q, sendo p e q pontos, devolvendo um real:
+    Seja o dx um real, valendo a diferença do x de p e do x de q.
+    Seja o dy um real, valendo a diferença do y de p e do y de q.
+    Devolvo a raiz da soma do dx vezes o dx e do dy vezes o dy.
+
+Para apresentar o aluno, sendo o aluno um aluno:
+    Escrevo o nome do aluno seguido de " (" seguido da idade do aluno seguido de " anos)".
+    Escrevo "  notas: " seguido das notas do aluno.
+
+Para o número ser par, sendo o número um inteiro, devolvendo um lógico:
+    Devolvo o fato de o resto do número e 2 ser igual a 0.
+
+Para começar:
+    Escrevo "10! = " seguido do resultado de fatorar 10.
+    Escrevo "chamadas: " seguido do contador-global.
+    Escrevo "fib(20) = " seguido do resultado de fibonar 20.
+
+    Sejam a origem e o destino pontos.
+    Guardo 0 no x da origem e guardo 0 no y da origem.
+    Guardo 3 no x do destino e guardo 4 no y do destino.
+    Escrevo "distância: " seguido do resultado de medir a distância entre a origem e o destino.
+    Escrevo "pontos: " seguido da origem seguido de " → " seguido do destino.
+
+    Seja a ana um aluno.
+    Guardo "Ana Lúcia" no nome da ana.
+    Guardo 21 na idade da ana.
+    Guardo 9,5 na primeira das notas da ana.
+    Guardo 8 na segunda das notas da ana.
+    Guardo 7,25 na terceira das notas da ana.
+    Guardo 4000000000 na matrícula da ana.
+    Apresento a ana.
+    Seja a cópia um aluno, valendo a ana.
+    Guardo "Outra" no nome da cópia.
+    Escrevo "original: " seguido do nome da ana seguido de ", cópia: " seguido do nome da cópia.
+    Escrevo "registro inteiro: " seguido da ana.
+
+    Seja a soma-pares um inteiro, valendo 0.
+    Para cada i de 1 até 20:
+        Se i não for par: pulo.
+        Se i for maior que 14: paro.
+        Acrescento i à soma-pares.
+    Escrevo "pares até 14: " seguido da soma-pares.
+    Para cada i de 5 até 1:
+        Escrevo i seguido de " " e pulo.
+    Escrevo "".
+
+    Seja o pequeno um inteiro de 8 bits, valendo 127.
+    Acrescento 1 ao pequeno.
+    Escrevo "int8 127+1 = " seguido do pequeno.
+    Seja o meio um real de 32 bits, valendo 0,1.
+    Escrevo "real32 0,1 = " seguido do meio.
+    Escrevo "real64 0,1 mais 0,2 = " seguido de 0,1 mais 0,2.
+    Escrevo "-7 dividido por 2 = " seguido de -7 dividido por 2 seguido de "; resto: " seguido do resto de -7 e 2.
+    Escrevo "-16 deslocado 2 à direita = " seguido do deslocamento de -16 por 2 à direita.
+    Escrevo "união 5|2 = " seguido da união de 5 e 2 seguido de ", disjunção 7^2 = " seguido da disjunção de 7 e 2 seguido de ", inverso de 0 = " seguido do inverso de 0.
+    Escrevo "potência 2^62 = " seguido da potência de 2 e 62 seguido de ", 2^0,5 = " seguido da potência de 2 e 0,5.
+    Escrevo "\"42\" como inteiro mais 1 = " seguido de "42" como inteiro mais 1.
+    Escrevo "3,99 como inteiro = " seguido de 3,99 como inteiro seguido de "; 'A' como inteiro = " seguido de 'A' como inteiro.
+    Escrevo "texto: " mais 10 mais " e " mais 2,5 mais " e " mais verdadeiro.
+    Escrevo "tamanho de \"ação\": " seguido do tamanho de "ação".
+    Escrevo "\"abc\" menor que \"abd\": " seguido do fato de "abc" ser menor que "abd".
+    Seja o achado um lógico, valendo falso.
+    Se o achado for falso e 3 for maior que 2 ou 1 for igual a 5: escrevo "lógica ok".
+    Escrevo "negativo de 2,5 = " seguido do negativo de 2,5.
+
+    Seja o texto-lido um texto.
+    Escrevo "Seu nome: " e leio o texto-lido.
+    Escrevo "Olá, " seguido do texto-lido seguido de "!".
+    Leio um inteiro e acrescento o resultado ao contador-global.
+    Escrevo "contador: " seguido do contador-global.
+    Leio um caractere e escrevo "caractere lido: " seguido do resultado.
+    Leio um lógico e escrevo "lógico lido: " seguido do resultado.
+
+    Sejam os valores uma sequência de 4 inteiros de 16 bits, valendo 7.
+    Guardo 30000 no item 1 dos valores.
+    Acrescento 30000 ao item 1 dos valores.
+    Escrevo "16 bits: " seguido dos valores.
+    Seja o cursor um endereço de inteiro de 16 bits, valendo o endereço do primeiro dos valores.
+    Acrescento 2 ao cursor.
+    Guardo -1 no apontado pelo cursor.
+    Escrevo "pelo cursor: " seguido dos valores.
+    Escrevo "distância entre endereços: " seguido do cursor menos o endereço do primeiro dos valores.

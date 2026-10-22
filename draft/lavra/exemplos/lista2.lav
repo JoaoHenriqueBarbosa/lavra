@@ -1,0 +1,32 @@
+Um nó é um registro de:
+    o valor, um inteiro;
+    o próximo, um endereço de nó.
+
+Para empilhar o número sobre a lista, sendo o número um inteiro e a lista um endereço de nó, devolvendo um endereço de nó:
+    Seja o novo um endereço de nó.
+    Reservo um nó e guardo o resultado no novo.
+    Guardo o número no valor do apontado pelo novo.
+    Guardo a lista no próximo do apontado pelo novo.
+    Devolvo o novo.
+
+Para somar a lista, sendo a lista um endereço de nó, devolvendo um inteiro:
+    Seja o total um inteiro, valendo 0.
+    Seja o atual um endereço de nó, valendo a lista.
+    Enquanto o atual não for nada:
+        Acrescento o valor do apontado pelo atual ao total.
+        Guardo o próximo do apontado pelo atual no atual.
+    Devolvo o total.
+
+Para esvaziar a lista, sendo a lista um endereço de nó:
+    Seja o atual um endereço de nó, valendo a lista.
+    Enquanto o atual não for nada:
+        Seja o seguinte um endereço de nó, valendo o próximo do apontado pelo atual.
+        Libero o atual.
+        Guardo o seguinte no atual.
+
+Para começar:
+    Seja a pilha um endereço de nó, valendo nada.
+    Para cada i de 1 até 10:
+        Guardo o resultado de empilhar i vezes i sobre a pilha na pilha.
+    Escrevo "Soma dos quadrados de 1 a 10: " seguido do resultado de somar a pilha.
+    Esvazio a pilha.

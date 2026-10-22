@@ -1,0 +1,117 @@
+Nota: Primeira Catilinária.
+
+Um orador é um registro de:
+    o nome, um texto;
+    o cognome, um texto;
+    a origem, um texto;
+    a credibilidade, um inteiro.
+
+Uma assembleia é um registro de:
+    a paciência, um inteiro;
+    o juízo, um caractere.
+
+Sejam o cônsul e o réu oradores.
+Seja o senado uma assembleia.
+
+Para começar:
+    Guardo "Marco Túlio Cícero" no nome do cônsul,
+        guardo "Cícero" no cognome do cônsul
+        e guardo "Arpino" na origem do cônsul.
+    Guardo "Lúcio Sérgio Catilina" no nome do réu,
+        guardo "Catilina" no cognome do réu
+        e guardo "Roma" na origem do réu.
+    Guardo 0 na credibilidade do cônsul e guardo 0 na credibilidade do réu.
+    Guardo 3 na paciência do senado.
+
+    Sejam as acusações uma sequência de 4 textos, valendo
+        "Até quando, Catilina, abusarás da nossa paciência? "
+            mais "Por quanto tempo ainda esse teu furor vai zombar de nós?",
+        "Ó tempos, ó costumes! O senado sabe disto, o cônsul vê, e este homem ainda vive.",
+        "Digo que na noite anterior foste à rua dos Foiceiros, à casa de Marco Leca, "
+            mais "e lá repartiste a Itália entre os teus."
+        e "Naquela mesma noite, dois cavaleiros romanos prometeram matar-me na minha cama, "
+            mais "pouco antes do amanhecer.".
+
+    Sejam as defesas uma sequência de 4 textos, valendo
+        "Pais conscritos, não acrediteis às pressas em nada que se diga de mim.",
+        "Nasci de tal família, e vivi desde a juventude de tal modo, que só tenho o bem a esperar.",
+        "Eu e os meus antepassados fizemos muito bem à plebe romana."
+        e "E quereis crer que eu, um patrício, preciso da ruína da república, "
+            mais "enquanto quem a salva é Marco Túlio, um inquilino de Roma vindo de "
+            mais a origem do cônsul mais "?".
+
+    Escrevo "Templo de Júpiter Estator, 8 de novembro de 63 a.C.".
+    Escrevo "Catilina entra. Os bancos ao redor dele se esvaziam.".
+    Escrevo "".
+
+    Seja n um inteiro, valendo 0.
+    Enquanto o senado for paciente e n for menor que 4:
+        Acuso o réu com o item n das acusações.
+        Respondo ao cônsul com o item n das defesas.
+        Consulto os senadores.
+        Acrescento 1 a n.
+
+    Se o senado não for paciente:
+        Abro as portas.
+        Escrevo "Os senadores gritam: inimigo! parricida!".
+        Escrevo "".
+        Ameaço a cidade e deixo a cidade.
+    Senão:
+        Retiro a acusação e permaneço.
+
+    Escrevo "".
+    Escrevo "O senado acreditou em " seguido do cognome do cônsul seguido de " "
+        seguido do resultado de flexionar a credibilidade do cônsul entre "vez" e "vezes"
+        seguido de ", e em " seguido do cognome do réu seguido de " "
+        seguido do resultado de flexionar a credibilidade do réu entre "vez" e "vezes"
+        seguido de ".".
+
+Para acusar o réu com a acusação, sendo o réu um orador e a acusação um texto:
+    Escrevo o cognome do cônsul seguido de ", de pé, voltado para "
+        seguido do cognome do réu seguido de ":".
+    Escrevo "    " seguido da acusação.
+
+Para responder ao cônsul com a defesa, sendo o cônsul um orador e a defesa um texto:
+    Escrevo o cognome do réu seguido de ", de olhos baixos, responde a "
+        seguido do cognome do cônsul seguido de ":".
+    Escrevo "    " seguido da defesa.
+
+Para consultar os senadores:
+    Escrevo "    Pais conscritos, credes no cônsul? (s/n) " e leio o juízo do senado.
+    Se o juízo do senado for igual a 's':
+        Subtraio 1 da paciência do senado
+            e acrescento 1 à credibilidade do cônsul.
+    Senão:
+        Acrescento 1 à credibilidade do réu.
+    Escrevo "".
+
+Para a assembleia ser paciente, sendo a assembleia uma assembleia, devolvendo um lógico:
+    Devolvo o fato de a paciência da assembleia ser maior que 0.
+
+Para abrir as portas:
+    Escrevo o cognome do cônsul seguido de ", apontando a saída:".
+    Escrevo "    O acampamento de Mânlio sente falta do seu general há tempo demais. "
+        mais "Sai da cidade, Catilina. As portas estão abertas: parte.".
+
+Para ameaçar a cidade:
+    Escrevo o cognome do réu seguido de ", furioso, já de saída:".
+    Escrevo "    Já que, cercado de inimigos, sou lançado ao abismo, "
+        mais "apagarei o meu incêndio com a ruína.".
+
+Para deixar a cidade:
+    Escrevo "Naquela noite, " seguido do nome do réu
+        seguido de " sai de Roma rumo ao acampamento de Mânlio.".
+
+Para retirar a acusação:
+    Escrevo o cognome do cônsul seguido de ", depois de um silêncio:".
+    Escrevo "    Retiro o que disse. Que o senado julgue em outro dia.".
+
+Para permanecer:
+    Escrevo o cognome do réu seguido de " volta a sentar-se. "
+        seguido de "Os bancos ao redor dele tornam a se encher.".
+
+Para flexionar a quantidade entre o singular e o plural,
+        sendo a quantidade um inteiro e o singular e o plural textos,
+        devolvendo um texto:
+    Se a quantidade for igual a 1: devolvo "1 " mais o singular.
+    Devolvo a quantidade como texto mais " " mais o plural.

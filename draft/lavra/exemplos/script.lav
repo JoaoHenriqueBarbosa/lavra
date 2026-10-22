@@ -1,0 +1,13 @@
+Seja o total um inteiro, valendo 0.
+Repito 5 vezes:
+    Acrescento 2 ao total.
+Escrevo "total: " seguido do total.
+Seja n um inteiro, valendo 10.
+Enquanto n for maior que 0:
+    Subtraio 3 de n.
+Escrevo "n: " seguido de n.
+Sejam as letras uma sequência de 3 caracteres, valendo 'a', 'b' e 'ç'.
+Para cada letra:
+    Escrevo a letra seguido de "-" e pulo.
+Escrevo "".
+Escrevo as letras.

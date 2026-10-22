@@ -1,0 +1,66 @@
+Nota: Lavra dos dias.
+
+Uma data é um registro de:
+    o dia, um inteiro;
+    o mês, um inteiro;
+    o ano, um inteiro.
+
+Sejam os dias uma sequência de 7 textos, valendo
+    "numa terça-feira",
+    "numa quarta-feira",
+    "numa quinta-feira",
+    "numa sexta-feira",
+    "num sábado",
+    "num domingo"
+    e "numa segunda-feira".
+
+Para começar:
+    Sejam o nascimento e o agora datas.
+
+    Escrevo "Quando nasceste?" e pergunto pelo endereço do nascimento.
+    Escrevo "E hoje, que dia é?" e pergunto pelo endereço do agora.
+
+    Seja o vivido um inteiro, valendo a diferença
+        do resultado de contar os dias até o agora
+        e do resultado de contar os dias até o nascimento.
+
+    Se o vivido for menor que 0:
+        Escrevo "Ainda não nasceste. Volta depois.".
+    Senão:
+        Seja n um inteiro, valendo o resto
+            do resultado de contar os dias até o nascimento
+            e 7.
+        Escrevo "Nasceste " seguido do item n dos dias seguido de ".".
+        Escrevo "Desde então, " seguido do vivido seguido de " dias.".
+
+        Se o nascimento rimar com o agora:
+            Escrevo "E hoje o teu dia volta: parabéns.".
+
+        Seja a espera um inteiro, valendo 1000 menos o resto do vivido e 1000.
+        Se a espera for igual a 1000:
+            Escrevo "Hoje completas " seguido do vivido dividido por 1000 seguido de " mil.".
+        Senão:
+            Escrevo "Daqui a " seguido da espera seguido de ", completas "
+                seguido do vivido dividido por 1000 mais 1 seguido de " mil.".
+
+Para perguntar pela data, sendo a data um endereço de data:
+    Escrevo "    o dia: " e leio o dia do apontado pela data.
+    Escrevo "    o mês: " e leio o mês do apontado pela data.
+    Escrevo "    o ano: " e leio o ano do apontado pela data.
+
+Para a data rimar com a outra, sendo ambas datas, devolvendo um lógico:
+    Se o dia da data for diferente do dia da outra: devolvo falso.
+    Devolvo o fato de o mês da data ser igual ao mês da outra.
+
+Para contar os dias até a data, sendo a data uma data, devolvendo um inteiro:
+    Seja o tempo um inteiro, valendo o ano da data.
+    Seja a lua um inteiro, valendo o mês da data.
+    Se a lua for menor que 3:
+        Subtraio 1 do tempo e acrescento 12 à lua.
+    Subtraio 3 da lua.
+    Devolvo o tempo vezes 365
+        mais o tempo dividido por 4
+        menos o tempo dividido por 100
+        mais o tempo dividido por 400
+        mais (a lua vezes 153 mais 2) dividido por 5
+        mais o dia da data.
