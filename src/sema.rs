@@ -238,7 +238,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
             Some(s) => self.env.sig_types[s].ret.clone(),
             None => Ty::Unit,
         };
-        Ok(hir::Func { name, params, locals: self.locals.into_iter().map(|l| l.local).collect(), body, ret, span })
+        let fallible = self.sig.is_some_and(|s| self.env.prog.sigs[s].fallible);
+        Ok(hir::Func { name, params, fallible, locals: self.locals.into_iter().map(|l| l.local).collect(), body, ret, span })
     }
 
     fn fresh(&mut self, span: Span) -> Ty {
@@ -882,7 +883,10 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ExprKind::Int(v) => {
                 let ty = match expected {
                     Some(Ty::Int(i)) => Ty::Int(*i),
-                    Some(Ty::Real(b)) => return Ok(hir::Expr { kind: hir::ExprKind::Real(*v as f64), ty: Ty::Real(*b), span: e.span }),
+                    Some(Ty::Real(b)) => {
+                        let r = if *b == 32 { *v as f32 as f64 } else { *v as f64 };
+                        return Ok(hir::Expr { kind: hir::ExprKind::Real(r), ty: Ty::Real(*b), span: e.span });
+                    }
                     _ => Ty::Int(IntTy::I64),
                 };
                 if let Ty::Int(i) = ty
@@ -892,13 +896,15 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 }
                 (hir::ExprKind::Int(*v), ty)
             }
-            ExprKind::Real(v) => (
-                hir::ExprKind::Real(*v),
-                Ty::Real(match expected {
+            ExprKind::Real(v) => {
+                let bits = match expected {
                     Some(Ty::Real(b)) => *b,
                     _ => 64,
-                }),
-            ),
+                };
+                // Real de 32 bits guarda o valor arredondado a 32 bits.
+                let v = if bits == 32 { *v as f32 as f64 } else { *v };
+                (hir::ExprKind::Real(v), Ty::Real(bits))
+            }
             ExprKind::Text(s) => (hir::ExprKind::Text(s.clone()), Ty::Text),
             ExprKind::Char(c) => (hir::ExprKind::Char(*c), Ty::Char),
             ExprKind::Bool(b) => (hir::ExprKind::Bool(*b), Ty::Bool),

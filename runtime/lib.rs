@@ -113,6 +113,8 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
     unsafe {
         ECHO = std::env::var_os("LAVRA_ECO").is_some();
         lavra_init();
+        // "Para começar" conta como a primeira chamada, como no interpretador.
+        rt_enter(0, 0);
         let f = lavra_main();
         if !f.is_null() {
             let f = Box::from_raw(f);

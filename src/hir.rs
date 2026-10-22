@@ -32,6 +32,8 @@ pub struct Func {
     pub locals: Vec<Local>,
     pub body: Block,
     pub ret: Ty,
+    /// "salvo uma falha": devolve, além do valor, a falha (ou nada).
+    pub fallible: bool,
     pub span: Span,
 }
 

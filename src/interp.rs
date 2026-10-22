@@ -539,7 +539,7 @@ fn wrap(x: i128, it: IntTy) -> i128 {
 pub fn parse_input(line: &str, ty: &Ty) -> Option<Value> {
     match ty {
         Ty::Int(it) => textfmt::parse_int(line, it.bits, it.signed).map(Value::Int),
-        Ty::Real(_) => textfmt::parse_real(line).map(Value::Real),
+        Ty::Real(bits) => textfmt::parse_real(line).map(|v| Value::Real(if *bits == 32 { v as f32 as f64 } else { v })),
         Ty::Bool => textfmt::parse_bool(line).map(Value::Bool),
         Ty::Char => textfmt::parse_char(line).map(Value::Char),
         Ty::Text => Some(Value::Text(line.to_string())),
