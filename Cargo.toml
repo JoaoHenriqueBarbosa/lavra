@@ -2,8 +2,16 @@
 name = "lavrac"
 version = "0.1.0"
 edition = "2024"
-description = "Compilador da Lavra: um Rust com gramática e morfologia, escrito em português."
+rust-version = "1.97"
+description = "Compilador da Lavra, a linguagem compilada em que cada instrução é uma oração em português."
 license = "MIT"
+repository = "https://github.com/JoaoHenriqueBarbosa/lavra"
+homepage = "https://github.com/JoaoHenriqueBarbosa/lavra"
+readme = "README.md"
+authors = ["João Henrique Barbosa <joaohenriquebarbosa21@gmail.com>"]
+keywords = ["compiler", "programming-language", "portuguese", "interpreter", "language-server"]
+categories = ["compilers", "command-line-utilities", "development-tools"]
+exclude = [".github/", "editors/", "notes/", "tools/", "release-plz.toml", "CLAUDE.md"]
 default-run = "lavrac"
 build = "build.rs"
 

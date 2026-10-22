@@ -1,0 +1,126 @@
+name: Release
+
+# Os binários estáticos do lavrac (musl, x86_64 e aarch64), que rodam em qualquer Linux sem
+# instalar nada, e a extensão do VS Code de cada plataforma com o lavrac dentro, anexados à
+# release da tag.
+#
+# A release que o release-plz cria usa o GITHUB_TOKEN, que não dispara outros workflows: por
+# isso este é chamado por ele (workflow_call). Também roda à mão para uma tag
+# (workflow_dispatch) e quando alguém envia uma tag v*.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: A tag da release (por exemplo, v0.1.0)
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: A tag da release (por exemplo, v0.1.0)
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TAG }}
+      - name: A release existe, com as notas do CHANGELOG
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "A release $TAG já existe."
+            exit 0
+          fi
+          version="${TAG#v}"
+          awk -v v="$version" 'index($0, "## [" v "]") == 1 { on = 1; next } on && /^## \[/ { exit } on' CHANGELOG.md > notes.md
+          gh release create "$TAG" --verify-tag --title "Lavra $TAG" --notes-file notes.md
+
+  binaries:
+    name: lavrac ${{ matrix.target }}
+    needs: release
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TAG }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      # O compilador cruzado no próprio runner (sem o contêiner do cross): o build.rs compila o
+      # runtime com o rustc do alvo e lê o commit com o git.
+      - uses: taiki-e/setup-cross-toolchain-action@v1
+        with:
+          target: ${{ matrix.target }}
+          runner: none
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: lavrac
+          target: ${{ matrix.target }}
+          archive: lavrac-$tag-$target
+          ref: refs/tags/${{ env.TAG }}
+          checksum: sha256
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  vscode:
+    name: VS Code ${{ matrix.platform }}
+    needs: binaries
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            platform: linux-x64
+          - target: aarch64-unknown-linux-musl
+            platform: linux-arm64
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - name: O lavrac da plataforma dentro da extensão
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$TAG" -p "lavrac-$TAG-${{ matrix.target }}.tar.gz" -D /tmp/lavrac
+          mkdir -p editors/vscode/server
+          tar xzf /tmp/lavrac/lavrac-*.tar.gz -C editors/vscode/server
+          test -x editors/vscode/server/lavrac
+      - name: Empacota e anexa à release
+        working-directory: editors/vscode
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm ci
+          npm run build:grammar
+          npm run compile
+          version="$(node -p "require('./package.json').version")"
+          file="lavra-vscode-$version-${{ matrix.platform }}.vsix"
+          npx vsce package --target ${{ matrix.platform }} --out "$file"
+          gh release upload "$TAG" "$file" --clobber

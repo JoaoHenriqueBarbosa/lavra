@@ -1,0 +1,25 @@
+[workspace]
+# Só publica quando o PR de release que o release-plz abre é aceito: cortar uma versão é
+# decisão de quem mantém o projeto.
+release_always = false
+features_always_increment_minor = true
+semver_check = true
+publish_timeout = "10m"
+pr_labels = ["release"]
+
+[changelog]
+header = """# Mudanças
+
+As versões da Lavra, a mais nova primeiro.
+"""
+commit_parsers = [
+    { message = "^feat", group = "Novidades" },
+    { message = "^fix", group = "Correções" },
+    { message = "^perf", group = "Desempenho" },
+    { message = "^refactor", group = "Reorganização" },
+    { message = "^docs\\(journal\\)", skip = true },
+    { message = "^docs", group = "Documentação" },
+    { message = "^test", group = "Testes" },
+    { message = "^(ci|build|chore)", skip = true },
+    { message = ".*", group = "Outras mudanças" },
+]

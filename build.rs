@@ -16,7 +16,11 @@ fn main() {
     }
     let out = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("liblavra_rt.a");
     let rustc = std::env::var("RUSTC").unwrap_or_else(|_| "rustc".into());
+    // O runtime vai para a máquina em que o lavrac vai rodar (o alvo da compilação), que é
+    // a mesma para a qual ele gera código; compilando para outra arquitetura, não é a daqui.
+    let target = std::env::var("TARGET").unwrap();
     let status = Command::new(rustc)
+        .args(["--target", &target])
         .args([
             "--edition",
             "2024",
