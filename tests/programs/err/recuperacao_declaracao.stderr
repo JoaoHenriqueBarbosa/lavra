@@ -1,0 +1,6 @@
+Erro de tipo [L0168]: Tipo desconhecido: "rael".
+ --> tests/programs/err/recuperacao_declaracao.lav:4:16
+  |
+4 |     A taxa, um rael, é 0,05.
+  |                ^^^^
+  = dica: Tipos: inteiro, natural, real, byte, lógico, caractere, texto, lista de ..., ou um registro definido com "Uma conta é um registro de:".

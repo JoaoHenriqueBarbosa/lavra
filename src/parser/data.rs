@@ -20,7 +20,10 @@ impl Parser {
 
     /// Pré-varredura dos registros: primeiro os nomes (um registro pode citar outro
     /// definido depois), depois os campos.
-    pub(super) fn prescan_records(&mut self) -> Result<()> {
+    /// Pré-varredura dos registros e enumerações, antes dos cabeçalhos e dos corpos.
+    /// Uma definição com erro é relatada, fica com o que se leu até ali (marcada como
+    /// quebrada) e é pulada inteira; as outras seguem.
+    pub(super) fn prescan_records(&mut self) {
         let mut starts = Vec::new();
         let mut enum_starts = Vec::new();
         let mut depth = 0usize;
@@ -50,120 +53,134 @@ impl Parser {
             at_start = matches!(t.kind, TokenKind::Newline | TokenKind::Dedent | TokenKind::Indent);
         }
         // Nomes das enumerações antes dos campos de qualquer registro.
-        for &k in &enum_starts {
-            let art_tok = self.toks[k].clone();
-            let name_tok = self.toks[k + 1].clone();
-            let art = morphology::article(art_tok.word().unwrap()).unwrap();
-            let Some(name) = name_tok.word().map(str::to_string) else {
-                return err(Diagnostic::new(L0200, "Esperava o nome do tipo.", name_tok.span));
-            };
-            if art.number != Number::Singular {
-                return err(Diagnostic::new(L0201, "Um tipo se define no singular: \"Uma forma é uma destas:\".", art_tok.span));
-            }
-            if self.vocab.records.contains_key(&name) || self.vocab.enums.contains_key(&name) {
-                return err(Diagnostic::new(L0202, format!("O tipo \"{name}\" já foi definido."), name_tok.span));
-            }
-            let id = self.prog.enums.len();
-            let plural = morphology::pluralize(&name);
-            self.vocab.enums.insert(name.clone(), id);
-            self.vocab.enum_plurals.insert(plural.clone(), id);
-            self.prog.enums.push(EnumDef {
-                word: name,
-                plural,
-                gender: art.gender,
-                span: art_tok.span.to(name_tok.span),
-                variants: Vec::new(),
-            });
-        }
-        for &k in &starts {
-            let art_tok = self.toks[k].clone();
-            let name_tok = self.toks[k + 1].clone();
-            let art = morphology::article(art_tok.word().unwrap()).unwrap();
-            let Some(name) = name_tok.word().map(str::to_string) else {
-                return err(Diagnostic::new(L0200, "Esperava o nome do registro.", name_tok.span));
-            };
-            if art.number != Number::Singular {
-                return err(Diagnostic::new(
-                    L0201,
-                    "Um tipo de registro se define no singular: \"Uma conta é um registro de:\".",
-                    art_tok.span,
-                ));
-            }
-            if self.vocab.records.contains_key(&name) {
-                return err(Diagnostic::new(L0202, format!("O registro \"{name}\" já foi definido."), name_tok.span));
-            }
-            let id = self.prog.records.len();
-            let plural = morphology::pluralize(&name);
-            self.vocab.records.insert(name.clone(), id);
-            self.vocab.record_plurals.insert(plural.clone(), id);
-            self.prog.records.push(RecordDef {
-                word: name,
-                plural,
-                gender: art.gender,
-                span: art_tok.span.to(name_tok.span),
-                fields: Vec::new(),
-            });
-        }
-        for &k in &starts {
-            self.pos = k + 2;
+        let enum_starts: Vec<usize> = enum_starts.into_iter().filter(|&k| self.define_type(k, true)).collect();
+        let starts: Vec<usize> = starts.into_iter().filter(|&k| self.define_type(k, false)).collect();
+        for k in starts {
             let id = self.vocab.records[self.toks[k + 1].word().unwrap()];
-            self.expect_word("é")?;
-            let um = self.bump();
-            if !um.is_word("um") {
-                return err(Diagnostic::new(L0203, "\"registro\" é masculino: \"é um registro de\".", um.span));
+            if let Err(d) = self.record_body(k, id) {
+                self.give_up_definition(k, d);
+                self.prog.records[id].broken = true;
             }
-            self.expect_word("registro")?;
-            self.expect_word("de")?;
-            self.expect_punct(':', "os dois-pontos")?;
-            self.skip_newlines();
-            if !matches!(self.peek().kind, TokenKind::Indent) {
-                return Err(self.expected("os campos recuados na linha de baixo"));
-            }
-            self.bump();
-            let mut fields: Vec<FieldDef> = Vec::new();
-            loop {
-                let name = self.name_ref()?;
-                if fields.iter().any(|f| f.name.word == name.word) {
-                    return err(Diagnostic::new(L0204, format!("O campo \"{}\" aparece duas vezes.", name.word), name.span));
-                }
-                if is_nominal_word(&name.word) || name.word == "item" {
-                    return err(Diagnostic::new(
-                        L0205,
-                        format!("\"{}\" é nome de operação da língua e não serve de campo.", name.word),
-                        name.span,
-                    ));
-                }
-                self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
-                let ann = self.aposto()?;
-                self.vocab.field_names.insert(name.word.clone());
-                fields.push(FieldDef { name, ty: ann });
-                if self.eat_punct(';') {
-                    self.skip_newlines();
-                    continue;
-                }
-                self.expect_punct('.', "o ponto final depois do último campo (ou ponto e vírgula entre campos)")?;
-                break;
-            }
-            self.skip_newlines();
-            if !matches!(self.peek().kind, TokenKind::Dedent | TokenKind::Eof) {
-                return Err(self.expected("o fim do registro"));
-            }
-            if matches!(self.peek().kind, TokenKind::Dedent) {
-                self.bump();
-            }
-            self.prog.records[id].fields = fields;
-            self.skip_spans.insert(k, self.pos);
         }
-        for &k in &enum_starts {
-            self.enum_body(k)?;
+        for k in enum_starts {
+            let id = self.vocab.enums[self.toks[k + 1].word().unwrap()];
+            if let Err(d) = self.enum_body(k, id) {
+                self.give_up_definition(k, d);
+                self.prog.enums[id].broken = true;
+            }
         }
         self.pos = 0;
+    }
+
+    /// Registra o nome do tipo que começa em `k`. Com erro, relata, pula a definição e
+    /// devolve falso.
+    fn define_type(&mut self, k: usize, is_enum: bool) -> bool {
+        let art_tok = self.toks[k].clone();
+        let name_tok = self.toks[k + 1].clone();
+        let art = morphology::article(art_tok.word().unwrap()).unwrap();
+        let checked = (|| {
+            let Some(name) = name_tok.word().map(str::to_string) else {
+                let what = if is_enum { "Esperava o nome do tipo." } else { "Esperava o nome do registro." };
+                return err(Diagnostic::new(L0200, what, name_tok.span));
+            };
+            if art.number != Number::Singular {
+                let what = if is_enum {
+                    "Um tipo se define no singular: \"Uma forma é uma destas:\"."
+                } else {
+                    "Um tipo de registro se define no singular: \"Uma conta é um registro de:\"."
+                };
+                return err(Diagnostic::new(L0201, what, art_tok.span));
+            }
+            if is_enum && (self.vocab.records.contains_key(&name) || self.vocab.enums.contains_key(&name)) {
+                return err(Diagnostic::new(L0202, format!("O tipo \"{name}\" já foi definido."), name_tok.span));
+            }
+            if !is_enum && self.vocab.records.contains_key(&name) {
+                return err(Diagnostic::new(L0202, format!("O registro \"{name}\" já foi definido."), name_tok.span));
+            }
+            Ok(name)
+        })();
+        let name = match checked {
+            Ok(name) => name,
+            Err(d) => {
+                self.give_up_definition(k, d);
+                return false;
+            }
+        };
+        let plural = morphology::pluralize(&name);
+        let span = art_tok.span.to(name_tok.span);
+        if is_enum {
+            let id = self.prog.enums.len();
+            self.vocab.enums.insert(name.clone(), id);
+            self.vocab.enum_plurals.insert(plural.clone(), id);
+            self.prog.enums.push(EnumDef { word: name, plural, gender: art.gender, span, variants: Vec::new(), broken: false });
+        } else {
+            let id = self.prog.records.len();
+            self.vocab.records.insert(name.clone(), id);
+            self.vocab.record_plurals.insert(plural.clone(), id);
+            self.prog.records.push(RecordDef { word: name, plural, gender: art.gender, span, fields: Vec::new(), broken: false });
+        }
+        true
+    }
+
+    /// Relata o erro de uma definição e pula até o fim dela.
+    fn give_up_definition(&mut self, k: usize, d: Box<Diagnostic>) {
+        let end = self.definition_end(k);
+        self.report_in(k, end, d);
+        self.skip_spans.insert(k, end);
+    }
+
+    /// "Uma conta é um registro de:" seguido dos campos recuados.
+    fn record_body(&mut self, k: usize, id: usize) -> Result<()> {
+        self.pos = k + 2;
+        self.expect_word("é")?;
+        let um = self.bump();
+        if !um.is_word("um") {
+            return err(Diagnostic::new(L0203, "\"registro\" é masculino: \"é um registro de\".", um.span));
+        }
+        self.expect_word("registro")?;
+        self.expect_word("de")?;
+        self.expect_punct(':', "os dois-pontos")?;
+        self.skip_newlines();
+        if !matches!(self.peek().kind, TokenKind::Indent) {
+            return Err(self.expected("os campos recuados na linha de baixo"));
+        }
+        self.bump();
+        loop {
+            let name = self.name_ref()?;
+            if self.prog.records[id].fields.iter().any(|f| f.name.word == name.word) {
+                return err(Diagnostic::new(L0204, format!("O campo \"{}\" aparece duas vezes.", name.word), name.span));
+            }
+            if is_nominal_word(&name.word) || name.word == "item" {
+                return err(Diagnostic::new(
+                    L0205,
+                    format!("\"{}\" é nome de operação da língua e não serve de campo.", name.word),
+                    name.span,
+                ));
+            }
+            self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
+            let ann = self.aposto()?;
+            self.vocab.field_names.insert(name.word.clone());
+            self.prog.records[id].fields.push(FieldDef { name, ty: ann });
+            if self.eat_punct(';') {
+                self.skip_newlines();
+                continue;
+            }
+            self.expect_punct('.', "o ponto final depois do último campo (ou ponto e vírgula entre campos)")?;
+            break;
+        }
+        self.skip_newlines();
+        if !matches!(self.peek().kind, TokenKind::Dedent | TokenKind::Eof) {
+            return Err(self.expected("o fim do registro"));
+        }
+        if matches!(self.peek().kind, TokenKind::Dedent) {
+            self.bump();
+        }
+        self.skip_spans.insert(k, self.pos);
         Ok(())
     }
 
     /// "Uma forma é uma destas: um círculo, com o raio, um real; ...; um ponto."
-    fn enum_body(&mut self, k: usize) -> Result<()> {
-        let id = self.vocab.enums[self.toks[k + 1].word().unwrap()];
+    fn enum_body(&mut self, k: usize, id: usize) -> Result<()> {
         let gender = self.prog.enums[id].gender;
         self.pos = k + 2;
         self.expect_word("é")?;
@@ -186,7 +203,6 @@ impl Parser {
             return Err(self.expected("as formas recuadas na linha de baixo"));
         }
         self.bump();
-        let mut variants: Vec<VariantDef> = Vec::new();
         loop {
             let at = self.bump();
             let Some(a) = at.word().and_then(morphology::article).filter(|a| !a.definite && a.number == Number::Singular) else {
@@ -203,7 +219,9 @@ impl Parser {
             if self.vocab.variants.contains_key(&word) || self.vocab.records.contains_key(&word) || self.vocab.enums.contains_key(&word) {
                 return err(Diagnostic::new(L0209, format!("\"{word}\" já é nome de outro tipo ou caso."), wt.span));
             }
-            let mut fields: Vec<FieldDef> = Vec::new();
+            let position = self.prog.enums[id].variants.len();
+            self.vocab.variants.insert(word.clone(), (id, position));
+            self.prog.enums[id].variants.push(VariantDef { word, gender: a.gender, span: at.span.to(wt.span), fields: Vec::new() });
             if self.at_punct(',') && self.peek_at(1).is_word("com") {
                 self.bump();
                 self.bump();
@@ -212,13 +230,14 @@ impl Parser {
                     if name.is_symbol() {
                         return err(Diagnostic::new(L0210, "Campo leva nome com artigo (\"o raio\").", name.span));
                     }
+                    let fields = &self.prog.enums[id].variants[position].fields;
                     if fields.iter().any(|f| f.name.word == name.word) {
                         return err(Diagnostic::new(L0204, format!("O campo \"{}\" aparece duas vezes.", name.word), name.span));
                     }
                     self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
                     let ann = self.aposto()?;
                     self.vocab.field_names.insert(name.word.clone());
-                    fields.push(FieldDef { name, ty: ann });
+                    self.prog.enums[id].variants[position].fields.push(FieldDef { name, ty: ann });
                     if self.at_punct(',') && self.peek_at(1).is_word("e") {
                         self.bump();
                         self.bump();
@@ -231,8 +250,6 @@ impl Parser {
                     break;
                 }
             }
-            self.vocab.variants.insert(word.clone(), (id, variants.len()));
-            variants.push(VariantDef { word, gender: a.gender, span: at.span.to(wt.span), fields });
             if self.eat_punct(';') {
                 self.skip_newlines();
                 continue;
@@ -244,7 +261,6 @@ impl Parser {
         if matches!(self.peek().kind, TokenKind::Dedent) {
             self.bump();
         }
-        self.prog.enums[id].variants = variants;
         self.skip_spans.insert(k, self.pos);
         Ok(())
     }

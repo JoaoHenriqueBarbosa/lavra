@@ -1,0 +1,12 @@
+Erro léxico [L0001]: O sinal "+" não faz parte da Lavra.
+ --> tests/programs/err/recuperacao_sinal.lav:4:17
+  |
+4 |     O total é 1 + 2.
+  |                 ^
+  = dica: Operações se escrevem por extenso: "mais", "menos", "vezes", "dividido por", "módulo".
+Erro de escopo [L0334]: "o saldo" não foi declarado.
+ --> tests/programs/err/recuperacao_sinal.lav:6:13
+  |
+6 |     Escrevo o saldo.
+  |             ^^^^^^^
+  = dica: Declare antes de usar: "O saldo é ..." ou "O saldo começa em ...".

@@ -13,8 +13,9 @@ use crate::span::Span;
 
 impl Parser {
     /// Acha os cabeçalhos do nível de fora antes de ler os corpos, para que uma função
-    /// possa ser chamada antes de definida.
-    pub(super) fn prescan(&mut self) -> Result<()> {
+    /// possa ser chamada antes de definida. Cabeçalho com erro vira assinatura quebrada
+    /// (o que se leu até o erro), e o corpo é lido do mesmo jeito.
+    pub(super) fn prescan(&mut self) {
         let mut depth = 0usize;
         let mut at_start = true;
         let mut k = 0;
@@ -31,19 +32,43 @@ impl Parser {
                 && !self.toks.get(k + 1).is_some_and(|n| n.is_word("cada") || n.is_word("começar"))
             {
                 self.pos = k;
-                let sig = self.header()?;
-                let id = self.prog.sigs.len();
-                self.register(id, &sig)?;
-                self.prog.sigs.push(sig);
-                self.headers.insert(k, (id, self.pos));
-                k = self.pos;
+                let mut draft = Draft::default();
+                match self.header(&mut draft) {
+                    Ok(sig) => {
+                        let id = self.prog.sigs.len();
+                        if let Err(d) = self.register(id, &sig) {
+                            self.report(d);
+                        }
+                        self.prog.sigs.push(sig);
+                        self.headers.insert(k, (id, self.pos));
+                        k = self.pos;
+                    }
+                    Err(d) => {
+                        let end = self.line_end_from(self.pos.max(k));
+                        self.report_in(k, end, d);
+                        match draft.into_sig(self.toks[end.saturating_sub(1).max(k)].span) {
+                            Some(sig) => {
+                                let id = self.prog.sigs.len();
+                                if let Err(d) = self.register(id, &sig) {
+                                    self.report(d);
+                                }
+                                self.prog.sigs.push(sig);
+                                self.headers.insert(k, (id, end));
+                            }
+                            None => {
+                                let e = self.definition_end(k);
+                                self.skip_spans.insert(k, e);
+                            }
+                        }
+                        k = end;
+                    }
+                }
                 continue;
             }
             at_start = matches!(t.kind, TokenKind::Newline | TokenKind::Dedent | TokenKind::Indent);
             k += 1;
         }
         self.pos = 0;
-        Ok(())
     }
 
     fn register(&mut self, id: usize, sig: &FuncSig) -> Result<()> {
@@ -139,11 +164,14 @@ impl Parser {
         Some(w.to_string())
     }
 
-    pub(super) fn header(&mut self) -> Result<FuncSig> {
+    pub(super) fn header(&mut self, draft: &mut Draft) -> Result<FuncSig> {
         let start = self.expect_word("para")?.span;
+        draft.start = Some(start);
         let mut params: Vec<(NameRef, Slot)> = Vec::new();
         if self.param_start() {
             let subject = self.name_ref()?;
+            draft.params.push(subject.clone());
+            draft.kind = Some(SigKind::Predicate);
             params.push((subject, Slot::Subject));
         }
         let vt = self.bump();
@@ -156,6 +184,8 @@ impl Parser {
             .hint("Exemplos: \"Para somar x e y\", \"Para medir a carta\"."));
         };
         let name_span = vt.span;
+        draft.infinitive = Some(infinitive.clone());
+        draft.name_span = name_span;
         let mut kind = if params.is_empty() { SigKind::Action } else { SigKind::Predicate };
         if !params.is_empty() && infinitive == "ser" {
             let adj = self.bump();
@@ -166,6 +196,7 @@ impl Parser {
             let base = if params[0].0.number() == Number::Plural { a.trim_end_matches('s').to_string() } else { a };
             kind = SigKind::Adjective { adjective: base, base_gender: g };
         }
+        draft.kind = Some(kind.clone());
         let regular = morphology::first_person(&infinitive);
         let mut first_person = regular.clone();
         if self.at_punct('(') {
@@ -173,6 +204,7 @@ impl Parser {
             let f = self.bump();
             let Some(w) = f.word() else { return Err(self.expected("a 1ª pessoa do verbo entre parênteses")) };
             first_person = Some(w.to_string());
+            draft.first_person = first_person.clone();
             self.expect_punct(')', "o parêntese de fechamento")?;
         }
         let first_person = match first_person {
@@ -194,6 +226,7 @@ impl Parser {
         // Objetos diretos.
         while self.param_start() {
             let p = self.name_ref()?;
+            draft.params.push(p.clone());
             params.push((p, Slot::Object));
             slots.push(Slot::Object);
             if self.at_word("e")
@@ -211,11 +244,13 @@ impl Parser {
         while let Some(prep) = self.prep_at() {
             self.bump();
             let p = self.name_ref()?;
+            draft.params.push(p.clone());
             let mut count = 1;
             params.push((p, Slot::Prep { prep: prep.clone(), count: 0 }));
             if self.at_word("e") {
                 self.bump();
                 let q = self.name_ref()?;
+                draft.params.push(q.clone());
                 params.push((q, Slot::Prep { prep: prep.clone(), count: 0 }));
                 count = 2;
             }
@@ -323,6 +358,7 @@ impl Parser {
             span: start.to(self.prev_span()),
             name_span,
             is_main: false,
+            broken: false,
         })
     }
 
@@ -508,6 +544,13 @@ impl Parser {
     pub(super) fn call_args(&mut self, sig_id: usize, skip_subject: bool, verb_span: Span) -> Result<Vec<Expr>> {
         let sig = self.prog.sigs[sig_id].clone();
         let mut args = Vec::new();
+        if sig.broken {
+            // O cabeçalho já foi acusado; sem a regência, a chamada vai até o fim da oração.
+            while !matches!(self.peek().kind, TokenKind::Punct('.' | ':') | TokenKind::Newline | TokenKind::Dedent | TokenKind::Eof) {
+                self.bump();
+            }
+            return Ok(args);
+        }
         let mut objects = 0;
         for slot in &sig.slots {
             match slot {
@@ -568,4 +611,47 @@ impl Parser {
 fn missing_type(n: &NameRef) -> Diagnostic {
     Diagnostic::new(L0172, format!("Falta o tipo de \"{}\".", n.display()), n.span)
         .hint(format!("Depois do cabeçalho: \", sendo {} um inteiro\".", n.display()))
+}
+
+/// O que se leu de um cabeçalho até o erro, para a assinatura quebrada: com o verbo, a
+/// função existe, as chamadas a ela se reconhecem e os parâmetros lidos são nomes no
+/// corpo.
+#[derive(Default)]
+pub(super) struct Draft {
+    start: Option<Span>,
+    infinitive: Option<String>,
+    first_person: Option<String>,
+    kind: Option<SigKind>,
+    name_span: Span,
+    params: Vec<NameRef>,
+}
+
+impl Draft {
+    fn into_sig(self, end: Span) -> Option<FuncSig> {
+        let infinitive = self.infinitive?;
+        let kind = self.kind.unwrap_or(SigKind::Action);
+        let first_person = self.first_person.or_else(|| morphology::first_person(&infinitive)).unwrap_or_else(|| infinitive.clone());
+        // Tipo de erro, e confiados: o corpo pode ler e mudar sem gerar mais erros.
+        let params = self
+            .params
+            .into_iter()
+            .map(|n| {
+                let span = n.span;
+                Param { name: n, ty: TypeAnn { ty: TypeExpr::Error, span }, mode: ParamMode::Lent }
+            })
+            .collect();
+        Some(FuncSig {
+            infinitive,
+            first_person,
+            kind,
+            slots: Vec::new(),
+            params,
+            ret: Some(TypeAnn { ty: TypeExpr::Error, span: self.name_span }),
+            fallible: true,
+            span: self.start?.to(end),
+            name_span: self.name_span,
+            is_main: false,
+            broken: true,
+        })
+    }
 }

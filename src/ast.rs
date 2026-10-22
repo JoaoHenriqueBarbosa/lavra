@@ -49,9 +49,14 @@ pub struct ArticleUse {
 
 #[derive(Clone, Debug)]
 pub enum TypeExpr {
-    Int { bits: u8, signed: bool },
+    Int {
+        bits: u8,
+        signed: bool,
+    },
     Byte,
-    Real { bits: u8 },
+    Real {
+        bits: u8,
+    },
     Bool,
     Char,
     Text,
@@ -59,6 +64,8 @@ pub enum TypeExpr {
     Slice(Box<TypeExpr>),
     Named(String),
     Maybe(Box<TypeExpr>),
+    /// Tipo que não se leu (cabeçalho ou definição com erro): não gera mais erros.
+    Error,
 }
 
 /// Anotação de tipo: o aposto ("um inteiro de 32 bits") ou a tipagem de parâmetro.
@@ -122,6 +129,9 @@ pub struct FuncSig {
     pub span: Span,
     pub name_span: Span,
     pub is_main: bool,
+    /// O cabeçalho teve erro: os parâmetros lidos até ali existem, com tipo de erro, e
+    /// as chamadas não conferem a regência.
+    pub broken: bool,
 }
 
 impl FuncSig {
@@ -177,6 +187,8 @@ pub struct RecordDef {
     pub gender: Gender,
     pub span: Span,
     pub fields: Vec<FieldDef>,
+    /// A definição teve erro: os campos são os que se leram até ali.
+    pub broken: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -194,6 +206,8 @@ pub struct EnumDef {
     pub gender: Gender,
     pub span: Span,
     pub variants: Vec<VariantDef>,
+    /// A definição teve erro: os casos são os que se leram até ali.
+    pub broken: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -205,17 +219,55 @@ pub struct FuncDef {
 #[derive(Clone, Debug, Default)]
 pub struct Block {
     pub stmts: Vec<Stmt>,
+    /// Do primeiro ao último token do bloco (o escopo dos nomes declarados nele).
+    pub span: Span,
 }
 
 #[derive(Clone, Debug)]
 pub enum Stmt {
     Period(Period),
-    If { arms: Vec<(Cond, Block)>, otherwise: Option<Block>, span: Span },
-    While { cond: Cond, body: Block, span: Span },
-    Repeat { count: Option<Expr>, body: Block, span: Span },
-    ForRange { var: NameRef, from: Expr, to: Expr, body: Block, span: Span },
-    ForEach { item: NameRef, source: Expr, body: Block, span: Span },
-    Match { scrutinee: Expr, arms: Vec<MatchArm>, otherwise: Option<Block>, span: Span },
+    If {
+        arms: Vec<(Cond, Block)>,
+        otherwise: Option<Block>,
+        span: Span,
+    },
+    While {
+        cond: Cond,
+        body: Block,
+        span: Span,
+    },
+    Repeat {
+        count: Option<Expr>,
+        body: Block,
+        span: Span,
+    },
+    ForRange {
+        var: NameRef,
+        from: Expr,
+        to: Expr,
+        body: Block,
+        span: Span,
+    },
+    ForEach {
+        item: NameRef,
+        source: Expr,
+        body: Block,
+        span: Span,
+    },
+    Match {
+        scrutinee: Expr,
+        arms: Vec<MatchArm>,
+        otherwise: Option<Block>,
+        span: Span,
+    },
+    /// Oração que não se leu. O erro já foi relatado; `names` são os nomes que ela
+    /// declararia (para não virarem "não declarado" adiante) e `blocks` os blocos recuados
+    /// que pertenciam a ela, lidos para os erros de dentro aparecerem.
+    Error {
+        span: Span,
+        names: Vec<NameRef>,
+        blocks: Vec<Block>,
+    },
 }
 
 #[derive(Clone, Debug)]

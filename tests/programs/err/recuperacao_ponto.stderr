@@ -1,0 +1,12 @@
+Erro de sintaxe [L0100]: Faltou o ponto final.
+ --> tests/programs/err/recuperacao_ponto.lav:4:15
+  |
+4 |     O total é 3
+  |               ^
+  = dica: Todo período termina em ponto; uma linha sem ponto continua na de baixo.
+Erro de tipo [L0358]: Texto não se soma: se junta.
+ --> tests/programs/err/recuperacao_ponto.lav:6:13
+  |
+6 |     Escrevo "fim" mais 1.
+  |             ^^^^^^^^^^^^
+  = dica: Para juntar textos, use "seguido de": Escrevo "total: " seguido do total.

@@ -73,7 +73,9 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
 
     pub fn run(&mut self) -> Exec<()> {
         let mut frame = vec![Value::Unit; self.prog.init.locals.len()];
-        let r = self.block(&self.prog.init.body, &mut frame).and_then(|_| self.call(self.prog.main, Vec::new(), Span::default()));
+        let r = self.block(&self.prog.init.body, &mut frame).and_then(|_| {
+            self.call(self.prog.main.expect("programa sem \"Para começar\" não chega ao interpretador"), Vec::new(), Span::default())
+        });
         let _ = self.out.flush();
         match r {
             Ok((Err(f), _)) => Err(f),
@@ -306,6 +308,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     i += step;
                 }
             }
+            Stmt::Error(_) => unreachable!("programa com erro não chega aos back-ends"),
             Stmt::Break => return Ok(Flow::Break),
             Stmt::Continue => return Ok(Flow::Continue),
             Stmt::Return(v) => {

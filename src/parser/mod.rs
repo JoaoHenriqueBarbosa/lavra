@@ -3,7 +3,7 @@
 
 use crate::ast::*;
 use crate::codes::*;
-use crate::diagnostics::{Diagnostic, Result, err};
+use crate::diagnostics::{Diagnostic, Diagnostics, Result, err};
 use crate::lexer::{Token, TokenKind};
 use crate::lexicon;
 use crate::morphology::{self, Gender, Number};
@@ -14,7 +14,9 @@ mod header;
 
 use std::collections::HashMap;
 
-pub fn parse(tokens: Vec<Token>) -> Result<Program> {
+/// Lê o programa inteiro. Um erro numa oração vira diagnóstico e uma `Stmt::Error`; a
+/// leitura continua na oração seguinte.
+pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> Program {
     let mut p = Parser {
         toks: tokens,
         pos: 0,
@@ -24,12 +26,14 @@ pub fn parse(tokens: Vec<Token>) -> Result<Program> {
         allow_uncontracted: false,
         skip_spans: HashMap::new(),
         last_nominal: false,
+        diags: Vec::new(),
     };
-    p.prescan_records()?;
-    p.prescan()?;
-    p.program()?;
-    p.prog.vocab = p.vocab;
-    Ok(p.prog)
+    p.prescan_records();
+    p.prescan();
+    p.program();
+    p.prog.vocab = std::mem::take(&mut p.vocab);
+    diags.list.extend(p.diags);
+    p.prog
 }
 
 struct Parser {
@@ -46,6 +50,7 @@ struct Parser {
     skip_spans: HashMap<usize, usize>,
     /// O último termo lido foi uma operação por extenso (para a regra dos parênteses).
     last_nominal: bool,
+    diags: Vec<Diagnostic>,
 }
 
 impl Parser {
@@ -125,6 +130,64 @@ impl Parser {
         if self.at_word(w) { Ok(self.bump()) } else { Err(self.expected(&format!("\"{w}\""))) }
     }
 
+    // Recebe o erro como ele sai do `Result` das etapas.
+    #[allow(clippy::boxed_local)]
+    fn report(&mut self, d: Box<Diagnostic>) {
+        self.diags.push(*d);
+    }
+
+    /// Relata o erro de um trecho, menos quando o trecho tem um token que o léxico já
+    /// recusou: aí o erro do parser seria consequência do primeiro.
+    fn report_in(&mut self, from: usize, to: usize, d: Box<Diagnostic>) {
+        let to = to.min(self.toks.len());
+        if !self.toks[from.min(to)..to].iter().any(|t| t.kind == TokenKind::Error) {
+            self.report(d);
+        }
+    }
+
+    /// O `Newline` que fecha a linha lógica que contém a posição `k` (ou o fim).
+    pub(super) fn line_end_from(&self, mut k: usize) -> usize {
+        while k < self.toks.len() - 1 && !matches!(self.toks[k].kind, TokenKind::Newline | TokenKind::Eof) {
+            k += 1;
+        }
+        k
+    }
+
+    /// Pula um bloco recuado inteiro sem ler, do `Indent` ao `Dedent` que o fecha.
+    pub(super) fn skip_block(&mut self) {
+        if !matches!(self.peek().kind, TokenKind::Indent) {
+            return;
+        }
+        let mut depth = 0usize;
+        loop {
+            match self.peek().kind {
+                TokenKind::Indent => depth += 1,
+                TokenKind::Dedent => {
+                    depth -= 1;
+                    if depth == 0 {
+                        self.bump();
+                        return;
+                    }
+                }
+                TokenKind::Eof => return,
+                _ => {}
+            }
+            self.bump();
+        }
+    }
+
+    /// Onde termina uma definição que começa em `k`: a linha do cabeçalho e o bloco
+    /// recuado dela, se houver.
+    pub(super) fn definition_end(&mut self, k: usize) -> usize {
+        let save = self.pos;
+        self.pos = self.line_end_from(k);
+        self.skip_newlines();
+        self.skip_block();
+        let end = self.pos;
+        self.pos = save;
+        end
+    }
+
     fn skip_newlines(&mut self) {
         while matches!(self.peek().kind, TokenKind::Newline) {
             self.bump();
@@ -142,15 +205,25 @@ impl Parser {
 
     // ----------------------------------------------------------------- programa
 
-    fn program(&mut self) -> Result<()> {
+    fn program(&mut self) {
         self.skip_newlines();
         while !matches!(self.peek().kind, TokenKind::Eof) {
             if self.at_word("para") && self.peek_at(1).is_word("começar") {
                 let start = self.bump().span;
                 let name_span = self.bump().span;
-                self.expect_punct(':', "os dois-pontos depois de \"Para começar\"")?;
+                if !self.at_punct(':') {
+                    let d = self.expected("os dois-pontos depois de \"Para começar\"");
+                    self.report(d);
+                    self.pos = self.line_end_from(self.pos);
+                } else {
+                    self.bump();
+                }
                 if self.prog.main.is_some() {
-                    return err(Diagnostic::new(L0102, "O programa já tem um \"Para começar\".", start.to(name_span)));
+                    self.report(Box::new(Diagnostic::new(L0102, "O programa já tem um \"Para começar\".", start.to(name_span))));
+                    // O corpo repetido é lido para os erros de dentro aparecerem, e descartado.
+                    let _ = self.block();
+                    self.skip_newlines();
+                    continue;
                 }
                 let sig = self.prog.sigs.len();
                 self.prog.sigs.push(FuncSig {
@@ -164,50 +237,197 @@ impl Parser {
                     span: start.to(name_span),
                     name_span,
                     is_main: true,
+                    broken: false,
                 });
-                let body = self.block()?;
+                let body = self.block();
                 self.prog.funcs.push(FuncDef { sig, body });
                 self.prog.main = Some(sig);
             } else if let Some(&end) = self.skip_spans.get(&self.pos) {
                 self.pos = end;
             } else if let Some(&(sig, end)) = self.headers.get(&self.pos) {
                 self.pos = end;
-                let body = self.block()?;
+                let body = self.block();
                 self.prog.funcs.push(FuncDef { sig, body });
+            } else if matches!(self.peek().kind, TokenKind::Dedent) {
+                // Bloco que fecha sem ter aberto aqui (recuo de um erro anterior).
+                self.bump();
             } else {
-                let s = self.stmt()?;
+                let s = self.stmt_or_recover();
                 self.prog.top.push(s);
             }
             self.skip_newlines();
         }
-        Ok(())
     }
 
-    /// Bloco depois de dois-pontos: recuado na linha de baixo, ou um período na mesma linha.
-    fn block(&mut self) -> Result<Block> {
+    /// Bloco depois de dois-pontos: recuado na linha de baixo, ou um período na mesma
+    /// linha. Erros de dentro são relatados e o bloco segue.
+    fn block(&mut self) -> Block {
+        let start = self.peek().span;
         if matches!(self.peek().kind, TokenKind::Newline) {
             self.skip_newlines();
             if !matches!(self.peek().kind, TokenKind::Indent) {
-                return Err(Box::new(
-                    Diagnostic::new(L0103, "Depois dos dois-pontos vem um bloco recuado.", self.peek().span)
-                        .hint("Recue as linhas do bloco (quatro espaços), ou escreva um período na mesma linha."),
-                ));
+                let d = Diagnostic::new(L0103, "Depois dos dois-pontos vem um bloco recuado.", self.peek().span)
+                    .hint("Recue as linhas do bloco (quatro espaços), ou escreva um período na mesma linha.");
+                self.report(Box::new(d));
+                return Block { stmts: Vec::new(), span: start };
             }
             self.bump();
             let mut stmts = Vec::new();
             self.skip_newlines();
             while !matches!(self.peek().kind, TokenKind::Dedent | TokenKind::Eof) {
-                stmts.push(self.stmt()?);
+                stmts.push(self.stmt_or_recover());
                 self.skip_newlines();
             }
+            let span = start.to(self.prev_span());
             if matches!(self.peek().kind, TokenKind::Dedent) {
                 self.bump();
             }
-            Ok(Block { stmts })
+            Block { stmts, span }
         } else {
-            let p = self.period()?;
-            Ok(Block { stmts: vec![Stmt::Period(p)] })
+            let at = self.pos;
+            let stmt = match self.period() {
+                Ok(p) => Stmt::Period(p),
+                Err(d) => self.recover(at, d),
+            };
+            Block { stmts: vec![stmt], span: start.to(self.prev_span()) }
         }
+    }
+
+    /// Uma oração; com erro, relata e devolve `Stmt::Error` já sincronizado.
+    fn stmt_or_recover(&mut self) -> Stmt {
+        let at = self.pos;
+        match self.stmt() {
+            Ok(s) => s,
+            Err(d) => self.recover(at, d),
+        }
+    }
+
+    /// Depois de um erro na oração que começou em `at`: relata (a menos que o léxico já
+    /// tenha recusado um trecho dela) e pula até o fim da linha lógica. Um bloco recuado
+    /// que pertencia à oração quebrada é lido como filho dela, para os erros de dentro
+    /// aparecerem, e a cadeia de "Senão" de um "Se" quebrado vai junto. Os nomes que a
+    /// oração declararia ficam em `names`, para não virarem "não declarado" adiante.
+    fn recover(&mut self, at: usize, d: Box<Diagnostic>) -> Stmt {
+        let first = self.toks[at].clone();
+        // Já no começo da linha seguinte (faltou o bloco, por exemplo): não pula nada.
+        let at_line_start = self.pos > at && matches!(self.toks[self.pos - 1].kind, TokenKind::Newline);
+        if !at_line_start {
+            while !matches!(self.peek().kind, TokenKind::Newline | TokenKind::Dedent | TokenKind::Indent | TokenKind::Eof) {
+                self.bump();
+            }
+        }
+        let end = self.pos;
+        self.report_in(at, end.max(at + 1), d);
+        let names = self.declared_names(at, end);
+        let span = first.span.to(self.toks[end.saturating_sub(1).max(at)].span);
+        let mut blocks = Vec::new();
+        let compound = first.word().is_some_and(|w| matches!(w, "se" | "enquanto" | "repito" | "para" | "conforme"));
+        if matches!(self.peek().kind, TokenKind::Newline) {
+            let save = self.pos;
+            self.skip_newlines();
+            if matches!(self.peek().kind, TokenKind::Indent) && (compound || !at_line_start) {
+                if first.is_word("conforme") {
+                    // Os casos só se leem com a enumeração conhecida.
+                    self.skip_block();
+                } else {
+                    self.pos = save;
+                    blocks.push(self.block());
+                }
+            } else {
+                self.pos = save;
+            }
+        } else if matches!(self.peek().kind, TokenKind::Indent) && self.pos == at {
+            // Recuo sem oração antes: lê o bloco solto para não perder o que está nele.
+            blocks.push(self.block_body());
+        }
+        // A cadeia de "Senão" de um "Se" quebrado pertence a ele.
+        if first.is_word("se") {
+            loop {
+                let save = self.pos;
+                self.skip_newlines();
+                if !self.at_word("senão") {
+                    self.pos = save;
+                    break;
+                }
+                self.pos = self.line_end_from(self.pos);
+                blocks.push(self.block());
+            }
+        }
+        // Progresso garantido: a oração consome ao menos um token.
+        if self.pos == at && !matches!(self.peek().kind, TokenKind::Dedent | TokenKind::Eof) {
+            self.bump();
+        }
+        Stmt::Error { span, names, blocks }
+    }
+
+    /// Bloco recuado começando no `Indent`, sem os dois-pontos antes.
+    fn block_body(&mut self) -> Block {
+        let start = self.peek().span;
+        self.bump();
+        let mut stmts = Vec::new();
+        self.skip_newlines();
+        while !matches!(self.peek().kind, TokenKind::Dedent | TokenKind::Eof) {
+            stmts.push(self.stmt_or_recover());
+            self.skip_newlines();
+        }
+        let span = start.to(self.prev_span());
+        if matches!(self.peek().kind, TokenKind::Dedent) {
+            self.bump();
+        }
+        Block { stmts, span }
+    }
+
+    /// Os nomes que a oração quebrada entre `at` e `end` declararia: o item de "Para
+    /// cada", ou o sujeito de "é", "são", "começa", "começam" e do aposto.
+    fn declared_names(&self, at: usize, end: usize) -> Vec<NameRef> {
+        let tok = |k: usize| &self.toks[k.min(self.toks.len() - 1)];
+        if tok(at).is_word("para") && tok(at + 1).is_word("cada") {
+            let t = tok(at + 2);
+            if let Some(w) = t.word().filter(|w| morphology::article(w).is_none()) {
+                let article = (!morphology::is_symbol(w)).then(|| ArticleUse {
+                    gender: morphology::guess_gender(w),
+                    number: Number::Singular,
+                    span: t.span,
+                    contraction: None,
+                });
+                return vec![NameRef { word: w.to_string(), span: t.span, word_span: t.span, article }];
+            }
+            return Vec::new();
+        }
+        let declares = |from: usize| {
+            (from..end).any(|k| tok(k).word().and_then(subject_verb).is_some_and(|(inf, _)| inf == "ser" || inf == "começar"))
+                || tok(from).is_punct(',')
+        };
+        let t = tok(at);
+        if let Some(a) = self.definite_article_at_abs(at)
+            && let Some(w) = tok(at + 1).word()
+            && !morphology::is_symbol(w)
+            && declares(at + 2)
+        {
+            let ws = tok(at + 1).span;
+            return vec![NameRef {
+                word: w.to_string(),
+                span: t.span.to(ws),
+                word_span: ws,
+                article: Some(ArticleUse { gender: a.gender, number: a.number, span: t.span, contraction: None }),
+            }];
+        }
+        if let Some(w) = t.word()
+            && morphology::is_symbol(w)
+            && declares(at + 1)
+        {
+            return vec![NameRef { word: w.to_string(), span: t.span, word_span: t.span, article: None }];
+        }
+        Vec::new()
+    }
+
+    /// Artigo definido no token `k` (posição absoluta), não a preposição de uma contração.
+    fn definite_article_at_abs(&self, k: usize) -> Option<morphology::Article> {
+        let t = &self.toks[k.min(self.toks.len() - 1)];
+        if t.contraction.is_some_and(|c| c.part == 1) {
+            return None;
+        }
+        t.word().and_then(morphology::article).filter(|a| a.definite)
     }
 
     fn stmt(&mut self) -> Result<Stmt> {
@@ -218,7 +438,7 @@ impl Parser {
         if self.eat_word("enquanto") {
             let cond = self.cond()?;
             self.expect_punct(':', "os dois-pontos depois da condição")?;
-            let body = self.block()?;
+            let body = self.block();
             return Ok(Stmt::While { cond, body, span: start.to(self.prev_span()) });
         }
         if self.eat_word("repito") {
@@ -237,7 +457,7 @@ impl Parser {
                 Some(n)
             };
             self.expect_punct(':', "os dois-pontos")?;
-            let body = self.block()?;
+            let body = self.block();
             return Ok(Stmt::Repeat { count, body, span: start.to(self.prev_span()) });
         }
         if self.at_word("para") && self.peek_at(1).is_word("cada") {
@@ -288,7 +508,7 @@ impl Parser {
                     Expr { span: var.span, kind: ExprKind::Place(place) }
                 };
                 self.expect_punct(':', "os dois-pontos")?;
-                let body = self.block()?;
+                let body = self.block();
                 return Ok(Stmt::ForEach { item: var, source, body, span: start.to(self.prev_span()) });
             }
             if self.eat_word("de") {
@@ -296,7 +516,7 @@ impl Parser {
                 self.expect_word("até")?;
                 let to = self.expr()?;
                 self.expect_punct(':', "os dois-pontos")?;
-                let body = self.block()?;
+                let body = self.block();
                 return Ok(Stmt::ForRange { var, from, to, body, span: start.to(self.prev_span()) });
             }
             return Err(self.expected("\"de\" com o intervalo (\"Para cada i de 1 até 10:\")"));
@@ -353,25 +573,41 @@ impl Parser {
             let t = self.peek().clone();
             if self.eat_word("senão") {
                 self.expect_punct(':', "os dois-pontos depois de \"Senão\"")?;
-                otherwise = Some(self.block()?);
+                otherwise = Some(self.block());
                 self.skip_newlines();
                 break;
             }
-            if !self.eat_word("sendo") {
-                return err(Diagnostic::new(
-                    L0109,
-                    format!("Dentro de \"Conforme\", cada caso começa com \"Sendo\", mas encontrei {}.", t.describe()),
-                    t.span,
-                )
-                .hint("Escreva \"Sendo um círculo: ...\", ou \"Senão: ...\" para o resto."));
+            // Um caso quebrado é relatado e pulado com o bloco dele; os outros seguem.
+            let arm_start = self.pos;
+            let head = (|| {
+                if !self.eat_word("sendo") {
+                    return err(Diagnostic::new(
+                        L0109,
+                        format!("Dentro de \"Conforme\", cada caso começa com \"Sendo\", mas encontrei {}.", t.describe()),
+                        t.span,
+                    )
+                    .hint("Escreva \"Sendo um círculo: ...\", ou \"Senão: ...\" para o resto."));
+                }
+                let mut patterns = vec![self.variant_pattern()?];
+                while self.eat_word("ou") {
+                    patterns.push(self.variant_pattern()?);
+                }
+                self.expect_punct(':', "os dois-pontos depois do caso")?;
+                Ok(patterns)
+            })();
+            match head {
+                Ok(patterns) => {
+                    let body = self.block();
+                    arms.push(MatchArm { patterns, body, span: t.span.to(self.prev_span()) });
+                }
+                Err(d) => {
+                    let end = self.line_end_from(self.pos);
+                    self.report_in(arm_start, end.max(arm_start + 1), d);
+                    self.pos = end;
+                    self.skip_newlines();
+                    self.skip_block();
+                }
             }
-            let mut patterns = vec![self.variant_pattern()?];
-            while self.eat_word("ou") {
-                patterns.push(self.variant_pattern()?);
-            }
-            self.expect_punct(':', "os dois-pontos depois do caso")?;
-            let body = self.block()?;
-            arms.push(MatchArm { patterns, body, span: t.span.to(self.prev_span()) });
             self.skip_newlines();
         }
         if matches!(self.peek().kind, TokenKind::Dedent) {
@@ -385,7 +621,7 @@ impl Parser {
         let mut arms = Vec::new();
         let cond = self.cond()?;
         self.expect_punct(':', "os dois-pontos depois da condição")?;
-        arms.push((cond, self.block()?));
+        arms.push((cond, self.block()));
         let mut otherwise = None;
         loop {
             let save = self.pos;
@@ -398,7 +634,7 @@ impl Parser {
                 self.expect_word("se")?;
                 let cond = self.cond()?;
                 self.expect_punct(':', "os dois-pontos depois da condição")?;
-                arms.push((cond, self.block()?));
+                arms.push((cond, self.block()));
                 continue;
             }
             if self.at_word("se") {
@@ -407,7 +643,7 @@ impl Parser {
                 );
             }
             self.expect_punct(':', "os dois-pontos depois de \"Senão\"")?;
-            otherwise = Some(self.block()?);
+            otherwise = Some(self.block());
             break;
         }
         Ok(Stmt::If { arms, otherwise, span: start.to(self.prev_span()) })
@@ -692,10 +928,26 @@ impl Parser {
                 }
                 return Err(Box::new(d));
             }
-            return Err(self.expected("o ponto final"));
+            return self.missing_period(clauses, start);
         }
-        let end = self.expect_punct('.', "o ponto final")?.span;
-        // "Escrevo X e leio Y": a escrita vira pergunta, sem quebra de linha.
+        let end = self.bump().span;
+        Ok(self.close_period(clauses, start.to(end)))
+    }
+
+    /// Sem ponto final: se a oração seguinte já começa na linha de baixo, o erro é só o
+    /// ponto esquecido. Relata e fecha o período num ponto virtual, para a oração de
+    /// baixo ser lida normalmente.
+    fn missing_period(&mut self, clauses: Vec<Clause>, start: Span) -> Result<Period> {
+        let d = self.expected("o ponto final");
+        if d.code != Some(L0100.id) {
+            return Err(d);
+        }
+        self.report(d);
+        Ok(self.close_period(clauses, start.to(self.prev_span())))
+    }
+
+    /// "Escrevo X e leio Y": a escrita vira pergunta, sem quebra de linha.
+    fn close_period(&mut self, mut clauses: Vec<Clause>, span: Span) -> Period {
         for i in 0..clauses.len().saturating_sub(1) {
             let next_reads = matches!(clauses[i + 1].kind, ClauseKind::ReadInto { .. } | ClauseKind::ReadValue { .. });
             if let ClauseKind::Write { newline, .. } = &mut clauses[i].kind
@@ -704,7 +956,7 @@ impl Parser {
                 *newline = false;
             }
         }
-        Ok(Period { clauses, span: start.to(end) })
+        Period { clauses, span }
     }
 
     fn is_core_verb(w: &str) -> bool {

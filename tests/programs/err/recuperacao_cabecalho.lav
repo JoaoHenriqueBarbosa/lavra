@@ -1,0 +1,8 @@
+Nota: com o cabeçalho quebrado, a função existe, o corpo é lido e as chamadas também.
+
+Para medir a carta, sendo a carta um txto, devolvendo um inteiro:
+    Devolvo o tamanho da carta.
+
+Para começar:
+    Escrevo o resultado de medir "olá".
+    Meço "mundo".

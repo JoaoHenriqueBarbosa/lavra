@@ -1,0 +1,6 @@
+Erro de tipo [L0168]: Tipo desconhecido: "txto".
+ --> tests/programs/err/recuperacao_cabecalho.lav:3:38
+  |
+3 | Para medir a carta, sendo a carta um txto, devolvendo um inteiro:
+  |                                      ^^^^
+  = dica: Tipos: inteiro, natural, real, byte, lógico, caractere, texto, lista de ..., ou um registro definido com "Uma conta é um registro de:".

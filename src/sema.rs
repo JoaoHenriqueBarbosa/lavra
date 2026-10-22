@@ -3,7 +3,7 @@
 
 use crate::ast::{self, BinOp, ClauseKind, ExprKind, Init, ParamMode, Rel, UnOp};
 use crate::codes::*;
-use crate::diagnostics::{Category, Diagnostic, Result, err};
+use crate::diagnostics::{Diagnostic, Diagnostics, Result, err};
 use crate::hir::{self, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
@@ -11,17 +11,16 @@ use crate::types::{EnumTy, IntTy, RecordTy, Ty, VariantTy};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-pub fn check(prog: &ast::Program) -> Result<(hir::Program, Vec<Diagnostic>)> {
-    let Some(main) = prog.main else {
-        return err(Diagnostic::new(L0300, "O programa não tem \"Para começar:\".", Span::new(0, 0))
-            .hint("Todo programa começa por \"Para começar:\", seguido do bloco recuado."));
-    };
+/// Confere o programa e baixa para a HIR. Erros e avisos vão para `diags`; a análise
+/// segue depois de cada erro (o nome que a oração quebrada declararia existe com tipo
+/// de erro, que não gera mais erros), e a HIR de um programa com erro só serve ao editor.
+pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> hir::Program {
     let mut env = Env {
         prog,
         globals: Vec::new(),
         sig_types: Vec::new(),
         sig_func: vec![usize::MAX; prog.sigs.len()],
-        warnings: Vec::new(),
+        diags: Vec::new(),
         records: HashMap::new(),
         enums: HashMap::new(),
     };
@@ -29,14 +28,14 @@ pub fn check(prog: &ast::Program) -> Result<(hir::Program, Vec<Diagnostic>)> {
         env.sig_func[f.sig] = i;
     }
     for i in 0..prog.records.len() {
-        env.build_record(i, &mut Vec::new())?;
+        env.build_record(i, &mut Vec::new());
     }
     for i in 0..prog.enums.len() {
-        env.build_enum(i, &mut Vec::new())?;
+        env.build_enum(i, &mut Vec::new());
     }
     for sig in &prog.sigs {
-        let params = sig.params.iter().map(|p| env.type_of(&p.ty)).collect::<Result<Vec<_>>>()?;
-        let ret = sig.ret.as_ref().map(|t| env.type_of(t)).transpose()?.unwrap_or(Ty::Unit);
+        let params = sig.params.iter().map(|p| env.type_or_error(&p.ty)).collect();
+        let ret = sig.ret.as_ref().map(|t| env.type_or_error(t)).unwrap_or(Ty::Unit);
         env.sig_types.push(SigTypes { params, ret });
     }
 
@@ -45,33 +44,47 @@ pub fn check(prog: &ast::Program) -> Result<(hir::Program, Vec<Diagnostic>)> {
     init.top = true;
     let mut init_body = Vec::new();
     for s in &prog.top {
-        init.stmt(s, &mut init_body)?;
+        init.stmt_or_report(s, &mut init_body);
     }
-    let init = init.into_func("início".into(), Vec::new(), hir::Block(init_body), Span::default())?;
+    let init = init.into_func("início".into(), Vec::new(), hir::Block(init_body), Span::default());
 
     let mut funcs = Vec::new();
     for f in &prog.funcs {
         let sig = &prog.sigs[f.sig];
         let ret = env.sig_types[f.sig].ret.clone();
         let mut cx = FnCx::new(&mut env, Some(f.sig), sig.span);
+        // Cabeçalho quebrado já foi acusado: o corpo é conferido, mas sem os avisos e sem
+        // a conferência do retorno, que dependem do cabeçalho.
+        cx.tainted = sig.broken;
         let mut params = Vec::new();
         for (p, ty) in sig.params.iter().zip(env_param_types(&cx, f.sig)) {
-            let id = cx.declare(&p.name, ty, p.mode == ParamMode::Lent)?;
-            cx.locals[id].mutated = true;
-            params.push((id, p.mode));
+            match cx.declare(&p.name, ty, p.mode == ParamMode::Lent) {
+                Ok(id) => {
+                    cx.locals[id].mutated = true;
+                    params.push((id, p.mode));
+                }
+                Err(d) => cx.report(d),
+            }
         }
-        let body = cx.block(&f.body)?;
-        if ret != Ty::Unit && !always_returns(&body) {
-            return err(Diagnostic::new(
-                L0301,
-                format!("\"{}\" promete devolver {}, mas pode terminar sem devolver.", sig.infinitive, ret.describe()),
-                sig.name_span,
-            )
-            .hint("Garanta um \"Devolvo ...\" em todo caminho até o fim da função."));
+        let body = cx.block(&f.body);
+        if ret != Ty::Unit && !ret.is_error() && !cx.tainted && !always_returns(&body) {
+            cx.report(Box::new(
+                Diagnostic::new(
+                    L0301,
+                    format!("\"{}\" promete devolver {}, mas pode terminar sem devolver.", sig.infinitive, ret.describe()),
+                    sig.name_span,
+                )
+                .hint("Garanta um \"Devolvo ...\" em todo caminho até o fim da função."),
+            ));
         }
-        funcs.push(cx.into_func(sig.infinitive.clone(), params, body, sig.span)?);
+        funcs.push(cx.into_func(sig.infinitive.clone(), params, body, sig.span));
     }
-    let warnings = std::mem::take(&mut env.warnings);
+    if prog.main.is_none() {
+        env.diags.push(
+            Diagnostic::new(L0300, "O programa não tem \"Para começar:\".", Span::new(0, 0))
+                .hint("Todo programa começa por \"Para começar:\", seguido do bloco recuado."),
+        );
+    }
     let globals = env
         .globals
         .into_iter()
@@ -81,7 +94,8 @@ pub fn check(prog: &ast::Program) -> Result<(hir::Program, Vec<Diagnostic>)> {
             ty: g.ty,
         })
         .collect();
-    Ok((hir::Program { funcs, globals, init, main: env.sig_func[main] }, warnings))
+    diags.list.extend(env.diags);
+    hir::Program { funcs, globals, init, main: prog.main.map(|m| env.sig_func[m]) }
 }
 
 fn env_param_types(cx: &FnCx, sig: usize) -> Vec<Ty> {
@@ -106,27 +120,39 @@ struct Env<'a> {
     globals: Vec<GlobalInfo>,
     sig_types: Vec<SigTypes>,
     sig_func: Vec<hir::FuncId>,
-    warnings: Vec<Diagnostic>,
+    diags: Vec<Diagnostic>,
     records: HashMap<String, Arc<RecordTy>>,
     enums: HashMap<String, Arc<EnumTy>>,
 }
 
 impl Env<'_> {
     /// Monta o tipo do registro `i` depois dos registros de que ele depende. Um
-    /// registro que contém a si mesmo teria tamanho infinito.
-    fn build_record(&mut self, i: usize, stack: &mut Vec<usize>) -> Result<Arc<RecordTy>> {
+    /// registro que contém a si mesmo teria tamanho infinito: o erro é relatado e o
+    /// campo fica com tipo de erro.
+    fn build_record(&mut self, i: usize, stack: &mut Vec<usize>) -> Arc<RecordTy> {
         let def = &self.prog.records[i];
         if let Some(r) = self.records.get(&def.word) {
-            return Ok(r.clone());
+            return r.clone();
         }
         if stack.contains(&i) {
-            return err(Diagnostic::new(L0302, format!("\"{}\" contém a si mesmo e teria tamanho infinito.", def.word), def.span)
-                .hint("Para guardar outros do mesmo tipo, use uma lista: \"os filhos, uma lista de nós\"."));
+            self.diags.push(
+                Diagnostic::new(L0302, format!("\"{}\" contém a si mesmo e teria tamanho infinito.", def.word), def.span)
+                    .hint("Para guardar outros do mesmo tipo, use uma lista: \"os filhos, uma lista de nós\"."),
+            );
+            return Arc::new(RecordTy {
+                id: i,
+                name: def.word.clone(),
+                plural: def.plural.clone(),
+                feminine: def.gender == Gender::Feminine,
+                fields: def.fields.iter().map(|f| (f.name.word.clone(), Ty::Error)).collect(),
+                field_articles: Vec::new(),
+            });
         }
         stack.push(i);
         let mut fields = Vec::new();
         for f in &def.fields {
-            fields.push((f.name.word.clone(), self.type_in_record(&f.ty.ty, f.ty.span, stack)?));
+            let ty = self.type_in_record(&f.ty.ty, f.ty.span, stack);
+            fields.push((f.name.word.clone(), ty));
         }
         stack.pop();
         let field_articles =
@@ -140,27 +166,31 @@ impl Env<'_> {
             field_articles,
         });
         self.records.insert(def.word.clone(), r.clone());
-        Ok(r)
+        r
     }
 
     /// Monta a enumeração `i`; os tipos dos campos entram na mesma pilha dos registros
     /// (índices de enumeração somados ao número de registros).
-    fn build_enum(&mut self, i: usize, stack: &mut Vec<usize>) -> Result<Arc<EnumTy>> {
+    fn build_enum(&mut self, i: usize, stack: &mut Vec<usize>) -> Arc<EnumTy> {
         let def = &self.prog.enums[i];
         if let Some(e) = self.enums.get(&def.word) {
-            return Ok(e.clone());
+            return e.clone();
         }
         let key = self.prog.records.len() + i;
-        if stack.contains(&key) {
-            return err(Diagnostic::new(L0302, format!("\"{}\" contém a si mesma e teria tamanho infinito.", def.word), def.span)
-                .hint("Para guardar outros do mesmo tipo, use uma lista."));
+        let cyclic = stack.contains(&key);
+        if cyclic {
+            self.diags.push(
+                Diagnostic::new(L0302, format!("\"{}\" contém a si mesma e teria tamanho infinito.", def.word), def.span)
+                    .hint("Para guardar outros do mesmo tipo, use uma lista."),
+            );
         }
         stack.push(key);
         let mut variants = Vec::new();
         for v in &def.variants {
             let mut fields = Vec::new();
             for f in &v.fields {
-                fields.push((f.name.word.clone(), self.type_in_record(&f.ty.ty, f.ty.span, stack)?));
+                let ty = if cyclic { Ty::Error } else { self.type_in_record(&f.ty.ty, f.ty.span, stack) };
+                fields.push((f.name.word.clone(), ty));
             }
             let field_articles =
                 v.fields.iter().map(|f| (f.name.word.clone(), morphology::definite_article(f.name.gender(), f.name.number()))).collect();
@@ -174,18 +204,22 @@ impl Env<'_> {
             feminine: def.gender == Gender::Feminine,
             variants,
         });
-        self.enums.insert(def.word.clone(), e.clone());
-        Ok(e)
+        if !cyclic {
+            self.enums.insert(def.word.clone(), e.clone());
+        }
+        e
     }
 
-    fn type_in_record(&mut self, t: &ast::TypeExpr, span: Span, stack: &mut Vec<usize>) -> Result<Ty> {
-        Ok(match t {
+    fn type_in_record(&mut self, t: &ast::TypeExpr, span: Span, stack: &mut Vec<usize>) -> Ty {
+        match t {
             ast::TypeExpr::Named(name) => {
                 if let Some(i) = self.prog.enums.iter().position(|e| &e.word == name) {
-                    return Ok(Ty::Enum(self.build_enum(i, stack)?));
+                    return Ty::Enum(self.build_enum(i, stack));
                 }
-                let i = self.prog.records.iter().position(|r| &r.word == name).unwrap();
-                Ty::Record(self.build_record(i, stack)?)
+                match self.prog.records.iter().position(|r| &r.word == name) {
+                    Some(i) => Ty::Record(self.build_record(i, stack)),
+                    None => Ty::Error,
+                }
             }
             // Dentro de uma lista o registro pode citar a si mesmo: a lista guarda por fora.
             ast::TypeExpr::List(inner) => {
@@ -193,13 +227,29 @@ impl Env<'_> {
                     && let Some(i) = self.prog.records.iter().position(|r| &r.word == name)
                     && stack.contains(&i)
                 {
-                    return err(Diagnostic::new(L0303, "Registro recursivo ainda não é suportado.", span));
+                    self.diags.push(Diagnostic::new(L0303, "Registro recursivo ainda não é suportado.", span));
+                    return Ty::Error;
                 }
-                Ty::List(Box::new(self.type_in_record(inner, span, stack)?))
+                Ty::List(Box::new(self.type_in_record(inner, span, stack)))
             }
-            ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_in_record(inner, span, stack)?)),
-            other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(L0304, "Tipo ainda não suportado.", span)))?,
-        })
+            ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_in_record(inner, span, stack))),
+            ast::TypeExpr::Error => Ty::Error,
+            other => simple_type(other).unwrap_or_else(|| {
+                self.diags.push(Diagnostic::new(L0304, "Tipo ainda não suportado.", span));
+                Ty::Error
+            }),
+        }
+    }
+
+    /// O tipo de uma anotação; com erro, relata e devolve o tipo de erro.
+    fn type_or_error(&mut self, a: &ast::TypeAnn) -> Ty {
+        match self.type_of(a) {
+            Ok(t) => t,
+            Err(d) => {
+                self.diags.push(*d);
+                Ty::Error
+            }
+        }
     }
 
     fn type_of(&self, a: &ast::TypeAnn) -> Result<Ty> {
@@ -208,14 +258,25 @@ impl Env<'_> {
 
     fn type_expr(&self, t: &ast::TypeExpr, span: Span) -> Result<Ty> {
         Ok(match t {
-            ast::TypeExpr::Named(name) => match self.enums.get(name) {
-                Some(e) => Ty::Enum(e.clone()),
-                None => Ty::Record(self.records[name].clone()),
+            ast::TypeExpr::Named(name) => match (self.enums.get(name), self.records.get(name)) {
+                (Some(e), _) => Ty::Enum(e.clone()),
+                (None, Some(r)) => Ty::Record(r.clone()),
+                (None, None) => Ty::Error,
             },
             ast::TypeExpr::List(inner) => Ty::List(Box::new(self.type_expr(inner, span)?)),
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_expr(inner, span)?)),
+            ast::TypeExpr::Error => Ty::Error,
             other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(L0304, "Tipo ainda não suportado.", span)))?,
         })
+    }
+
+    /// O registro de nome `name` foi definido com erro (campos faltando não se acusam).
+    fn broken_record(&self, r: &RecordTy) -> bool {
+        self.prog.records.get(r.id).is_some_and(|d| d.broken)
+    }
+
+    fn broken_enum(&self, e: &EnumTy) -> bool {
+        self.prog.enums.get(e.id).is_some_and(|d| d.broken)
     }
 }
 
@@ -256,6 +317,11 @@ struct FnCx<'e, 'a> {
     subst: Vec<(Option<Ty>, Span)>,
     /// A próxima chamada já tem o que fazer se falhar (", ou desisto", ", ou VALOR").
     handled: bool,
+    /// A função teve erro (dela ou do cabeçalho): os avisos e as conferências que
+    /// dependem do corpo inteiro ficam calados, e a posse não a analisa.
+    tainted: bool,
+    /// Avisos da função, que só saem se ela não teve erro.
+    warnings: Vec<Diagnostic>,
 }
 
 /// O que se sabe de um nome resolvido.
@@ -280,44 +346,59 @@ impl<'e, 'a> FnCx<'e, 'a> {
             top: false,
             subst: Vec::new(),
             handled: false,
+            tainted: false,
+            warnings: Vec::new(),
         }
     }
 
-    fn into_func(mut self, name: String, params: Vec<(hir::LocalId, ParamMode)>, mut body: hir::Block, span: Span) -> Result<hir::Func> {
+    // Recebe o erro como ele sai do `Result` das etapas.
+    #[allow(clippy::boxed_local)]
+    fn report(&mut self, d: Box<Diagnostic>) {
+        self.tainted = true;
+        self.env.diags.push(*d);
+    }
+
+    fn into_func(mut self, name: String, params: Vec<(hir::LocalId, ParamMode)>, mut body: hir::Block, span: Span) -> hir::Func {
         for i in 0..self.locals.len() {
             let t = self.resolve_ty(&self.locals[i].local.ty);
             if contains_infer(&t) {
-                let l = &self.locals[i];
-                let name = format!("{} {}", morphology::definite_article(l.gender, l.number), l.local.name);
-                return err(Diagnostic::new(
-                    L0305,
-                    format!("Não sei o tipo dos itens de \"{name}\": nada entra nem sai dela."),
-                    l.decl_span,
-                )
-                .hint(format!("Diga no aposto: \"{}, uma lista de inteiros, ...\".", capitalize(&name))));
+                if !self.tainted {
+                    let l = &self.locals[i];
+                    let name = format!("{} {}", morphology::definite_article(l.gender, l.number), l.local.name);
+                    let d =
+                        Diagnostic::new(L0305, format!("Não sei o tipo dos itens de \"{name}\": nada entra nem sai dela."), l.decl_span)
+                            .hint(format!("Diga no aposto: \"{}, uma lista de inteiros, ...\".", capitalize(&name)));
+                    self.report(Box::new(d));
+                }
+                self.locals[i].local.ty = Ty::Error;
+                continue;
             }
             self.locals[i].local.ty = t;
         }
         let subst = std::mem::take(&mut self.subst);
         resolve_block(&mut body, &subst);
-        for l in &self.locals {
-            if l.local.mutable && !l.mutated && !l.hidden {
-                let name = format!("{} {}", morphology::definite_article(l.gender, l.number), l.local.name);
-                let verb = morphology::third_person("ser", l.number).unwrap_or_default();
-                let begin = morphology::third_person("começar", l.number).unwrap_or_default();
-                let change = morphology::third_person("mudar", l.number).unwrap_or_default();
-                self.env.warnings.push(
-                    Diagnostic::new(L0500, format!("{} {begin} com um valor e nunca {change}.", capitalize(&name)), l.decl_span)
-                        .hint(format!("Se é definição, escreva \"{} {verb} ...\".", capitalize(&name))),
-                );
+        if !self.tainted {
+            for l in &self.locals {
+                if l.local.mutable && !l.mutated && !l.hidden {
+                    let name = format!("{} {}", morphology::definite_article(l.gender, l.number), l.local.name);
+                    let verb = morphology::third_person("ser", l.number).unwrap_or_default();
+                    let begin = morphology::third_person("começar", l.number).unwrap_or_default();
+                    let change = morphology::third_person("mudar", l.number).unwrap_or_default();
+                    self.env.diags.push(
+                        Diagnostic::new(L0500, format!("{} {begin} com um valor e nunca {change}.", capitalize(&name)), l.decl_span)
+                            .hint(format!("Se é definição, escreva \"{} {verb} ...\".", capitalize(&name))),
+                    );
+                }
             }
+            self.env.diags.append(&mut self.warnings);
         }
         let ret = match self.sig {
             Some(s) => self.env.sig_types[s].ret.clone(),
             None => Ty::Unit,
         };
         let fallible = self.sig.is_some_and(|s| self.env.prog.sigs[s].fallible);
-        Ok(hir::Func { name, params, fallible, locals: self.locals.into_iter().map(|l| l.local).collect(), body, ret, span })
+        let has_errors = self.tainted;
+        hir::Func { name, params, fallible, locals: self.locals.into_iter().map(|l| l.local).collect(), body, ret, span, has_errors }
     }
 
     fn fresh(&mut self, span: Span) -> Ty {
@@ -361,35 +442,150 @@ impl<'e, 'a> FnCx<'e, 'a> {
         Some(NameInfo { var: Var::Global(id), ty: g.ty.clone(), mutable: false, gender: g.gender, number: g.number, decl_span: g.span })
     }
 
-    fn block(&mut self, b: &ast::Block) -> Result<hir::Block> {
+    fn block(&mut self, b: &ast::Block) -> hir::Block {
         self.scopes.push(Vec::new());
         let mut out = Vec::new();
         for s in &b.stmts {
-            self.stmt(s, &mut out)?;
+            self.stmt_or_report(s, &mut out);
         }
         self.scopes.pop();
-        Ok(hir::Block(out))
+        hir::Block(out)
+    }
+
+    fn stmt_or_report(&mut self, s: &ast::Stmt, out: &mut Vec<hir::Stmt>) {
+        if let Err(d) = self.stmt(s, out) {
+            self.report(d);
+        }
+    }
+
+    /// Condição que não se conferiu: o erro já foi relatado, e o bloco é conferido mesmo
+    /// assim.
+    fn cond_or_error(&mut self, c: &ast::Cond) -> hir::Cond {
+        match self.cond(c) {
+            Ok(c) => c,
+            Err(d) => {
+                self.report(d);
+                error_cond()
+            }
+        }
+    }
+
+    fn expr_or_error(&mut self, e: &ast::Expr, expected: Option<&Ty>) -> hir::Expr {
+        match self.expr(e, expected) {
+            Ok(e) => e,
+            Err(d) => {
+                self.report(d);
+                error_expr(e.span)
+            }
+        }
+    }
+
+    /// Declara sem conferir, com o tipo dado (o de erro, depois de uma oração quebrada);
+    /// não faz nada se o nome já existe neste bloco.
+    fn declare_quiet(&mut self, name: &ast::NameRef, ty: Ty, mutable: bool) -> Option<hir::LocalId> {
+        if self.top {
+            if !self.env.globals.iter().any(|g| g.name == name.word) {
+                self.env.globals.push(GlobalInfo {
+                    name: name.word.clone(),
+                    ty,
+                    gender: name.gender(),
+                    number: name.number(),
+                    span: name.span,
+                });
+            }
+            return None;
+        }
+        if self.scopes.last().unwrap().iter().any(|(w, _)| *w == name.word) {
+            return None;
+        }
+        let id = self.locals.len();
+        self.locals.push(LocalInfo {
+            local: hir::Local {
+                name: name.word.clone(),
+                display: name.display(),
+                ty,
+                mutable,
+                borrowed: false,
+                span: name.span,
+                hidden: false,
+                gender: name.gender(),
+                number: name.number(),
+            },
+            gender: name.gender(),
+            number: name.number(),
+            mutated: true,
+            decl_span: name.span,
+            hidden: false,
+        });
+        self.scopes.last_mut().unwrap().push((name.word.clone(), id));
+        Some(id)
+    }
+
+    /// Depois de uma oração que não se conferiu: o nome que ela declarava passa a existir
+    /// com tipo de erro, e "o resultado" dela também, para as orações seguintes não
+    /// acusarem o que é consequência do primeiro erro.
+    fn after_failed_clause(&mut self, c: &ast::Clause) {
+        if let ClauseKind::Decl { name, mutable, .. } = &c.kind {
+            self.declare_quiet(name, Ty::Error, *mutable);
+        }
+        let id = self.locals.len();
+        self.locals.push(LocalInfo {
+            local: hir::Local {
+                name: "resultado".into(),
+                display: "o resultado".into(),
+                ty: Ty::Error,
+                mutable: false,
+                borrowed: false,
+                span: c.span,
+                hidden: true,
+                gender: Gender::Masculine,
+                number: Number::Singular,
+            },
+            gender: Gender::Masculine,
+            number: Number::Singular,
+            mutated: true,
+            decl_span: c.span,
+            hidden: true,
+        });
+        self.result = Some(id);
     }
 
     fn stmt(&mut self, s: &ast::Stmt, out: &mut Vec<hir::Stmt>) -> Result<()> {
-        if self.top && !matches!(s, ast::Stmt::Period(_)) {
+        if self.top && !matches!(s, ast::Stmt::Period(_) | ast::Stmt::Error { .. }) {
             return Err(top_level_error(stmt_span(s)));
         }
         match s {
+            ast::Stmt::Error { span, names, blocks } => {
+                // O parser já relatou; os nomes que a oração declararia passam a existir, e
+                // os blocos dela são conferidos para os erros de dentro aparecerem.
+                self.tainted = true;
+                for n in names {
+                    self.declare_quiet(n, Ty::Error, true);
+                }
+                for b in blocks {
+                    let _ = self.block(b);
+                }
+                out.push(hir::Stmt::Error(*span));
+            }
             ast::Stmt::Period(p) => {
                 self.result = None;
                 for c in &p.clauses {
                     if self.top && !matches!(c.kind, ClauseKind::Decl { mutable: false, .. }) {
-                        return Err(top_level_error(c.span));
+                        self.report(top_level_error(c.span));
+                        self.after_failed_clause(c);
+                        continue;
                     }
-                    self.clause(c, out)?;
+                    if let Err(d) = self.clause(c, out) {
+                        self.report(d);
+                        self.after_failed_clause(c);
+                    }
                 }
                 self.result = None;
             }
             ast::Stmt::If { arms, otherwise, .. } => {
                 let mut harms = Vec::new();
                 for (c, b) in arms {
-                    let hc = self.cond(c)?;
+                    let hc = self.cond(c);
                     // "Se houver apelido:": dentro do bloco, "o apelido" é o valor presente.
                     let exists = match c {
                         ast::Cond::Atom { negated: false, kind, .. } => match kind.as_ref() {
@@ -399,91 +595,129 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         _ => None,
                     };
                     let body = match (exists, &hc) {
-                        (Some((word, word_span)), hir::Cond::IsSome(src)) => {
+                        (Some((word, word_span)), Ok(hir::Cond::IsSome(src))) => {
                             self.scopes.push(Vec::new());
-                            let Ty::Maybe(inner) = self.resolve_ty(&src.ty) else { unreachable!() };
-                            let info = self.lookup(word).unwrap();
+                            let inner = match self.resolve_ty(&src.ty) {
+                                Ty::Maybe(inner) => *inner,
+                                _ => Ty::Error,
+                            };
+                            let (gender, number) =
+                                self.lookup(word).map_or((Gender::Masculine, Number::Singular), |i| (i.gender, i.number));
                             let name = ast::NameRef {
                                 word: word.clone(),
                                 span: *word_span,
                                 word_span: *word_span,
-                                article: Some(ast::ArticleUse {
-                                    gender: info.gender,
-                                    number: info.number,
-                                    span: *word_span,
-                                    contraction: None,
-                                }),
+                                article: Some(ast::ArticleUse { gender, number, span: *word_span, contraction: None }),
                             };
-                            let id = self.declare(&name, *inner.clone(), false)?;
+                            let id = self.declare(&name, inner.clone(), false)?;
                             self.locals[id].local.borrowed = true;
                             self.locals[id].local.display = name.display();
-                            let unwrap = hir::Expr { kind: hir::ExprKind::Unwrap(Box::new(src.clone())), ty: *inner, span: *word_span };
-                            let mut inner_block = self.block(b)?;
+                            let unwrap = hir::Expr { kind: hir::ExprKind::Unwrap(Box::new(src.clone())), ty: inner, span: *word_span };
+                            let mut inner_block = self.block(b);
                             inner_block.0.insert(0, hir::Stmt::Let { var: Var::Local(id), value: unwrap });
                             self.scopes.pop();
                             inner_block
                         }
-                        _ => self.block(b)?,
+                        (Some((word, word_span)), Err(_)) => {
+                            // A condição quebrada não diz o tipo: o nome existe com tipo de erro.
+                            self.scopes.push(Vec::new());
+                            let name = ast::NameRef { word: word.clone(), span: *word_span, word_span: *word_span, article: None };
+                            self.declare_quiet(&name, Ty::Error, false);
+                            let b = self.block(b);
+                            self.scopes.pop();
+                            b
+                        }
+                        _ => self.block(b),
+                    };
+                    let hc = match hc {
+                        Ok(c) => c,
+                        Err(d) => {
+                            self.report(d);
+                            error_cond()
+                        }
                     };
                     harms.push((hc, body));
                 }
-                let otherwise = otherwise.as_ref().map(|b| self.block(b)).transpose()?;
+                let otherwise = otherwise.as_ref().map(|b| self.block(b));
                 out.push(hir::Stmt::If { arms: harms, otherwise });
             }
             ast::Stmt::While { cond, body, .. } => {
-                let cond = self.cond(cond)?;
-                let body = self.loop_body(body)?;
+                let cond = self.cond_or_error(cond);
+                let body = self.loop_body(body);
                 out.push(hir::Stmt::While { cond, body });
             }
             ast::Stmt::Repeat { count, body, .. } => {
                 let count = match count {
                     Some(c) => {
-                        let e = self.expr(c, None)?;
+                        let e = self.expr_or_error(c, None);
                         if !matches!(e.ty, Ty::Int(_) | Ty::Error) {
-                            return err(Diagnostic::new(
+                            self.report(Box::new(Diagnostic::new(
                                 L0306,
                                 format!("Repete-se um número inteiro de vezes, e este valor é {}.", e.ty.describe()),
                                 c.span,
-                            ));
+                            )));
                         }
                         Some(e)
                     }
                     None => None,
                 };
-                let body = self.loop_body(body)?;
+                let body = self.loop_body(body);
                 out.push(hir::Stmt::Repeat { count, body });
             }
             ast::Stmt::ForRange { var, from, to, body, .. } => {
-                let from = self.expr(from, None)?;
-                if !matches!(from.ty, Ty::Int(_)) {
-                    return err(Diagnostic::new(
+                let from = self.expr_or_error(from, None);
+                if !matches!(from.ty, Ty::Int(_) | Ty::Error) {
+                    self.report(Box::new(Diagnostic::new(
                         L0307,
                         format!("O intervalo de \"Para cada\" é de inteiros, e este valor é {}.", from.ty.describe()),
                         from.span,
-                    ));
+                    )));
                 }
-                let to = self.expr(to, Some(&from.ty))?;
+                let to = self.expr_or_error(to, Some(&from.ty));
                 self.scopes.push(Vec::new());
-                let id = self.declare(var, from.ty.clone(), false)?;
-                let body = self.loop_body(body)?;
+                let id = match self.declare(var, from.ty.clone(), false) {
+                    Ok(id) => Some(id),
+                    Err(d) => {
+                        self.report(d);
+                        self.declare_quiet(var, Ty::Error, false)
+                    }
+                };
+                let body = self.loop_body(body);
                 self.scopes.pop();
-                out.push(hir::Stmt::ForRange { var: id, from, to, body });
+                if let Some(id) = id {
+                    out.push(hir::Stmt::ForRange { var: id, from, to, body });
+                }
             }
             ast::Stmt::ForEach { item, source, body, .. } => {
                 let src = match self.expr(source, None) {
                     Ok(e) => e,
-                    Err(d) if d.category == Category::Scope && matches!(&source.kind, ExprKind::Place(p) if p.span == item.span) => {
-                        let ExprKind::Place(p) = &source.kind else { unreachable!() };
-                        return err(Diagnostic::new(
-                            L0308,
-                            format!("\"Para cada {}\" procura \"{}\", que não foi declarado.", item.word, p.root.display()),
-                            item.span,
-                        )
-                        .hint(format!("Diga de onde vêm os itens: \"Para cada {} de ...:\".", item.word)));
+                    Err(d) => {
+                        let d = if d.category == crate::diagnostics::Category::Scope
+                            && matches!(&source.kind, ExprKind::Place(p) if p.span == item.span)
+                        {
+                            let ExprKind::Place(p) = &source.kind else { unreachable!() };
+                            Box::new(
+                                Diagnostic::new(
+                                    L0308,
+                                    format!("\"Para cada {}\" procura \"{}\", que não foi declarado.", item.word, p.root.display()),
+                                    item.span,
+                                )
+                                .hint(format!("Diga de onde vêm os itens: \"Para cada {} de ...:\".", item.word)),
+                            )
+                        } else {
+                            d
+                        };
+                        self.report(d);
+                        error_expr(source.span)
                     }
-                    Err(d) => return Err(d),
                 };
-                let elem = self.element_of(&src.ty, "a coleção", source.span)?;
+                let elem = match self.element_of(&src.ty, "a coleção", source.span) {
+                    Ok(t) => t,
+                    Err(d) => {
+                        self.report(d);
+                        Ty::Error
+                    }
+                };
                 // O item herda o gênero da coleção quando ela é um nome no plural.
                 let mut item = item.clone();
                 if let ExprKind::Place(p) = &source.kind
@@ -494,41 +728,67 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     a.gender = p.root.gender();
                 }
                 self.scopes.push(Vec::new());
-                let id = self.declare(&item, elem, false)?;
-                self.locals[id].local.borrowed = true;
-                let body = self.loop_body(body)?;
+                let id = match self.declare(&item, elem, false) {
+                    Ok(id) => {
+                        self.locals[id].local.borrowed = true;
+                        Some(id)
+                    }
+                    Err(d) => {
+                        self.report(d);
+                        self.declare_quiet(&item, Ty::Error, false)
+                    }
+                };
+                let body = self.loop_body(body);
                 self.scopes.pop();
-                out.push(hir::Stmt::ForEach { var: id, source: src, body });
+                if let Some(id) = id {
+                    out.push(hir::Stmt::ForEach { var: id, source: src, body });
+                }
             }
             ast::Stmt::Match { scrutinee, arms, otherwise, .. } => {
                 let v = self.expr(scrutinee, None)?;
-                let Ty::Enum(e) = self.resolve_ty(&v.ty) else {
-                    return err(Diagnostic::new(
-                        L0309,
-                        format!(
-                            "\"Conforme\" escolhe entre os casos de uma enumeração, e este valor é {}.",
-                            self.resolve_ty(&v.ty).describe()
-                        ),
-                        scrutinee.span,
-                    ));
+                let e = match self.resolve_ty(&v.ty) {
+                    Ty::Enum(e) => e,
+                    // Sem a enumeração não se sabe que campos os casos têm: os braços ficam
+                    // para depois de o valor se conferir.
+                    Ty::Error => {
+                        self.tainted = true;
+                        return Ok(());
+                    }
+                    other => {
+                        return err(Diagnostic::new(
+                            L0309,
+                            format!("\"Conforme\" escolhe entre os casos de uma enumeração, e este valor é {}.", other.describe()),
+                            scrutinee.span,
+                        ));
+                    }
                 };
                 let mut seen = vec![None::<Span>; e.variants.len()];
                 let mut harms = Vec::new();
                 for arm in arms {
                     let mut tags = Vec::new();
+                    let mut ok = true;
                     for pat in &arm.patterns {
                         let ast::Pattern::Variant { word, span, .. } = pat else { unreachable!() };
-                        let tag = self.variant_of(&e, word, *span)?;
-                        if let Some(prev) = seen[tag] {
-                            return err(Diagnostic::new(
-                                L0310,
-                                format!("O caso \"{} {word}\" já foi tratado.", if e.variants[tag].feminine { "uma" } else { "um" }),
-                                *span,
-                            )
-                            .label(prev, "tratado aqui"));
+                        match self.variant_of(&e, word, *span) {
+                            Ok(tag) => {
+                                if let Some(prev) = seen[tag] {
+                                    let art = if e.variants[tag].feminine { "uma" } else { "um" };
+                                    self.report(Box::new(
+                                        Diagnostic::new(L0310, format!("O caso \"{art} {word}\" já foi tratado."), *span)
+                                            .label(prev, "tratado aqui"),
+                                    ));
+                                }
+                                seen[tag] = Some(*span);
+                                tags.push(tag);
+                            }
+                            Err(d) => {
+                                self.report(d);
+                                ok = false;
+                            }
                         }
-                        seen[tag] = Some(*span);
-                        tags.push(tag);
+                    }
+                    if !ok {
+                        continue;
                     }
                     self.scopes.push(Vec::new());
                     let mut binds = Vec::new();
@@ -536,12 +796,17 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     if let [tag] = tags.as_slice() {
                         let def = &self.env.prog.enums[e.id].variants[*tag];
                         for (i, f) in def.fields.iter().enumerate() {
-                            let id = self.declare(&f.name, e.variants[*tag].fields[i].1.clone(), false)?;
-                            self.locals[id].local.borrowed = true;
-                            binds.push((id, i));
+                            let ty = e.variants[*tag].fields.get(i).map_or(Ty::Error, |f| f.1.clone());
+                            match self.declare(&f.name, ty, false) {
+                                Ok(id) => {
+                                    self.locals[id].local.borrowed = true;
+                                    binds.push((id, i));
+                                }
+                                Err(d) => self.report(d),
+                            }
                         }
                     }
-                    let body = self.block(&arm.body)?;
+                    let body = self.block(&arm.body);
                     self.scopes.pop();
                     harms.push(hir::Arm { tags, binds, body });
                 }
@@ -552,27 +817,29 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     .filter(|(_, s)| s.is_none())
                     .map(|(v, _)| format!("\"{} {}\"", if v.feminine { "uma" } else { "um" }, v.name))
                     .collect();
-                if otherwise.is_none() && !missing.is_empty() {
+                if otherwise.is_none() && !missing.is_empty() && !self.env.broken_enum(&e) {
                     let cases = join_e(&missing);
                     let word = if missing.len() == 1 { "o caso" } else { "os casos" };
-                    return err(Diagnostic::new(L0311, format!("\"Conforme\" não trata {word} {cases}.",), scrutinee.span)
-                        .hint("Trate cada caso com \"Sendo ...:\", ou junte o resto num \"Senão:\"."));
+                    self.report(Box::new(
+                        Diagnostic::new(L0311, format!("\"Conforme\" não trata {word} {cases}."), scrutinee.span)
+                            .hint("Trate cada caso com \"Sendo ...:\", ou junte o resto num \"Senão:\"."),
+                    ));
                 }
                 if otherwise.is_some() && missing.is_empty() {
-                    self.env.warnings.push(Diagnostic::new(
+                    self.warnings.push(Diagnostic::new(
                         L0501,
                         "Este \"Senão\" nunca acontece: todos os casos já foram tratados.",
                         scrutinee.span,
                     ));
                 }
-                let otherwise = otherwise.as_ref().map(|b| self.block(b)).transpose()?;
+                let otherwise = otherwise.as_ref().map(|b| self.block(b));
                 out.push(hir::Stmt::Match { scrutinee: v, arms: harms, otherwise });
             }
         }
         Ok(())
     }
 
-    fn loop_body(&mut self, b: &ast::Block) -> Result<hir::Block> {
+    fn loop_body(&mut self, b: &ast::Block) -> hir::Block {
         self.loops += 1;
         let r = self.block(b);
         self.loops -= 1;
@@ -587,7 +854,17 @@ impl<'e, 'a> FnCx<'e, 'a> {
         self.check_name(name)?;
         let id = self.locals.len();
         self.locals.push(LocalInfo {
-            local: hir::Local { name: name.word.clone(), display: name.display(), ty, mutable, borrowed: false, span: name.span },
+            local: hir::Local {
+                name: name.word.clone(),
+                display: name.display(),
+                ty,
+                mutable,
+                borrowed: false,
+                span: name.span,
+                hidden: false,
+                gender: name.gender(),
+                number: name.number(),
+            },
             gender: name.gender(),
             number: name.number(),
             mutated: false,
@@ -620,6 +897,9 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 mutable: false,
                 borrowed: false,
                 span: value.span,
+                hidden: true,
+                gender: Gender::Masculine,
+                number: Number::Singular,
             },
             gender: Gender::Masculine,
             number: Number::Singular,
@@ -694,7 +974,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 };
                 let ty = annotated.unwrap_or_else(|| value.ty.clone());
                 let is_list = matches!(self.resolve_ty(&ty), Ty::List(_));
-                if plural && !is_list {
+                let unknown = self.resolve_ty(&ty).is_error();
+                if plural && !is_list && !unknown {
                     return err(Diagnostic::new(
                         L0317,
                         format!(
@@ -738,12 +1019,16 @@ impl<'e, 'a> FnCx<'e, 'a> {
             }
             ClauseKind::Push { place, value } => {
                 let p = self.place_mut(place, &morphology::third_person("ganhar", place.number()).unwrap_or_default())?;
-                let Ty::List(elem) = self.resolve_ty(&p.ty) else {
-                    return err(Diagnostic::new(
-                        L0319,
-                        format!("Só lista ganha itens, e {} {} {}.", place_name(place), be(place), self.resolve_ty(&p.ty).describe()),
-                        place.span,
-                    ));
+                let elem = match self.resolve_ty(&p.ty) {
+                    Ty::List(elem) => elem,
+                    Ty::Error => Box::new(Ty::Error),
+                    _ => {
+                        return err(Diagnostic::new(
+                            L0319,
+                            format!("Só lista ganha itens, e {} {} {}.", place_name(place), be(place), self.resolve_ty(&p.ty).describe()),
+                            place.span,
+                        ));
+                    }
                 };
                 let v = self.expr(value, Some(&elem))?;
                 out.push(hir::Stmt::Push { place: p, value: v });
@@ -754,12 +1039,16 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let verb =
                     if take { "dá itens".to_string() } else { morphology::third_person("perder", place.number()).unwrap_or_default() };
                 let p = self.place_mut(place, &verb)?;
-                let Ty::List(elem) = self.resolve_ty(&p.ty) else {
-                    return err(Diagnostic::new(
-                        L0320,
-                        format!("Só lista perde itens, e {} {} {}.", place_name(place), be(place), self.resolve_ty(&p.ty).describe()),
-                        place.span,
-                    ));
+                let elem = match self.resolve_ty(&p.ty) {
+                    Ty::List(elem) => elem,
+                    Ty::Error => Box::new(Ty::Error),
+                    _ => {
+                        return err(Diagnostic::new(
+                            L0320,
+                            format!("Só lista perde itens, e {} {} {}.", place_name(place), be(place), self.resolve_ty(&p.ty).describe()),
+                            place.span,
+                        ));
+                    }
                 };
                 let index = match which {
                     ast::Which::Ordinal { position: 0, .. } => None,
@@ -854,6 +1143,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             (!sig.is_main).then(|| "Para devolver, acrescente \", devolvendo um ...\" ao cabeçalho.".to_string()),
                         ));
                     }
+                    (None, Ty::Error) => None,
                     (None, t) => {
                         return err(Diagnostic::new(L0326, format!("\"{}\" devolve {}: diga qual.", sig.infinitive, t.describe()), c.span));
                     }
@@ -895,6 +1185,10 @@ impl<'e, 'a> FnCx<'e, 'a> {
     fn call(&mut self, call: &ast::Call) -> Result<hir::Expr> {
         let sig = &self.env.prog.sigs[call.sig];
         let handled = std::mem::take(&mut self.handled);
+        if sig.broken {
+            let func = self.env.sig_func[call.sig];
+            return Ok(hir::Expr { kind: hir::ExprKind::Call { func, args: Vec::new() }, ty: Ty::Error, span: call.span });
+        }
         if sig.fallible && !handled {
             let usage = capitalize(&sig.usage());
             return err(Diagnostic::new(
@@ -956,6 +1250,9 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     ast::CondKind::Pred { call } => hir::Cond::Test(self.call(call)?),
                     ast::CondKind::Variant { subject, word, word_span, .. } => {
                         let v = self.expr(subject, None)?;
+                        if self.resolve_ty(&v.ty).is_error() {
+                            return Ok(error_cond());
+                        }
                         let Ty::Enum(e) = self.resolve_ty(&v.ty) else {
                             return err(Diagnostic::new(
                                 L0331,
@@ -1011,7 +1308,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             return err(Diagnostic::new(L0334, format!("\"{word}\" não foi declarado."), span));
         };
         let ty = self.resolve_ty(&info.ty);
-        if !matches!(ty, Ty::Maybe(_)) {
+        if !matches!(ty, Ty::Maybe(_) | Ty::Error) {
             let name = format!("{} {word}", morphology::definite_article(info.gender, info.number));
             return err(Diagnostic::new(
                 L0335,
@@ -1078,10 +1375,18 @@ impl<'e, 'a> FnCx<'e, 'a> {
         for pr in &p.proj {
             match pr {
                 ast::Proj::Field(n) => {
+                    // Valor de erro: o resto do caminho também é de erro, sem mais acusar.
+                    if ty.is_error() {
+                        break;
+                    }
                     let Ty::Record(r) = &ty else {
                         return err(Diagnostic::new(L0337, format!("\"{}\" é {} e não tem campos.", owner, ty.describe()), n.span));
                     };
                     let Some(i) = r.fields.iter().position(|(f, _)| *f == n.word) else {
+                        if self.env.broken_record(r) {
+                            ty = Ty::Error;
+                            break;
+                        }
                         let names: Vec<String> = r.fields.iter().map(|(f, _)| format!("\"{f}\"")).collect();
                         return err(Diagnostic::new(
                             L0338,
@@ -1131,6 +1436,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
         match self.resolve_ty(ty) {
             Ty::List(e) => Ok(*e),
             Ty::Text => Ok(Ty::Char),
+            Ty::Error => Ok(Ty::Error),
             Ty::Infer(_) => err(Diagnostic::new(L0340, format!("Ainda não sei de que é \"{owner}\" para tirar um item."), span)),
             other => err(Diagnostic::new(L0341, format!("\"{owner}\" é {} e não tem itens.", other.describe()), span)),
         }
@@ -1298,6 +1604,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let ok = match (&from, &target) {
                     (Ty::Int(_) | Ty::Real(_), Ty::Int(_) | Ty::Real(_)) => true,
                     (Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Text, Ty::Text) => true,
+                    (Ty::Error, _) | (_, Ty::Error) => true,
                     (a, b) => a == b,
                 };
                 if !ok {
@@ -1308,7 +1615,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             }
             ExprKind::Nothing => {
                 let ty = match expected.map(|t| self.resolve_ty(t)) {
-                    Some(t @ Ty::Maybe(_)) => t,
+                    Some(t @ (Ty::Maybe(_) | Ty::Error)) => t,
                     Some(Ty::Infer(_)) | None => {
                         let inner = self.fresh(e.span);
                         Ty::Maybe(Box::new(inner))
@@ -1351,7 +1658,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let vt = self.resolve_ty(&v.ty);
                 let ty = match op {
                     UnOp::Len => match vt {
-                        Ty::List(_) | Ty::Text => Ty::Int(IntTy::I64),
+                        Ty::List(_) | Ty::Text | Ty::Error => Ty::Int(IntTy::I64),
                         other => {
                             return err(Diagnostic::new(
                                 L0349,
@@ -1361,8 +1668,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         }
                     },
                     UnOp::Neg | UnOp::Abs if vt.is_numeric() => vt,
-                    UnOp::Sqrt if matches!(vt, Ty::Real(_)) => vt,
-                    UnOp::BitNot if matches!(vt, Ty::Int(_)) => vt,
+                    UnOp::Sqrt if matches!(vt, Ty::Real(_) | Ty::Error) => vt,
+                    UnOp::BitNot if matches!(vt, Ty::Int(_) | Ty::Error) => vt,
                     _ => {
                         let what = match op {
                             UnOp::Sqrt => "um real",
@@ -1418,9 +1725,14 @@ impl<'e, 'a> FnCx<'e, 'a> {
             }
             ExprKind::Construct { word, word_span, fields, .. } => {
                 let r = self.env.records[word].clone();
+                // Registro definido com erro: os campos que faltam ou sobram não se acusam.
+                let broken = self.env.broken_record(&r);
                 let mut values: Vec<Option<hir::Expr>> = vec![None; r.fields.len()];
                 for (fname, fspan, value) in fields {
                     let Some(i) = r.fields.iter().position(|(f, _)| f == fname) else {
+                        if broken {
+                            continue;
+                        }
                         let names: Vec<String> = r.fields.iter().map(|(f, _)| format!("\"{f}\"")).collect();
                         return err(Diagnostic::new(
                             L0338,
@@ -1454,6 +1766,9 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         format!("\"{}\"", d.display())
                     })
                     .collect();
+                if broken {
+                    return Ok(error_expr(e.span));
+                }
                 if !missing.is_empty() {
                     return err(Diagnostic::new(
                         L0352,
@@ -1539,7 +1854,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ));
         }
         let bits = matches!(op, BinOp::BitAnd | BinOp::BitOr | BinOp::BitXor | BinOp::Shl | BinOp::Shr);
-        if bits && !matches!(l.ty, Ty::Int(_)) {
+        if bits && !matches!(l.ty, Ty::Int(_) | Ty::Error) {
             return err(Diagnostic::new(
                 L0360,
                 format!("\"{}\" opera bits de inteiros, e este valor é {}.", op.words(), l.ty.describe()),
@@ -1559,6 +1874,15 @@ impl<'e, 'a> FnCx<'e, 'a> {
         }
         Ok(l.ty.clone())
     }
+}
+
+/// Expressão no lugar de uma que não se conferiu: tipo de erro, nunca chega a rodar.
+fn error_expr(span: Span) -> hir::Expr {
+    hir::Expr { kind: hir::ExprKind::Bool(false), ty: Ty::Error, span }
+}
+
+fn error_cond() -> hir::Cond {
+    hir::Cond::Test(error_expr(Span::default()))
 }
 
 /// Todo caminho do bloco termina em "Devolvo"?
@@ -1598,7 +1922,8 @@ fn stmt_span(s: &ast::Stmt) -> Span {
         | ast::Stmt::Repeat { span, .. }
         | ast::Stmt::ForRange { span, .. }
         | ast::Stmt::ForEach { span, .. }
-        | ast::Stmt::Match { span, .. } => *span,
+        | ast::Stmt::Match { span, .. }
+        | ast::Stmt::Error { span, .. } => *span,
     }
 }
 
@@ -1683,7 +2008,7 @@ fn resolve_stmt(st: &mut hir::Stmt, s: &[(Option<Ty>, Span)]) {
                 resolve_block(b, s);
             }
         }
-        Break | Continue => {}
+        Break | Continue | Error(_) => {}
     }
 }
 

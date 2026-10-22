@@ -1,0 +1,11 @@
+Erro de tipo [L0354]: Esperava um inteiro, mas este valor é um texto.
+ --> tests/programs/err/recuperacao_bloco.lav:5:30
+  |
+5 |     Se o saldo for maior que "zero":
+  |                              ^^^^^^
+Erro de escopo [L0334]: "o sald" não foi declarado.
+ --> tests/programs/err/recuperacao_bloco.lav:6:17
+  |
+6 |         Escrevo o sald.
+  |                 ^^^^^^
+  = dica: Quis dizer "saldo"?

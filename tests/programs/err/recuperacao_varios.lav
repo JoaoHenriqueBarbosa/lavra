@@ -1,0 +1,9 @@
+Nota: três erros independentes; a análise acusa os três e nada além deles.
+
+Para dobrar o valor, sendo o valor um inteiro, devolvendo um inteiro:
+    Devolvo o valor vezes "dois".
+
+Para começar:
+    O total começa em 0.
+    O total cresce 2,5.
+    Escrevo o totl.

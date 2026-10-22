@@ -163,10 +163,7 @@ fn variants(name: &str, text: &str) -> Vec<String> {
 fn analyze(text: &str) -> (String, Option<String>) {
     let mut report = String::new();
     let mut bad = None;
-    let diags: Vec<lavra::diagnostics::Diagnostic> = match lavra::compile(text) {
-        Ok((_, warnings)) => warnings,
-        Err(d) => vec![*d],
-    };
+    let diags = lavra::analyze(text).diagnostics;
     for d in &diags {
         let mut spans = vec![d.span];
         spans.extend(d.labels.iter().map(|l| l.span));

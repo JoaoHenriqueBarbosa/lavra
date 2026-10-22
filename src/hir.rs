@@ -2,6 +2,7 @@
 //! expressão tem tipo, cada chamada aponta para a função.
 
 use crate::ast::{BinOp, ParamMode, Rel, UnOp};
+use crate::morphology::{Gender, Number};
 use crate::span::Span;
 use crate::types::Ty;
 
@@ -15,7 +16,8 @@ pub struct Program {
     pub globals: Vec<Global>,
     /// Inicializa os globais, na ordem em que foram escritos.
     pub init: Func,
-    pub main: FuncId,
+    /// "Para começar"; só falta em programa com erro, que não chega aos back-ends.
+    pub main: Option<FuncId>,
 }
 
 #[derive(Debug)]
@@ -35,6 +37,9 @@ pub struct Func {
     /// "salvo uma falha": devolve, além do valor, a falha (ou nada).
     pub fallible: bool,
     pub span: Span,
+    /// A função teve erro (dela ou do cabeçalho): a posse não a analisa, e os
+    /// back-ends nunca a recebem.
+    pub has_errors: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -48,6 +53,10 @@ pub struct Local {
     /// lê-se, mas não se entrega.
     pub borrowed: bool,
     pub span: Span,
+    /// Local que a língua cria e o programa não nomeia ("o resultado" de cada oração).
+    pub hidden: bool,
+    pub gender: Gender,
+    pub number: Number,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -124,6 +133,9 @@ pub enum Stmt {
         arms: Vec<Arm>,
         otherwise: Option<Block>,
     },
+    /// Oração que não se conferiu (o erro já foi relatado). Programa com erro não chega
+    /// aos back-ends.
+    Error(Span),
 }
 
 #[derive(Debug)]

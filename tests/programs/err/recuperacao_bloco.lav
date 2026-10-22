@@ -1,0 +1,8 @@
+Nota: a condição quebrada é acusada, e o bloco dela também é conferido.
+
+Para começar:
+    O saldo começa em 10.
+    Se o saldo for maior que "zero":
+        Escrevo o sald.
+    Senão:
+        O saldo cresce 1.

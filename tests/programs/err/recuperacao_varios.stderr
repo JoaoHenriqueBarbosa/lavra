@@ -1,0 +1,16 @@
+Erro de tipo [L0359]: "vezes" só opera números, e este valor é um texto.
+ --> tests/programs/err/recuperacao_varios.lav:4:27
+  |
+4 |     Devolvo o valor vezes "dois".
+  |                           ^^^^^^
+Erro de tipo [L0354]: Esperava um inteiro, mas este valor é um real.
+ --> tests/programs/err/recuperacao_varios.lav:8:20
+  |
+8 |     O total cresce 2,5.
+  |                    ^^^
+Erro de escopo [L0334]: "o totl" não foi declarado.
+ --> tests/programs/err/recuperacao_varios.lav:9:13
+  |
+9 |     Escrevo o totl.
+  |             ^^^^^^
+  = dica: Quis dizer "total"?

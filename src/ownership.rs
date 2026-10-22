@@ -9,19 +9,22 @@
 
 use crate::ast::ParamMode;
 use crate::codes::*;
-use crate::diagnostics::{Diagnostic, Result, err};
+use crate::diagnostics::{Diagnostic, Diagnostics, Result};
 use crate::hir::{self, Cond, ExprKind, Place, PlaceProj, Stmt, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::sema::capitalize;
 use crate::span::Span;
+use std::collections::HashSet;
 
-pub fn check(prog: &hir::Program, src: &str) -> Result<()> {
+/// Confere posse e empréstimo em cada função sem erro (numa função com erro, a HIR está
+/// incompleta e acusaria o que não é). Cada erro é relatado uma vez e a análise segue.
+pub fn check(prog: &hir::Program, src: &str, diags: &mut Diagnostics) {
     let lines = LineIndex::new(src);
-    Checker::new(prog, &prog.init, &lines).run()?;
-    for f in &prog.funcs {
-        Checker::new(prog, f, &lines).run()?;
+    for f in std::iter::once(&prog.init).chain(&prog.funcs) {
+        if !f.has_errors {
+            diags.list.extend(Checker::new(prog, f, &lines).run());
+        }
     }
-    Ok(())
 }
 
 struct LineIndex {
@@ -144,6 +147,9 @@ struct Checker<'a> {
     loans: Vec<Loan>,
     /// Estados que saem dos laços abertos por "Paro" e voltam ao topo por "Pulo".
     breaks: Vec<Vec<Vec<St>>>,
+    diags: Vec<Diagnostic>,
+    /// Trechos já acusados: a segunda passada dos laços não repete o erro.
+    reported: HashSet<(u32, u32)>,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -171,11 +177,29 @@ fn join(a: &State, b: &State) -> State {
 
 impl<'a> Checker<'a> {
     fn new(prog: &'a hir::Program, func: &'a hir::Func, lines: &'a LineIndex) -> Self {
-        Checker { prog, func, lines, state: Some(vec![St::Live; func.locals.len()]), loans: Vec::new(), breaks: Vec::new() }
+        Checker {
+            prog,
+            func,
+            lines,
+            state: Some(vec![St::Live; func.locals.len()]),
+            loans: Vec::new(),
+            breaks: Vec::new(),
+            diags: Vec::new(),
+            reported: HashSet::new(),
+        }
     }
 
-    fn run(mut self) -> Result<()> {
-        self.block(&self.func.body)
+    fn run(mut self) -> Vec<Diagnostic> {
+        let _ = self.block(&self.func.body);
+        self.diags
+    }
+
+    /// Relata o erro (uma vez por trecho) e deixa a análise seguir.
+    fn fail(&mut self, d: Diagnostic) -> Result<()> {
+        if self.reported.insert((d.span.start, d.span.end)) {
+            self.diags.push(d);
+        }
+        Ok(())
     }
 
     fn display(&self, v: Var) -> String {
@@ -224,6 +248,7 @@ impl<'a> Checker<'a> {
                 self.mutate(place, "ganhar itens")?;
             }
             Stmt::Write { value, .. } => self.expr(value, Use::Read, &How::Other)?,
+            Stmt::Error(_) => {}
             Stmt::Match { scrutinee, arms, otherwise } => {
                 self.expr(scrutinee, Use::Read, &How::Other)?;
                 // Os campos vistos dentro dos braços são empréstimos do valor: ele não muda.
@@ -383,7 +408,7 @@ impl<'a> Checker<'a> {
     }
 
     /// Confere que o lugar ainda tem dono, e acusa o uso depois de entregue.
-    fn usable(&self, place: &Place, span: Span) -> Result<()> {
+    fn usable(&mut self, place: &Place, span: Span) -> Result<()> {
         let Var::Local(id) = place.root else { return Ok(()) };
         let Some(st) = &self.state else { return Ok(()) };
         let (m, maybe) = match &st[id] {
@@ -418,7 +443,12 @@ impl<'a> Checker<'a> {
         if m.from_loop {
             d = d.note("Cada volta do laço entrega de novo o que a anterior já entregou.");
         }
-        err(d)
+        self.fail(d)?;
+        // Acusado uma vez: daqui em diante o nome conta como vivo, para não repetir.
+        if let Some(st) = &mut self.state {
+            st[id] = St::Live;
+        }
+        Ok(())
     }
 
     /// Mudança no lugar: precisa ter dono e não estar emprestado a um laço. `what` é o
@@ -427,7 +457,7 @@ impl<'a> Checker<'a> {
         morphology::first_person(infinitive).unwrap_or_else(|| infinitive.to_string())
     }
 
-    fn mutate(&self, place: &Place, what: &str) -> Result<()> {
+    fn mutate(&mut self, place: &Place, what: &str) -> Result<()> {
         if !place.proj.is_empty() {
             self.usable(place, place.span)?;
         }
@@ -436,19 +466,21 @@ impl<'a> Checker<'a> {
             let are = morphology::third_person("estar", gn(&name).1).unwrap_or_default();
             let (inf, rest) = what.split_once(' ').unwrap_or((what, ""));
             let verb = format!("{} {rest}", verb3(inf, &name)).trim_end().to_string();
-            return err(Diagnostic::new(
-                L0401,
-                format!(
-                    "{} {are} {} {} da linha {} e não {verb} enquanto ele durar.",
-                    capitalize(&name),
-                    agree("emprestado", &name),
-                    l.what.to_whom(),
-                    self.lines.line(l.span)
-                ),
-                place.span,
-            )
-            .label(l.span, l.what.label())
-            .hint(l.what.hint()));
+            return self.fail(
+                Diagnostic::new(
+                    L0401,
+                    format!(
+                        "{} {are} {} {} da linha {} e não {verb} enquanto ele durar.",
+                        capitalize(&name),
+                        agree("emprestado", &name),
+                        l.what.to_whom(),
+                        self.lines.line(l.span)
+                    ),
+                    place.span,
+                )
+                .label(l.span, l.what.label())
+                .hint(l.what.hint()),
+            );
         }
         Ok(())
     }
@@ -520,8 +552,10 @@ impl<'a> Checker<'a> {
     fn move_out(&mut self, p: &Place, span: Span, how: &How, callee: Option<(String, String, String)>) -> Result<()> {
         let name = self.display(p.root);
         if let Var::Global(_) = p.root {
-            return err(Diagnostic::new(L0402, format!("{} é constante do programa e não se entrega.", capitalize(&name)), span)
-                .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))));
+            return self.fail(
+                Diagnostic::new(L0402, format!("{} é constante do programa e não se entrega.", capitalize(&name)), span)
+                    .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))),
+            );
         }
         if !p.proj.is_empty() {
             let whole = place_display(self, p);
@@ -531,36 +565,38 @@ impl<'a> Checker<'a> {
             } else {
                 format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&whole))
             };
-            return err(Diagnostic::new(
-                L0403,
-                format!("Não se tira \"{whole}\" de dentro de \"{name}\" entregando: o valor tem dono."),
-                span,
-            )
-            .hint(hint));
+            return self.fail(
+                Diagnostic::new(L0403, format!("Não se tira \"{whole}\" de dentro de \"{name}\" entregando: o valor tem dono."), span)
+                    .hint(hint),
+            );
         }
         if let Var::Local(id) = p.root
             && self.func.locals[id].borrowed
         {
-            return err(Diagnostic::new(
-                L0404,
-                format!("{} aqui é só uma vista emprestada do valor de fora e não se entrega.", capitalize(&name)),
-                span,
-            )
-            .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))));
+            return self.fail(
+                Diagnostic::new(
+                    L0404,
+                    format!("{} aqui é só uma vista emprestada do valor de fora e não se entrega.", capitalize(&name)),
+                    span,
+                )
+                .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))),
+            );
         }
         if let Some(l) = self.loans.iter().find(|l| l.var == p.root) {
             let are = morphology::third_person("estar", gn(&name).1).unwrap_or_default();
-            return err(Diagnostic::new(
-                L0405,
-                format!(
-                    "{} {are} {} ao laço \"Para cada\" e não se {} enquanto ele durar.",
-                    capitalize(&name),
-                    agree("emprestado", &name),
-                    verb3("entregar", &name)
-                ),
-                span,
-            )
-            .label(l.span, "emprestado ao laço aqui"));
+            return self.fail(
+                Diagnostic::new(
+                    L0405,
+                    format!(
+                        "{} {are} {} ao laço \"Para cada\" e não se {} enquanto ele durar.",
+                        capitalize(&name),
+                        agree("emprestado", &name),
+                        verb3("entregar", &name)
+                    ),
+                    span,
+                )
+                .label(l.span, "emprestado ao laço aqui"),
+            );
         }
         if let (Var::Local(id), Some(st)) = (p.root, &mut self.state) {
             st[id] = St::Moved(Move { span, how: how.clone(), callee, from_loop: false });
@@ -569,7 +605,8 @@ impl<'a> Checker<'a> {
     }
 
     fn call(&mut self, func: hir::FuncId, args: &[hir::Arg], span: Span) -> Result<()> {
-        let callee = &self.prog.funcs[func];
+        let prog = self.prog;
+        let callee = &prog.funcs[func];
         // Empréstimos desta chamada: quem foi confiado ou emprestado, e como.
         let mut lent: Vec<(Var, ParamMode, &str, Span)> = Vec::new();
         for a in args {
@@ -611,7 +648,7 @@ impl<'a> Checker<'a> {
                             } else {
                                 "Passe uma cópia no lugar do emprestado: \"uma cópia ...\"."
                             };
-                            return err(Diagnostic::new(
+                            return self.fail(Diagnostic::new(
                                 L0406,
                                 format!(
                                     "{} já vai {first} a \"{}\" como \"{}\" e não pode ir {again} de novo, como \"{}\", na mesma chamada.",

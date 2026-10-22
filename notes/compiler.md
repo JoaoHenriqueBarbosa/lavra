@@ -55,6 +55,31 @@ conferidas contra o dicionário (ver [morphology.md](morphology.md)). `diagnosti
 estilo do rustc. `textfmt.rs`: formatação e mensagens de execução, compartilhadas pelo
 interpretador e pelo runtime (a paridade vem daí).
 
+## Análise tolerante a erro
+
+`lavra::analyze(texto)` não para no primeiro erro; devolve todos os diagnósticos (na ordem
+do texto), os tokens, a AST e a HIR. `lavra::compile` é o atalho que exige zero erros e é
+o que os back-ends recebem.
+
+- **Léxico**: o trecho recusado vira um token `Error` e a varredura segue; texto sem
+  fechamento encerra a linha lógica; recuo inconsistente fica no bloco mais próximo abaixo.
+- **Parser**: oração quebrada é relatada (menos quando tem token de erro, que o léxico já
+  acusou) e vira `Stmt::Error`, sincronizada no fim da linha lógica; o bloco recuado dela é
+  lido como filho, e a cadeia de "Senão" de um "Se" quebrado vai junto; guarda os nomes que
+  ela declararia. Ponto final esquecido fecha o período num ponto virtual. Cabeçalho
+  quebrado vira assinatura com o que se leu (parâmetros com tipo de erro, chamadas que
+  consomem a oração); definição de registro ou enumeração quebrada fica com o que se leu;
+  "Conforme" se recupera caso a caso.
+- **Sema**: confere oração por oração. O nome de uma declaração que falhou existe com tipo
+  de erro, e "o resultado" dela também; o tipo de erro passa por todas as conferências sem
+  acusar nada. Função com erro (dela ou do cabeçalho) não dá avisos, não confere o retorno e
+  não passa pela posse.
+- **Posse**: relata cada erro uma vez e segue, com o nome de volta a vivo.
+
+Critério: nenhum erro que sumiria ao corrigir um anterior. Os testes
+`tests/programs/err/recuperacao_*` têm vários erros independentes cada um, e o teste de
+robustez roda a análise completa nas versões mutiladas do corpus.
+
 ## Nativo
 
 - `build.rs` compila `runtime/lib.rs` com o `rustc` do toolchain (staticlib, LTO,

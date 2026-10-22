@@ -88,7 +88,7 @@ pub fn compile(prog: &hir::Program, src: &str, path: &str) -> Result<Vec<u8>, St
     }
     for (i, f) in prog.funcs.iter().enumerate() {
         let (name, linkage) =
-            if i == prog.main { ("lavra_main".to_string(), Linkage::Export) } else { (format!("lavra_f{i}"), Linkage::Local) };
+            if Some(i) == prog.main { ("lavra_main".to_string(), Linkage::Export) } else { (format!("lavra_f{i}"), Linkage::Local) };
         let sig = cg.signature(f);
         let id = cg.module.declare_function(&name, linkage, &sig).map_err(|e| e.to_string())?;
         cg.funcs.push(id);
@@ -789,6 +789,7 @@ impl<'a, 'b> Fx<'a, 'b> {
 
     fn stmt(&mut self, s: &Stmt) {
         match s {
+            Stmt::Error(_) => unreachable!("programa com erro não chega aos back-ends"),
             Stmt::Let { var, value } => {
                 let v = self.expr(value, true).unwrap();
                 match var {

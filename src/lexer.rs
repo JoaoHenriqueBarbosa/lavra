@@ -6,7 +6,7 @@
 //! ".", ":" ou ";", senão continua na de baixo com recuo livre (enjambement).
 
 use crate::codes::*;
-use crate::diagnostics::{Diagnostic, Result, err};
+use crate::diagnostics::{Diagnostic, Diagnostics};
 use crate::morphology::split_contraction;
 use crate::span::Span;
 
@@ -19,6 +19,9 @@ pub enum TokenKind {
     Text(String),
     Char(char),
     Punct(char),
+    /// Trecho que o léxico recusou (sinal inválido, número malformado, texto sem
+    /// fechamento). O erro já foi relatado; a oração que o contém falha em silêncio.
+    Error,
     Indent,
     Dedent,
     Newline,
@@ -77,6 +80,7 @@ impl Token {
             TokenKind::Punct('(') => "o parêntese de abertura".to_string(),
             TokenKind::Punct(')') => "o parêntese de fechamento".to_string(),
             TokenKind::Punct(c) => format!("\"{c}\""),
+            TokenKind::Error => format!("\"{}\"", self.orig),
             TokenKind::Indent => "um recuo".to_string(),
             TokenKind::Dedent => "o fim do bloco recuado".to_string(),
             TokenKind::Newline => "o fim da linha".to_string(),
@@ -85,22 +89,35 @@ impl Token {
     }
 }
 
-pub fn tokenize(src: &str) -> Result<Vec<Token>> {
-    let raw = scan(src)?;
+/// Os tokens do texto. Um erro léxico vira diagnóstico e um token `Error` no lugar do
+/// trecho recusado; a varredura segue.
+pub fn tokenize(src: &str, diags: &mut Diagnostics) -> Vec<Token> {
+    let raw = scan(src, diags);
     let protected = fuse(raw, crate::lexicon::PROTECTED_LOCUTIONS, false);
     let split = split_contractions(protected);
-    Ok(fuse(split, crate::lexicon::LOCUTIONS, true))
+    fuse(split, crate::lexicon::LOCUTIONS, true)
 }
 
-fn lex_error(code: Code, msg: impl Into<String>, start: usize, end: usize) -> Box<Diagnostic> {
-    Box::new(Diagnostic::new(code, msg, Span::new(start, end.max(start + 1))))
+fn lex_error(code: Code, msg: impl Into<String>, start: usize, end: usize) -> Diagnostic {
+    Diagnostic::new(code, msg, Span::new(start, end.max(start + 1)))
+}
+
+fn error_token(line: &str, base: usize, start: usize, end: usize) -> Token {
+    let end = end.max(start);
+    Token {
+        kind: TokenKind::Error,
+        span: Span::new(start, end),
+        orig: line[start - base..end - base].to_string(),
+        contraction: None,
+        line_start: false,
+    }
 }
 
 fn is_word_char(c: char) -> bool {
     c.is_alphabetic() || c.is_ascii_digit() || c == '_'
 }
 
-fn scan(src: &str) -> Result<Vec<Token>> {
+fn scan(src: &str, diags: &mut Diagnostics) -> Vec<Token> {
     let mut out: Vec<Token> = Vec::new();
     let mut indents: Vec<usize> = vec![0];
     // Verdadeiro quando a próxima linha física começa uma linha lógica nova.
@@ -144,21 +161,26 @@ fn scan(src: &str) -> Result<Vec<Token>> {
                     });
                 }
                 if width != *indents.last().unwrap() {
-                    return err(Diagnostic::new(
-                        L0012,
-                        "Recuo inconsistente: esta linha não se alinha com nenhum bloco aberto.",
-                        Span::new(line_start, pos.max(line_start + 1)),
-                    )
-                    .hint("Alinhe a linha com o começo de um dos blocos de cima."));
+                    // Como no Python: a linha fica no bloco aberto mais próximo abaixo dela.
+                    diags.push(
+                        Diagnostic::new(
+                            L0012,
+                            "Recuo inconsistente: esta linha não se alinha com nenhum bloco aberto.",
+                            Span::new(line_start, pos.max(line_start + 1)),
+                        )
+                        .hint("Alinhe a linha com o começo de um dos blocos de cima."),
+                    );
                 }
             }
         }
         let before = out.len();
-        scan_line(line, line_start, &mut out)?;
+        let cut = scan_line(line, line_start, &mut out, diags);
         if let Some(t) = out.get_mut(before) {
             t.line_start = true;
         }
-        let ends_period = out.len() > before && matches!(out.last().map(|t| &t.kind), Some(TokenKind::Punct('.' | ':' | ';')));
+        // Texto sem fechamento engoliu o fim da linha, ponto final inclusive: a linha
+        // termina o período, para o erro não emendar na de baixo.
+        let ends_period = out.len() > before && (cut || matches!(out.last().map(|t| &t.kind), Some(TokenKind::Punct('.' | ':' | ';'))));
         if ends_period {
             let end = out.last().unwrap().span.end as usize;
             out.push(Token {
@@ -180,10 +202,12 @@ fn scan(src: &str) -> Result<Vec<Token>> {
         out.push(Token { kind: TokenKind::Dedent, span: Span::new(end, end), orig: String::new(), contraction: None, line_start: false });
     }
     out.push(Token { kind: TokenKind::Eof, span: Span::new(end, end), orig: String::new(), contraction: None, line_start: false });
-    Ok(out)
+    out
 }
 
-fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
+/// Os tokens de uma linha física. Devolve verdadeiro se um texto ou caractere ficou sem
+/// fechamento e engoliu o fim da linha.
+fn scan_line(line: &str, base: usize, out: &mut Vec<Token>, diags: &mut Diagnostics) -> bool {
     let chars: Vec<(usize, char)> = line.char_indices().collect();
     let n = chars.len();
     let pos = |i: usize| -> usize { if i < n { base + chars[i].0 } else { base + line.len() } };
@@ -199,7 +223,7 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
         }
         let start = i;
         if c.is_ascii_digit() || (c == '-' && i + 1 < n && chars[i + 1].1.is_ascii_digit()) {
-            let (tok, next) = scan_number(&chars, i, base, line)?;
+            let (tok, next) = scan_number(&chars, i, base, line, diags);
             out.push(tok);
             i = next;
             continue;
@@ -232,14 +256,16 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
             let mut s = String::new();
             loop {
                 if j >= n {
-                    return Err(lex_error(L0002, "Texto sem aspas de fechamento.", pos(start), pos(n)));
+                    diags.push(lex_error(L0002, "Texto sem aspas de fechamento.", pos(start), pos(n)));
+                    out.push(error_token(line, base, pos(start), pos(n)));
+                    return true;
                 }
                 let cj = chars[j].1;
                 if cj == '"' || cj == '”' || cj == '“' {
                     break;
                 }
                 if cj == '\\' {
-                    let (e, next) = escape(&chars, j, base)?;
+                    let (e, next) = escape(&chars, j, base, diags);
                     s.push(e);
                     j = next;
                     continue;
@@ -260,10 +286,12 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
         if c == '\'' || c == '‘' || c == '’' {
             let mut j = i + 1;
             if j >= n {
-                return Err(lex_error(L0003, "Caractere sem aspas simples de fechamento.", pos(start), pos(n)));
+                diags.push(lex_error(L0003, "Caractere sem aspas simples de fechamento.", pos(start), pos(n)));
+                out.push(error_token(line, base, pos(start), pos(n)));
+                return true;
             }
             let value = if chars[j].1 == '\\' {
-                let (e, next) = escape(&chars, j, base)?;
+                let (e, next) = escape(&chars, j, base, diags);
                 j = next;
                 e
             } else {
@@ -271,10 +299,19 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
                 chars[j - 1].1
             };
             if j >= n || !matches!(chars[j].1, '\'' | '’' | '‘') {
-                return Err(Box::new(
+                diags.push(
                     Diagnostic::new(L0004, "Caractere entre aspas simples tem uma letra só.", Span::new(pos(start), pos(j.min(n))))
                         .hint("Para mais de uma letra, use aspas duplas: é um texto."),
-                ));
+                );
+                // Pula até a aspa de fechamento, se houver, ou até o fim da linha.
+                let close = (j..n).find(|&k| matches!(chars[k].1, '\'' | '’' | '‘'));
+                let end = close.map_or(n, |k| k + 1);
+                out.push(error_token(line, base, pos(start), pos(end)));
+                if close.is_none() {
+                    return true;
+                }
+                i = end;
+                continue;
             }
             out.push(Token {
                 kind: TokenKind::Char(value),
@@ -307,15 +344,19 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
             '?' | '!' => d.hint("Pergunta e exclamação só dentro de texto entre aspas."),
             _ => d,
         };
-        return err(d);
+        diags.push(d);
+        out.push(error_token(line, base, pos(i), pos(i + 1)));
+        i += 1;
     }
-    Ok(())
+    false
 }
 
-fn escape(chars: &[(usize, char)], j: usize, base: usize) -> Result<(char, usize)> {
+/// Um escape dentro de texto ou caractere. Com erro, relata e devolve a barra.
+fn escape(chars: &[(usize, char)], j: usize, base: usize, diags: &mut Diagnostics) -> (char, usize) {
     let at = |k: usize| base + chars.get(k).map(|c| c.0).unwrap_or(0);
     let Some(&(_, e)) = chars.get(j + 1) else {
-        return Err(lex_error(L0005, "Barra invertida no fim da linha.", at(j), at(j) + 1));
+        diags.push(lex_error(L0005, "Barra invertida no fim da linha.", at(j), at(j) + 1));
+        return ('\\', j + 1);
     };
     let v = match e {
         'n' => '\n',
@@ -325,19 +366,26 @@ fn escape(chars: &[(usize, char)], j: usize, base: usize) -> Result<(char, usize
         '"' => '"',
         '\'' => '\'',
         _ => {
-            return Err(Box::new(
+            diags.push(
                 Diagnostic::new(L0006, format!("Escape desconhecido: \"\\{e}\"."), Span::new(at(j), at(j + 1) + e.len_utf8()))
                     .hint("Escapes válidos: \\n (quebra de linha), \\t (tabulação), \\\" (aspas), \\\\ (barra), \\0."),
-            ));
+            );
+            e
         }
     };
-    Ok((v, j + 2))
+    (v, j + 2)
 }
 
-fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str) -> Result<(Token, usize)> {
+/// Um número: inteiro, real com vírgula, milhar com espaço ou hexadecimal. Malformado,
+/// relata e devolve um token de erro.
+fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str, diags: &mut Diagnostics) -> (Token, usize) {
     let n = chars.len();
     let pos = |i: usize| -> usize { if i < n { base + chars[i].0 } else { base + line.len() } };
     let text_of = |a: usize, b: usize| line[chars[a].0..if b < n { chars[b].0 } else { line.len() }].to_string();
+    let mut fail = |d: Diagnostic, end: usize| -> (Token, usize) {
+        diags.push(d);
+        (error_token(line, base, pos(start), pos(end)), end)
+    };
     let mut i = start;
     let negative = chars[i].1 == '-';
     if negative {
@@ -345,31 +393,31 @@ fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str) -
     }
     if chars[i].1 == '0' && i + 1 < n && matches!(chars[i + 1].1, 'x' | 'X') {
         let mut j = i + 2;
-        let mut v: i128 = 0;
+        let mut v: Option<i128> = Some(0);
         while j < n && chars[j].1.is_ascii_hexdigit() {
             v = v
-                .checked_mul(16)
+                .and_then(|v| v.checked_mul(16))
                 .and_then(|v| v.checked_add(chars[j].1.to_digit(16).unwrap() as i128))
-                .filter(|v| *v <= u64::MAX as i128)
-                .ok_or_else(|| lex_error(L0007, "Número grande demais.", pos(start), pos(j)))?;
+                .filter(|v| *v <= u64::MAX as i128);
             j += 1;
         }
         if j == i + 2 {
-            return Err(lex_error(L0008, "Hexadecimal sem dígitos depois de \"0x\".", pos(start), pos(j)));
+            return fail(lex_error(L0008, "Hexadecimal sem dígitos depois de \"0x\".", pos(start), pos(j)), j);
         }
         if negative {
-            return Err(lex_error(L0009, "Hexadecimal não leva sinal.", pos(start), pos(j)));
+            return fail(lex_error(L0009, "Hexadecimal não leva sinal.", pos(start), pos(j)), j);
         }
-        return Ok((
-            Token {
-                kind: TokenKind::Int(v),
-                span: Span::new(pos(start), pos(j)),
-                orig: text_of(start, j),
-                contraction: None,
-                line_start: false,
-            },
-            j,
-        ));
+        let Some(v) = v else {
+            return fail(lex_error(L0007, "Número grande demais.", pos(start), pos(j)), j);
+        };
+        let tok = Token {
+            kind: TokenKind::Int(v),
+            span: Span::new(pos(start), pos(j)),
+            orig: text_of(start, j),
+            contraction: None,
+            line_start: false,
+        };
+        return (tok, j);
     }
     let mut digits = String::new();
     while i < n && chars[i].1.is_ascii_digit() {
@@ -400,26 +448,26 @@ fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str) -
         while j < n && is_word_char(chars[j].1) {
             j += 1;
         }
-        return Err(Box::new(
+        return fail(
             Diagnostic::new(L0011, "Número colado numa palavra.", Span::new(pos(start), pos(j)))
                 .hint("Separe o número da palavra com um espaço."),
-        ));
+            j,
+        );
     }
     let span = Span::new(pos(start), pos(i));
     let sign = if negative { "-" } else { "" };
     let kind = if !frac.is_empty() {
-        TokenKind::Real(
-            format!("{sign}{digits}.{frac}").parse().map_err(|_| lex_error(L0010, "Número real malformado.", pos(start), pos(i)))?,
-        )
+        match format!("{sign}{digits}.{frac}").parse() {
+            Ok(v) => TokenKind::Real(v),
+            Err(_) => return fail(lex_error(L0010, "Número real malformado.", pos(start), pos(i)), i),
+        }
     } else {
-        let v: i128 = format!("{sign}{digits}")
-            .parse()
-            .ok()
-            .filter(|v: &i128| *v <= u64::MAX as i128 && *v >= i64::MIN as i128)
-            .ok_or_else(|| lex_error(L0007, "Número grande demais: nenhum tipo da Lavra guarda esse valor.", pos(start), pos(i)))?;
-        TokenKind::Int(v)
+        match format!("{sign}{digits}").parse().ok().filter(|v: &i128| *v <= u64::MAX as i128 && *v >= i64::MIN as i128) {
+            Some(v) => TokenKind::Int(v),
+            None => return fail(lex_error(L0007, "Número grande demais: nenhum tipo da Lavra guarda esse valor.", pos(start), pos(i)), i),
+        }
     };
-    Ok((Token { kind, span, orig: text_of(start, i), contraction: None, line_start: false }, i))
+    (Token { kind, span, orig: text_of(start, i), contraction: None, line_start: false }, i)
 }
 
 fn fuse(tokens: Vec<Token>, table: &[(&str, &str)], allow_contracted_second: bool) -> Vec<Token> {
@@ -482,9 +530,10 @@ mod tests {
     use super::*;
 
     fn words(src: &str) -> Vec<String> {
-        tokenize(src)
-            .unwrap()
-            .into_iter()
+        let mut diags = Diagnostics::default();
+        let toks = tokenize(src, &mut diags);
+        assert!(diags.list.is_empty(), "erro léxico inesperado: {:?}", diags.list);
+        toks.into_iter()
             .map(|t| match t.kind {
                 TokenKind::Word(w) => w,
                 TokenKind::Int(v) => format!("#{v}"),
@@ -492,6 +541,7 @@ mod tests {
                 TokenKind::Text(s) => format!("{s:?}"),
                 TokenKind::Char(c) => format!("'{c}'"),
                 TokenKind::Punct(c) => c.to_string(),
+                TokenKind::Error => "ERRO".into(),
                 TokenKind::Indent => "INDENT".into(),
                 TokenKind::Dedent => "DEDENT".into(),
                 TokenKind::Newline => "NL".into(),
@@ -531,7 +581,14 @@ mod tests {
     }
 
     #[test]
-    fn rejects_symbols() {
-        assert!(tokenize("Escrevo 1 + 2.").is_err());
+    fn rejects_symbols_and_goes_on() {
+        let mut diags = Diagnostics::default();
+        let toks = tokenize("Escrevo 1 + 2.\nEscrevo \"sem fim\nEscrevo 3.\n", &mut diags);
+        assert_eq!(diags.list.iter().filter_map(|d| d.code).collect::<Vec<_>>(), ["L0001", "L0002"]);
+        // O sinal vira um token de erro e o resto da linha segue; o texto sem fechamento
+        // encerra a linha, e a de baixo é lida normalmente.
+        let kinds: Vec<String> = toks.iter().map(|t| format!("{:?}", t.kind)).collect();
+        assert!(kinds.contains(&"Error".to_string()));
+        assert_eq!(toks.iter().filter(|t| t.is_word("escrevo")).count(), 3);
     }
 }

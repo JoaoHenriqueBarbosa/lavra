@@ -49,8 +49,10 @@ fn main() -> ExitCode {
     let report = |d: &Diagnostic| eprint!("{}", render(d, &src, style));
     let (prog, warnings) = match lavra::compile(&src.text) {
         Ok(r) => r,
-        Err(d) => {
-            report(&d);
+        Err(diags) => {
+            for d in &diags {
+                report(d);
+            }
             return ExitCode::from(1);
         }
     };
