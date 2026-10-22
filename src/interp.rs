@@ -451,6 +451,10 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             }
             ExprKind::Copy(a) | ExprKind::Wrap(a) | ExprKind::Unwrap(a) => self.expr(a, frame)?,
             ExprKind::Nothing => Value::Nothing,
+            ExprKind::Convert(a) => {
+                let v = self.expr(a, frame)?;
+                convert(v, &a.ty, &e.ty, e.span)?
+            }
             ExprKind::Variant { tag, fields } => {
                 let mut v = Vec::with_capacity(fields.len());
                 for f in fields {
@@ -547,6 +551,27 @@ fn unary(op: UnOp, v: Value, ty: &Ty, span: Span) -> Exec<Value> {
             Value::Int(wrap(!x, it))
         }
         (op, v) => panic!("operação mal tipada: {op:?} {v:?}"),
+    })
+}
+
+fn convert(v: Value, from: &Ty, to: &Ty, span: Span) -> Exec<Value> {
+    Ok(match (v, to) {
+        (v, Ty::Text) => Value::Text(format_value(&v, from)),
+        (Value::Int(x), Ty::Int(it)) => {
+            if !it.contains(x) {
+                return fault(textfmt::convert_error(&x.to_string(), it.bits, it.signed), span);
+            }
+            Value::Int(x)
+        }
+        (Value::Int(x), Ty::Real(b)) => Value::Real(if *b == 32 { x as f64 as f32 as f64 } else { x as f64 }),
+        (Value::Real(x), Ty::Int(it)) => {
+            if !textfmt::real_fits(x, it.bits, it.signed) {
+                return fault(textfmt::convert_error(&format_real(x), it.bits, it.signed), span);
+            }
+            Value::Int(x.trunc() as i128)
+        }
+        (Value::Real(x), Ty::Real(b)) => Value::Real(if *b == 32 { x as f32 as f64 } else { x }),
+        (v, _) => v,
     })
 }
 

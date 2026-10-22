@@ -74,6 +74,16 @@ pub fn shift_range(y: i128, bits: u8, signed: bool) -> String {
     format!("Deslocamento de {y} bits num {} de {bits} bits.", int_noun(bits, signed))
 }
 
+pub fn convert_error(shown: &str, bits: u8, signed: bool) -> String {
+    format!("Conversão impossível: {shown} não cabe num {}.", int_noun(bits, signed))
+}
+
+/// O real `x`, sem a parte fracionária, cabe no inteiro? (NaN e infinito não cabem.)
+pub fn real_fits(x: f64, bits: u8, signed: bool) -> bool {
+    let t = x.trunc();
+    t >= int_min(bits, signed) as f64 && t < (int_max(bits, signed) + 1) as f64
+}
+
 pub fn negative_sqrt(x: f64) -> String {
     format!("Raiz de número negativo: {}.", format_real(x))
 }

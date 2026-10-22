@@ -1239,10 +1239,16 @@ impl<'e, 'a> FnCx<'e, 'a> {
             }
             ExprKind::Binary { op, lhs, rhs } => {
                 let num_hint = expected.filter(|t| t.is_numeric());
-                let l = self.expr(lhs, num_hint)?;
-                let r_hint = if matches!(op, BinOp::Shl | BinOp::Shr) { None } else { Some(&l.ty).filter(|t| t.is_numeric()) };
-                let r_hint = r_hint.cloned();
+                let mut l = self.expr(lhs, num_hint)?;
+                // Número escrito toma o tipo do outro lado ("2 vezes a taxa"); nome não muda
+                // de tipo sozinho, e a mistura cai na mensagem com a dica de "como".
+                let literal = |x: &ast::Expr| matches!(x.kind, ExprKind::Int(_) | ExprKind::Real(_));
+                let shift = matches!(op, BinOp::Shl | BinOp::Shr);
+                let r_hint = if !shift && literal(rhs) { Some(l.ty.clone()).filter(|t| t.is_numeric()) } else { None };
                 let r = self.expr(rhs, r_hint.as_ref())?;
+                if !shift && literal(lhs) && !literal(rhs) && r.ty.is_numeric() && r.ty != l.ty {
+                    l = self.expr(lhs, Some(&r.ty))?;
+                }
                 let ty = self.binary_type(*op, &l, &r, e.span)?;
                 (hir::ExprKind::Binary(*op, Box::new(l), Box::new(r)), ty)
             }
@@ -1284,6 +1290,25 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 (c.kind, c.ty)
             }
             ExprKind::Fact(c) => (hir::ExprKind::Fact(Box::new(self.cond(c)?)), Ty::Bool),
+            ExprKind::Convert { value, ty } => {
+                let target = self.env.type_of(ty)?;
+                let v = self.expr(value, None)?;
+                let from = self.resolve_ty(&v.ty);
+                let ok = match (&from, &target) {
+                    (Ty::Int(_) | Ty::Real(_), Ty::Int(_) | Ty::Real(_)) => true,
+                    (Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Text, Ty::Text) => true,
+                    (a, b) => a == b,
+                };
+                if !ok {
+                    return err(Diagnostic::new(
+                        Category::Type,
+                        format!("Não se converte {} em {}.", from.describe(), target.describe()),
+                        e.span,
+                    )
+                    .hint("\"como\" converte entre números, e de qualquer valor simples para texto."));
+                }
+                (hir::ExprKind::Convert(Box::new(v)), target)
+            }
             ExprKind::Nothing => {
                 let ty = match expected.map(|t| self.resolve_ty(t)) {
                     Some(t @ Ty::Maybe(_)) => t,
@@ -1703,7 +1728,7 @@ fn resolve_expr(e: &mut hir::Expr, s: &[(Option<Ty>, Span)]) {
             resolve_expr(a, s);
             resolve_expr(b, s);
         }
-        Unary(_, a) | Copy(a) | Wrap(a) | Unwrap(a) => resolve_expr(a, s),
+        Unary(_, a) | Copy(a) | Wrap(a) | Unwrap(a) | Convert(a) => resolve_expr(a, s),
         Try { call, fallback } => {
             resolve_expr(call, s);
             if let Some(f) = fallback {

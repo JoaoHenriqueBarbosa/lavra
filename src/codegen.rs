@@ -28,6 +28,8 @@ const RUNTIME: &[(&str, &[types::Type], &[types::Type])] = &[
     ("rt_fault_abs", &[types::I64, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_fault_shift", &[types::I64, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_fault_sqrt", &[types::F64, types::I32, types::I32], &[]),
+    ("rt_fault_convert_int", &[types::I64, types::I32, types::I32, types::I32, types::I32, types::I32], &[]),
+    ("rt_fault_convert_real", &[types::F64, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_failure_new", &[PTR, types::I32, types::I32], &[PTR]),
     ("rt_failure_drop", &[PTR], &[]),
     ("rt_enter", &[types::I32, types::I32], &[]),
@@ -1357,6 +1359,11 @@ impl<'a, 'b> Fx<'a, 'b> {
                 let v = self.b.ins().iconst(PTR, 0);
                 Some(v)
             }
+            ExprKind::Convert(a) => {
+                let v = self.expr(a, false).unwrap();
+                let out = self.convert(v, &a.ty, &e.ty, e.span);
+                if e.ty == Ty::Text { fresh(self, out) } else { Some(out) }
+            }
             ExprKind::Variant { tag, fields } => {
                 let n = self.b.ins().iconst(types::I64, fields.len() as i64 + 1);
                 let r = self.rt1("rt_record_new", &[n]);
@@ -1414,6 +1421,89 @@ impl<'a, 'b> Fx<'a, 'b> {
         let v = if callee.ret != Ty::Unit { it.next() } else { None };
         let f = if callee.fallible { it.next() } else { None };
         (v, f)
+    }
+
+    /// "x como T": mesma regra do interpretador (não cabe é falha, nunca truncamento).
+    fn convert(&mut self, v: Value, from: &Ty, to: &Ty, span: Span) -> Value {
+        match (from, to) {
+            (_, Ty::Text) => {
+                let t = self.rt1("rt_text_new", &[]);
+                let d = self.desc(from);
+                let s = self.slot_of(v, from);
+                self.rt("rt_text_append", &[t, d, s]);
+                t
+            }
+            (Ty::Int(src), Ty::Int(dst)) => {
+                let x = if src.bits < 64 {
+                    if src.signed { self.b.ins().sextend(types::I64, v) } else { self.b.ins().uextend(types::I64, v) }
+                } else {
+                    v
+                };
+                // Faixa conferida no domínio de 64 bits da origem.
+                let bad = match (src.signed, dst.signed, dst.bits) {
+                    (true, true, 64) | (false, false, 64) => None,
+                    (false, true, 64) | (true, false, 64) => Some(self.b.ins().icmp_imm_s(IntCC::SignedLessThan, x, 0)),
+                    (true, _, _) => {
+                        let lo = self.b.ins().icmp_imm_s(IntCC::SignedLessThan, x, dst.min() as i64);
+                        let hi = self.b.ins().icmp_imm_s(IntCC::SignedGreaterThan, x, dst.max() as i64);
+                        Some(self.b.ins().bor(lo, hi))
+                    }
+                    (false, _, _) => Some(self.b.ins().icmp_imm_u(IntCC::UnsignedGreaterThan, x, dst.max() as i64)),
+                };
+                if let Some(bad) = bad {
+                    let fail = self.b.create_block();
+                    let ok = self.b.create_block();
+                    self.b.ins().brif(bad, fail, &[], ok, &[]);
+                    self.b.switch_to_block(fail);
+                    let ss = self.b.ins().iconst(types::I32, src.signed as i64);
+                    let bits = self.b.ins().iconst(types::I32, dst.bits as i64);
+                    let ds = self.b.ins().iconst(types::I32, dst.signed as i64);
+                    let (lo, hi) = self.span_vals(span);
+                    self.rt("rt_fault_convert_int", &[x, ss, bits, ds, lo, hi]);
+                    self.b.ins().trap(ir::TrapCode::unwrap_user(2));
+                    self.b.switch_to_block(ok);
+                }
+                if dst.bits < 64 { self.b.ins().ireduce(int_type(*dst), x) } else { x }
+            }
+            (Ty::Int(src), Ty::Real(b)) => {
+                let x = if src.bits < 64 {
+                    if src.signed { self.b.ins().sextend(types::I64, v) } else { self.b.ins().uextend(types::I64, v) }
+                } else {
+                    v
+                };
+                let f = if src.signed { self.b.ins().fcvt_from_sint(types::F64, x) } else { self.b.ins().fcvt_from_uint(types::F64, x) };
+                if *b == 32 { self.b.ins().fdemote(types::F32, f) } else { f }
+            }
+            (Ty::Real(b), Ty::Int(dst)) => {
+                let x = if *b == 32 { self.b.ins().fpromote(types::F64, v) } else { v };
+                let t = self.b.ins().trunc(x);
+                let lo = self.b.ins().f64const(dst.min() as f64);
+                let hi = self.b.ins().f64const((dst.max() + 1) as f64);
+                let ge = self.b.ins().fcmp(FloatCC::GreaterThanOrEqual, t, lo);
+                let lt = self.b.ins().fcmp(FloatCC::LessThan, t, hi);
+                let fits = self.b.ins().band(ge, lt);
+                let fail = self.b.create_block();
+                let ok = self.b.create_block();
+                self.b.ins().brif(fits, ok, &[], fail, &[]);
+                self.b.switch_to_block(fail);
+                let bits = self.b.ins().iconst(types::I32, dst.bits as i64);
+                let ds = self.b.ins().iconst(types::I32, dst.signed as i64);
+                let (slo, shi) = self.span_vals(span);
+                self.rt("rt_fault_convert_real", &[x, bits, ds, slo, shi]);
+                self.b.ins().trap(ir::TrapCode::unwrap_user(2));
+                self.b.switch_to_block(ok);
+                let i = if dst.signed { self.b.ins().fcvt_to_sint(types::I64, t) } else { self.b.ins().fcvt_to_uint(types::I64, t) };
+                if dst.bits < 64 { self.b.ins().ireduce(int_type(*dst), i) } else { i }
+            }
+            (Ty::Real(a), Ty::Real(b)) if a != b => {
+                if *b == 32 {
+                    self.b.ins().fdemote(types::F32, v)
+                } else {
+                    self.b.ins().fpromote(types::F64, v)
+                }
+            }
+            _ => v,
+        }
     }
 
     fn unary(&mut self, op: UnOp, v: Value, t: &Ty, span: Span) -> Value {
@@ -1662,7 +1752,9 @@ fn expr_addressed(e: &hir::Expr, out: &mut [bool]) {
             expr_addressed(a, out);
             expr_addressed(b, out);
         }
-        ExprKind::Unary(_, a) | ExprKind::Copy(a) | ExprKind::Wrap(a) | ExprKind::Unwrap(a) => expr_addressed(a, out),
+        ExprKind::Unary(_, a) | ExprKind::Copy(a) | ExprKind::Wrap(a) | ExprKind::Unwrap(a) | ExprKind::Convert(a) => {
+            expr_addressed(a, out)
+        }
         ExprKind::Concat(v) | ExprKind::List(v) | ExprKind::Record(v) | ExprKind::Variant { fields: v, .. } => {
             v.iter().for_each(|x| expr_addressed(x, out))
         }

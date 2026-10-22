@@ -516,6 +516,15 @@ impl Parser {
     /// parênteses.
     fn nominal_operand(&mut self) -> Result<Expr> {
         let e = self.primary()?;
+        if self.at_word("como") {
+            let t = self.peek().clone();
+            return err(Diagnostic::new(
+                Category::Syntax,
+                "Conversão encostada numa operação por extenso é ambígua: precisa de parênteses.",
+                t.span,
+            )
+            .hint("Escreva \"(a soma de 3 e 4) como real\" ou \"a soma de 3 e (4 como real)\", conforme o que quer dizer."));
+        }
         if self.at_infix() {
             let t = self.peek().clone();
             return err(Diagnostic::new(
@@ -535,6 +544,7 @@ impl Parser {
             || self.at_word("menos")
             || self.at_word("dividido por")
             || self.at_word("módulo")
+            || self.at_word("como")
             || (self.at_word("vezes") && self.starts_value(1))
     }
 

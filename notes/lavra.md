@@ -189,7 +189,13 @@ Por extenso, de aridade fixa: `a soma`, `a diferença`, `o produto`, `o quocient
 nas comutativas), `o negativo`, `a raiz`, `o tamanho`, `o inverso`, `o módulo` (de X),
 `o deslocamento de X por N à esquerda/à direita`. **Misturar por extenso com infixa
 exige parênteses**: `(a diferença de 10 e 3) mais 1`. Texto se junta com `seguido de`
-("mais" com texto é erro com dica). `o resultado` retoma o valor da oração anterior do
+("mais" com texto é erro com dica).
+
+Conversão com `como`, sem artigo: `o total como real`, `9,99 como inteiro` (descarta a
+parte fracionária), `x como byte`, `42 como texto`. Valor que não cabe é falha de
+execução ("Conversão impossível: 300 não cabe num byte."), nunca truncamento silencioso.
+Os dois lados de uma conta têm o mesmo tipo; número escrito toma o tipo do outro lado
+(`2 vezes a taxa`), nome não (`o total vezes a taxa` pede `o total como real`). `o resultado` retoma o valor da oração anterior do
 mesmo período.
 
 ## Entrada e saída

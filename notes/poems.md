@@ -97,3 +97,19 @@ programas são sobre ciclos de tamanhos diferentes se sobrepondo (semana, mês, 
 MMC/MDC), como em *Clapping Music* e *Drumming* de Steve Reich; e cada frase Lavra tem
 duas vozes, a técnica (que o compilador exige perfeita) e a comum (livre, desde que não
 desafine a primeira).
+
+## Lavra dos dias na língua nova (`samples/lavra-dos-dias.lav`, 2026-10-22)
+
+Reescrito como teste de regressão poética; a saída é idêntica à do protótipo (conferido
+com 13/05/1990 a 22/10/2026 e com 29/02/2000 a 29/02/2024) e roda igual no nativo.
+
+- **Perdeu**: "Pergunto pelo endereço do nascimento" e "o apontado pela data". Sem
+  ponteiros, o duplo sentido de "endereço" (onde a pessoa nasceu) saiu do texto.
+- **Ganhou**: a data agora é perguntada e devolvida inteira, `Devolvo uma data com o dia o
+  sol, o mês a lua e o ano o tempo.`; o ciclo de sol, lua e tempo, que já estava no
+  cálculo, virou verso. `O tempo começa no ano da data.` e `A lua começa no mês da data.`
+  são declarações que se leem como frase.
+- A contagem da semana passou a ser `1 mais o resto ... e 7`, porque as posições começam
+  em 1; a regra dos parênteses não pesa, porque a forma por extenso fica no fim.
+- `Para a data rimar com a outra, sendo ambas datas emprestadas`: o empréstimo entrou no
+  verso; "emprestadas" concorda com "datas".

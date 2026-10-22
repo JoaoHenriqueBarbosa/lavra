@@ -7,11 +7,14 @@ redundante. Extensão `.lav`.
 
 ## Estado
 
-- `draft/` é o protótipo feito no claude.ai em 2026-10-21 (compilador JS,
-  interpretador, gerador x86-64, runtime C, editor HTML, exemplos e três
-  programas-poema). Funciona: o nativo bate com o interpretador nos exemplos.
-- A Lavra vai ser **refeita** de acordo com as instruções do user. Trate o `draft/`
-  como referência somente leitura: não edite, não gere artefatos dentro dele.
+- O compilador em Rust (`src/`, `runtime/`, crate `lavrac`) implementa a língua nova,
+  "um Rust com gramática e morfologia": interpretador e nativo (Cranelift), posse e
+  empréstimo, talvez e falha, registros e enumerações. Plano aprovado em
+  `~/.claude/plans/bright-mixing-hoare.md`.
+- `draft/` é o protótipo feito no claude.ai em 2026-10-21 (JS, x86-64, runtime C, editor
+  HTML, poemas). É referência somente leitura: não edite, não gere artefatos dentro dele,
+  e não cite o draft em código nem em mensagens da língua (para quem usa, só existe uma
+  Lavra).
 - Na raiz de `draft/`, `lavra.js` e `lavra.html` são mais novos que os de
   `draft/lavra/` (patch de contração no cabeçalho, necessário para
   `catilinaria.lav`).
@@ -20,8 +23,11 @@ redundante. Extensão `.lav`.
 
 Leia antes de mexer em qualquer coisa: [`notes/README.md`](notes/README.md).
 
+- `notes/lavra.md`: **a língua como está implementada** (referência completa).
+- `notes/compiler.md`: o compilador, o nativo e os testes.
+- `notes/morphology.md`: tabelas conferidas contra o dicionário e decisões de borda.
 - `notes/origin.md`: o pedido, a tese de design, a ordem dos fatos.
-- `notes/language.md`: a linguagem como está implementada (referência completa).
+- `notes/language.md`: a linguagem como estava no protótipo.
 - `notes/draft-architecture.md`: como o draft é construído.
 - `notes/draft-status.md`: o que foi verificado, bugs e limitações.
 - `notes/applications.md`: as aplicações discutidas e o roadmap.
@@ -29,6 +35,20 @@ Leia antes de mexer em qualquer coisa: [`notes/README.md`](notes/README.md).
 
 Ao descobrir algo novo sobre a linguagem ou tomar uma decisão de design, atualize a
 nota correspondente.
+
+## Compilar e testar
+
+```bash
+cargo build                                  # compila o lavrac (o build.rs compila o runtime)
+./target/debug/lavrac run samples/caixa-de-poupanca.lav
+./target/debug/lavrac build samples/lavra-dos-dias.lav -o /tmp/dias && /tmp/dias
+cargo test                                   # unitários, golden e paridade interpretador/nativo
+LAVRA_BLESS=1 cargo test --test golden       # regrava as expectativas (revise o diff)
+cargo clippy --all-targets -- -D warnings && cargo fmt
+tools/memcheck.sh                            # valgrind em contêiner sobre toda a suíte
+```
+
+Verificar as tabelas de morfologia contra o dicionário: `tools/morphology/README.md`.
 
 ## Rodar o draft
 
@@ -54,7 +74,8 @@ O editor é `draft/lavra.html` (abre direto no navegador, sem servidor).
 - Prosa (comentários, docs, mensagens de erro, commits) em português com acentuação
   completa, sem travessão.
 - Toda mudança na gramática precisa de programa certo e programa errado de teste, com
-  a mensagem de erro esperada.
+  a mensagem de erro esperada (`tests/programs/ok` e `tests/programs/err`).
+- Mensagens de erro concordam em gênero e número com o nome de que falam.
 - Paridade entre interpretador e nativo é o critério de correção do backend: mesma
   saída byte a byte.
 - Mudança visual no editor: screenshot pelo chrome-devtools antes de dar como pronto.

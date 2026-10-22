@@ -1,0 +1,16 @@
+Nota: conversões com "como": entre números, e para texto.
+
+Para começar:
+    O total é 7.
+    A taxa é 0,5.
+    Escrevo o total como real vezes a taxa.
+    Escrevo 9,99 como inteiro.
+    Escrevo -9,99 como inteiro.
+    O pequeno, um byte, é 200.
+    Escrevo o pequeno como inteiro mais 100.
+    Escrevo 1000 como inteiro de 16 bits.
+    O rótulo é 42 como texto seguido de "!".
+    Escrevo o rótulo.
+    Escrevo o tamanho de (123456 como texto).
+    Escrevo (a soma de 3 e 4) como real.
+    Escrevo verdadeiro como texto.

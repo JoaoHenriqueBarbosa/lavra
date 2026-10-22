@@ -466,7 +466,9 @@ impl<'a> Checker<'a> {
                 self.expr(a, Use::Read, &How::Other)?;
                 self.expr(b, Use::Read, &How::Other)?;
             }
-            ExprKind::Unary(_, a) | ExprKind::Copy(a) | ExprKind::Unwrap(a) => self.expr(a, Use::Read, &How::Other)?,
+            ExprKind::Unary(_, a) | ExprKind::Copy(a) | ExprKind::Unwrap(a) | ExprKind::Convert(a) => {
+                self.expr(a, Use::Read, &How::Other)?
+            }
             ExprKind::Wrap(a) => self.expr(a, use_, how)?,
             ExprKind::Try { call, fallback } => {
                 self.expr(call, Use::Move, how)?;

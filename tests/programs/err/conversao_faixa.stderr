@@ -1,0 +1,5 @@
+Erro de execução: Conversão impossível: 300 não cabe num byte.
+ --> tests/programs/err/conversao_faixa.lav:3:17
+  |
+3 |     O pequeno é o valor como byte.
+  |                 ^^^^^^^^^^^^^^^^^

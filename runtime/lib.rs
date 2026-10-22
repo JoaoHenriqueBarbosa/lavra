@@ -187,6 +187,19 @@ pub unsafe extern "C" fn rt_fault_sqrt(value: f64, lo: u32, hi: u32) -> ! {
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_fault_convert_int(x: i64, src_signed: u32, bits: u32, signed: u32, lo: u32, hi: u32) -> ! {
+    unsafe {
+        let shown = if src_signed != 0 { x.to_string() } else { (x as u64).to_string() };
+        report(Category::Runtime, textfmt::convert_error(&shown, bits as u8, signed != 0), lo, hi, None, 101)
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_fault_convert_real(x: f64, bits: u32, signed: u32, lo: u32, hi: u32) -> ! {
+    unsafe { report(Category::Runtime, textfmt::convert_error(&textfmt::format_real(x), bits as u8, signed != 0), lo, hi, None, 101) }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_failure_new(text: *mut String, lo: u32, hi: u32) -> *mut Failure {
     unsafe {
         let message = *Box::from_raw(text);

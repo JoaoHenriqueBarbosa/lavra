@@ -232,6 +232,8 @@ pub enum ExprKind {
         call: Box<Expr>,
         fallback: Option<Box<Expr>>,
     },
+    /// "x como real": conversão para o tipo da expressão.
+    Convert(Box<Expr>),
     /// Valor de enumeração: o caso e os campos.
     Variant {
         tag: usize,

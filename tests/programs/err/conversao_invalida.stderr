@@ -1,0 +1,6 @@
+Erro de tipo: Não se converte um texto em um inteiro.
+ --> tests/programs/err/conversao_invalida.lav:3:13
+  |
+3 |     Escrevo o nome como inteiro.
+  |             ^^^^^^^^^^^^^^^^^^^
+  = dica: "como" converte entre números, e de qualquer valor simples para texto.

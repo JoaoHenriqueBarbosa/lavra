@@ -1129,8 +1129,34 @@ impl Parser {
         }
     }
 
+    /// Valor com conversão opcional: "o total como real".
+    fn factor(&mut self) -> Result<Expr> {
+        let e = self.primary()?;
+        if !self.at_word("como") {
+            return Ok(e);
+        }
+        if self.last_nominal {
+            return Err(self.mixing_error());
+        }
+        let como = self.bump();
+        let start = self.peek().span;
+        if self.peek().word().and_then(morphology::article).is_some() {
+            let t = self.peek().clone();
+            return err(Diagnostic::new(
+                Category::Syntax,
+                "Depois de \"como\" o tipo vem sem artigo: \"como real\", \"como texto\".",
+                t.span,
+            ));
+        }
+        let (ty, _) = self.type_word(Number::Singular)?;
+        let ann = TypeAnn { ty, span: start.to(self.prev_span()) };
+        let span = e.span.to(self.prev_span());
+        let _ = como;
+        Ok(Expr { kind: ExprKind::Convert { value: Box::new(e), ty: ann }, span })
+    }
+
     fn multiplicative(&mut self) -> Result<Expr> {
-        let mut lhs = self.primary()?;
+        let mut lhs = self.factor()?;
         loop {
             if self.last_nominal && self.at_infix() {
                 return Err(self.mixing_error());
@@ -1145,7 +1171,7 @@ impl Parser {
             } else {
                 return Ok(lhs);
             };
-            let rhs = self.primary()?;
+            let rhs = self.factor()?;
             let span = lhs.span.to(rhs.span);
             lhs = Expr { kind: ExprKind::Binary { op, lhs: Box::new(lhs), rhs: Box::new(rhs) }, span };
         }

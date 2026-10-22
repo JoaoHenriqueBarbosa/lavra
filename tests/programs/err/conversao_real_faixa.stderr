@@ -1,0 +1,5 @@
+Erro de execução: Conversão impossível: 3000000000,5 não cabe num inteiro de 32 bits.
+ --> tests/programs/err/conversao_real_faixa.lav:3:13
+  |
+3 |     Escrevo o valor como inteiro de 32 bits.
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
