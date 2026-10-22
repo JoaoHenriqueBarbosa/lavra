@@ -1,0 +1,5 @@
+Erro de morfologia: Em condição, o verbo vai no futuro do subjuntivo: "for", não "é".
+ --> tests/programs/err/condicao_indicativo.lav:3:16
+  |
+3 |     Se o saldo é maior que 10:
+  |                ^

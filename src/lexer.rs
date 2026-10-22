@@ -39,6 +39,8 @@ pub struct Token {
     /// Grafia original (com maiúsculas), para as mensagens.
     pub orig: String,
     pub contraction: Option<Contraction>,
+    /// Primeiro token da linha física.
+    pub line_start: bool,
 }
 
 impl Token {
@@ -137,11 +139,11 @@ fn scan(src: &str) -> Result<Vec<Token>> {
             let pos = line_start + indent_bytes;
             if width > top {
                 indents.push(width);
-                out.push(Token { kind: TokenKind::Indent, span: Span::new(pos, pos), orig: String::new(), contraction: None });
+                out.push(Token { kind: TokenKind::Indent, span: Span::new(pos, pos), orig: String::new(), contraction: None, line_start: false });
             } else if width < top {
                 while width < *indents.last().unwrap() {
                     indents.pop();
-                    out.push(Token { kind: TokenKind::Dedent, span: Span::new(pos, pos), orig: String::new(), contraction: None });
+                    out.push(Token { kind: TokenKind::Dedent, span: Span::new(pos, pos), orig: String::new(), contraction: None, line_start: false });
                 }
                 if width != *indents.last().unwrap() {
                     return err(Diagnostic::new(
@@ -155,23 +157,26 @@ fn scan(src: &str) -> Result<Vec<Token>> {
         }
         let before = out.len();
         scan_line(line, line_start, &mut out)?;
+        if let Some(t) = out.get_mut(before) {
+            t.line_start = true;
+        }
         let ends_period = out.len() > before
             && matches!(out.last().map(|t| &t.kind), Some(TokenKind::Punct('.' | ':' | ';')));
         if ends_period {
             let end = out.last().unwrap().span.end as usize;
-            out.push(Token { kind: TokenKind::Newline, span: Span::new(end, end), orig: String::new(), contraction: None });
+            out.push(Token { kind: TokenKind::Newline, span: Span::new(end, end), orig: String::new(), contraction: None, line_start: false });
         }
         at_logical_start = ends_period || (out.len() == before && at_logical_start);
     }
     let end = src.len();
     if !matches!(out.last().map(|t| &t.kind), None | Some(TokenKind::Newline)) {
-        out.push(Token { kind: TokenKind::Newline, span: Span::new(end, end), orig: String::new(), contraction: None });
+        out.push(Token { kind: TokenKind::Newline, span: Span::new(end, end), orig: String::new(), contraction: None, line_start: false });
     }
     while indents.len() > 1 {
         indents.pop();
-        out.push(Token { kind: TokenKind::Dedent, span: Span::new(end, end), orig: String::new(), contraction: None });
+        out.push(Token { kind: TokenKind::Dedent, span: Span::new(end, end), orig: String::new(), contraction: None, line_start: false });
     }
-    out.push(Token { kind: TokenKind::Eof, span: Span::new(end, end), orig: String::new(), contraction: None });
+    out.push(Token { kind: TokenKind::Eof, span: Span::new(end, end), orig: String::new(), contraction: None, line_start: false });
     Ok(out)
 }
 
@@ -214,6 +219,7 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
                 span: Span::new(pos(i), pos(j)),
                 orig: orig.to_string(),
                 contraction: None,
+                line_start: false,
             });
             i = j;
             continue;
@@ -243,6 +249,7 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
                 span: Span::new(pos(start), pos(j + 1)),
                 orig: line[chars[start].0..if j + 1 < n { chars[j + 1].0 } else { line.len() }].to_string(),
                 contraction: None,
+                line_start: false,
             });
             i = j + 1;
             continue;
@@ -271,12 +278,13 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
                 span: Span::new(pos(start), pos(j + 1)),
                 orig: line[chars[start].0..if j + 1 < n { chars[j + 1].0 } else { line.len() }].to_string(),
                 contraction: None,
+                line_start: false,
             });
             i = j + 1;
             continue;
         }
         if matches!(c, '.' | ',' | ':' | ';' | '(' | ')') {
-            out.push(Token { kind: TokenKind::Punct(c), span: Span::new(pos(i), pos(i + 1)), orig: c.to_string(), contraction: None });
+            out.push(Token { kind: TokenKind::Punct(c), span: Span::new(pos(i), pos(i + 1)), orig: c.to_string(), contraction: None, line_start: false });
             i += 1;
             continue;
         }
@@ -341,7 +349,7 @@ fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str) -
         if negative {
             return Err(lex_error("Hexadecimal não leva sinal.", pos(start), pos(j)));
         }
-        return Ok((Token { kind: TokenKind::Int(v), span: Span::new(pos(start), pos(j)), orig: text_of(start, j), contraction: None }, j));
+        return Ok((Token { kind: TokenKind::Int(v), span: Span::new(pos(start), pos(j)), orig: text_of(start, j), contraction: None, line_start: false }, j));
     }
     let mut digits = String::new();
     while i < n && chars[i].1.is_ascii_digit() {
@@ -389,7 +397,7 @@ fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str) -
             .ok_or_else(|| lex_error("Número grande demais: nenhum tipo da Lavra guarda esse valor.", pos(start), pos(i)))?;
         TokenKind::Int(v)
     };
-    Ok((Token { kind, span, orig: text_of(start, i), contraction: None }, i))
+    Ok((Token { kind, span, orig: text_of(start, i), contraction: None, line_start: false }, i))
 }
 
 fn fuse(tokens: Vec<Token>, table: &[(&str, &str)], allow_contracted_second: bool) -> Vec<Token> {
@@ -410,7 +418,7 @@ fn fuse(tokens: Vec<Token>, table: &[(&str, &str)], allow_contracted_second: boo
             }
             let span = if second_contracted { t.span.to(Span { start: t2.span.start, end: t2.span.start }) } else { t.span.to(t2.span) };
             let orig = if second_contracted { t.orig.clone() } else { format!("{} {}", t.orig, t2.orig) };
-            out.push(Token { kind: TokenKind::Word(format!("{a} {b}")), span, orig, contraction: None });
+            out.push(Token { kind: TokenKind::Word(format!("{a} {b}")), span, orig, contraction: None, line_start: t.line_start });
             i += 2;
             continue;
         }
@@ -431,12 +439,14 @@ fn split_contractions(tokens: Vec<Token>) -> Vec<Token> {
                 span: t.span,
                 orig: t.orig.clone(),
                 contraction: Some(Contraction { written, part: 1 }),
+                line_start: t.line_start,
             });
             out.push(Token {
                 kind: TokenKind::Word(art.to_string()),
                 span: t.span,
                 orig: t.orig.clone(),
                 contraction: Some(Contraction { written, part: 2 }),
+                line_start: false,
             });
             continue;
         }

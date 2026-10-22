@@ -7,8 +7,21 @@ use crate::lexer::{Token, TokenKind};
 use crate::morphology::{self, Number};
 use crate::span::Span;
 
+mod header;
+
+use std::collections::HashMap;
+
 pub fn parse(tokens: Vec<Token>) -> Result<Program> {
-    let mut p = Parser { toks: tokens, pos: 0, prog: Program::default() };
+    let mut p = Parser {
+        toks: tokens,
+        pos: 0,
+        prog: Program::default(),
+        headers: HashMap::new(),
+        by_first_person: HashMap::new(),
+        by_infinitive: HashMap::new(),
+        allow_uncontracted: false,
+    };
+    p.prescan()?;
     p.program()?;
     Ok(p.prog)
 }
@@ -17,6 +30,12 @@ struct Parser {
     toks: Vec<Token>,
     pos: usize,
     prog: Program,
+    /// Cabeçalhos lidos na pré-varredura: posição do "Para" → (assinatura, fim do cabeçalho).
+    headers: HashMap<usize, (usize, usize)>,
+    by_first_person: HashMap<String, usize>,
+    by_infinitive: HashMap<String, Vec<usize>>,
+    /// "o fato de o valor ser ...": antes do sujeito de infinitivo não se contrai.
+    allow_uncontracted: bool,
 }
 
 /// Verbos dos dados-sujeito, por infinitivo.
@@ -74,7 +93,7 @@ impl Parser {
     /// Erro de "esperava X, encontrei Y", com o caso especial do ponto final esquecido.
     fn expected(&self, what: &str) -> Box<Diagnostic> {
         let t = self.peek();
-        if what == "o ponto final" && matches!(t.kind, TokenKind::Newline | TokenKind::Eof | TokenKind::Dedent) {
+        if what == "o ponto final" && (matches!(t.kind, TokenKind::Newline | TokenKind::Eof | TokenKind::Dedent) || t.line_start) {
             let end = self.prev_span().end as usize;
             return Box::new(
                 Diagnostic::new(Category::Syntax, "Faltou o ponto final.", Span::new(end.saturating_sub(1), end))
@@ -135,6 +154,10 @@ impl Parser {
                 let body = self.block()?;
                 self.prog.funcs.push(FuncDef { sig, body });
                 self.prog.main = Some(sig);
+            } else if let Some(&(sig, end)) = self.headers.get(&self.pos) {
+                self.pos = end;
+                let body = self.block()?;
+                self.prog.funcs.push(FuncDef { sig, body });
             } else {
                 let s = self.stmt()?;
                 self.prog.top.push(s);
@@ -651,7 +674,8 @@ impl Parser {
     fn multiplicative(&mut self) -> Result<Expr> {
         let mut lhs = self.primary()?;
         loop {
-            let op = if self.eat_word("vezes") {
+            let op = if self.at_word("vezes") && self.starts_value(1) {
+                self.bump();
                 BinOp::Mul
             } else if self.eat_word("dividido por") {
                 BinOp::Div
@@ -663,6 +687,16 @@ impl Parser {
             let rhs = self.primary()?;
             let span = lhs.span.to(rhs.span);
             lhs = Expr { kind: ExprKind::Binary { op, lhs: Box::new(lhs), rhs: Box::new(rhs) }, span };
+        }
+    }
+
+    /// O token na posição `k` à frente pode começar um valor?
+    fn starts_value(&self, k: usize) -> bool {
+        let t = self.peek_at(k);
+        match &t.kind {
+            TokenKind::Int(_) | TokenKind::Real(_) | TokenKind::Text(_) | TokenKind::Char(_) | TokenKind::Punct('(') => true,
+            TokenKind::Word(w) => self.definite_article_at(k).is_some() || morphology::is_symbol(w) || matches!(w.as_str(), "verdadeiro" | "falso" | "nada"),
+            _ => false,
         }
     }
 

@@ -3,4 +3,4 @@ Erro de tipo: Texto não se soma: se junta.
   |
 3 |     Escrevo "Olá, " mais o nome.
   |             ^^^^^^^^^^^^^^^^^^^
-  = dica: Para juntar textos, use "seguido de": "Escrevo \"total: \" seguido do total."
+  = dica: Para juntar textos, use "seguido de": Escrevo "total: " seguido do total.

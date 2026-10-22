@@ -47,7 +47,9 @@ fn main() -> ExitCode {
         "check" => ExitCode::SUCCESS,
         "run" => {
             let stdout = std::io::stdout().lock();
-            let mut m = lavra::interp::Machine::new(&prog, std::io::BufWriter::new(stdout));
+            let stdin = std::io::stdin().lock();
+            let mut m = lavra::interp::Machine::new(&prog, std::io::BufWriter::new(stdout), stdin);
+            m.echo = std::env::var_os("LAVRA_ECO").is_some();
             match m.run() {
                 Ok(()) => ExitCode::SUCCESS,
                 Err(f) => {

@@ -1,0 +1,5 @@
+Erro de regência: "maior" rege "que": "maior que".
+ --> tests/programs/err/regencia_comparacao.lav:3:20
+  |
+3 |     Se o saldo for maior de 10: escrevo "muito".
+  |                    ^^^^^

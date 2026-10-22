@@ -1,0 +1,6 @@
+Erro de escopo: "O resultado" retoma o valor da oração anterior do mesmo período, e aqui nenhuma oração antes deu valor.
+ --> tests/programs/err/resultado_sem_valor.lav:3:13
+  |
+3 |     Escrevo o resultado.
+  |             ^^^^^^^^^^^
+  = dica: Junte as orações no mesmo período: "Leio um inteiro e escrevo o resultado."

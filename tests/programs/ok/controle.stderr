@@ -1,0 +1,6 @@
+Aviso: O saldo começa com um valor e nunca muda.
+ --> tests/programs/ok/controle.lav:4:5
+  |
+4 |     O saldo começa em 120.
+  |     ^^^^^^^
+  = dica: Se é definição, escreva "O saldo é ...".

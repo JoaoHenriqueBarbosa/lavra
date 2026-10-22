@@ -38,6 +38,22 @@ pub enum Stmt {
     /// "cresce" e "diminui": `place op= value`.
     Compound { place: Place, op: BinOp, value: Expr, span: Span },
     Write { value: Expr, newline: bool },
+    If { arms: Vec<(Cond, Block)>, otherwise: Option<Block> },
+    While { cond: Cond, body: Block },
+    /// "Repito N vezes" (com contagem) ou "Repito sempre" (sem).
+    Repeat { count: Option<Expr>, body: Block },
+    /// "Para cada i de A até B": conta para baixo se A for maior que B.
+    ForRange { var: LocalId, from: Expr, to: Expr, body: Block },
+    Break,
+    Continue,
+}
+
+#[derive(Debug)]
+pub enum Cond {
+    And(Vec<Cond>),
+    Or(Vec<Cond>),
+    Not(Box<Cond>),
+    Cmp { rel: crate::ast::Rel, lhs: Expr, rhs: Expr },
 }
 
 #[derive(Debug, Clone)]
@@ -65,4 +81,6 @@ pub enum ExprKind {
     Binary(BinOp, Box<Expr>, Box<Expr>),
     /// Converte para texto e junta ("seguido de").
     Concat(Vec<Expr>),
+    /// Lê uma linha da entrada e converte para o tipo da expressão.
+    Input,
 }

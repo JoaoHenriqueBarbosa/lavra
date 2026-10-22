@@ -1,0 +1,36 @@
+Nota: condições no futuro do subjuntivo, laços e "o resultado".
+
+Para começar:
+    O saldo começa em 120.
+    O teto é 100.
+    Se o saldo for maior que o teto:
+        Escrevo "estourou".
+    Senão, se o saldo for igual ao teto: escrevo "no limite".
+    Senão:
+        Escrevo "folga".
+
+    O contador começa em 0.
+    Enquanto o contador for menor que 5:
+        O contador cresce 1.
+        Se o contador for igual a 2: pulo.
+        Se o contador for pelo menos 4 e o saldo não for menor que 100: paro.
+        Escrevo "volta " seguido do contador.
+
+    Repito 3 vezes: escrevo "eco".
+
+    Para cada i de 3 até 1:
+        Escrevo i.
+
+    A soma começa em 0.
+    Para cada i de 1 até 100: a soma cresce i.
+    Escrevo "de 1 a 100: " seguido da soma.
+
+    Escrevo "Qual é a sua idade? " e leio um inteiro,
+        e escrevo "ano que vem: " seguido do resultado mais 1.
+    O nome começa em "".
+    Escrevo "E o seu nome? " e leio o nome, e escrevo "Olá, " seguido do resultado seguido de ".".
+    O laço começa em 0.
+    Repito sempre:
+        O laço cresce 1.
+        Se o laço for maior que 2 ou o laço for igual a 99: paro.
+    Escrevo o laço.

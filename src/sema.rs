@@ -1,7 +1,7 @@
 //! Análise semântica: resolve nomes e escopos, infere e confere tipos, confere
 //! mutabilidade, e baixa a AST para a HIR.
 
-use crate::ast::{self, BinOp, ClauseKind, ExprKind, Init};
+use crate::ast::{self, BinOp, ClauseKind, ExprKind, Init, Rel};
 use crate::diagnostics::{Category, Diagnostic, Result, err};
 use crate::hir;
 use crate::morphology::{self, Gender, Number};
@@ -18,7 +18,7 @@ pub fn check(prog: &ast::Program) -> Result<(hir::Program, Vec<Diagnostic>)> {
     let mut main_index = 0;
     for f in &prog.funcs {
         let sig = &prog.sigs[f.sig];
-        let mut cx = FnCx { locals: Vec::new(), scopes: vec![Vec::new()], warnings: Vec::new() };
+        let mut cx = FnCx { locals: Vec::new(), scopes: vec![Vec::new()], warnings: Vec::new(), loops: 0, result: None };
         let body = cx.block(&f.body)?;
         cx.finish();
         warnings.append(&mut cx.warnings);
@@ -43,6 +43,10 @@ struct FnCx {
     locals: Vec<LocalInfo>,
     scopes: Vec<Vec<(String, hir::LocalId)>>,
     warnings: Vec<Diagnostic>,
+    /// Laços abertos (para "Paro" e "Pulo").
+    loops: usize,
+    /// Local escondido com o valor da última oração do período ("o resultado").
+    result: Option<hir::LocalId>,
 }
 
 impl FnCx {
@@ -67,17 +71,123 @@ impl FnCx {
         self.scopes.push(Vec::new());
         let mut out = Vec::new();
         for s in &b.stmts {
-            match s {
-                ast::Stmt::Period(p) => {
-                    for c in &p.clauses {
-                        self.clause(c, &mut out)?;
-                    }
-                }
-                _ => return err(Diagnostic::new(Category::Syntax, "Construção ainda não suportada.", Span::new(0, 0))),
-            }
+            self.stmt(s, &mut out)?;
         }
         self.scopes.pop();
         Ok(hir::Block(out))
+    }
+
+    fn stmt(&mut self, s: &ast::Stmt, out: &mut Vec<hir::Stmt>) -> Result<()> {
+        match s {
+            ast::Stmt::Period(p) => {
+                self.result = None;
+                for c in &p.clauses {
+                    self.clause(c, out)?;
+                }
+                self.result = None;
+            }
+            ast::Stmt::If { arms, otherwise, .. } => {
+                let mut harms = Vec::new();
+                for (c, b) in arms {
+                    harms.push((self.cond(c)?, self.block(b)?));
+                }
+                let otherwise = otherwise.as_ref().map(|b| self.block(b)).transpose()?;
+                out.push(hir::Stmt::If { arms: harms, otherwise });
+            }
+            ast::Stmt::While { cond, body, .. } => {
+                let cond = self.cond(cond)?;
+                let body = self.loop_body(body)?;
+                out.push(hir::Stmt::While { cond, body });
+            }
+            ast::Stmt::Repeat { count, body, .. } => {
+                let count = match count {
+                    Some(c) => {
+                        let e = self.expr(c, None)?;
+                        if !matches!(e.ty, Ty::Int(_) | Ty::Error) {
+                            return err(Diagnostic::new(Category::Type, format!("Repete-se um número inteiro de vezes, e este valor é {}.", e.ty.describe()), c.span));
+                        }
+                        Some(e)
+                    }
+                    None => None,
+                };
+                let body = self.loop_body(body)?;
+                out.push(hir::Stmt::Repeat { count, body });
+            }
+            ast::Stmt::ForRange { var, from, to, body, .. } => {
+                let from = self.expr(from, None)?;
+                if !matches!(from.ty, Ty::Int(_)) {
+                    return err(Diagnostic::new(Category::Type, format!("O intervalo de \"Para cada\" é de inteiros, e este valor é {}.", from.ty.describe()), from.span));
+                }
+                let to = self.expr(to, Some(&from.ty))?;
+                self.scopes.push(Vec::new());
+                let id = self.declare(var, from.ty.clone(), false)?;
+                let body = self.loop_body(body)?;
+                self.scopes.pop();
+                out.push(hir::Stmt::ForRange { var: id, from, to, body });
+            }
+            _ => return err(Diagnostic::new(Category::Syntax, "Construção ainda não suportada.", Span::new(0, 0))),
+        }
+        Ok(())
+    }
+
+    fn loop_body(&mut self, b: &ast::Block) -> Result<hir::Block> {
+        self.loops += 1;
+        let r = self.block(b);
+        self.loops -= 1;
+        r
+    }
+
+    fn declare(&mut self, name: &ast::NameRef, ty: Ty, mutable: bool) -> Result<hir::LocalId> {
+        if let Some(id) = self.scopes.last().unwrap().iter().find(|(w, _)| *w == name.word).map(|(_, id)| *id) {
+            return err(Diagnostic::new(Category::Scope, format!("\"{}\" já foi declarado neste bloco.", name.display()), name.span)
+                .label(self.locals[id].decl_span, "declarado aqui"));
+        }
+        let id = self.locals.len();
+        self.locals.push(LocalInfo {
+            local: hir::Local { name: name.word.clone(), ty, mutable, span: name.span },
+            gender: name.gender(),
+            number: name.number(),
+            mutated: false,
+            decl_span: name.span,
+        });
+        self.scopes.last_mut().unwrap().push((name.word.clone(), id));
+        Ok(id)
+    }
+
+    /// Guarda o valor num local escondido que "o resultado" retoma.
+    fn set_result(&mut self, value: hir::Expr, out: &mut Vec<hir::Stmt>) {
+        let id = self.locals.len();
+        self.locals.push(LocalInfo {
+            local: hir::Local { name: "resultado".into(), ty: value.ty.clone(), mutable: false, span: value.span },
+            gender: Gender::Masculine,
+            number: Number::Singular,
+            mutated: true,
+            decl_span: value.span,
+        });
+        out.push(hir::Stmt::Let { local: id, value });
+        self.result = Some(id);
+    }
+
+    fn cond(&mut self, c: &ast::Cond) -> Result<hir::Cond> {
+        Ok(match c {
+            ast::Cond::And(v) => hir::Cond::And(v.iter().map(|c| self.cond(c)).collect::<Result<_>>()?),
+            ast::Cond::Or(v) => hir::Cond::Or(v.iter().map(|c| self.cond(c)).collect::<Result<_>>()?),
+            ast::Cond::Atom { negated, kind, span } => {
+                let inner = match kind {
+                    ast::CondKind::Rel { subject, rel, rhs } => {
+                        let lhs = self.expr(subject, None)?;
+                        let rhs = self.expr(rhs, Some(&lhs.ty))?;
+                        let ordered = !matches!(rel, Rel::Equal | Rel::Different);
+                        if ordered && !matches!(lhs.ty, Ty::Int(_) | Ty::Real(_) | Ty::Char | Ty::Text | Ty::Error) {
+                            return err(Diagnostic::new(Category::Type, format!("\"{}\" compara números, caracteres ou textos, e este valor é {}.", rel.words(), lhs.ty.describe()), *span));
+                        }
+                        hir::Cond::Cmp { rel: *rel, lhs, rhs }
+                    }
+                    _ => return err(Diagnostic::new(Category::Syntax, "Condição ainda não suportada.", *span)),
+                };
+                if *negated { hir::Cond::Not(Box::new(inner)) } else { inner }
+            }
+        })
     }
 
     fn clause(&mut self, c: &ast::Clause, out: &mut Vec<hir::Stmt>) -> Result<()> {
@@ -90,19 +200,7 @@ impl FnCx {
                 let annotated = ann.as_ref().map(|a| self.type_of(a)).transpose()?;
                 let value = self.expr(e, annotated.as_ref())?;
                 let ty = annotated.unwrap_or_else(|| value.ty.clone());
-                if let Some(id) = self.scopes.last().unwrap().iter().find(|(w, _)| *w == name.word).map(|(_, id)| *id) {
-                    return err(Diagnostic::new(Category::Scope, format!("\"{}\" já foi declarado neste bloco.", name.display()), name.span)
-                        .label(self.locals[id].decl_span, "declarado aqui"));
-                }
-                let id = self.locals.len();
-                self.locals.push(LocalInfo {
-                    local: hir::Local { name: name.word.clone(), ty, mutable: *mutable, span: name.span },
-                    gender: name.gender(),
-                    number: name.number(),
-                    mutated: false,
-                    decl_span: name.span,
-                });
-                self.scopes.last_mut().unwrap().push((name.word.clone(), id));
+                let id = self.declare(name, ty, *mutable)?;
                 out.push(hir::Stmt::Let { local: id, value });
             }
             ClauseKind::Assign { place, value } => {
@@ -124,6 +222,30 @@ impl FnCx {
             ClauseKind::Write { parts, newline } => {
                 let value = if parts.len() == 1 { self.expr(&parts[0], None)? } else { unreachable!() };
                 out.push(hir::Stmt::Write { value, newline: *newline });
+                self.result = None;
+            }
+            ClauseKind::ReadInto { place } => {
+                let p = self.place_mut(place, "muda pela leitura")?;
+                if !readable(&p.ty) {
+                    return err(Diagnostic::new(Category::Type, format!("Não se lê {} da entrada.", p.ty.describe()), place.span));
+                }
+                let value = hir::Expr { kind: hir::ExprKind::Input, ty: p.ty.clone(), span: c.span };
+                out.push(hir::Stmt::Assign { place: p.clone(), value });
+                let span = p.span;
+                let ty = p.ty.clone();
+                self.set_result(hir::Expr { kind: hir::ExprKind::Read(p), ty, span }, out);
+            }
+            ClauseKind::ReadValue { ty } => {
+                let ty = self.type_of(ty)?;
+                self.set_result(hir::Expr { kind: hir::ExprKind::Input, ty, span: c.span }, out);
+            }
+            ClauseKind::Break | ClauseKind::Continue => {
+                let brk = matches!(c.kind, ClauseKind::Break);
+                if self.loops == 0 {
+                    let w = if brk { "Paro" } else { "Pulo" };
+                    return err(Diagnostic::new(Category::Syntax, format!("\"{w}\" só faz sentido dentro de um laço."), c.span));
+                }
+                out.push(if brk { hir::Stmt::Break } else { hir::Stmt::Continue });
             }
             _ => return err(Diagnostic::new(Category::Syntax, "Oração ainda não suportada.", c.span)),
         }
@@ -237,6 +359,14 @@ impl FnCx {
                 let ty = self.binary_type(*op, &l, &r, e.span)?;
                 (hir::ExprKind::Binary(*op, Box::new(l), Box::new(r)), ty)
             }
+            ExprKind::Anaphora => {
+                let Some(id) = self.result else {
+                    return err(Diagnostic::new(Category::Scope, "\"O resultado\" retoma o valor da oração anterior do mesmo período, e aqui nenhuma oração antes deu valor.", e.span)
+                        .hint("Junte as orações no mesmo período: \"Leio um inteiro e escrevo o resultado.\""));
+                };
+                let ty = self.locals[id].local.ty.clone();
+                (hir::ExprKind::Read(hir::Place { root: id, ty: ty.clone(), span: e.span }), ty)
+            }
             ExprKind::Concat(parts) => {
                 let mut out = Vec::new();
                 for p in parts {
@@ -270,6 +400,10 @@ impl FnCx {
         }
         Ok(l.ty.clone())
     }
+}
+
+fn readable(t: &Ty) -> bool {
+    matches!(t, Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Text | Ty::Error)
 }
 
 fn compatible(expected: &Ty, got: &Ty) -> bool {

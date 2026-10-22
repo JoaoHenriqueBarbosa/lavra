@@ -1,0 +1,5 @@
+Erro de concordância: O verbo não concorda com o sujeito, que é plural: "forem", não "for".
+ --> tests/programs/err/condicao_concordancia.lav:3:17
+  |
+3 |     Se as horas for maior que 10: escrevo "tarde".
+  |                 ^^^
