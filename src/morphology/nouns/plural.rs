@@ -16,18 +16,7 @@ const STRESS_MARKS: &str = "áéíóúâêô";
 const VOWELS: &str = "aeiouáéíóúâêôãõàü";
 
 /// Palavras em -ão com plural em -ães (o padrão é -ões).
-const AO_AES: &[&str] = &[
-    "ademão",
-    "alavão",
-    "alemão",
-    "capelão",
-    "capitão",
-    "catalão",
-    "cão",
-    "escrivão",
-    "pão",
-    "tabelião",
-];
+const AO_AES: &[&str] = &["ademão", "alavão", "alemão", "capelão", "capitão", "catalão", "cão", "escrivão", "pão", "tabelião"];
 
 /// Palavras oxítonas em -ão com plural em -ãos. As paroxítonas ("órgão", "sótão",
 /// "bênção") vão a -ãos pela regra, sem precisar estar aqui.
@@ -99,8 +88,8 @@ const EXCEPTIONS: &[(&str, &str)] = &[
 /// Só vale se o que sobra tem quatro letras ou mais: "cocão" e "comão" não são
 /// "co" + "cão" nem "co" + "mão".
 const PREFIXES: &[&str] = &[
-    "anti", "arqui", "ciber", "con", "des", "hiper", "macro", "micro", "mini", "multi", "nano",
-    "neo", "proto", "pseudo", "semi", "sub", "super", "ultra",
+    "anti", "arqui", "ciber", "con", "des", "hiper", "macro", "micro", "mini", "multi", "nano", "neo", "proto", "pseudo", "semi", "sub",
+    "super", "ultra",
 ];
 
 /// Palavras que vão sem plural na frente de um composto: prefixos e advérbios, formas
@@ -351,15 +340,15 @@ const SPECIFIERS: &[&str] = &[
 
 /// Sufixos de adjetivo, para reconhecer o adjetivo composto ("econômico-financeiro").
 const ADJECTIVE_SUFFIXES: &[&str] = &[
-    "al", "ano", "ana", "ar", "ário", "ária", "ês", "esa", "ico", "ica", "ino", "ina", "ivo",
-    "iva", "oso", "osa", "ório", "ória", "eiro", "eira",
+    "al", "ano", "ana", "ar", "ário", "ária", "ês", "esa", "ico", "ica", "ino", "ina", "ivo", "iva", "oso", "osa", "ório", "ória", "eiro",
+    "eira",
 ];
 
 /// Preposições, contrações e conjunções que separam o núcleo de um composto: só o que
 /// vem antes delas vai ao plural ("pés-de-moleque", "amores-perfeitos-do-mato").
 const COMPOUND_LINKS: &[&str] = &[
-    "a", "à", "ao", "aos", "às", "com", "da", "das", "de", "do", "dos", "e", "em", "na", "nas",
-    "no", "nos", "ou", "pela", "pelas", "pelo", "pelos", "por", "sem", "sob",
+    "a", "à", "ao", "aos", "às", "com", "da", "das", "de", "do", "dos", "e", "em", "na", "nas", "no", "nos", "ou", "pela", "pelas", "pelo",
+    "pelos", "por", "sem", "sob",
 ];
 
 fn is_vowel(c: char) -> bool {
@@ -395,15 +384,10 @@ fn is_oxytone(w: &str) -> bool {
         // Depois da tônica só consoante ou a semivogal de um ditongo ("herói", "réis").
         return !rest.chars().any(is_vowel) || matches!(rest.as_str(), "i" | "u" | "is" | "us");
     }
-    if ["ã", "ãs", "ão", "ãos", "ãe", "ães", "õe", "ões"]
-        .iter()
-        .any(|e| w.ends_with(e))
-    {
+    if ["ã", "ãs", "ão", "ãos", "ãe", "ães", "õe", "ões"].iter().any(|e| w.ends_with(e)) {
         return true;
     }
-    !["a", "e", "o", "as", "es", "os", "am", "em", "ens"]
-        .iter()
-        .any(|e| w.ends_with(e))
+    !["a", "e", "o", "as", "es", "os", "am", "em", "ens"].iter().any(|e| w.ends_with(e))
 }
 
 /// Estrangeirismo em -er com grafia de fora (letra k, w ou y, ou consoante dobrada
@@ -417,9 +401,7 @@ fn is_foreign_er(w: &str) -> bool {
         return true;
     }
     let chars: Vec<char> = w.chars().collect();
-    chars
-        .windows(2)
-        .any(|p| p[0] == p[1] && "bdfglptz".contains(p[0]))
+    chars.windows(2).any(|p| p[0] == p[1] && "bdfglptz".contains(p[0]))
 }
 
 fn is_monosyllable(w: &str) -> bool {
@@ -497,9 +479,8 @@ fn inflected_parts(head: &[&str]) -> Vec<usize> {
     let first = head[0];
     // Adjetivo composto com o primeiro em -ico e o último com sufixo de adjetivo
     // ("político-sociais", "médico-cirúrgicos"); "público-alvo" é substantivo.
-    let adjective_form = first.ends_with("ico")
-        && first.chars().count() >= 6
-        && ADJECTIVE_SUFFIXES.iter().any(|s| head[n - 1].ends_with(s));
+    let adjective_form =
+        first.ends_with("ico") && first.chars().count() >= 6 && ADJECTIVE_SUFFIXES.iter().any(|s| head[n - 1].ends_with(s));
     let only_tail = INVARIABLE_HEADS.contains(&first)
         || VERB_HEADS.contains(&first)
         || adjective_form
@@ -507,34 +488,19 @@ fn inflected_parts(head: &[&str]) -> Vec<usize> {
         // Gentílico de lugar composto: só o adjetivo varia ("rio-grandenses").
         || head[n - 1].ends_with("ense");
     if only_tail {
-        return inflected_parts(&head[1..])
-            .into_iter()
-            .map(|i| i + 1)
-            .collect();
+        return inflected_parts(&head[1..]).into_iter().map(|i| i + 1).collect();
     }
-    (0..n)
-        .filter(|&i| i == 0 || !SPECIFIERS.contains(&head[i]))
-        .collect()
+    (0..n).filter(|&i| i == 0 || !SPECIFIERS.contains(&head[i])).collect()
 }
 
 fn pluralize_compound(w: &str) -> String {
     let parts: Vec<&str> = w.split('-').collect();
-    let end = parts
-        .iter()
-        .skip(1)
-        .position(|p| is_link(p))
-        .map_or(parts.len(), |i| i + 1);
+    let end = parts.iter().skip(1).position(|p| is_link(p)).map_or(parts.len(), |i| i + 1);
     let inflected = inflected_parts(&parts[..end]);
     parts
         .iter()
         .enumerate()
-        .map(|(i, p)| {
-            if inflected.contains(&i) {
-                pluralize_word(p)
-            } else {
-                (*p).to_string()
-            }
-        })
+        .map(|(i, p)| if inflected.contains(&i) { pluralize_word(p) } else { (*p).to_string() })
         .collect::<Vec<_>>()
         .join("-")
 }
@@ -559,11 +525,7 @@ fn pluralize_word(p: &str) -> String {
 
     if ends("ão") {
         // Paroxítona em -ão vai a -ãos ("órgão", "bênção"); oxítona, a -ões.
-        return if oxytone {
-            format!("{}ões", cut(p, 2))
-        } else {
-            format!("{p}s")
-        };
+        return if oxytone { format!("{}ões", cut(p, 2)) } else { format!("{p}s") };
     }
     if is_vowel(last) {
         return format!("{p}s");

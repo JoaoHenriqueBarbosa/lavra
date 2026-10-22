@@ -1,0 +1,6 @@
+Erro de tipo: "círculo" é caso de uma forma, não de um sinal.
+  --> tests/programs/err/caso_de_outro_tipo.lav:11:23
+   |
+11 |     Se o semáforo for um círculo: escrevo "?".
+   |                       ^^^^^^^^^^
+   = dica: Os casos são: "um verde" e "um vermelho".

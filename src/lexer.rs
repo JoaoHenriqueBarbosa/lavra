@@ -143,11 +143,23 @@ fn scan(src: &str) -> Result<Vec<Token>> {
             let pos = line_start + indent_bytes;
             if width > top {
                 indents.push(width);
-                out.push(Token { kind: TokenKind::Indent, span: Span::new(pos, pos), orig: String::new(), contraction: None, line_start: false });
+                out.push(Token {
+                    kind: TokenKind::Indent,
+                    span: Span::new(pos, pos),
+                    orig: String::new(),
+                    contraction: None,
+                    line_start: false,
+                });
             } else if width < top {
                 while width < *indents.last().unwrap() {
                     indents.pop();
-                    out.push(Token { kind: TokenKind::Dedent, span: Span::new(pos, pos), orig: String::new(), contraction: None, line_start: false });
+                    out.push(Token {
+                        kind: TokenKind::Dedent,
+                        span: Span::new(pos, pos),
+                        orig: String::new(),
+                        contraction: None,
+                        line_start: false,
+                    });
                 }
                 if width != *indents.last().unwrap() {
                     return err(Diagnostic::new(
@@ -164,11 +176,16 @@ fn scan(src: &str) -> Result<Vec<Token>> {
         if let Some(t) = out.get_mut(before) {
             t.line_start = true;
         }
-        let ends_period = out.len() > before
-            && matches!(out.last().map(|t| &t.kind), Some(TokenKind::Punct('.' | ':' | ';')));
+        let ends_period = out.len() > before && matches!(out.last().map(|t| &t.kind), Some(TokenKind::Punct('.' | ':' | ';')));
         if ends_period {
             let end = out.last().unwrap().span.end as usize;
-            out.push(Token { kind: TokenKind::Newline, span: Span::new(end, end), orig: String::new(), contraction: None, line_start: false });
+            out.push(Token {
+                kind: TokenKind::Newline,
+                span: Span::new(end, end),
+                orig: String::new(),
+                contraction: None,
+                line_start: false,
+            });
         }
         at_logical_start = ends_period || (out.len() == before && at_logical_start);
     }
@@ -209,9 +226,9 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
             let mut j = i;
             while j < n {
                 let cj = chars[j].1;
-                if is_word_char(cj) {
-                    j += 1;
-                } else if cj == '-' && j + 1 < n && chars[j + 1].1.is_alphabetic() && j > i {
+                // Hífen interno junta palavras compostas ("segunda-feira").
+                let hyphen = cj == '-' && j + 1 < n && chars[j + 1].1.is_alphabetic() && j > i;
+                if is_word_char(cj) || hyphen {
                     j += 1;
                 } else {
                     break;
@@ -273,8 +290,12 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
             };
             if j >= n || !matches!(chars[j].1, '\'' | '’' | '‘') {
                 return Err(Box::new(
-                    Diagnostic::new(Category::Lexical, "Caractere entre aspas simples tem uma letra só.", Span::new(pos(start), pos(j.min(n))))
-                        .hint("Para mais de uma letra, use aspas duplas: é um texto."),
+                    Diagnostic::new(
+                        Category::Lexical,
+                        "Caractere entre aspas simples tem uma letra só.",
+                        Span::new(pos(start), pos(j.min(n))),
+                    )
+                    .hint("Para mais de uma letra, use aspas duplas: é um texto."),
                 ));
             }
             out.push(Token {
@@ -288,13 +309,21 @@ fn scan_line(line: &str, base: usize, out: &mut Vec<Token>) -> Result<()> {
             continue;
         }
         if matches!(c, '.' | ',' | ':' | ';' | '(' | ')') {
-            out.push(Token { kind: TokenKind::Punct(c), span: Span::new(pos(i), pos(i + 1)), orig: c.to_string(), contraction: None, line_start: false });
+            out.push(Token {
+                kind: TokenKind::Punct(c),
+                span: Span::new(pos(i), pos(i + 1)),
+                orig: c.to_string(),
+                contraction: None,
+                line_start: false,
+            });
             i += 1;
             continue;
         }
         let d = Diagnostic::new(Category::Lexical, format!("O sinal \"{c}\" não faz parte da Lavra."), Span::new(pos(i), pos(i + 1)));
         let d = match c {
-            '+' | '-' | '*' | '/' | '%' => d.hint("Operações se escrevem por extenso: \"mais\", \"menos\", \"vezes\", \"dividido por\", \"módulo\"."),
+            '+' | '-' | '*' | '/' | '%' => {
+                d.hint("Operações se escrevem por extenso: \"mais\", \"menos\", \"vezes\", \"dividido por\", \"módulo\".")
+            }
             '=' => d.hint("Para dar valor, use \"é\" ou \"começa em\"; para mudar, \"vira\"; para comparar, \"for igual a\"."),
             '<' | '>' => d.hint("Comparações se escrevem por extenso: \"for maior que\", \"for menor que\"."),
             '?' | '!' => d.hint("Pergunta e exclamação só dentro de texto entre aspas."),
@@ -353,7 +382,16 @@ fn scan_number(chars: &[(usize, char)], start: usize, base: usize, line: &str) -
         if negative {
             return Err(lex_error("Hexadecimal não leva sinal.", pos(start), pos(j)));
         }
-        return Ok((Token { kind: TokenKind::Int(v), span: Span::new(pos(start), pos(j)), orig: text_of(start, j), contraction: None, line_start: false }, j));
+        return Ok((
+            Token {
+                kind: TokenKind::Int(v),
+                span: Span::new(pos(start), pos(j)),
+                orig: text_of(start, j),
+                contraction: None,
+                line_start: false,
+            },
+            j,
+        ));
     }
     let mut digits = String::new();
     while i < n && chars[i].1.is_ascii_digit() {

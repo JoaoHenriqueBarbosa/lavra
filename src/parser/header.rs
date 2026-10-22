@@ -10,15 +10,57 @@ use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
 
 /// Verbos da própria língua: não se redefinem.
-const CORE_INFINITIVES: &[&str] =
-    &["escrever", "ler", "devolver", "desistir", "parar", "pular", "tomar", "repetir", "ser", "começar", "virar", "crescer", "diminuir", "ganhar", "perder"];
+const CORE_INFINITIVES: &[&str] = &[
+    "escrever", "ler", "devolver", "desistir", "parar", "pular", "tomar", "repetir", "ser", "começar", "virar", "crescer", "diminuir",
+    "ganhar", "perder",
+];
 
 /// Palavras da língua que não podem ser a 1ª pessoa de um verbo do usuário.
 const RESERVED_FORMS: &[&str] = &[
-    "como", "caso", "pelo", "salvo", "para", "se", "senão", "enquanto", "cada", "mais", "menos", "vezes", "módulo",
-    "talvez", "nada", "sempre", "quarto", "quinto", "oitavo", "segundo", "terceiro", "sexto",
-    "sétimo", "nono", "décimo", "último", "primeiro", "falso", "verdadeiro", "inteiro", "natural", "real", "texto", "registro",
-    "resto", "produto", "quociente", "tamanho", "negativo", "inverso", "deslocamento", "item", "resultado", "fato",
+    "como",
+    "caso",
+    "pelo",
+    "salvo",
+    "para",
+    "se",
+    "senão",
+    "enquanto",
+    "cada",
+    "mais",
+    "menos",
+    "vezes",
+    "módulo",
+    "talvez",
+    "nada",
+    "sempre",
+    "quarto",
+    "quinto",
+    "oitavo",
+    "segundo",
+    "terceiro",
+    "sexto",
+    "sétimo",
+    "nono",
+    "décimo",
+    "último",
+    "primeiro",
+    "falso",
+    "verdadeiro",
+    "inteiro",
+    "natural",
+    "real",
+    "texto",
+    "registro",
+    "resto",
+    "produto",
+    "quociente",
+    "tamanho",
+    "negativo",
+    "inverso",
+    "deslocamento",
+    "item",
+    "resultado",
+    "fato",
 ];
 
 impl Parser {
@@ -69,26 +111,41 @@ impl Parser {
             .hint("Escolha outro verbo: \"seguir\", \"partir\", \"chegar\"."));
         }
         if CORE_INFINITIVES.contains(&sig.infinitive.as_str()) {
-            return err(Diagnostic::new(Category::Morphology, format!("\"{}\" é verbo da própria língua e não se redefine.", sig.infinitive), sig.name_span)
-                .hint("Escolha outro verbo para a sua função."));
+            return err(Diagnostic::new(
+                Category::Morphology,
+                format!("\"{}\" é verbo da própria língua e não se redefine.", sig.infinitive),
+                sig.name_span,
+            )
+            .hint("Escolha outro verbo para a sua função."));
         }
         if sig.kind == SigKind::Action {
             if RESERVED_FORMS.contains(&sig.first_person.as_str()) {
                 return err(Diagnostic::new(
                     Category::Morphology,
-                    format!("A 1ª pessoa de \"{}\" é \"{}\", que já é palavra da língua; a oração ficaria ambígua.", sig.infinitive, sig.first_person),
+                    format!(
+                        "A 1ª pessoa de \"{}\" é \"{}\", que já é palavra da língua; a oração ficaria ambígua.",
+                        sig.infinitive, sig.first_person
+                    ),
                     sig.name_span,
                 )
                 .hint("Escolha outro verbo."));
             }
             if Self::is_core_verb(&sig.first_person) {
-                return err(Diagnostic::new(Category::Morphology, format!("A 1ª pessoa de \"{}\" é \"{}\", que já é verbo da língua.", sig.infinitive, sig.first_person), sig.name_span));
+                return err(Diagnostic::new(
+                    Category::Morphology,
+                    format!("A 1ª pessoa de \"{}\" é \"{}\", que já é verbo da língua.", sig.infinitive, sig.first_person),
+                    sig.name_span,
+                ));
             }
             if let Some(&other) = self.by_first_person.get(&sig.first_person) {
                 let o = &self.prog.sigs[other];
                 if o.infinitive != sig.infinitive {
-                    return err(Diagnostic::new(Category::Morphology, format!("\"{}\" e \"{}\" se conjugam igual: \"{}\".", o.infinitive, sig.infinitive, sig.first_person), sig.name_span)
-                        .label(o.name_span, "o outro verbo"));
+                    return err(Diagnostic::new(
+                        Category::Morphology,
+                        format!("\"{}\" e \"{}\" se conjugam igual: \"{}\".", o.infinitive, sig.infinitive, sig.first_person),
+                        sig.name_span,
+                    )
+                    .label(o.name_span, "o outro verbo"));
                 }
             }
             self.by_first_person.insert(sig.first_person.clone(), id);
@@ -97,8 +154,12 @@ impl Parser {
         for other in same {
             let o = &self.prog.sigs[other];
             if o.slots == sig.slots {
-                return err(Diagnostic::new(Category::Scope, format!("\"{}\" já foi definido com essa mesma regência.", sig.infinitive), sig.name_span)
-                    .label(o.name_span, "definido aqui"));
+                return err(Diagnostic::new(
+                    Category::Scope,
+                    format!("\"{}\" já foi definido com essa mesma regência.", sig.infinitive),
+                    sig.name_span,
+                )
+                .label(o.name_span, "definido aqui"));
             }
         }
         self.by_infinitive.entry(sig.infinitive.clone()).or_default().push(id);
@@ -139,8 +200,12 @@ impl Parser {
         }
         let vt = self.bump();
         let Some(infinitive) = vt.word().map(str::to_string).filter(|w| morphology::verbs::is_infinitive(w)) else {
-            return err(Diagnostic::new(Category::Morphology, format!("Depois de \"Para\" vem um verbo no infinitivo, mas encontrei {}.", vt.describe()), vt.span)
-                .hint("Exemplos: \"Para somar x e y\", \"Para medir a carta\"."));
+            return err(Diagnostic::new(
+                Category::Morphology,
+                format!("Depois de \"Para\" vem um verbo no infinitivo, mas encontrei {}.", vt.describe()),
+                vt.span,
+            )
+            .hint("Exemplos: \"Para somar x e y\", \"Para medir a carta\"."));
         };
         let name_span = vt.span;
         let mut kind = if params.is_empty() { SigKind::Action } else { SigKind::Predicate };
@@ -165,8 +230,12 @@ impl Parser {
         let first_person = match first_person {
             Some(f) => f,
             None if kind == SigKind::Action => {
-                return err(Diagnostic::new(Category::Morphology, format!("\"{infinitive}\" é defectivo: não tem 1ª pessoa do presente, e é ela que executa."), name_span)
-                    .hint(format!("Escolha outro verbo, ou declare a forma entre parênteses: \"Para {infinitive} (...) ...\".")));
+                return err(Diagnostic::new(
+                    Category::Morphology,
+                    format!("\"{infinitive}\" é defectivo: não tem 1ª pessoa do presente, e é ela que executa."),
+                    name_span,
+                )
+                .hint(format!("Escolha outro verbo, ou declare a forma entre parênteses: \"Para {infinitive} (...) ...\".")));
             }
             None => infinitive.clone(),
         };
@@ -179,7 +248,9 @@ impl Parser {
             let p = self.name_ref()?;
             params.push((p, Slot::Object));
             slots.push(Slot::Object);
-            if self.at_word("e") || (self.at_punct(',') && !self.peek_at(1).word().is_some_and(|w| w == "sendo" || w == "devolvendo" || w == "salvo")) {
+            if self.at_word("e")
+                || (self.at_punct(',') && !self.peek_at(1).word().is_some_and(|w| w == "sendo" || w == "devolvendo" || w == "salvo"))
+            {
                 let save = self.pos;
                 self.bump();
                 if !self.param_start() {
@@ -211,7 +282,9 @@ impl Parser {
                 loop {
                     let group = self.typing(&params)?;
                     typed.extend(group);
-                    if self.at_word("e") || (self.at_punct(',') && !self.peek_at(1).word().is_some_and(|w| w == "devolvendo" || w == "salvo")) {
+                    if self.at_word("e")
+                        || (self.at_punct(',') && !self.peek_at(1).word().is_some_and(|w| w == "devolvendo" || w == "salvo"))
+                    {
                         self.bump();
                         continue;
                     }
@@ -220,7 +293,11 @@ impl Parser {
             } else if self.eat_word("devolvendo") {
                 let at = self.bump();
                 let Some(art) = at.word().and_then(morphology::article).filter(|a| !a.definite && a.number == Number::Singular) else {
-                    return err(Diagnostic::new(Category::Syntax, format!("Esperava o tipo devolvido com artigo indefinido (\"um real\"), mas encontrei {}.", at.describe()), at.span));
+                    return err(Diagnostic::new(
+                        Category::Syntax,
+                        format!("Esperava o tipo devolvido com artigo indefinido (\"um real\"), mas encontrei {}.", at.describe()),
+                        at.span,
+                    ));
                 };
                 let s0 = at.span;
                 let ty = self.type_noun(art, at.span)?;
@@ -240,9 +317,8 @@ impl Parser {
         // Objeto sem tipo vira complemento fixo: parte do nome do verbo.
         let mut final_params = Vec::new();
         let mut final_slots = Vec::new();
-        let mut slot_iter = slots.into_iter();
-        let mut pi = params.iter().peekable();
-        while let Some(slot) = slot_iter.next() {
+        let mut pi = params.iter();
+        for slot in slots {
             match slot {
                 Slot::Object => {
                     let (n, _) = pi.next().unwrap();
@@ -315,7 +391,11 @@ impl Parser {
             let fem = params.iter().all(|(n, _)| n.gender() == Gender::Feminine && !n.is_symbol());
             if t.is_word("ambas") != fem {
                 let right = if fem { "ambas" } else { "ambos" };
-                return err(Diagnostic::new(Category::Agreement, format!("\"{}\" não concorda com os parâmetros: escreva \"{right}\".", t.orig), t.span));
+                return err(Diagnostic::new(
+                    Category::Agreement,
+                    format!("\"{}\" não concorda com os parâmetros: escreva \"{right}\".", t.orig),
+                    t.span,
+                ));
             }
             for (n, _) in params {
                 names.push((n.word.clone(), n.gender(), t.span));
@@ -329,7 +409,11 @@ impl Parser {
                 if let (Some(a), Some(b)) = (n.article, decl.article)
                     && (a.gender != b.gender || a.number != b.number)
                 {
-                    return err(Diagnostic::new(Category::Agreement, format!("\"{}\" não concorda com o cabeçalho, que diz \"{}\".", n.display(), decl.display()), n.span));
+                    return err(Diagnostic::new(
+                        Category::Agreement,
+                        format!("\"{}\" não concorda com o cabeçalho, que diz \"{}\".", n.display(), decl.display()),
+                        n.span,
+                    ));
                 }
                 names.push((n.word.clone(), decl.gender(), n.span));
                 // Mais nomes antes do tipo: "p e q inteiros".
@@ -346,12 +430,20 @@ impl Parser {
         let (ty, ty_gender, plural) = if let Some(art) = self.peek().word().and_then(morphology::article).filter(|a| !a.definite) {
             let at = self.bump();
             if names.len() > 1 {
-                return err(Diagnostic::new(Category::Agreement, "Vários parâmetros pedem o tipo no plural, sem artigo: \"sendo p e q inteiros\".", at.span));
+                return err(Diagnostic::new(
+                    Category::Agreement,
+                    "Vários parâmetros pedem o tipo no plural, sem artigo: \"sendo p e q inteiros\".",
+                    at.span,
+                ));
             }
             let (ty, g) = self.type_word(Number::Singular)?;
             if g != art.gender {
                 let w = self.toks[self.pos - 1].orig.clone();
-                return err(Diagnostic::new(Category::Agreement, format!("\"{w}\" é {}: \"{} {w}\".", g.describe(), morphology::indefinite_article(g, Number::Singular)), at.span));
+                return err(Diagnostic::new(
+                    Category::Agreement,
+                    format!("\"{w}\" é {}: \"{} {w}\".", g.describe(), morphology::indefinite_article(g, Number::Singular)),
+                    at.span,
+                ));
             }
             (ty, g, false)
         } else {
@@ -369,7 +461,11 @@ impl Parser {
                     let pt = self.bump();
                     if g != ty_gender || n != number {
                         let right = morphology::inflect_adjective(base, Gender::Masculine, ty_gender, number);
-                        return err(Diagnostic::new(Category::Agreement, format!("O particípio concorda com o tipo: \"{right}\", não \"{}\".", pt.orig), pt.span));
+                        return err(Diagnostic::new(
+                            Category::Agreement,
+                            format!("O particípio concorda com o tipo: \"{right}\", não \"{}\".", pt.orig),
+                            pt.span,
+                        ));
                     }
                     mode = m;
                 }
@@ -413,7 +509,11 @@ impl Parser {
             },
         };
         if number == Number::Singular && (plural_type_word(&w).is_some() || self.record_plurals.contains_key(&w)) {
-            return err(Diagnostic::new(Category::Agreement, format!("Depois do artigo singular, o tipo vai no singular: não \"{w}\"."), t.span));
+            return err(Diagnostic::new(
+                Category::Agreement,
+                format!("Depois do artigo singular, o tipo vai no singular: não \"{w}\"."),
+                t.span,
+            ));
         }
         if sing == "lista" {
             if number == Number::Plural && w != "listas" {
@@ -467,10 +567,8 @@ impl Parser {
                     }
                 }
                 Slot::Object => {
-                    if objects > 0 {
-                        if !(self.eat_word("e") || self.eat_punct(',')) {
-                            return Err(self.regency_error(&sig, "faltou um objeto"));
-                        }
+                    if objects > 0 && !(self.eat_word("e") || self.eat_punct(',')) {
+                        return Err(self.regency_error(&sig, "faltou um objeto"));
                     }
                     if !self.starts_value(0) {
                         return Err(self.regency_error(&sig, "faltou um objeto"));

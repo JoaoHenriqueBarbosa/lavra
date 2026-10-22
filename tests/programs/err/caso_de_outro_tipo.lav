@@ -1,0 +1,11 @@
+Um sinal é um destes:
+    um verde;
+    um vermelho.
+
+Uma forma é uma destas:
+    um círculo, com o raio, um real;
+    um ponto.
+
+Para começar:
+    O semáforo é um verde.
+    Se o semáforo for um círculo: escrevo "?".

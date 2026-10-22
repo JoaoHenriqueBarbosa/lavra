@@ -1,0 +1,10 @@
+Um sinal é um destes:
+    um verde;
+    um vermelho.
+
+Para começar:
+    O semáforo é um verde.
+    Conforme o semáforo:
+        Sendo um verde: escrevo "siga".
+        Sendo um verde: escrevo "de novo".
+        Sendo um vermelho: escrevo "pare".

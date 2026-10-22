@@ -2,6 +2,7 @@
 //! português, e a gramática é verificação.
 
 pub mod ast;
+pub mod codegen;
 pub mod diagnostics;
 pub mod hir;
 pub mod interp;

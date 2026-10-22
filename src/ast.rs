@@ -102,7 +102,10 @@ pub enum SigKind {
     /// Predicado com verbo: "Para o valor exceder o limite".
     Predicate,
     /// Predicado adjetivo: "Para o número ser par"; guarda o adjetivo e o gênero da base.
-    Adjective { adjective: String, base_gender: Gender },
+    Adjective {
+        adjective: String,
+        base_gender: Gender,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -301,7 +304,7 @@ pub struct Call {
 pub enum Cond {
     And(Vec<Cond>),
     Or(Vec<Cond>),
-    Atom { negated: bool, kind: CondKind, span: Span },
+    Atom { negated: bool, kind: Box<CondKind>, span: Span },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -61,28 +61,74 @@ pub struct Block(pub Vec<Stmt>);
 
 #[derive(Debug)]
 pub enum Stmt {
-    Let { var: Var, value: Expr },
-    Assign { place: Place, value: Expr },
+    Let {
+        var: Var,
+        value: Expr,
+    },
+    Assign {
+        place: Place,
+        value: Expr,
+    },
     /// "cresce" e "diminui": `place op= value`.
-    Compound { place: Place, op: BinOp, value: Expr, span: Span },
-    Write { value: Expr, newline: bool },
-    If { arms: Vec<(Cond, Block)>, otherwise: Option<Block> },
-    While { cond: Cond, body: Block },
+    Compound {
+        place: Place,
+        op: BinOp,
+        value: Expr,
+        span: Span,
+    },
+    Write {
+        value: Expr,
+        newline: bool,
+    },
+    If {
+        arms: Vec<(Cond, Block)>,
+        otherwise: Option<Block>,
+    },
+    While {
+        cond: Cond,
+        body: Block,
+    },
     /// "Repito N vezes" (com contagem) ou "Repito sempre" (sem).
-    Repeat { count: Option<Expr>, body: Block },
+    Repeat {
+        count: Option<Expr>,
+        body: Block,
+    },
     /// "Para cada i de A até B": conta para baixo se A for maior que B.
-    ForRange { var: LocalId, from: Expr, to: Expr, body: Block },
+    ForRange {
+        var: LocalId,
+        from: Expr,
+        to: Expr,
+        body: Block,
+    },
     Break,
     Continue,
     Return(Option<Expr>),
     /// Chamada usada como oração.
     Expr(Expr),
     /// "A lista ganha 7."
-    Push { place: Place, value: Expr },
+    Push {
+        place: Place,
+        value: Expr,
+    },
     /// "Para cada nota das notas": a coleção fica emprestada ao laço.
-    ForEach { var: LocalId, source: Expr, body: Block },
+    ForEach {
+        var: LocalId,
+        source: Expr,
+        body: Block,
+    },
     /// "Desisto com ...": a função falha com a mensagem.
     Desist(Expr),
+    /// "Conforme a figura: Sendo um círculo: ...".
+    Match { scrutinee: Expr, arms: Vec<Arm>, otherwise: Option<Block> },
+}
+
+#[derive(Debug)]
+pub struct Arm {
+    /// Os casos que levam a este braço.
+    pub tags: Vec<usize>,
+    /// Campos do caso vistos como nomes dentro do braço: (local, campo).
+    pub binds: Vec<(LocalId, usize)>,
+    pub body: Block,
 }
 
 #[derive(Debug, Clone)]
@@ -90,11 +136,17 @@ pub enum Cond {
     And(Vec<Cond>),
     Or(Vec<Cond>),
     Not(Box<Cond>),
-    Cmp { rel: Rel, lhs: Expr, rhs: Expr },
+    Cmp {
+        rel: Rel,
+        lhs: Expr,
+        rhs: Expr,
+    },
     /// Expressão lógica: predicado chamado.
     Test(Expr),
     /// "Se houver apelido".
     IsSome(Expr),
+    /// "Se a figura for um círculo".
+    IsVariant(Expr, usize),
 }
 
 #[derive(Debug, Clone)]
@@ -151,7 +203,10 @@ pub enum ExprKind {
     Concat(Vec<Expr>),
     /// Lê uma linha da entrada e converte para o tipo da expressão.
     Input,
-    Call { func: FuncId, args: Vec<Arg> },
+    Call {
+        func: FuncId,
+        args: Vec<Arg>,
+    },
     Fact(Box<Cond>),
     Unary(UnOp, Box<Expr>),
     List(Vec<Expr>),
@@ -159,12 +214,22 @@ pub enum ExprKind {
     Record(Vec<Expr>),
     Copy(Box<Expr>),
     /// "Tomo a última das notas": tira o item da coleção e devolve.
-    Take { place: Place, index: Option<Box<Expr>> },
+    Take {
+        place: Place,
+        index: Option<Box<Expr>>,
+    },
     Nothing,
     /// Um valor posto onde se espera "talvez".
     Wrap(Box<Expr>),
     /// O valor de dentro de um "talvez" que se sabe presente.
     Unwrap(Box<Expr>),
     /// Chamada que pode falhar: com valor de reserva, ou passando a falha adiante (`None`).
-    Try { call: Box<Expr>, fallback: Option<Box<Expr>> },
+    Try {
+        call: Box<Expr>,
+        fallback: Option<Box<Expr>>,
+    },
+    /// Valor de enumeração: o caso e os campos.
+    Variant { tag: usize, fields: Vec<Expr> },
+    /// Campo do caso já conhecido (dentro de um braço de "Conforme").
+    VariantField { value: Box<Expr>, field: usize },
 }

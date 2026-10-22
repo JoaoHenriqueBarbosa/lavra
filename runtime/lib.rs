@@ -31,6 +31,7 @@ const KIND_TEXT: u32 = 4;
 const KIND_LIST: u32 = 5;
 const KIND_RECORD: u32 = 6;
 const KIND_MAYBE: u32 = 7;
+const KIND_ENUM: u32 = 8;
 
 /// Descritor de tipo. O layout é o mesmo que o gerador de código escreve.
 #[repr(C)]
@@ -53,6 +54,38 @@ pub struct FieldDesc {
     name_len: u64,
     article: *const u8,
     article_len: u64,
+}
+
+/// Um caso de enumeração (o descritor da enumeração aponta para a lista deles).
+#[repr(C)]
+pub struct VariantDesc {
+    name: *const u8,
+    name_len: u64,
+    feminine: u64,
+    nfields: u64,
+    fields: *const FieldDesc,
+}
+
+unsafe fn variant<'a>(d: &Desc, slot: u64) -> (&'a VariantDesc, *mut u64) {
+    unsafe {
+        let p = slot as *mut u64;
+        let tag = *p as usize;
+        (&*(d.fields as *const VariantDesc).add(tag), p)
+    }
+}
+
+/// "o raio 2, o lado 3 e a altura 4".
+unsafe fn fields_text(fields: *const FieldDesc, n: u64, base: *const u64) -> String {
+    unsafe {
+        let mut parts = Vec::new();
+        for i in 0..n as usize {
+            let f = &*fields.add(i);
+            let mut part = format!("{} {} ", str_of(f.article, f.article_len), str_of(f.name, f.name_len));
+            format_into(&mut part, f.desc, *base.add(i));
+            parts.push(part);
+        }
+        textfmt::join_e(&parts)
+    }
 }
 
 /// Falha declarada ("Desisto com ..."): sobe pelas funções até quem a trata.
@@ -117,7 +150,7 @@ pub unsafe extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
         rt_enter(0, 0);
         let f = lavra_main();
         if !f.is_null() {
-            let f = Box::from_raw(f);
+            let f = *Box::from_raw(f);
             report(Category::Failure, f.message, f.lo, f.hi, Some("o programa desistiu aqui"), 1);
         }
         flush();
@@ -211,18 +244,19 @@ unsafe fn format_into(s: &mut String, d: *const Desc, slot: u64) {
                 s.push(']');
             }
             KIND_RECORD => {
-                let p = slot as *const u64;
-                let mut parts = Vec::new();
-                for i in 0..d.nfields as usize {
-                    let f = &*d.fields.add(i);
-                    let mut part = format!("{} {} ", str_of(f.article, f.article_len), str_of(f.name, f.name_len));
-                    format_into(&mut part, f.desc, *p.add(i));
-                    parts.push(part);
-                }
                 s.push_str(if d.feminine != 0 { "uma " } else { "um " });
                 s.push_str(str_of(d.name, d.name_len));
                 s.push_str(" com ");
-                s.push_str(&textfmt::join_e(&parts));
+                s.push_str(&fields_text(d.fields, d.nfields, slot as *const u64));
+            }
+            KIND_ENUM => {
+                let (v, p) = variant(d, slot);
+                s.push_str(if v.feminine != 0 { "uma " } else { "um " });
+                s.push_str(str_of(v.name, v.name_len));
+                if v.nfields > 0 {
+                    s.push_str(" com ");
+                    s.push_str(&fields_text(v.fields, v.nfields, p.add(1)));
+                }
             }
             KIND_MAYBE => {
                 if slot == 0 {
@@ -404,6 +438,16 @@ pub unsafe extern "C" fn rt_drop(d: *const Desc, slot: u64) {
                 }
                 drop(Box::from_raw(std::ptr::slice_from_raw_parts_mut(p, (d.nfields as usize).max(1))));
             }
+            KIND_ENUM => {
+                let (v, p) = variant(d, slot);
+                for i in 0..v.nfields as usize {
+                    let f = &*v.fields.add(i);
+                    if !is_copy(f.desc) {
+                        rt_drop(f.desc, *p.add(i + 1));
+                    }
+                }
+                drop(Box::from_raw(std::ptr::slice_from_raw_parts_mut(p, v.nfields as usize + 1)));
+            }
             KIND_MAYBE => {
                 if slot != 0 {
                     let b = Box::from_raw(slot as *mut u64);
@@ -438,6 +482,16 @@ pub unsafe extern "C" fn rt_clone(d: *const Desc, slot: u64) -> u64 {
                 for i in 0..d.nfields as usize {
                     let f = &*d.fields.add(i);
                     *n.add(i) = rt_clone(f.desc, *p.add(i));
+                }
+                n as u64
+            }
+            KIND_ENUM => {
+                let (v, p) = variant(d, slot);
+                let n = rt_record_new(v.nfields + 1);
+                *n = *p;
+                for i in 0..v.nfields as usize {
+                    let f = &*v.fields.add(i);
+                    *n.add(i + 1) = rt_clone(f.desc, *p.add(i + 1));
                 }
                 n as u64
             }
@@ -480,6 +534,15 @@ pub unsafe extern "C" fn rt_cmp(d: *const Desc, a: u64, b: u64) -> i32 {
             KIND_RECORD => {
                 let (x, y) = (a as *const u64, b as *const u64);
                 let eq = (0..d.nfields as usize).all(|i| rt_cmp((*d.fields.add(i)).desc, *x.add(i), *y.add(i)) == 0);
+                if eq { 0 } else { 2 }
+            }
+            KIND_ENUM => {
+                let (va, pa) = variant(d, a);
+                let pb = b as *const u64;
+                if *pa != *pb {
+                    return 2;
+                }
+                let eq = (0..va.nfields as usize).all(|i| rt_cmp((*va.fields.add(i)).desc, *pa.add(i + 1), *pb.add(i + 1)) == 0);
                 if eq { 0 } else { 2 }
             }
             KIND_MAYBE => match (a, b) {

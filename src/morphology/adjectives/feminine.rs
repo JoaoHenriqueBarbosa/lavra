@@ -156,9 +156,7 @@ const INVARIABLE: &[&str] = &[
 ];
 
 /// Terminações uniformes em -a (democrata, homicida, agrícola, poliglota, otimista).
-const INVARIABLE_ENDINGS: &[&str] = &[
-    "crata", "icida", "ícola", "glota", "patriota", "semita", "ista",
-];
+const INVARIABLE_ENDINGS: &[&str] = &["crata", "icida", "ícola", "glota", "patriota", "semita", "ista"];
 
 /// Femininos em -ista que vêm de particípio ou adjetivo em -isto (previsto, misto).
 /// Casam como em `matches_any`; os -visto e "mista" só inteiros, porque "grevista",
@@ -184,9 +182,7 @@ const ISTA_FROM_ISTO: &[&str] = &[
 /// Femininos em -esa de masculinos em -eso (os demais vêm de -ês: portuguesa). Casam
 /// também com prefixo ("reacesa", "indefesa"); os marcados com `=` só inteiros, porque
 /// "inglesa", "madrilesa" e "montesa" terminam em "lesa", "ilesa" e "tesa".
-const ESA_FROM_ESO: &[&str] = &[
-    "acesa", "=adesa", "blesa", "coesa", "defesa", "=ilesa", "=lesa", "obesa", "presa", "=tesa",
-];
+const ESA_FROM_ESO: &[&str] = &["acesa", "=adesa", "blesa", "coesa", "defesa", "=ilesa", "=lesa", "obesa", "presa", "=tesa"];
 
 /// Femininos em -eia de masculinos em -eio (os demais vêm de -eu: europeia). "feia" e
 /// "meia" só inteiras, porque "ninfeia" e "pigmeia" vêm de "ninfeu" e "pigmeu".
@@ -371,43 +367,21 @@ mod tests {
     #[test]
     fn ambiguous_feminines() {
         // -esa: -ês ou -eso.
-        both(&[
-            ("coeso", "coesa"),
-            ("ileso", "ilesa"),
-            ("teso", "tesa"),
-            ("montês", "montês"),
-        ]);
+        both(&[("coeso", "coesa"), ("ileso", "ilesa"), ("teso", "tesa"), ("montês", "montês")]);
         assert_eq!(masculine("montesa"), "montês");
         // -eia: -eu ou -eio.
-        both(&[
-            ("cheio", "cheia"),
-            ("semicheio", "semicheia"),
-            ("feio", "feia"),
-            ("alheio", "alheia"),
-        ]);
+        both(&[("cheio", "cheia"), ("semicheio", "semicheia"), ("feio", "feia"), ("alheio", "alheia")]);
         // -ia: -io, salvo judia e sandia.
         both(&[("frio", "fria"), ("judeu", "judia"), ("sandeu", "sandia")]);
         // -ua: -uo, salvo crua e nua.
         both(&[("contínuo", "contínua"), ("cru", "crua"), ("nu", "nua")]);
         // -ora: -or ou -oro.
-        both(&[
-            ("sonoro", "sonora"),
-            ("carnívoro", "carnívora"),
-            ("multifloro", "multiflora"),
-        ]);
+        both(&[("sonoro", "sonora"), ("carnívoro", "carnívora"), ("multifloro", "multiflora")]);
         // -ona: -ão (aumentativo) ou -ono (proparoxítono).
-        both(&[
-            ("chorão", "chorona"),
-            ("cansadão", "cansadona"),
-            ("monótono", "monótona"),
-        ]);
+        both(&[("chorão", "chorona"), ("cansadão", "cansadona"), ("monótono", "monótona")]);
         both(&[("dono", "dona"), ("nono", "nona")]);
         // -ista: uniforme, salvo -visto e misto.
-        both(&[
-            ("otimista", "otimista"),
-            ("grevista", "grevista"),
-            ("misto", "mista"),
-        ]);
+        both(&[("otimista", "otimista"), ("grevista", "grevista"), ("misto", "mista")]);
     }
 
     #[test]

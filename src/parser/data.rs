@@ -41,6 +41,7 @@ impl Parser {
     /// definido depois), depois os campos.
     pub(super) fn prescan_records(&mut self) -> Result<()> {
         let mut starts = Vec::new();
+        let mut enum_starts = Vec::new();
         let mut depth = 0usize;
         let mut at_start = true;
         for k in 0..self.toks.len() {
@@ -57,8 +58,35 @@ impl Parser {
                 && self.toks.get(k + 4).is_some_and(|n| n.is_word("registro"))
             {
                 starts.push(k);
+            } else if depth == 0
+                && at_start
+                && t.word().and_then(morphology::article).is_some_and(|a| !a.definite)
+                && self.toks.get(k + 2).is_some_and(|n| n.is_word("é"))
+                && self.toks.get(k + 4).is_some_and(|n| n.is_word("destas") || n.is_word("destes"))
+            {
+                enum_starts.push(k);
             }
             at_start = matches!(t.kind, TokenKind::Newline | TokenKind::Dedent | TokenKind::Indent);
+        }
+        // Nomes das enumerações antes dos campos de qualquer registro.
+        for &k in &enum_starts {
+            let art_tok = self.toks[k].clone();
+            let name_tok = self.toks[k + 1].clone();
+            let art = morphology::article(art_tok.word().unwrap()).unwrap();
+            let Some(name) = name_tok.word().map(str::to_string) else {
+                return err(Diagnostic::new(Category::Syntax, "Esperava o nome do tipo.", name_tok.span));
+            };
+            if art.number != Number::Singular {
+                return err(Diagnostic::new(Category::Agreement, "Um tipo se define no singular: \"Uma forma é uma destas:\".", art_tok.span));
+            }
+            if self.records.contains_key(&name) || self.enums.contains_key(&name) {
+                return err(Diagnostic::new(Category::Scope, format!("O tipo \"{name}\" já foi definido."), name_tok.span));
+            }
+            let id = self.prog.enums.len();
+            let plural = morphology::pluralize(&name);
+            self.enums.insert(name.clone(), id);
+            self.enum_plurals.insert(plural.clone(), id);
+            self.prog.enums.push(EnumDef { word: name, plural, gender: art.gender, span: art_tok.span.to(name_tok.span), variants: Vec::new() });
         }
         for &k in &starts {
             let art_tok = self.toks[k].clone();
@@ -68,7 +96,11 @@ impl Parser {
                 return err(Diagnostic::new(Category::Syntax, "Esperava o nome do registro.", name_tok.span));
             };
             if art.number != Number::Singular {
-                return err(Diagnostic::new(Category::Agreement, "Um tipo de registro se define no singular: \"Uma conta é um registro de:\".", art_tok.span));
+                return err(Diagnostic::new(
+                    Category::Agreement,
+                    "Um tipo de registro se define no singular: \"Uma conta é um registro de:\".",
+                    art_tok.span,
+                ));
             }
             if self.records.contains_key(&name) {
                 return err(Diagnostic::new(Category::Scope, format!("O registro \"{name}\" já foi definido."), name_tok.span));
@@ -77,7 +109,13 @@ impl Parser {
             let plural = morphology::pluralize(&name);
             self.records.insert(name.clone(), id);
             self.record_plurals.insert(plural.clone(), id);
-            self.prog.records.push(RecordDef { word: name, plural, gender: art.gender, span: art_tok.span.to(name_tok.span), fields: Vec::new() });
+            self.prog.records.push(RecordDef {
+                word: name,
+                plural,
+                gender: art.gender,
+                span: art_tok.span.to(name_tok.span),
+                fields: Vec::new(),
+            });
         }
         for &k in &starts {
             self.pos = k + 2;
@@ -105,7 +143,11 @@ impl Parser {
                     return err(Diagnostic::new(Category::Scope, format!("O campo \"{}\" aparece duas vezes.", name.word), name.span));
                 }
                 if is_nominal_word(&name.word) || name.word == "item" {
-                    return err(Diagnostic::new(Category::Morphology, format!("\"{}\" é nome de operação da língua e não serve de campo.", name.word), name.span));
+                    return err(Diagnostic::new(
+                        Category::Morphology,
+                        format!("\"{}\" é nome de operação da língua e não serve de campo.", name.word),
+                        name.span,
+                    ));
                 }
                 self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
                 let ann = self.aposto()?;
@@ -128,18 +170,113 @@ impl Parser {
             self.prog.records[id].fields = fields;
             self.skip_spans.insert(k, self.pos);
         }
+        for &k in &enum_starts {
+            self.enum_body(k)?;
+        }
         self.pos = 0;
+        Ok(())
+    }
+
+    /// "Uma forma é uma destas: um círculo, com o raio, um real; ...; um ponto."
+    fn enum_body(&mut self, k: usize) -> Result<()> {
+        let id = self.enums[self.toks[k + 1].word().unwrap()];
+        let gender = self.prog.enums[id].gender;
+        self.pos = k + 2;
+        self.expect_word("é")?;
+        let art = self.bump();
+        let these = self.bump();
+        let (right_art, right_these) = match gender {
+            Gender::Feminine => ("uma", "destas"),
+            Gender::Masculine => ("um", "destes"),
+        };
+        if !art.is_word(right_art) || !these.is_word(right_these) {
+            return err(Diagnostic::new(
+                Category::Agreement,
+                format!("\"{}\" é {}: \"é {right_art} {right_these}\".", self.prog.enums[id].word, gender.describe()),
+                art.span.to(these.span),
+            ));
+        }
+        self.expect_punct(':', "os dois-pontos")?;
+        self.skip_newlines();
+        if !matches!(self.peek().kind, TokenKind::Indent) {
+            return Err(self.expected("as formas recuadas na linha de baixo"));
+        }
+        self.bump();
+        let mut variants: Vec<VariantDef> = Vec::new();
+        loop {
+            let at = self.bump();
+            let Some(a) = at.word().and_then(morphology::article).filter(|a| !a.definite && a.number == Number::Singular) else {
+                return err(Diagnostic::new(Category::Syntax, format!("Cada caso começa com artigo indefinido (\"um círculo\"), mas encontrei {}.", at.describe()), at.span));
+            };
+            let wt = self.bump();
+            let Some(word) = wt.word().map(str::to_string) else {
+                return err(Diagnostic::new(Category::Syntax, "Esperava o nome do caso.", wt.span));
+            };
+            if self.variants.contains_key(&word) || self.records.contains_key(&word) || self.enums.contains_key(&word) {
+                return err(Diagnostic::new(Category::Scope, format!("\"{word}\" já é nome de outro tipo ou caso."), wt.span));
+            }
+            let mut fields: Vec<FieldDef> = Vec::new();
+            if self.at_punct(',') && self.peek_at(1).is_word("com") {
+                self.bump();
+                self.bump();
+                loop {
+                    let name = self.name_ref()?;
+                    if name.is_symbol() {
+                        return err(Diagnostic::new(Category::Syntax, "Campo leva nome com artigo (\"o raio\").", name.span));
+                    }
+                    if fields.iter().any(|f| f.name.word == name.word) {
+                        return err(Diagnostic::new(Category::Scope, format!("O campo \"{}\" aparece duas vezes.", name.word), name.span));
+                    }
+                    self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
+                    let ann = self.aposto()?;
+                    self.field_names.insert(name.word.clone());
+                    fields.push(FieldDef { name, ty: ann });
+                    if self.at_punct(',') && self.peek_at(1).is_word("e") {
+                        self.bump();
+                        self.bump();
+                        continue;
+                    }
+                    if self.at_word("e") && self.definite_article_at(1).is_some() {
+                        self.bump();
+                        continue;
+                    }
+                    break;
+                }
+            }
+            self.variants.insert(word.clone(), (id, variants.len()));
+            variants.push(VariantDef { word, gender: a.gender, span: at.span.to(wt.span), fields });
+            if self.eat_punct(';') {
+                self.skip_newlines();
+                continue;
+            }
+            self.expect_punct('.', "o ponto final depois do último caso (ou ponto e vírgula entre casos)")?;
+            break;
+        }
+        self.skip_newlines();
+        if matches!(self.peek().kind, TokenKind::Dedent) {
+            self.bump();
+        }
+        self.prog.enums[id].variants = variants;
+        self.skip_spans.insert(k, self.pos);
         Ok(())
     }
 
     /// Tipo de registro no número pedido; devolve o nome do registro e o gênero.
     pub(super) fn record_type_word(&self, w: &str, number: Number) -> Option<(String, Gender)> {
-        let id = match number {
+        let rec = match number {
             Number::Singular => self.records.get(w),
             Number::Plural => self.record_plurals.get(w),
+        };
+        if let Some(id) = rec {
+            let r = &self.prog.records[*id];
+            return Some((r.word.clone(), r.gender));
+        }
+        let id = match number {
+            Number::Singular => self.enums.get(w),
+            Number::Plural => self.enum_plurals.get(w),
         }?;
-        let r = &self.prog.records[*id];
-        Some((r.word.clone(), r.gender))
+        let e = &self.prog.enums[*id];
+        Some((e.word.clone(), e.gender))
     }
 
     // --------------------------------------------------------------- lugares
@@ -200,7 +337,11 @@ impl Parser {
                 let a = self.definite_article_at(0).unwrap();
                 if a.gender != g || a.number != n || n != Number::Singular {
                     let right = format!("{} {}", morphology::definite_article(g, Number::Singular), morphology::ordinal_word(position, g));
-                    return err(Diagnostic::new(Category::Agreement, format!("O ordinal concorda com o artigo: \"{right}\"."), at.span.to(w.span)));
+                    return err(Diagnostic::new(
+                        Category::Agreement,
+                        format!("O ordinal concorda com o artigo: \"{right}\"."),
+                        at.span.to(w.span),
+                    ));
                 }
                 self.check_contraction()?;
                 self.bump();
@@ -216,7 +357,11 @@ impl Parser {
         match self.segment()? {
             Segment::Ordinal { position, span, .. } => Ok(Which::Ordinal { position, span }),
             Segment::Index(e, _) => Ok(Which::Item(e)),
-            Segment::Name(n) => err(Diagnostic::new(Category::Syntax, format!("Esperava qual item (\"o último\", \"a primeira\", \"o item 2\"), mas encontrei \"{}\".", n.display()), n.span)),
+            Segment::Name(n) => err(Diagnostic::new(
+                Category::Syntax,
+                format!("Esperava qual item (\"o último\", \"a primeira\", \"o item 2\"), mas encontrei \"{}\".", n.display()),
+                n.span,
+            )),
         }
     }
 
@@ -266,7 +411,11 @@ impl Parser {
         let t = self.bump();
         if g != subject.gender() || n != subject.number() {
             let right = morphology::inflect_adjective("vazio", Gender::Masculine, subject.gender(), subject.number());
-            return err(Diagnostic::new(Category::Agreement, format!("\"{}\" concorda com {}: \"{right}\".", t.orig, subject.display()), t.span));
+            return err(Diagnostic::new(
+                Category::Agreement,
+                format!("\"{}\" concorda com {}: \"{right}\".", t.orig, subject.display()),
+                t.span,
+            ));
         }
         Ok(Some(t.span))
     }
@@ -290,7 +439,11 @@ impl Parser {
         let check_gender = |g: Gender| -> Result<()> {
             if art.gender != g || art.number != Number::Singular {
                 let right = morphology::definite_article(g, Number::Singular);
-                return err(Diagnostic::new(Category::Agreement, format!("\"{w}\" é {}: \"{right} {w}\".", g.describe()), at.span.to(wt.span)));
+                return err(Diagnostic::new(
+                    Category::Agreement,
+                    format!("\"{w}\" é {}: \"{right} {w}\".", g.describe()),
+                    at.span.to(wt.span),
+                ));
             }
             Ok(())
         };
@@ -317,7 +470,11 @@ impl Parser {
             check_gender(g)?;
             let prep = self.bump();
             if prep.is_word("entre") && !commutative {
-                return err(Diagnostic::new(Category::Regency, format!("\"entre\" indica simetria e só vale para operação comutativa; \"{w}\" pede \"de\"."), prep.span));
+                return err(Diagnostic::new(
+                    Category::Regency,
+                    format!("\"entre\" indica simetria e só vale para operação comutativa; \"{w}\" pede \"de\"."),
+                    prep.span,
+                ));
             }
             let lhs = self.nominal_operand()?;
             if !self.eat_word("e") {
@@ -347,8 +504,12 @@ impl Parser {
         let e = self.primary()?;
         if self.at_infix() {
             let t = self.peek().clone();
-            return err(Diagnostic::new(Category::Syntax, "Dentro de uma operação por extenso, a conta infixa precisa de parênteses.", t.span)
-                .hint("Escreva \"a diferença de 10 e (3 mais 1)\" ou \"(a diferença de 10 e 3) mais 1\", conforme o que quer dizer."));
+            return err(Diagnostic::new(
+                Category::Syntax,
+                "Dentro de uma operação por extenso, a conta infixa precisa de parênteses.",
+                t.span,
+            )
+            .hint("Escreva \"a diferença de 10 e (3 mais 1)\" ou \"(a diferença de 10 e 3) mais 1\", conforme o que quer dizer."));
         }
         self.last_nominal = false;
         Ok(e)
@@ -356,7 +517,28 @@ impl Parser {
 
     /// O próximo token é um operador infixo?
     pub(super) fn at_infix(&self) -> bool {
-        self.at_word("mais") || self.at_word("menos") || self.at_word("dividido por") || self.at_word("módulo") || (self.at_word("vezes") && self.starts_value(1))
+        self.at_word("mais")
+            || self.at_word("menos")
+            || self.at_word("dividido por")
+            || self.at_word("módulo")
+            || (self.at_word("vezes") && self.starts_value(1))
+    }
+
+    /// "um círculo", "uma estrela": caso de enumeração, com o gênero conferido.
+    pub(super) fn variant_pattern(&mut self) -> Result<Pattern> {
+        let at = self.bump();
+        let wt = self.bump();
+        let w = wt.word().unwrap_or_default().to_string();
+        let Some(&(e, v)) = self.variants.get(&w) else {
+            return err(Diagnostic::new(Category::Scope, format!("\"{}\" não é caso de nenhuma enumeração.", wt.orig), wt.span));
+        };
+        let var = &self.prog.enums[e].variants[v];
+        let a = at.word().and_then(morphology::article).filter(|a| !a.definite);
+        if a.is_none_or(|a| a.gender != var.gender || a.number != Number::Singular) {
+            let right = morphology::indefinite_article(var.gender, Number::Singular);
+            return err(Diagnostic::new(Category::Agreement, format!("O caso se diz com artigo indefinido: \"{right} {w}\"."), at.span.to(wt.span)));
+        }
+        Ok(Pattern::Variant { word: w, gender: var.gender, span: at.span.to(wt.span) })
     }
 
     /// "uma conta com o saldo 100 e o titular \"Ana\"".
@@ -365,13 +547,19 @@ impl Parser {
         let Some(art) = at.word().and_then(morphology::article).filter(|a| !a.definite) else { return Ok(None) };
         let wt = self.peek_at(1).clone();
         let Some(w) = wt.word() else { return Ok(None) };
-        let Some(&id) = self.records.get(w) else { return Ok(None) };
-        let r = &self.prog.records[id];
-        if r.gender != art.gender || art.number != Number::Singular {
-            let right = morphology::indefinite_article(r.gender, Number::Singular);
-            return err(Diagnostic::new(Category::Agreement, format!("\"{w}\" é {}: \"{right} {w}\".", r.gender.describe()), at.span.to(wt.span)));
+        let (word, gender) = if let Some(&id) = self.records.get(w) {
+            let r = &self.prog.records[id];
+            (r.word.clone(), r.gender)
+        } else if let Some(&(e, v)) = self.variants.get(w) {
+            let v = &self.prog.enums[e].variants[v];
+            (v.word.clone(), v.gender)
+        } else {
+            return Ok(None);
+        };
+        if gender != art.gender || art.number != Number::Singular {
+            let right = morphology::indefinite_article(gender, Number::Singular);
+            return err(Diagnostic::new(Category::Agreement, format!("\"{w}\" é {}: \"{right} {w}\".", gender.describe()), at.span.to(wt.span)));
         }
-        let (word, gender) = (r.word.clone(), r.gender);
         self.bump();
         self.bump();
         let mut fields = Vec::new();
@@ -380,7 +568,10 @@ impl Parser {
                 let n = self.name_ref()?;
                 let value = self.expr()?;
                 fields.push((n.word.clone(), n.span, value));
-                if (self.at_word("e") || self.at_punct(',')) && self.definite_article_at(1).is_some() && self.peek_at(2).word().is_some_and(|w| self.field_names.contains(w)) {
+                if (self.at_word("e") || self.at_punct(','))
+                    && self.definite_article_at(1).is_some()
+                    && self.peek_at(2).word().is_some_and(|w| self.field_names.contains(w))
+                {
                     self.bump();
                     continue;
                 }

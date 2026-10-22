@@ -51,36 +51,19 @@ const FAMILIES: &[(&str, &str, Prefixes)] = &[
     ("aver", "ouver", Prefixes::Only(&["h", "re"])),
     // ter e derivados: tiveram → tiver. Fora da lista ficam os regulares em
     // "-ter" (bater, meter, verter, later).
-    (
-        "ter",
-        "tiver",
-        Prefixes::Only(&[
-            "", "abs", "a", "con", "de", "entre", "man", "ob", "re", "sus",
-        ]),
-    ),
+    ("ter", "tiver", Prefixes::Only(&["", "abs", "a", "con", "de", "entre", "man", "ob", "re", "sus"])),
     // estar e derivados: estiveram → estiver. Fora ficam prestar, testar,
     // manifestar, protestar...
-    (
-        "estar",
-        "estiver",
-        Prefixes::Only(&["", "sob", "sobre", "sobr"]),
-    ),
+    ("estar", "estiver", Prefixes::Only(&["", "sob", "sobre", "sobr"])),
     // vir e derivados: vieram → vier. Fora ficam ouvir e servir (e derivados).
     (
         "vir",
         "vier",
-        Prefixes::Only(&[
-            "", "a", "ad", "con", "contra", "de", "desa", "descon", "inter", "ob", "pro", "re",
-            "recon", "sobre",
-        ]),
+        Prefixes::Only(&["", "a", "ad", "con", "contra", "de", "desa", "descon", "inter", "ob", "pro", "re", "recon", "sobre"]),
     ),
     // ver e derivados: viram → vir. Fora ficam prover e desprover (proveram →
     // prover), precaver, viver, mover, escrever, dever...
-    (
-        "ver",
-        "vir",
-        Prefixes::Only(&["", "ante", "circun", "entre", "inter", "pre", "re", "tele"]),
-    ),
+    ("ver", "vir", Prefixes::Only(&["", "ante", "circun", "entre", "inter", "pre", "re", "tele"])),
     // dar, desdar, redar: deram → der. Fora ficam andar, mandar, nadar...
     ("dar", "der", Prefixes::Only(&["", "des", "re"])),
     // ser: foram → for. Fora ficam coser e derivados.

@@ -1,0 +1,6 @@
+Erro de tipo: "Conforme" não trata os casos "um amarelo" e "um vermelho".
+ --> tests/programs/err/conforme_incompleto.lav:8:14
+  |
+8 |     Conforme o semáforo:
+  |              ^^^^^^^^^^
+  = dica: Trate cada caso com "Sendo ...:", ou junte o resto num "Senão:".

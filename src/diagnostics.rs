@@ -67,15 +67,7 @@ pub struct Diagnostic {
 
 impl Diagnostic {
     pub fn new(category: Category, message: impl Into<String>, span: Span) -> Diagnostic {
-        Diagnostic {
-            category,
-            message: message.into(),
-            span,
-            primary: None,
-            labels: Vec::new(),
-            notes: Vec::new(),
-            hint: None,
-        }
+        Diagnostic { category, message: message.into(), span, primary: None, labels: Vec::new(), notes: Vec::new(), hint: None }
     }
 
     pub fn primary(mut self, text: impl Into<String>) -> Self {
@@ -137,12 +129,8 @@ struct Mark {
 pub fn render(d: &Diagnostic, src: &SourceFile, style: Style) -> String {
     let mut out = String::new();
     let head_color = if d.category.is_error() { "1;31" } else { "1;33" };
-    let _ = writeln!(
-        out,
-        "{}{}",
-        style.paint(head_color, &format!("{}:", d.category.label())),
-        style.paint("1", &format!(" {}", d.message))
-    );
+    let _ =
+        writeln!(out, "{}{}", style.paint(head_color, &format!("{}:", d.category.label())), style.paint("1", &format!(" {}", d.message)));
     let (line, col) = src.line_col(d.span.start);
     let mut marks = vec![mark(src, d.span, true, d.primary.clone())];
     for l in &d.labels {

@@ -20,6 +20,8 @@ pub enum Value {
     Record(Vec<Value>),
     /// O "nada" de um "talvez"; o valor presente é guardado como ele mesmo.
     Nothing,
+    /// Caso de enumeração com os campos.
+    Variant(usize, Vec<Value>),
     Unit,
 }
 
@@ -313,6 +315,20 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             Stmt::Expr(e) => {
                 self.expr(e, frame)?;
             }
+            Stmt::Match { scrutinee, arms, otherwise } => {
+                let Value::Variant(tag, fields) = self.expr(scrutinee, frame)? else { unreachable!() };
+                for arm in arms {
+                    if arm.tags.contains(&tag) {
+                        for (id, i) in &arm.binds {
+                            frame[*id] = fields[*i].clone();
+                        }
+                        return self.block(&arm.body, frame);
+                    }
+                }
+                if let Some(b) = otherwise {
+                    return self.block(b, frame);
+                }
+            }
             Stmt::Desist(m) => {
                 let Value::Text(msg) = self.expr(m, frame)? else { unreachable!() };
                 return Err(Fault { message: msg, span: m.span, desist: true });
@@ -347,6 +363,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             }
             Cond::Test(e) => self.expr(e, frame)? == Value::Bool(true),
             Cond::IsSome(e) => self.expr(e, frame)? != Value::Nothing,
+            Cond::IsVariant(e, tag) => matches!(self.expr(e, frame)?, Value::Variant(t, _) if t == *tag),
         })
     }
 
@@ -434,6 +451,17 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             }
             ExprKind::Copy(a) | ExprKind::Wrap(a) | ExprKind::Unwrap(a) => self.expr(a, frame)?,
             ExprKind::Nothing => Value::Nothing,
+            ExprKind::Variant { tag, fields } => {
+                let mut v = Vec::with_capacity(fields.len());
+                for f in fields {
+                    v.push(self.expr(f, frame)?);
+                }
+                Value::Variant(*tag, v)
+            }
+            ExprKind::VariantField { value, field } => match self.expr(value, frame)? {
+                Value::Variant(_, f) => f[*field].clone(),
+                _ => unreachable!(),
+            },
             ExprKind::Try { call, fallback } => match self.expr(call, frame) {
                 Ok(v) => v,
                 Err(f) if f.desist => match fallback {
@@ -557,8 +585,12 @@ pub fn compare(rel: Rel, a: &Value, b: &Value) -> bool {
         // Coleções e registros só se comparam por igualdade.
         (Value::Nothing, Value::Nothing) => Some(Ordering::Equal),
         (Value::Nothing, _) | (_, Value::Nothing) => Some(Ordering::Less),
-        (Value::List(_), Value::List(_)) | (Value::Record(_), Value::Record(_)) => {
-            if a == b { Some(Ordering::Equal) } else { Some(Ordering::Less) }
+        (Value::List(_), Value::List(_)) | (Value::Record(_), Value::Record(_)) | (Value::Variant(..), Value::Variant(..)) => {
+            if a == b {
+                Some(Ordering::Equal)
+            } else {
+                Some(Ordering::Less)
+            }
         }
         _ => None,
     };
@@ -663,6 +695,20 @@ pub fn format_value(v: &Value, ty: &Ty) -> String {
         }
         (Value::Unit, _) => String::new(),
         (Value::Nothing, _) => "nada".to_string(),
+        (Value::Variant(tag, fields), Ty::Enum(e)) => {
+            let v = &e.variants[*tag];
+            let head = format!("{} {}", if v.feminine { "uma" } else { "um" }, v.name);
+            if fields.is_empty() {
+                return head;
+            }
+            let parts: Vec<String> = fields
+                .iter()
+                .zip(&v.fields)
+                .zip(&v.field_articles)
+                .map(|((x, (name, t)), (_, art))| format!("{art} {name} {}", format_value(x, t)))
+                .collect();
+            format!("{head} com {}", textfmt::join_e(&parts))
+        }
         (v, Ty::Maybe(inner)) => format_value(v, inner),
         (v, t) => panic!("valor {v:?} com tipo {t:?}"),
     }

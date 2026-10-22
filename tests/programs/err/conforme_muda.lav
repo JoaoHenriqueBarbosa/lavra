@@ -1,0 +1,9 @@
+Uma forma é uma destas:
+    um círculo, com o raio, um real;
+    um ponto.
+
+Para começar:
+    A figura começa em um círculo com o raio 1,0.
+    Conforme a figura:
+        Sendo um círculo: a figura vira um ponto.
+        Sendo um ponto: escrevo "ponto".

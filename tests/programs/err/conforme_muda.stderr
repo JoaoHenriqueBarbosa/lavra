@@ -1,0 +1,8 @@
+Erro de empréstimo: A figura está emprestada ao "Conforme" da linha 7 e não muda enquanto ele durar.
+ --> tests/programs/err/conforme_muda.lav:8:27
+  |
+7 |     Conforme a figura:
+  |              -------- emprestado ao "Conforme" aqui
+8 |         Sendo um círculo: a figura vira um ponto.
+  |                           ^^^^^^^^
+  = dica: Mude o valor depois do "Conforme", fora dos casos.

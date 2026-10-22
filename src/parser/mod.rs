@@ -23,6 +23,9 @@ pub fn parse(tokens: Vec<Token>) -> Result<Program> {
         allow_uncontracted: false,
         records: HashMap::new(),
         record_plurals: HashMap::new(),
+        enums: HashMap::new(),
+        enum_plurals: HashMap::new(),
+        variants: HashMap::new(),
         field_names: HashSet::new(),
         skip_spans: HashMap::new(),
         last_nominal: false,
@@ -45,6 +48,10 @@ struct Parser {
     allow_uncontracted: bool,
     records: HashMap<String, usize>,
     record_plurals: HashMap<String, usize>,
+    enums: HashMap<String, usize>,
+    enum_plurals: HashMap<String, usize>,
+    /// Caso → (enumeração, posição do caso).
+    variants: HashMap<String, (usize, usize)>,
     field_names: HashSet<String>,
     /// Definições já lidas na pré-varredura: início → fim.
     skip_spans: HashMap<usize, usize>,
@@ -264,8 +271,16 @@ impl Parser {
                     // "Para cada nota:" acha "as notas" pelo plural.
                     let plural = morphology::pluralize(&var.word);
                     if plural == var.word {
-                        return err(Diagnostic::new(Category::Morphology, format!("\"{}\" é igual no singular e no plural: diga de onde vêm os itens.", var.word), var.span)
-                            .hint(format!("Escreva \"Para cada {} {} ...:\".", var.word, morphology::join_prep("de", morphology::definite_article(var.gender(), Number::Plural)))));
+                        return err(Diagnostic::new(
+                            Category::Morphology,
+                            format!("\"{}\" é igual no singular e no plural: diga de onde vêm os itens.", var.word),
+                            var.span,
+                        )
+                        .hint(format!(
+                            "Escreva \"Para cada {} {} ...:\".",
+                            var.word,
+                            morphology::join_prep("de", morphology::definite_article(var.gender(), Number::Plural))
+                        )));
                     }
                     let a = var.article.unwrap();
                     let name = NameRef {
@@ -291,6 +306,9 @@ impl Parser {
             }
             return Err(self.expected("\"de\" com o intervalo (\"Para cada i de 1 até 10:\")"));
         }
+        if self.eat_word("conforme") {
+            return self.match_stmt(start);
+        }
         if self.at_word("senão") {
             return err(Diagnostic::new(Category::Syntax, "\"Senão\" sem um \"Se\" antes.", self.peek().span)
                 .hint("O \"Senão\" fica alinhado com o \"Se\" a que responde."));
@@ -303,7 +321,11 @@ impl Parser {
     fn foreach_var(&mut self) -> Result<NameRef> {
         let t = self.bump();
         let Some(w) = t.word().map(str::to_string) else {
-            return err(Diagnostic::new(Category::Syntax, format!("Depois de \"Para cada\" vem o nome do item, mas encontrei {}.", t.describe()), t.span));
+            return err(Diagnostic::new(
+                Category::Syntax,
+                format!("Depois de \"Para cada\" vem o nome do item, mas encontrei {}.", t.describe()),
+                t.span,
+            ));
         };
         if morphology::is_symbol(&w) {
             return Ok(NameRef { word: w, span: t.span, word_span: t.span, article: None });
@@ -312,7 +334,51 @@ impl Parser {
             return err(Diagnostic::new(Category::Syntax, "\"Cada\" já determina o nome: \"Para cada nota\", sem artigo.", t.span));
         }
         let g = morphology::guess_gender(&w);
-        Ok(NameRef { word: w, span: t.span, word_span: t.span, article: Some(ArticleUse { gender: g, number: Number::Singular, span: t.span, contraction: None }) })
+        Ok(NameRef {
+            word: w,
+            span: t.span,
+            word_span: t.span,
+            article: Some(ArticleUse { gender: g, number: Number::Singular, span: t.span, contraction: None }),
+        })
+    }
+
+    /// "Conforme a figura:" seguido de casos "Sendo um círculo:" e, opcional, "Senão:".
+    fn match_stmt(&mut self, start: Span) -> Result<Stmt> {
+        let scrutinee = self.expr()?;
+        self.expect_punct(':', "os dois-pontos depois de \"Conforme ...\"")?;
+        self.skip_newlines();
+        if !matches!(self.peek().kind, TokenKind::Indent) {
+            return Err(self.expected("os casos recuados (\"Sendo um círculo: ...\")"));
+        }
+        self.bump();
+        let mut arms = Vec::new();
+        let mut otherwise = None;
+        self.skip_newlines();
+        while !matches!(self.peek().kind, TokenKind::Dedent | TokenKind::Eof) {
+            let t = self.peek().clone();
+            if self.eat_word("senão") {
+                self.expect_punct(':', "os dois-pontos depois de \"Senão\"")?;
+                otherwise = Some(self.block()?);
+                self.skip_newlines();
+                break;
+            }
+            if !self.eat_word("sendo") {
+                return err(Diagnostic::new(Category::Syntax, format!("Dentro de \"Conforme\", cada caso começa com \"Sendo\", mas encontrei {}.", t.describe()), t.span)
+                    .hint("Escreva \"Sendo um círculo: ...\", ou \"Senão: ...\" para o resto."));
+            }
+            let mut patterns = vec![self.variant_pattern()?];
+            while self.eat_word("ou") {
+                patterns.push(self.variant_pattern()?);
+            }
+            self.expect_punct(':', "os dois-pontos depois do caso")?;
+            let body = self.block()?;
+            arms.push(MatchArm { patterns, body, span: t.span.to(self.prev_span()) });
+            self.skip_newlines();
+        }
+        if matches!(self.peek().kind, TokenKind::Dedent) {
+            self.bump();
+        }
+        Ok(Stmt::Match { scrutinee, arms, otherwise, span: start.to(self.prev_span()) })
     }
 
     fn if_stmt(&mut self) -> Result<Stmt> {
@@ -395,16 +461,32 @@ impl Parser {
             self.bump();
             let t = self.bump();
             let Some(word) = t.word().map(str::to_string) else {
-                return Err(Box::new(Diagnostic::new(Category::Syntax, format!("Depois de \"houver\" vem o nome, sem artigo: \"Se houver apelido\". Encontrei {}.", t.describe()), t.span)));
+                return Err(Box::new(Diagnostic::new(
+                    Category::Syntax,
+                    format!("Depois de \"houver\" vem o nome, sem artigo: \"Se houver apelido\". Encontrei {}.", t.describe()),
+                    t.span,
+                )));
             };
             if morphology::article(&word).is_some() {
-                return err(Diagnostic::new(Category::Syntax, "Depois de \"houver\" o nome vem sem artigo: \"Se houver apelido\".", t.span));
+                return err(Diagnostic::new(
+                    Category::Syntax,
+                    "Depois de \"houver\" o nome vem sem artigo: \"Se houver apelido\".",
+                    t.span,
+                ));
             }
-            return Ok(Cond::Atom { negated: neg_exists, kind: CondKind::Exists { word, word_span: t.span }, span: start.to(t.span) });
+            return Ok(Cond::Atom {
+                negated: neg_exists,
+                kind: Box::new(CondKind::Exists { word, word_span: t.span }),
+                span: start.to(t.span),
+            });
         }
         if mood == Mood::Subjunctive && self.at_word("há") {
             let t = self.peek().clone();
-            return err(Diagnostic::new(Category::Morphology, "Em condição, o verbo vai no futuro do subjuntivo: \"houver\", não \"há\".", t.span));
+            return err(Diagnostic::new(
+                Category::Morphology,
+                "Em condição, o verbo vai no futuro do subjuntivo: \"houver\", não \"há\".",
+                t.span,
+            ));
         }
         let subject = self.expr()?;
         self.allow_uncontracted = false;
@@ -419,20 +501,28 @@ impl Parser {
             if let Some(sig) = found {
                 if n != number {
                     let right = Self::verb_form(mood, &self.prog.sigs[sig].infinitive, number);
-                    return err(Diagnostic::new(Category::Agreement, format!("O verbo não concorda com o sujeito, que é {}: \"{right}\", não \"{w}\".", number.describe()), vt.span));
+                    return err(Diagnostic::new(
+                        Category::Agreement,
+                        format!("O verbo não concorda com o sujeito, que é {}: \"{right}\", não \"{w}\".", number.describe()),
+                        vt.span,
+                    ));
                 }
                 self.bump();
                 let mut args = vec![subject];
                 args.extend(self.call_args(sig, true, vt.span)?);
                 let call = Call { sig, args, span: start.to(self.prev_span()), verb_span: vt.span };
-                return Ok(Cond::Atom { negated, kind: CondKind::Pred { call }, span: start.to(self.prev_span()) });
+                return Ok(Cond::Atom { negated, kind: Box::new(CondKind::Pred { call }), span: start.to(self.prev_span()) });
             }
         }
         if mood == Mood::Subjunctive
             && let Some(sig) = self.prog.sigs.iter().position(|s| s.kind == SigKind::Predicate && s.infinitive == w)
         {
             let right = Self::verb_form(mood, &self.prog.sigs[sig].infinitive, number);
-            return err(Diagnostic::new(Category::Morphology, format!("Em condição, o predicado vai no futuro do subjuntivo: \"{right}\", não \"{w}\"."), vt.span));
+            return err(Diagnostic::new(
+                Category::Morphology,
+                format!("Em condição, o predicado vai no futuro do subjuntivo: \"{right}\", não \"{w}\"."),
+                vt.span,
+            ));
         }
         let be_sing = Self::be_form(mood, Number::Singular);
         let be_plur = Self::be_form(mood, Number::Plural);
@@ -447,6 +537,13 @@ impl Parser {
                     vt.span,
                 ));
             }
+            // Caso de enumeração: "Se a figura for um círculo".
+            if self.peek().word().and_then(morphology::article).is_some_and(|a| !a.definite)
+                && self.peek_at(1).word().is_some_and(|w| self.variants.contains_key(w))
+            {
+                let Pattern::Variant { word, gender, span } = self.variant_pattern()? else { unreachable!() };
+                return Ok(Cond::Atom { negated, kind: Box::new(CondKind::Variant { subject, word, gender, word_span: span }), span: start.to(span) });
+            }
             // Predicado adjetivo: "Se o número for par".
             if let Some(adj_tok) = self.peek().word().map(str::to_string) {
                 for (sig, s) in self.prog.sigs.iter().enumerate() {
@@ -457,17 +554,23 @@ impl Parser {
                         let mut args = vec![subject];
                         args.extend(self.call_args(sig, true, at.span)?);
                         let call = Call { sig, args, span: start.to(self.prev_span()), verb_span: at.span };
-                        return Ok(Cond::Atom { negated, kind: CondKind::Pred { call }, span: start.to(self.prev_span()) });
+                        return Ok(Cond::Atom { negated, kind: Box::new(CondKind::Pred { call }), span: start.to(self.prev_span()) });
                     }
                     let any = [Gender::Masculine, Gender::Feminine]
                         .iter()
-                        .flat_map(|g| [Number::Singular, Number::Plural].map(|n| morphology::inflect_adjective(adjective, *base_gender, *g, n)))
+                        .flat_map(|g| {
+                            [Number::Singular, Number::Plural].map(|n| morphology::inflect_adjective(adjective, *base_gender, *g, n))
+                        })
                         .any(|f| f == adj_tok);
                     if any {
                         let at = self.peek().clone();
                         return err(Diagnostic::new(
                             Category::Agreement,
-                            format!("O adjetivo concorda com o sujeito ({}): \"{want}\", não \"{}\".", morphology::describe_gn(gender, number), at.orig),
+                            format!(
+                                "O adjetivo concorda com o sujeito ({}): \"{want}\", não \"{}\".",
+                                morphology::describe_gn(gender, number),
+                                at.orig
+                            ),
                             at.span,
                         ));
                     }
@@ -479,7 +582,15 @@ impl Parser {
                 if got != number {
                     let right = if number == Number::Plural { plur } else { sing };
                     let _ = me;
-                    return err(Diagnostic::new(Category::Agreement, format!("A comparação concorda com o sujeito, que é {}: \"{right}\", não \"{}\".", number.describe(), rt.word().unwrap()), rt.span));
+                    return err(Diagnostic::new(
+                        Category::Agreement,
+                        format!(
+                            "A comparação concorda com o sujeito, que é {}: \"{right}\", não \"{}\".",
+                            number.describe(),
+                            rt.word().unwrap()
+                        ),
+                        rt.span,
+                    ));
                 }
                 Ok(rel)
             };
@@ -493,12 +604,20 @@ impl Parser {
                 Some("nada") => {
                     self.bump();
                     let rhs = Expr { kind: ExprKind::Nothing, span: rt.span };
-                    return Ok(Cond::Atom { negated, kind: CondKind::Rel { subject, rel: Rel::Equal, rhs }, span: start.to(rt.span) });
+                    return Ok(Cond::Atom {
+                        negated,
+                        kind: Box::new(CondKind::Rel { subject, rel: Rel::Equal, rhs }),
+                        span: start.to(rt.span),
+                    });
                 }
                 Some("verdadeiro" | "falso") => {
                     self.bump();
                     let rhs = Expr { kind: ExprKind::Bool(rt.is_word("verdadeiro")), span: rt.span };
-                    return Ok(Cond::Atom { negated, kind: CondKind::Rel { subject, rel: Rel::Equal, rhs }, span: start.to(rt.span) });
+                    return Ok(Cond::Atom {
+                        negated,
+                        kind: Box::new(CondKind::Rel { subject, rel: Rel::Equal, rhs }),
+                        span: start.to(rt.span),
+                    });
                 }
                 Some("maior" | "menor" | "igual" | "diferente") => {
                     let need = match rt.word().unwrap() {
@@ -506,13 +625,21 @@ impl Parser {
                         "igual" => "a",
                         _ => "de",
                     };
-                    return err(Diagnostic::new(Category::Regency, format!("\"{}\" rege \"{need}\": \"{} {need}\".", rt.orig, rt.orig), rt.span));
+                    return err(Diagnostic::new(
+                        Category::Regency,
+                        format!("\"{}\" rege \"{need}\": \"{} {need}\".", rt.orig, rt.orig),
+                        rt.span,
+                    ));
                 }
-                _ => return Err(self.expected("a comparação (\"maior que\", \"menor que\", \"igual a\", \"diferente de\", \"pelo menos\", \"no máximo\")")),
+                _ => {
+                    return Err(self.expected(
+                        "a comparação (\"maior que\", \"menor que\", \"igual a\", \"diferente de\", \"pelo menos\", \"no máximo\")",
+                    ));
+                }
             };
             self.bump();
             let rhs = self.expr()?;
-            return Ok(Cond::Atom { negated, kind: CondKind::Rel { subject, rel, rhs }, span: start.to(self.prev_span()) });
+            return Ok(Cond::Atom { negated, kind: Box::new(CondKind::Rel { subject, rel, rhs }), span: start.to(self.prev_span()) });
         }
         if mood == Mood::Subjunctive && matches!(w.as_str(), "é" | "são" | "seja" | "sejam" | "fosse" | "fossem" | "está" | "estão") {
             let right = morphology::future_subjunctive("ser", number);
@@ -560,10 +687,14 @@ impl Parser {
                 if !self.field_names.is_empty() {
                     let mut names: Vec<&String> = self.field_names.iter().collect();
                     names.sort();
-                    let near = names.iter().min_by_key(|n| morphology::edit_distance(n, prev)).filter(|n| morphology::edit_distance(n, prev) <= 2);
+                    let near =
+                        names.iter().min_by_key(|n| morphology::edit_distance(n, prev)).filter(|n| morphology::edit_distance(n, prev) <= 2);
                     d = match near {
                         Some(n) => d.hint(format!("Quis dizer \"{n}\"?")),
-                        None => d.hint(format!("Campos conhecidos: {}.", names.iter().map(|n| format!("\"{n}\"")).collect::<Vec<_>>().join(", "))),
+                        None => d.hint(format!(
+                            "Campos conhecidos: {}.",
+                            names.iter().map(|n| format!("\"{n}\"")).collect::<Vec<_>>().join(", ")
+                        )),
                     };
                 }
                 return Err(Box::new(d));
@@ -606,11 +737,11 @@ impl Parser {
             match &t.kind {
                 TokenKind::Punct('(') => depth += 1,
                 TokenKind::Punct(')') => depth -= 1,
-                TokenKind::Punct(_) | TokenKind::Newline | TokenKind::Eof | TokenKind::Indent | TokenKind::Dedent
-                    if depth <= 0 =>
-                {
+                TokenKind::Punct(_) | TokenKind::Newline | TokenKind::Eof | TokenKind::Indent | TokenKind::Dedent if depth <= 0 => {
                     // "O limite, um inteiro, é 100": aposto.
-                    return t.is_punct(',') && k == 2 && self.peek_at(3).word().is_some_and(|w| morphology::article(w).is_some_and(|a| !a.definite) || w == "talvez");
+                    return t.is_punct(',')
+                        && k == 2
+                        && self.peek_at(3).word().is_some_and(|w| morphology::article(w).is_some_and(|a| !a.definite) || w == "talvez");
                 }
                 TokenKind::Word(w) if depth <= 0 && subject_verb(w).is_some() => return true,
                 _ => {}
@@ -661,7 +792,11 @@ impl Parser {
             "desisto" => {
                 self.bump();
                 if !self.eat_word("com") {
-                    return err(Diagnostic::new(Category::Syntax, "\"Desisto\" diz o motivo: \"Desisto com \\\"sem permissão\\\".\"", t.span));
+                    return err(Diagnostic::new(
+                        Category::Syntax,
+                        "\"Desisto\" diz o motivo: \"Desisto com \\\"sem permissão\\\".\"",
+                        t.span,
+                    ));
                 }
                 ClauseKind::Desist(self.expr()?)
             }
@@ -698,7 +833,9 @@ impl Parser {
             .chain(self.by_first_person.values().map(|&i| self.prog.sigs[i].infinitive.clone()));
         let third = known
             .filter(|inf| [Number::Singular, Number::Plural].iter().any(|n| morphology::third_person(inf, *n).as_deref() == Some(w)))
-            .find_map(|inf| self.by_infinitive.get(&inf).map(|v| self.prog.sigs[v[0]].first_person.clone()).or_else(|| morphology::first_person(&inf)));
+            .find_map(|inf| {
+                self.by_infinitive.get(&inf).map(|v| self.prog.sigs[v[0]].first_person.clone()).or_else(|| morphology::first_person(&inf))
+            });
         if let Some(f) = third {
             return Box::new(Diagnostic::new(
                 Category::Morphology,
@@ -722,11 +859,16 @@ impl Parser {
             .filter(|k| morphology::edit_distance(k, w) <= 2)
             .min_by_key(|k| morphology::edit_distance(k, w));
         if let Some(n) = near {
-            return Box::new(Diagnostic::new(Category::Syntax, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span).hint(format!("Quis dizer \"{n}\"?")));
+            return Box::new(
+                Diagnostic::new(Category::Syntax, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span)
+                    .hint(format!("Quis dizer \"{n}\"?")),
+            );
         }
         let d = Diagnostic::new(Category::Syntax, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span);
         let hint = match w {
-            "seja" | "sejam" => Some("Quem se declara é o sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).".to_string()),
+            "seja" | "sejam" => {
+                Some("Quem se declara é o sujeito: \"O saldo é 0.\" (fixo) ou \"O saldo começa em 0.\" (variável).".to_string())
+            }
             "guardo" => Some("Para mudar um valor, o dado é o sujeito: \"O saldo vira 10.\"".to_string()),
             "acrescento" => Some("Para somar ao valor, o dado é o sujeito: \"O saldo cresce 10.\"".to_string()),
             "subtraio" => Some("Para tirar do valor, o dado é o sujeito: \"O saldo diminui 10.\"".to_string()),
@@ -748,8 +890,12 @@ impl Parser {
         let vt = self.peek().clone();
         let Some((inf, number)) = vt.word().and_then(subject_verb) else {
             return Err(Box::new(
-                Diagnostic::new(Category::Syntax, format!("Esperava o verbo de {}, mas encontrei {}.", describe_place(&place), vt.describe()), vt.span)
-                    .hint("Depois do sujeito vem o que acontece com ele: \"é\", \"começa em\", \"vira\", \"cresce\", \"diminui\"."),
+                Diagnostic::new(
+                    Category::Syntax,
+                    format!("Esperava o verbo de {}, mas encontrei {}.", describe_place(&place), vt.describe()),
+                    vt.span,
+                )
+                .hint("Depois do sujeito vem o que acontece com ele: \"é\", \"começa em\", \"vira\", \"cresce\", \"diminui\"."),
             ));
         };
         self.bump();
@@ -758,18 +904,19 @@ impl Parser {
             let right = morphology::third_person(inf, subj_number).unwrap_or_default();
             return err(Diagnostic::new(
                 Category::Agreement,
-                format!("O verbo não concorda com o sujeito: {} é {}, então \"{right}\", não \"{}\".", describe_place(&place), subj_number.describe(), vt.orig),
+                format!(
+                    "O verbo não concorda com o sujeito: {} é {}, então \"{right}\", não \"{}\".",
+                    describe_place(&place),
+                    subj_number.describe(),
+                    vt.orig
+                ),
                 vt.span,
             ));
         }
         let declares = matches!(inf, "ser" | "começar");
         if (declares || ann.is_some()) && !place.proj.is_empty() {
-            return err(Diagnostic::new(
-                Category::Syntax,
-                "Só se declara um nome novo; um campo ou item já existe.",
-                vt.span,
-            )
-            .hint(format!("Para mudar o valor, use \"vira\": \"{} vira ...\".", describe_place(&place))));
+            return err(Diagnostic::new(Category::Syntax, "Só se declara um nome novo; um campo ou item já existe.", vt.span)
+                .hint(format!("Para mudar o valor, use \"vira\": \"{} vira ...\".", describe_place(&place))));
         }
         if ann.is_some() && !declares {
             return err(Diagnostic::new(Category::Syntax, "O aposto com o tipo só cabe na declaração (\"é\" ou \"começa em\").", vt.span));
@@ -817,7 +964,11 @@ impl Parser {
         }
         let t = self.bump();
         let Some(art) = t.word().and_then(morphology::article).filter(|a| !a.definite) else {
-            return Err(Box::new(Diagnostic::new(Category::Syntax, format!("Esperava o tipo com artigo indefinido (\"um inteiro\"), mas encontrei {}.", t.describe()), t.span)));
+            return Err(Box::new(Diagnostic::new(
+                Category::Syntax,
+                format!("Esperava o tipo com artigo indefinido (\"um inteiro\"), mas encontrei {}.", t.describe()),
+                t.span,
+            )));
         };
         let ty = self.type_noun(art, t.span)?;
         Ok(TypeAnn { ty, span: start.to(self.prev_span()) })
@@ -829,8 +980,12 @@ impl Parser {
         if gender != art.gender {
             let w = self.toks[self.pos - 1].orig.clone();
             let right = morphology::indefinite_article(gender, Number::Singular);
-            return err(Diagnostic::new(Category::Agreement, format!("O tipo é {}: \"{right} ...\", não \"{} ...\".", gender.describe(), self.toks[art_span_index(self, art_span)].orig), art_span.to(self.prev_span()))
-                .hint(format!("O artigo concorda com o tipo (\"{w}\").")));
+            return err(Diagnostic::new(
+                Category::Agreement,
+                format!("O tipo é {}: \"{right} ...\", não \"{} ...\".", gender.describe(), self.toks[art_span_index(self, art_span)].orig),
+                art_span.to(self.prev_span()),
+            )
+            .hint(format!("O artigo concorda com o tipo (\"{w}\").")));
         }
         Ok(ty)
     }
@@ -866,7 +1021,11 @@ impl Parser {
         let Some(art) = t.word() else { return Ok(()) };
         if let Some(c) = morphology::contract(prep, art) {
             let written = format!("{prep} {}", t.orig);
-            return err(Diagnostic::new(Category::Morphology, format!("Contração obrigatória: \"{written}\" se escreve \"{c}\"."), prev.span.to(t.span)));
+            return err(Diagnostic::new(
+                Category::Morphology,
+                format!("Contração obrigatória: \"{written}\" se escreve \"{c}\"."),
+                prev.span.to(t.span),
+            ));
         }
         Ok(())
     }
@@ -900,7 +1059,11 @@ impl Parser {
             self.bump();
             let w = self.bump();
             let Some(word) = w.word().map(str::to_string) else {
-                return Err(Box::new(Diagnostic::new(Category::Syntax, format!("Depois do artigo \"{}\" esperava um nome, mas encontrei {}.", t.orig, w.describe()), w.span)));
+                return Err(Box::new(Diagnostic::new(
+                    Category::Syntax,
+                    format!("Depois do artigo \"{}\" esperava um nome, mas encontrei {}.", t.orig, w.describe()),
+                    w.span,
+                )));
             };
             let art_span = t.span;
             let contraction = t.contraction.map(|c| c.written);
@@ -1006,14 +1169,15 @@ impl Parser {
                     || morphology::is_symbol(w)
                     || matches!(w.as_str(), "verdadeiro" | "falso" | "nada")
                     || (morphology::article(w).is_some_and(|a| !a.definite)
-                        && self.peek_at(k + 1).word().is_some_and(|n| n == "cópia" || self.records.contains_key(n)))
+                        && self.peek_at(k + 1).word().is_some_and(|n| n == "cópia" || self.records.contains_key(n) || self.variants.contains_key(n)))
             }
             _ => false,
         }
     }
 
     fn construct_ahead(&self) -> bool {
-        self.peek().word().and_then(morphology::article).is_some_and(|a| !a.definite) && self.peek_at(1).word().is_some_and(|w| self.records.contains_key(w))
+        self.peek().word().and_then(morphology::article).is_some_and(|a| !a.definite)
+            && self.peek_at(1).word().is_some_and(|w| self.records.contains_key(w) || self.variants.contains_key(w))
     }
 
     fn nominal_ahead(&self) -> bool {
@@ -1093,7 +1257,10 @@ impl Parser {
                     let (_, _, art) = morphology::split_contraction(c.written).unwrap();
                     return err(Diagnostic::new(
                         Category::Morphology,
-                        format!("Antes do sujeito de um infinitivo não se contrai: escreva \"o fato de {art} ...\", não \"o fato {} ...\".", c.written),
+                        format!(
+                            "Antes do sujeito de um infinitivo não se contrai: escreva \"o fato de {art} ...\", não \"o fato {} ...\".",
+                            c.written
+                        ),
                         de.span,
                     ));
                 }

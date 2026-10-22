@@ -1,0 +1,5 @@
+Erro de concordância: "círculo" é masculino: "um círculo".
+ --> tests/programs/err/caso_genero.lav:6:16
+  |
+6 |     A figura é uma círculo com o raio 1,0.
+  |                ^^^^^^^^^^^

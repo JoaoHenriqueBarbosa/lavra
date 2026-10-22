@@ -131,26 +131,9 @@ const IRREGULAR_FIRST_PERSON: &[(&str, &str)] = &[
 /// (`deter` vem de `ter`, `meter` não). Cada linha: raiz, 1ª pessoa da raiz,
 /// prefixos aceitos (o vazio é a própria raiz).
 const PREFIXED_FAMILIES: &[(&str, &str, &[&str])] = &[
-    (
-        "ter",
-        "tenho",
-        &[
-            "", "a", "abs", "con", "de", "entre", "man", "ob", "re", "sus",
-        ],
-    ),
-    (
-        "vir",
-        "venho",
-        &[
-            "", "a", "ad", "con", "contra", "de", "desa", "descon", "inter", "ob", "pro", "recon",
-            "re", "sobre",
-        ],
-    ),
-    (
-        "ver",
-        "vejo",
-        &["", "ante", "circun", "entre", "inter", "pre", "re", "tele"],
-    ),
+    ("ter", "tenho", &["", "a", "abs", "con", "de", "entre", "man", "ob", "re", "sus"]),
+    ("vir", "venho", &["", "a", "ad", "con", "contra", "de", "desa", "descon", "inter", "ob", "pro", "recon", "re", "sobre"]),
+    ("ver", "vejo", &["", "ante", "circun", "entre", "inter", "pre", "re", "tele"]),
     ("prover", "provejo", &["", "des"]),
     ("ler", "leio", &["", "re", "tre", "tres"]),
     ("crer", "creio", &["", "des"]),
@@ -217,17 +200,8 @@ const SUFFIX_FAMILIES: &[(&str, &str)] = &[
 ];
 
 /// Verbos em `-ir` com `e` no radical que não fazem a alternância e/i.
-const NO_VOWEL_ALTERNATION: &[&str] = &[
-    "convelir",
-    "crespir",
-    "digestir",
-    "estresir",
-    "excelir",
-    "fretenir",
-    "inquerir",
-    "manutenir",
-    "premir",
-];
+const NO_VOWEL_ALTERNATION: &[&str] =
+    &["convelir", "crespir", "digestir", "estresir", "excelir", "fretenir", "inquerir", "manutenir", "premir"];
 
 /// "medir" → "meço". `None` quando a palavra não é infinitivo ou o verbo não tem 1ª pessoa.
 pub fn first_person(inf: &str) -> Option<String> {
@@ -304,11 +278,7 @@ fn third_conjugation(inf: &str, stem: &str) -> String {
     {
         return format!("{s}íbo");
     }
-    let stem = if NO_VOWEL_ALTERNATION.contains(&inf) {
-        stem.to_string()
-    } else {
-        alternate_vowel(stem)
-    };
+    let stem = if NO_VOWEL_ALTERNATION.contains(&inf) { stem.to_string() } else { alternate_vowel(stem) };
     format!("{}o", soften(&stem))
 }
 
@@ -338,11 +308,7 @@ fn alternate_vowel(stem: &str) -> String {
         }
     }
     // A última vogal do radical, com o `u` de `gu`/`qu` contado como consoante.
-    let core = if stem.ends_with("gu") || stem.ends_with("qu") {
-        &stem[..stem.len() - 1]
-    } else {
-        stem
-    };
+    let core = if stem.ends_with("gu") || stem.ends_with("qu") { &stem[..stem.len() - 1] } else { stem };
     if let Some((i, 'e')) = core.char_indices().rev().find(|(_, c)| is_vowel(*c))
         && i + 1 < core.len()
     {
@@ -587,13 +553,7 @@ mod tests {
 
     #[test]
     fn invented_verbs_follow_the_rules() {
-        check(&[
-            ("deletar", "deleto"),
-            ("printar", "printo"),
-            ("resetar", "reseto"),
-            ("tuitar", "tuito"),
-            ("googlar", "googlo"),
-        ]);
+        check(&[("deletar", "deleto"), ("printar", "printo"), ("resetar", "reseto"), ("tuitar", "tuito"), ("googlar", "googlo")]);
     }
 
     #[test]

@@ -1,0 +1,7 @@
+Erro de sintaxe: O caso "um verde" já foi tratado.
+ --> tests/programs/err/conforme_repetido.lav:9:15
+  |
+8 |         Sendo um verde: escrevo "siga".
+  |               -------- tratado aqui
+9 |         Sendo um verde: escrevo "de novo".
+  |               ^^^^^^^^

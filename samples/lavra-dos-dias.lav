@@ -1,0 +1,67 @@
+Nota: Lavra dos dias.
+
+Uma data é um registro de:
+    o dia, um inteiro;
+    o mês, um inteiro;
+    o ano, um inteiro.
+
+Os dias são
+    "numa terça-feira",
+    "numa quarta-feira",
+    "numa quinta-feira",
+    "numa sexta-feira",
+    "num sábado",
+    "num domingo"
+    e "numa segunda-feira".
+
+Para começar:
+    Escrevo "Quando nasceste?".
+    O nascimento é o resultado de perguntar a data.
+    Escrevo "E hoje, que dia é?".
+    O agora é o resultado de perguntar a data.
+
+    O vivido é a diferença
+        do resultado de contar os dias até o agora
+        e do resultado de contar os dias até o nascimento.
+
+    Se o vivido for menor que 0:
+        Escrevo "Ainda não nasceste. Volta depois.".
+    Senão:
+        N é 1 mais o resto
+            do resultado de contar os dias até o nascimento
+            e 7.
+        Escrevo "Nasceste " seguido do item n dos dias seguido de ".".
+        Escrevo "Desde então, " seguido do vivido seguido de " dias.".
+
+        Se o nascimento rimar com o agora:
+            Escrevo "E hoje o teu dia volta: parabéns.".
+
+        A espera é 1000 menos o resto do vivido e 1000.
+        Se a espera for igual a 1000:
+            Escrevo "Hoje completas " seguido do vivido dividido por 1000 seguido de " mil.".
+        Senão:
+            Escrevo "Daqui a " seguido da espera seguido de ", completas "
+                seguido do vivido dividido por 1000 mais 1 seguido de " mil.".
+
+Para perguntar a data, devolvendo uma data:
+    Escrevo "    o dia: " e leio um inteiro, e o sol é o resultado.
+    Escrevo "    o mês: " e leio um inteiro, e a lua é o resultado.
+    Escrevo "    o ano: " e leio um inteiro, e o tempo é o resultado.
+    Devolvo uma data com o dia o sol, o mês a lua e o ano o tempo.
+
+Para a data rimar com a outra, sendo ambas datas emprestadas, devolvendo um lógico:
+    Se o dia da data for diferente do dia da outra: devolvo falso.
+    Devolvo o fato de o mês da data ser igual ao mês da outra.
+
+Para contar os dias até a data, sendo a data uma data emprestada, devolvendo um inteiro:
+    O tempo começa no ano da data.
+    A lua começa no mês da data.
+    Se a lua for menor que 3:
+        O tempo diminui 1, e a lua cresce 12.
+    A lua diminui 3.
+    Devolvo o tempo vezes 365
+        mais o tempo dividido por 4
+        menos o tempo dividido por 100
+        mais o tempo dividido por 400
+        mais (a lua vezes 153 mais 2) dividido por 5
+        mais o dia da data.

@@ -11,14 +11,7 @@
 /// Verbos sem 3ª pessoa do presente: só se conjugam nas formas arrizotônicas
 /// ("falimos", "precavemos", "reavemos"). "sobresser" entra aqui por ser duvidoso (o
 /// Verbiste dá "sobresé", sem o prefixo inteiro). Casos de borda, a decidir.
-const DEFECTIVE: &[&str] = &[
-    "falir",
-    "precaver",
-    "desprecaver",
-    "reaver",
-    "remir",
-    "sobresser",
-];
+const DEFECTIVE: &[&str] = &["falir", "precaver", "desprecaver", "reaver", "remir", "sobresser"];
 
 /// Verbos tratados um a um, porque a terminação deles é compartilhada por verbos
 /// regulares ("ter" e "bater", "vir" e "servir", "ver" e "mover", "sumir" e "assumir").
@@ -196,11 +189,7 @@ pub fn third_person(inf: &str) -> Option<(String, String)> {
         return Some((format!("{stem}ui"), format!("{stem}uem")));
     }
     let (stem, ending) = split_ending(inf)?;
-    let stem = if HIATUS.iter().any(|h| inf.ends_with(h)) {
-        accent_last_high_vowel(stem)
-    } else {
-        stem.to_string()
-    };
+    let stem = if HIATUS.iter().any(|h| inf.ends_with(h)) { accent_last_high_vowel(stem) } else { stem.to_string() };
     let vowel = if ending == "ar" { "a" } else { "e" };
     Some((format!("{stem}{vowel}"), format!("{stem}{vowel}m")))
 }
@@ -209,11 +198,7 @@ pub fn third_person(inf: &str) -> Option<(String, String)> {
 fn accent_last_high_vowel(stem: &str) -> String {
     match stem.rfind(['i', 'u']) {
         Some(i) => {
-            let accented = if stem[i..].starts_with('i') {
-                "í"
-            } else {
-                "ú"
-            };
+            let accented = if stem[i..].starts_with('i') { "í" } else { "ú" };
             format!("{}{accented}{}", &stem[..i], &stem[i + 1..])
         }
         None => stem.to_string(),
@@ -320,17 +305,7 @@ mod tests {
 
     #[test]
     fn not_a_verb_or_defective() {
-        for w in [
-            "por",
-            "x",
-            "saldo",
-            "falir",
-            "reaver",
-            "precaver",
-            "remir",
-            "-ar",
-            "queixar-se",
-        ] {
+        for w in ["por", "x", "saldo", "falir", "reaver", "precaver", "remir", "-ar", "queixar-se"] {
             assert_eq!(t(w), None, "{w}");
         }
     }

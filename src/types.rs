@@ -50,6 +50,25 @@ pub struct RecordTy {
     pub field_articles: Vec<(String, &'static str)>,
 }
 
+/// Um caso de enumeração ("um círculo, com o raio, um real").
+#[derive(Debug, PartialEq)]
+pub struct VariantTy {
+    pub name: String,
+    pub feminine: bool,
+    pub fields: Vec<(String, Ty)>,
+    pub field_articles: Vec<(String, &'static str)>,
+}
+
+/// Uma enumeração ("Uma forma é uma destas: ...").
+#[derive(Debug, PartialEq)]
+pub struct EnumTy {
+    pub id: usize,
+    pub name: String,
+    pub plural: String,
+    pub feminine: bool,
+    pub variants: Vec<VariantTy>,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Ty {
     Int(IntTy),
@@ -59,6 +78,7 @@ pub enum Ty {
     Text,
     List(Box<Ty>),
     Record(Arc<RecordTy>),
+    Enum(Arc<EnumTy>),
     /// "talvez um texto": um valor ou nada.
     Maybe(Box<Ty>),
     Unit,
@@ -79,16 +99,15 @@ impl Ty {
 
     /// Tipos de valor se copiam; os donos (texto, lista, registro) se movem.
     pub fn is_copy(&self) -> bool {
-        match self {
-            Ty::Maybe(t) => t.is_copy(),
-            _ => matches!(self, Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Unit | Ty::Error),
-        }
+        // "talvez" é dono mesmo de um inteiro: no nativo é um ponteiro que pode ser nulo.
+        matches!(self, Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Unit | Ty::Error)
     }
 
     pub fn is_feminine(&self) -> bool {
         match self {
             Ty::List(_) => true,
             Ty::Record(r) => r.feminine,
+            Ty::Enum(e) => e.feminine,
             _ => false,
         }
     }
@@ -105,6 +124,7 @@ impl Ty {
             Ty::Text => pick("texto", "textos"),
             Ty::List(t) => format!("{} de {}", if plural { "listas" } else { "lista" }, t.noun(true)),
             Ty::Record(r) => pick(&r.name, &r.plural),
+            Ty::Enum(e) => pick(&e.name, &e.plural),
             Ty::Maybe(t) => format!("talvez {}", if plural { t.noun(true) } else { t.describe() }),
             Ty::Unit => pick("nada", "nada"),
             Ty::Infer(_) | Ty::Error => pick("valor", "valores"),

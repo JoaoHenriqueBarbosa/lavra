@@ -1,0 +1,35 @@
+Nota: enumerações com dados, "Conforme" exaustivo, e casos em condição.
+
+Uma forma é uma destas:
+    um círculo, com o raio, um real;
+    um retângulo, com a base, um real, e a altura, um real;
+    um ponto.
+
+Um sinal é um destes:
+    um verde;
+    um amarelo;
+    um vermelho.
+
+Para medir a figura, sendo a figura uma forma emprestada, devolvendo um real:
+    Conforme a figura:
+        Sendo um círculo: devolvo 3,14159 vezes o raio vezes o raio.
+        Sendo um retângulo: devolvo a base vezes a altura.
+        Sendo um ponto: devolvo 0,0.
+
+Para começar:
+    As figuras começam vazias.
+    As figuras ganham um círculo com o raio 2,0.
+    As figuras ganham um retângulo com a base 3,0 e a altura 4,0.
+    As figuras ganham um ponto.
+    Para cada figura das figuras:
+        Escrevo a figura seguido de ": " seguido do resultado de medir a figura.
+        Se a figura for um ponto: escrevo "  (sem área)".
+
+    O semáforo começa em um vermelho.
+    Repito 3 vezes:
+        Conforme o semáforo:
+            Sendo um verde: escrevo "siga".
+            Sendo um amarelo ou um vermelho: escrevo "pare".
+        Se o semáforo for um vermelho: o semáforo vira um verde.
+        Senão: o semáforo vira um amarelo.
+    Se o semáforo for igual a um amarelo: escrevo "terminou no amarelo".

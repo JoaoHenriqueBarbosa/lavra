@@ -99,10 +99,40 @@ enum St {
 /// (depois de "Devolvo", "Paro" ou "Pulo").
 type State = Option<Vec<St>>;
 
-/// Um empréstimo ativo durante um laço "Para cada".
+/// Um empréstimo ativo: a coleção de um "Para cada", o valor de um "Conforme".
 struct Loan {
     var: Var,
     span: Span,
+    what: LoanKind,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+enum LoanKind {
+    Loop,
+    Match,
+}
+
+impl LoanKind {
+    fn to_whom(self) -> &'static str {
+        match self {
+            LoanKind::Loop => "ao laço \"Para cada\"",
+            LoanKind::Match => "ao \"Conforme\"",
+        }
+    }
+
+    fn label(self) -> &'static str {
+        match self {
+            LoanKind::Loop => "emprestado ao laço aqui",
+            LoanKind::Match => "emprestado ao \"Conforme\" aqui",
+        }
+    }
+
+    fn hint(self) -> &'static str {
+        match self {
+            LoanKind::Loop => "Junte as mudanças numa lista nova e aplique depois do laço.",
+            LoanKind::Match => "Mude o valor depois do \"Conforme\", fora dos casos.",
+        }
+    }
 }
 
 struct Checker<'a> {
@@ -193,6 +223,36 @@ impl<'a> Checker<'a> {
                 self.mutate(place, "ganhar itens")?;
             }
             Stmt::Write { value, .. } => self.expr(value, Use::Read, &How::Other)?,
+            Stmt::Match { scrutinee, arms, otherwise } => {
+                self.expr(scrutinee, Use::Read, &How::Other)?;
+                // Os campos vistos dentro dos braços são empréstimos do valor: ele não muda.
+                let loan = match &scrutinee.kind {
+                    ExprKind::Read(p) => Some(Loan { var: p.root, span: scrutinee.span, what: LoanKind::Match }),
+                    _ => None,
+                };
+                let has_loan = loan.is_some();
+                if let Some(l) = loan {
+                    self.loans.push(l);
+                }
+                let start = self.state.clone();
+                let mut out: State = None;
+                for a in arms {
+                    self.state = start.clone();
+                    self.block(&a.body)?;
+                    out = join(&out, &self.state);
+                }
+                self.state = start.clone();
+                if let Some(b) = otherwise {
+                    self.block(b)?;
+                    out = join(&out, &self.state);
+                } else if arms.is_empty() {
+                    out = start;
+                }
+                self.state = out;
+                if has_loan {
+                    self.loans.pop();
+                }
+            }
             Stmt::Desist(v) => {
                 self.expr(v, Use::Move, &How::Returned)?;
                 self.state = None;
@@ -254,7 +314,7 @@ impl<'a> Checker<'a> {
             Stmt::ForEach { source, body, .. } => {
                 self.expr(source, Use::Read, &How::Other)?;
                 let loan = match &source.kind {
-                    ExprKind::Read(p) => Some(Loan { var: p.root, span: source.span }),
+                    ExprKind::Read(p) => Some(Loan { var: p.root, span: source.span, what: LoanKind::Loop }),
                     _ => None,
                 };
                 self.looping(body, loan, |_| Ok(()))?;
@@ -316,7 +376,7 @@ impl<'a> Checker<'a> {
                 self.expr(rhs, Use::Read, &How::Other)?;
             }
             Cond::Test(e) => self.expr(e, Use::Move, &How::Other)?,
-            Cond::IsSome(e) => self.expr(e, Use::Read, &How::Other)?,
+            Cond::IsSome(e) | Cond::IsVariant(e, _) => self.expr(e, Use::Read, &How::Other)?,
         }
         Ok(())
     }
@@ -340,7 +400,8 @@ impl<'a> Checker<'a> {
             format!("{} {} na linha {line} e não volta.", capitalize(&name), m.how.finite(&name))
         };
         let given = agree("entregue", &name);
-        let mut d = Diagnostic::new(Category::Ownership, message, span).primary(format!("{} aqui depois de {given}", agree("usado", &name)));
+        let mut d =
+            Diagnostic::new(Category::Ownership, message, span).primary(format!("{} aqui depois de {given}", agree("usado", &name)));
         if m.span != span {
             d = d.label(m.span, format!("{given} aqui"));
         }
@@ -378,15 +439,16 @@ impl<'a> Checker<'a> {
             return err(Diagnostic::new(
                 Category::Borrow,
                 format!(
-                    "{} {are} {} ao laço \"Para cada\" da linha {} e não {verb} enquanto ele durar.",
+                    "{} {are} {} {} da linha {} e não {verb} enquanto ele durar.",
                     capitalize(&name),
                     agree("emprestado", &name),
+                    l.what.to_whom(),
                     self.lines.line(l.span)
                 ),
                 place.span,
             )
-            .label(l.span, "emprestado ao laço aqui")
-            .hint("Junte as mudanças numa lista nova e aplique depois do laço."));
+            .label(l.span, l.what.label())
+            .hint(l.what.hint()));
         }
         Ok(())
     }
@@ -417,7 +479,8 @@ impl<'a> Checker<'a> {
                     self.expr(x, Use::Read, &How::Other)?;
                 }
             }
-            ExprKind::List(v) | ExprKind::Record(v) => {
+            ExprKind::VariantField { value, .. } => self.expr(value, Use::Read, &How::Other)?,
+            ExprKind::List(v) | ExprKind::Record(v) | ExprKind::Variant { fields: v, .. } => {
                 for x in v {
                     self.expr(x, Use::Move, how)?;
                 }
@@ -432,7 +495,13 @@ impl<'a> Checker<'a> {
                 self.usable(place, place.span)?;
                 self.mutate(place, "perder itens")?;
             }
-            ExprKind::Int(_) | ExprKind::Real(_) | ExprKind::Text(_) | ExprKind::Char(_) | ExprKind::Bool(_) | ExprKind::Input | ExprKind::Nothing => {}
+            ExprKind::Int(_)
+            | ExprKind::Real(_)
+            | ExprKind::Text(_)
+            | ExprKind::Char(_)
+            | ExprKind::Bool(_)
+            | ExprKind::Input
+            | ExprKind::Nothing => {}
         }
         Ok(())
     }
@@ -449,8 +518,12 @@ impl<'a> Checker<'a> {
     fn move_out(&mut self, p: &Place, span: Span, how: &How, callee: Option<(String, String, String)>) -> Result<()> {
         let name = self.display(p.root);
         if let Var::Global(_) = p.root {
-            return err(Diagnostic::new(Category::Ownership, format!("{} é constante do programa e não se entrega.", capitalize(&name)), span)
-                .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))));
+            return err(Diagnostic::new(
+                Category::Ownership,
+                format!("{} é constante do programa e não se entrega.", capitalize(&name)),
+                span,
+            )
+            .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))));
         }
         if !p.proj.is_empty() {
             let whole = place_display(self, p);
@@ -460,19 +533,33 @@ impl<'a> Checker<'a> {
             } else {
                 format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&whole))
             };
-            return err(Diagnostic::new(Category::Ownership, format!("Não se tira \"{whole}\" de dentro de \"{name}\" entregando: o valor tem dono."), span).hint(hint));
+            return err(Diagnostic::new(
+                Category::Ownership,
+                format!("Não se tira \"{whole}\" de dentro de \"{name}\" entregando: o valor tem dono."),
+                span,
+            )
+            .hint(hint));
         }
         if let Var::Local(id) = p.root
             && self.func.locals[id].borrowed
         {
-            return err(Diagnostic::new(Category::Ownership, format!("{} aqui é só uma vista emprestada do valor de fora e não se entrega.", capitalize(&name)), span)
-                .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))));
+            return err(Diagnostic::new(
+                Category::Ownership,
+                format!("{} aqui é só uma vista emprestada do valor de fora e não se entrega.", capitalize(&name)),
+                span,
+            )
+            .hint(format!("Entregue uma cópia: \"uma cópia {}\".", of_name(&name))));
         }
         if let Some(l) = self.loans.iter().find(|l| l.var == p.root) {
             let are = morphology::third_person("estar", gn(&name).1).unwrap_or_default();
             return err(Diagnostic::new(
                 Category::Borrow,
-                format!("{} {are} {} ao laço \"Para cada\" e não se {} enquanto ele durar.", capitalize(&name), agree("emprestado", &name), verb3("entregar", &name)),
+                format!(
+                    "{} {are} {} ao laço \"Para cada\" e não se {} enquanto ele durar.",
+                    capitalize(&name),
+                    agree("emprestado", &name),
+                    verb3("entregar", &name)
+                ),
                 span,
             )
             .label(l.span, "emprestado ao laço aqui"));
@@ -514,7 +601,9 @@ impl<'a> Checker<'a> {
                         self.mutate(p, "mudar")?;
                     }
                     if let Some(root) = root {
-                        if let Some((_, mode0, param0, span0)) = lent.iter().find(|(v, m, _, _)| *v == root && (*m == ParamMode::Lent || a.mode == ParamMode::Lent)) {
+                        if let Some((_, mode0, param0, span0)) =
+                            lent.iter().find(|(v, m, _, _)| *v == root && (*m == ParamMode::Lent || a.mode == ParamMode::Lent))
+                        {
                             let name = self.display(root);
                             let first = agree(if *mode0 == ParamMode::Lent { "confiado" } else { "emprestado" }, &name);
                             let again = agree(if a.mode == ParamMode::Lent { "confiado" } else { "emprestado" }, &name);
