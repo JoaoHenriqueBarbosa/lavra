@@ -1,8 +1,0 @@
-Nota: este programa tem um erro de concordância de propósito.
-Nota: o compilador sublinha a palavra e diz como corrigir. Conserte e veja rodar.
-Seja a prova um real, valendo 8,5.
-Seja o trabalho um real, valendo 6.
-Se o prova for maior que o trabalho:
-    Escrevo "A prova foi melhor".
-Senão:
-    Escrevo "O trabalho foi melhor".
