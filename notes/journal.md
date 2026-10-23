@@ -342,3 +342,33 @@ Conferi o roteiro inteiro, item por item, contra o código, e achei duas coisas 
 - Os roteiros dos pontos de extensão que ainda não têm uso real (módulos, genéricos, referências guardadas, tipos novos no runtime) e a lista do que uma feature nova toca. Estão em notes/compiler.md, na seção "Crescer a língua", cada um partindo do que o código já tem.
 
 Decisão para revisar: a extensão procura o lavrac no setting, depois o que vem dentro dela, e só então no PATH. O plano dizia PATH antes do embutido. Com o embutido primeiro, o servidor é sempre o da mesma versão da extensão, e um lavrac antigo no PATH não tira recursos dela. Quem quiser outro diz o caminho no setting.
+
+----------------------------------------------------------------------------------------
+
+Dia 22/10/2026, fim da fase 8 do roadmap (o tree-sitter e os outros editores) e do roteiro inteiro, registro do Claude às 21h56, cerca de 6 horas e 40 minutos depois do começo:
+
+A Lavra agora tem gramática tree-sitter e funciona no Helix, no Neovim e no Zed, além do VS Code.
+- A gramática é rasa de propósito: orações, blocos, cabeçalhos, definições, comentários, textos, números, as palavras da língua pelo papel e os nomes com artigo. O detalhe fino continua com o servidor de linguagem.
+- As palavras vêm do mesmo léxico do compilador, e um scanner em C cuida do recuo e do fim da oração, pelas regras do léxico do compilador.
+- As queries de realce, dobra, recuo, escopos e objetos de texto são escritas uma vez, e as cópias de cada editor saem geradas.
+- Helix, Neovim e Zed têm cada um a sua configuração, com README de instalação. No Neovim, até o texto das bibliotecas abre na definição, como no VS Code.
+
+Conferido por um agente, que fez a fase numa branch própria, e de novo por mim antes de integrar:
+- os 47 testes de corpus e as 67 asserções de realce passam, e as 20 queries compilam contra a gramática;
+- a deriva: os 28 programas do corpus, os 10 da gramática e as 4 fixtures do VS Code parseiam sem nó de erro, e os 91 programas errados não derrubam o parser;
+- no Helix 25.07.1, o hx --health lavra dá ✓ no servidor, no depurador, no parser e nas três queries, e um programa aberto, com recuo e objeto de texto usados, não deixa erro no log;
+- no Neovim 0.11 e 0.12, as queries carregam, os programas abrem sem erro, o servidor publica os diagnósticos e o moved sai em itálico;
+- a extensão do Zed compila.
+
+O CI ganhou um job que roda tudo isso, menos o Neovim e o Zed, a cada envio, e passou inteiro.
+
+Ficou de fora, por limite dos próprios editores: o depurador no Zed, que pede um adaptador escrito na extensão; os tokens semânticos no Helix, que não os pede; e o texto das bibliotecas no Helix e no Zed, que só abrem arquivos.
+
+Decisões para revisar:
+- As configurações do Helix e do Zed apontam a gramática por um commit (o rev), e o CI confere que a gramática naquele commit é a de agora. Toda mudança na gramática vai no mesmo envio que a troca do rev, e a integração tem de manter o hash: avanço rápido ou merge, nunca rebase.
+- As queries são escritas com os nomes de captura do Neovim, e as dos outros editores saem trocando só os nomes. Por isso o Helix precisa ser 25.07 ou mais novo.
+- O parser sai com a ABI 14, e o tree-sitter-cli fica preso na versão 0.27.1.
+
+Com isso o roteiro inteiro está feito: as fases 0 a 9, as partes adiadas e as lacunas da auditoria. Ficam só coisas que dependem de você:
+- os tokens de publicação: o do crates.io, para o primeiro cargo publish da última tag, e os do Marketplace e do Open VSX, para a extensão. Só quem tem a conta gera, e a pipeline já os usa quando chegarem;
+- o merge do PR de release que o release-plz abriu (v0.2.0), que é seu.

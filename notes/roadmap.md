@@ -157,7 +157,7 @@ Roda sobre o interpretador, que é a referência. Isso realiza o "ver a frase ex
   - Começa pelos pontos em que o compilador já calcula a forma certa: contração, concordância de artigo, verbo do sujeito, subjuntivo, ponto final, "Senão, se" e acento.
 - **`check --json`**, para outros editores e para fixtures.
 
-### 1.7 Outros editores (tree-sitter)
+### 1.7 Outros editores (tree-sitter) **(feito)**
 
 - **`editors/tree-sitter-lavra`** é raso e de propósito: orações, blocos, cabeçalhos, comentários, textos, números, palavras por papel e nomes.
   - As palavras vêm de `editors/lexicon.json`.
@@ -378,7 +378,7 @@ Cada item termina com a suíte verde, um commit e um push.
 | 5 | Depurador e F5 **(feito)** | sessão roteirizada; captura parado num breakpoint |
 | 6 | Builtins e `Uso a biblioteca de textos.` **(feito)** | biblioteca no servidor sem mudar o servidor |
 | 7 | Releases, README, CHANGELOG, publicação **(feito; crates.io e lojas esperam os tokens)** | instalação limpa num contêiner |
-| 8 | tree-sitter e configs de editores | corpus sem ERROR; `hx --health` |
+| 8 | tree-sitter e configs de editores **(feito)** | corpus sem ERROR; `hx --health` |
 | 9 | Site e playground **(feito)** | um poema rodando no navegador |
 
 ## Procedimento
