@@ -1,0 +1,400 @@
+================================================================================
+Função de ação
+================================================================================
+
+Para render o saldo, sendo o saldo um real confiado:
+    O saldo cresce 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    name: (identifier)
+    (parameter
+      (article)
+      (identifier))
+    (control_keyword)
+    (parameter
+      (article)
+      (identifier))
+    (indefinite_article)
+    (primitive_type)
+    (ownership_keyword)
+    (block
+      (sentence
+        (name
+          (article)
+          (identifier))
+        (mutation_verb)
+        (number)))))
+
+================================================================================
+Função com símbolos e retorno
+================================================================================
+
+Para elevar x a n, sendo x um real e n um natural, devolvendo um real:
+    Devolvo x.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    (identifier)
+    (symbol)
+    (article)
+    (symbol)
+    (control_keyword)
+    (symbol)
+    (indefinite_article)
+    (primitive_type)
+    (conjunction)
+    (symbol)
+    (indefinite_article)
+    (primitive_type)
+    (signature_keyword)
+    (indefinite_article)
+    (primitive_type)
+    (block
+      (sentence
+        (flow_verb)
+        (symbol)))))
+
+================================================================================
+Cabeçalho em várias linhas
+================================================================================
+
+Para transferir a quantia da origem para o destino,
+        sendo a quantia um inteiro e a origem e o destino inteiros confiados:
+    A origem diminui a quantia.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    (identifier)
+    (parameter
+      (article)
+      (identifier))
+    (parameter
+      (contraction)
+      (identifier))
+    (preposition)
+    (parameter
+      (article)
+      (identifier))
+    (control_keyword)
+    (parameter
+      (article)
+      (identifier))
+    (indefinite_article)
+    (primitive_type)
+    (conjunction)
+    (parameter
+      (article)
+      (identifier))
+    (conjunction)
+    (parameter
+      (article)
+      (identifier))
+    (primitive_type)
+    (ownership_keyword)
+    (block
+      (sentence
+        (name
+          (article)
+          (identifier))
+        (mutation_verb)
+        (name
+          (article)
+          (identifier))))))
+
+================================================================================
+Predicado com verbo
+================================================================================
+
+Para o valor exceder o limite, sendo ambos inteiros, devolvendo um lógico:
+    Devolvo o fato de o valor ser maior que o limite.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    subject: (parameter
+      (article)
+      (identifier))
+    name: (identifier)
+    (parameter
+      (article)
+      (identifier))
+    (control_keyword)
+    (signature_keyword)
+    (primitive_type)
+    (signature_keyword)
+    (indefinite_article)
+    (primitive_type)
+    (block
+      (sentence
+        (flow_verb)
+        (article)
+        (anaphora)
+        (preposition)
+        (name
+          (article)
+          (identifier))
+        (declaration_verb)
+        (comparison)
+        (comparison)
+        (name
+          (article)
+          (identifier))))))
+
+================================================================================
+Predicado com sujeito símbolo
+================================================================================
+
+Para p exceder q, sendo p e q inteiros, devolvendo um lógico:
+    Devolvo o fato de p ser maior que q.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    subject: (symbol)
+    name: (identifier)
+    (symbol)
+    (control_keyword)
+    (symbol)
+    (conjunction)
+    (symbol)
+    (primitive_type)
+    (signature_keyword)
+    (indefinite_article)
+    (primitive_type)
+    (block
+      (sentence
+        (flow_verb)
+        (article)
+        (anaphora)
+        (preposition)
+        (symbol)
+        (declaration_verb)
+        (comparison)
+        (comparison)
+        (symbol)))))
+
+================================================================================
+Predicado adjetivo
+================================================================================
+
+Para o número ser par, sendo o número um inteiro, devolvendo um lógico:
+    Devolvo verdadeiro.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    subject: (parameter
+      (article)
+      (identifier))
+    (declaration_verb)
+    name: (identifier)
+    (control_keyword)
+    (parameter
+      (article)
+      (identifier))
+    (indefinite_article)
+    (primitive_type)
+    (signature_keyword)
+    (indefinite_article)
+    (primitive_type)
+    (block
+      (sentence
+        (flow_verb)
+        (literal)))))
+
+================================================================================
+Predicado adjetivo com palavra da língua
+================================================================================
+
+Para a pilha ser vazia, sendo a pilha uma pilha emprestada, devolvendo um lógico:
+    Devolvo falso.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    subject: (parameter
+      (article)
+      (identifier))
+    (declaration_verb)
+    name: (literal)
+    (control_keyword)
+    (parameter
+      (article)
+      (identifier))
+    (indefinite_article)
+    (identifier)
+    (ownership_keyword)
+    (signature_keyword)
+    (indefinite_article)
+    (primitive_type)
+    (block
+      (sentence
+        (flow_verb)
+        (literal)))))
+
+================================================================================
+Primeira pessoa declarada
+================================================================================
+
+Para trovejar (trovejo) a nuvem, sendo a nuvem um texto:
+    Escrevo a nuvem.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    name: (identifier)
+    (parenthesized
+      (identifier))
+    (parameter
+      (article)
+      (identifier))
+    (control_keyword)
+    (parameter
+      (article)
+      (identifier))
+    (indefinite_article)
+    (primitive_type)
+    (block
+      (sentence
+        (core_verb)
+        (name
+          (article)
+          (identifier))))))
+
+================================================================================
+Função que pode falhar, com o corpo na mesma linha
+================================================================================
+
+Para dividir a conta entre as pessoas, sendo ambas inteiros, devolvendo um inteiro, salvo uma falha: devolvo 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_definition
+    (function_keyword)
+    (identifier)
+    (parameter
+      (article)
+      (identifier))
+    (preposition)
+    (parameter
+      (article)
+      (identifier))
+    (control_keyword)
+    (signature_keyword)
+    (primitive_type)
+    (signature_keyword)
+    (indefinite_article)
+    (primitive_type)
+    (signature_keyword)
+    (indefinite_article)
+    (signature_keyword)
+    (sentence
+      (flow_verb)
+      (number))))
+
+================================================================================
+Biblioteca
+================================================================================
+
+Uso a biblioteca de textos.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (import
+    (import_keyword)
+    (article)
+    (import_keyword)
+    (preposition)
+    library: (primitive_type)))
+
+================================================================================
+Registro
+================================================================================
+
+Uma conta é um registro de:
+    o titular, um texto;
+    x, um real;
+    as movimentações, uma lista de reais.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (type_definition
+    (indefinite_article)
+    name: (identifier)
+    (declaration_verb)
+    (indefinite_article)
+    (definition_keyword)
+    (preposition)
+    (block
+      (sentence
+        (name
+          (article)
+          (identifier))
+        (indefinite_article)
+        (primitive_type))
+      (sentence
+        (symbol)
+        (indefinite_article)
+        (primitive_type))
+      (sentence
+        (name
+          (article)
+          (identifier))
+        (indefinite_article)
+        (primitive_type)
+        (preposition)
+        (primitive_type)))))
+
+================================================================================
+Enumeração com casos
+================================================================================
+
+Uma forma é uma destas:
+    um círculo, com o raio, um real;
+    um ponto.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (type_definition
+    (indefinite_article)
+    name: (identifier)
+    (declaration_verb)
+    (indefinite_article)
+    (definition_keyword)
+    (block
+      (variant
+        (indefinite_article)
+        name: (identifier)
+        (preposition)
+        (name
+          (article)
+          (identifier))
+        (indefinite_article)
+        (primitive_type))
+      (variant
+        (indefinite_article)
+        name: (identifier)))))

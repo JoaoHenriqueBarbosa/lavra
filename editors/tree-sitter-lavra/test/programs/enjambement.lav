@@ -1,0 +1,23 @@
+Nota: o período que continua nas linhas de baixo (enjambement), com recuo livre, e as
+Nota: locuções partidas entre duas linhas.
+
+Para flexionar a quantidade entre o singular e o plural,
+        sendo a quantidade um inteiro e o singular e o plural textos emprestados,
+        devolvendo um texto:
+    Se a quantidade for igual a 1: devolvo "1 " seguido do singular.
+    Devolvo a quantidade como texto seguido de " " seguido do plural.
+
+Para começar:
+    As linhas são
+        "primeira, com vírgula, "
+            seguido de "e emenda",
+        "segunda"
+        e "terceira".
+    Escrevo as linhas.
+    A metade é 10 dividido
+        por 2.
+    A frase é "a" seguido
+        de "b".
+    Escrevo o resultado de flexionar 2 entre "lote" e "lotes"
+        seguido de ".".
+    Se a metade for pelo menos 5 e a metade for no máximo 10: escrevo a frase.

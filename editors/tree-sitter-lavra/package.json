@@ -1,0 +1,23 @@
+{
+  "name": "tree-sitter-lavra",
+  "version": "0.1.0",
+  "description": "A gramática tree-sitter da Lavra, gerada do léxico do compilador.",
+  "private": true,
+  "license": "MIT",
+  "author": "João Henrique Barbosa <joaohenriquebarbosa21@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoaoHenriqueBarbosa/lavra.git",
+    "directory": "editors/tree-sitter-lavra"
+  },
+  "scripts": {
+    "generate": "tree-sitter generate --abi 14 && node scripts/sync-queries.js",
+    "test": "npm run test:corpus && npm run test:queries && npm run test:drift",
+    "test:corpus": "tree-sitter test",
+    "test:queries": "node scripts/sync-queries.js --check && node scripts/check-queries.js",
+    "test:drift": "node scripts/drift.js"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "0.27.1"
+  }
+}

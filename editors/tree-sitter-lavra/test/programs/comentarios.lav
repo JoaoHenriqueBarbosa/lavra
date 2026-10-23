@@ -1,0 +1,14 @@
+Nota: comentário no começo do arquivo.
+-- e outro, com traços.
+
+Para começar:
+Nota: comentário entre o cabeçalho e o corpo.
+    O saldo começa em 1. -- comentário no fim da linha
+-- comentário na margem, no meio do bloco
+    Escrevo o saldo.
+    Se o saldo for maior que 0:
+        Escrevo "positivo -- não é comentário".
+        -- comentário alinhado com o bloco de dentro, antes de ele fechar
+    -- comentário alinhado com o bloco de fora
+    Escrevo "Nota: também não é comentário".
+NOTA: comentário em maiúsculas, depois do último bloco.

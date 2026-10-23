@@ -1,0 +1,13 @@
+Nota: números, textos, escapes e caracteres.
+
+Para começar:
+    O grande é 1 000 000.
+    O real é 8,5.
+    O negativo é -3.
+    O hexa é 0xFF.
+    O sinal é 'x'.
+    A quebra é '\n'.
+    O texto é "tab\tfim \"aspas\" \\ barra" seguido de “curvas”.
+    Escrevo "-- não é comentário" seguido de "Nota: nem isto".
+    Escrevo o grande. Escrevo o real. Escrevo o negativo.
+    Escrevo o hexa seguido do sinal seguido da quebra seguido do texto.

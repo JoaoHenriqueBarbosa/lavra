@@ -1,0 +1,44 @@
+Uso a biblioteca de textos.
+
+Uma pilha é um registro de:
+    os itens, uma lista de inteiros;
+    x, um real.
+
+Um sinal é um destes:
+    um verde;
+    um vermelho, com a espera, um inteiro.
+
+Para o número ser par, sendo o número um inteiro, devolvendo um lógico:
+    Devolvo o fato de o número módulo 2 ser igual a 0.
+
+Para a pilha ser vazia, sendo a pilha uma pilha emprestada, devolvendo um lógico:
+    Devolvo o fato de o tamanho dos itens da pilha ser igual a 0.
+
+Para p exceder q, sendo p e q inteiros, devolvendo um lógico:
+    Devolvo o fato de p ser maior que q.
+
+Para trovejar (trovejo) a nuvem, sendo a nuvem um texto:
+    Escrevo a nuvem.
+
+Para começar:
+    A cheia começa em uma pilha com os itens 1 e x 1,5.
+    Se a cheia for vazia: escrevo "vazia". Senão: escrevo "cheia".
+    Se 3 exceder 2:
+        Trovejo "trovão".
+    O sinal é um vermelho com a espera 3.
+    Conforme o sinal:
+        Sendo um verde: escrevo "siga".
+        Sendo um vermelho:
+            Para cada i de 1 até 2:
+                Se i for par:
+                    Escrevo i.
+                    -- dentro do bloco mais fundo
+            -- fecha dois blocos antes de mim
+        Senão: escrevo "nunca".
+    O apelido, talvez um texto, começa em nada.
+    O apelido vira "Zé".
+    Se houver apelido: escrevo o apelido.
+    As notas são 7, 8 e 9.
+    Para cada nota: escrevo a nota.
+    Escrevo o resultado de aparar "  lavra  ".
+Nota: fecha o último bloco

@@ -1,0 +1,134 @@
+================================================================================
+Números
+================================================================================
+
+As contas são 1 000 000, 8,5, -3 e 0xFF.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (name
+      (article)
+      (identifier))
+    (declaration_verb)
+    (number)
+    (number)
+    (number)
+    (conjunction)
+    (number)))
+
+================================================================================
+Textos, escapes e caracteres
+================================================================================
+
+Escrevo "tab\tfim \"aspas\" \\" seguido de “curvas” seguido de 'x' seguido de '\n'.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (string
+      (string_content)
+      (escape_sequence)
+      (string_content)
+      (escape_sequence)
+      (string_content)
+      (escape_sequence)
+      (string_content)
+      (escape_sequence))
+    (operator)
+    (preposition)
+    (string
+      (string_content))
+    (operator)
+    (preposition)
+    (character)
+    (operator)
+    (preposition)
+    (character)))
+
+================================================================================
+Texto vazio
+================================================================================
+
+Escrevo "".
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (string)))
+
+================================================================================
+Parênteses
+================================================================================
+
+Escrevo (a diferença de 10 e 3) mais 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (parenthesized
+      (article)
+      (nominal)
+      (preposition)
+      (number)
+      (conjunction)
+      (number))
+    (operator)
+    (number)))
+
+================================================================================
+Período em várias linhas, com recuo livre
+================================================================================
+
+As linhas são
+    "primeira, "
+            seguido de "emenda",
+        "segunda"
+    e "terceira".
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (name
+      (article)
+      (identifier))
+    (declaration_verb)
+    (string
+      (string_content))
+    (operator)
+    (preposition)
+    (string
+      (string_content))
+    (string
+      (string_content))
+    (conjunction)
+    (string
+      (string_content))))
+
+================================================================================
+Locução partida entre linhas
+================================================================================
+
+A metade é 10 dividido
+    por 2.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (name
+      (article)
+      (identifier))
+    (declaration_verb)
+    (number)
+    (operator)
+    (preposition)
+    (number)))

@@ -1,0 +1,344 @@
+================================================================================
+Bloco recuado
+================================================================================
+
+Para começar:
+    Escrevo 1.
+    Escrevo 2.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (main_definition
+    (function_keyword)
+    name: (identifier)
+    (block
+      (sentence
+        (core_verb)
+        (number))
+      (sentence
+        (core_verb)
+        (number)))))
+
+================================================================================
+Bloco na mesma linha
+================================================================================
+
+Se a cota for igual a 0: escrevo "zero".
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (if_statement
+    (conditional_keyword)
+    (name
+      (article)
+      (identifier))
+    (copula)
+    (comparison)
+    (article)
+    (number)
+    (sentence
+      (core_verb)
+      (string
+        (string_content)))))
+
+================================================================================
+Senão encadeado
+================================================================================
+
+Se a cota for igual a 0:
+    Escrevo "zero".
+Senão, se a cota for maior que 10:
+    Escrevo "muito".
+Senão:
+    Escrevo "pouco".
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (if_statement
+    (conditional_keyword)
+    (name
+      (article)
+      (identifier))
+    (copula)
+    (comparison)
+    (article)
+    (number)
+    (block
+      (sentence
+        (core_verb)
+        (string
+          (string_content)))))
+  (else_statement
+    (conditional_keyword)
+    (control_keyword)
+    (name
+      (article)
+      (identifier))
+    (copula)
+    (comparison)
+    (comparison)
+    (number)
+    (block
+      (sentence
+        (core_verb)
+        (string
+          (string_content)))))
+  (else_statement
+    (conditional_keyword)
+    (block
+      (sentence
+        (core_verb)
+        (string
+          (string_content))))))
+
+================================================================================
+Se e Senão na mesma linha
+================================================================================
+
+Se a cota for menor que 1: escrevo "menor". Senão: escrevo "maior".
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (if_statement
+    (conditional_keyword)
+    (name
+      (article)
+      (identifier))
+    (copula)
+    (comparison)
+    (comparison)
+    (number)
+    (sentence
+      (core_verb)
+      (string
+        (string_content))))
+  (else_statement
+    (conditional_keyword)
+    (sentence
+      (core_verb)
+      (string
+        (string_content)))))
+
+================================================================================
+Laços
+================================================================================
+
+Enquanto a cota for menor que 3:
+    A cota cresce 1.
+Repito 2 vezes: a cota diminui 1.
+Repito sempre:
+    Paro.
+Para cada i de 1 até 3:
+    Pulo.
+Para cada nota: escrevo a nota.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (while_statement
+    (repeat_keyword)
+    (name
+      (article)
+      (identifier))
+    (copula)
+    (comparison)
+    (comparison)
+    (number)
+    (block
+      (sentence
+        (name
+          (article)
+          (identifier))
+        (mutation_verb)
+        (number))))
+  (repeat_statement
+    (repeat_keyword)
+    (number)
+    (control_keyword)
+    (sentence
+      (name
+        (article)
+        (identifier))
+      (mutation_verb)
+      (number)))
+  (repeat_statement
+    (repeat_keyword)
+    (control_keyword)
+    (block
+      (sentence
+        (flow_verb))))
+  (for_statement
+    (repeat_keyword)
+    (repeat_keyword)
+    (symbol)
+    (preposition)
+    (number)
+    (control_keyword)
+    (number)
+    (block
+      (sentence
+        (flow_verb))))
+  (for_statement
+    (repeat_keyword)
+    (repeat_keyword)
+    (identifier)
+    (sentence
+      (core_verb)
+      (name
+        (article)
+        (identifier)))))
+
+================================================================================
+Conforme com casos e Senão
+================================================================================
+
+Conforme a cor:
+    Sendo um verde: escrevo "siga".
+    Sendo um vermelho ou um amarelo:
+        Escrevo "pare".
+    Senão: escrevo "nunca".
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (match_statement
+    (conditional_keyword)
+    (name
+      (article)
+      (identifier))
+    (block
+      (match_arm
+        (conditional_keyword)
+        (indefinite_article)
+        (identifier)
+        (sentence
+          (core_verb)
+          (string
+            (string_content))))
+      (match_arm
+        (conditional_keyword)
+        (indefinite_article)
+        (identifier)
+        (conjunction)
+        (indefinite_article)
+        (identifier)
+        (block
+          (sentence
+            (core_verb)
+            (string
+              (string_content)))))
+      (else_statement
+        (conditional_keyword)
+        (sentence
+          (core_verb)
+          (string
+            (string_content)))))))
+
+================================================================================
+Vários blocos fechando de uma vez
+================================================================================
+
+Para começar:
+    Se 1 for igual a 1:
+        Se 2 for igual a 2:
+            Escrevo 3.
+Para medir x, sendo x um real:
+    Escrevo x.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (main_definition
+    (function_keyword)
+    (identifier)
+    (block
+      (if_statement
+        (conditional_keyword)
+        (number)
+        (copula)
+        (comparison)
+        (article)
+        (number)
+        (block
+          (if_statement
+            (conditional_keyword)
+            (number)
+            (copula)
+            (comparison)
+            (article)
+            (number)
+            (block
+              (sentence
+                (core_verb)
+                (number))))))))
+  (function_definition
+    (function_keyword)
+    (identifier)
+    (symbol)
+    (control_keyword)
+    (symbol)
+    (indefinite_article)
+    (primitive_type)
+    (block
+      (sentence
+        (core_verb)
+        (symbol)))))
+
+================================================================================
+Bloco aberto até o fim do texto
+================================================================================
+
+Para começar:
+    Se 1 for igual a 1:
+        Escrevo 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (main_definition
+    (function_keyword)
+    (identifier)
+    (block
+      (if_statement
+        (conditional_keyword)
+        (number)
+        (copula)
+        (comparison)
+        (article)
+        (number)
+        (block
+          (sentence
+            (core_verb)
+            (number)))))))
+
+================================================================================
+Recuo com tabs
+================================================================================
+
+Para começar:
+	Repito 3 vezes:
+		Escrevo 1.
+	Escrevo 2.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (main_definition
+    (function_keyword)
+    (identifier)
+    (block
+      (repeat_statement
+        (repeat_keyword)
+        (number)
+        (control_keyword)
+        (block
+          (sentence
+            (core_verb)
+            (number))))
+      (sentence
+        (core_verb)
+        (number)))))

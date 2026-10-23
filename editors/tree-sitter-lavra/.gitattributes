@@ -1,0 +1,11 @@
+# O que o `tree-sitter generate` escreve: fica no repositório (os editores compilam o parser
+# de src/), mas não entra na contagem de linguagens nem se revisa linha a linha.
+src/parser.c linguist-generated
+src/grammar.json linguist-generated
+src/node-types.json linguist-generated
+src/tree_sitter/** linguist-generated
+package-lock.json linguist-generated
+
+# Os programas de borda valem byte a byte: o CRLF, o tab e a falta da quebra final são o que
+# eles testam, e nenhuma normalização de fim de linha pode mexer neles.
+test/programs/*.lav -text

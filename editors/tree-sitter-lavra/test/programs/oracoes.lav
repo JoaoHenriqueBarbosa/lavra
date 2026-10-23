@@ -1,0 +1,23 @@
+Nota: orações, nomes com artigo, palavras de cada papel, várias orações numa linha.
+
+A taxa é 0,05.
+
+Para começar:
+    O saldo começa em 1000,0.
+    A cota, um inteiro, é 3.
+    O saldo cresce o saldo vezes a taxa.
+    Escrevo o saldo. Escrevo a cota.
+    Leio um inteiro e escrevo o resultado.
+    As notas começam com 7, 8,5 e 9.
+    Escrevo a primeira das notas seguido do tamanho das notas.
+    Escrevo a soma de 2 e 3.
+    Tomo a última das notas.
+    Escrevo o item 2 das notas.
+    Escrevo o fato de a cota ser maior que 2.
+    Escrevo a cota como real.
+    O apelido, talvez um texto, começa em nada.
+    As compras começam vazias.
+    As compras ganham 3.
+    A soma-total é 1.
+    Escrevo a soma-total sem quebrar a linha.
+    Escrevo "".

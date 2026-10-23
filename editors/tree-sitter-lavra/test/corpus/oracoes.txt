@@ -1,0 +1,230 @@
+================================================================================
+Declaração com nome e número
+================================================================================
+
+A taxa é 0,05.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (name
+      (article)
+      (identifier))
+    (declaration_verb)
+    (number)))
+
+================================================================================
+Oração com aposto
+================================================================================
+
+A cota, um inteiro, é 3.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (name
+      (article)
+      (identifier))
+    (indefinite_article)
+    (primitive_type)
+    (declaration_verb)
+    (number)))
+
+================================================================================
+Verbo da língua, nome com contração e conjunção
+================================================================================
+
+Escrevo o saldo da conta e paro.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (name
+      (article)
+      (identifier))
+    (name
+      (contraction)
+      (identifier))
+    (conjunction)
+    (flow_verb)))
+
+================================================================================
+Duas orações na mesma linha
+================================================================================
+
+Escrevo 1. Escrevo 2.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (number))
+  (sentence
+    (core_verb)
+    (number)))
+
+================================================================================
+Operação por extenso, posição e retomada
+================================================================================
+
+Escrevo a soma de 2 e 3 seguido da primeira das notas seguido do resultado.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (article)
+    (nominal)
+    (preposition)
+    (number)
+    (conjunction)
+    (number)
+    (operator)
+    (contraction)
+    (position)
+    (name
+      (contraction)
+      (identifier))
+    (operator)
+    (contraction)
+    (anaphora)))
+
+================================================================================
+Locução por palavras
+================================================================================
+
+Se o saldo for maior que 0 e o saldo for pelo menos 5: escrevo 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (if_statement
+    (conditional_keyword)
+    (name
+      (article)
+      (identifier))
+    (copula)
+    (comparison)
+    (comparison)
+    (number)
+    (conjunction)
+    (name
+      (article)
+      (identifier))
+    (copula)
+    (contraction)
+    (operator)
+    (number)
+    (sentence
+      (core_verb)
+      (number))))
+
+================================================================================
+Locução com a contração
+================================================================================
+
+Se a cota for igual ao teto: escrevo 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (if_statement
+    (conditional_keyword)
+    (name
+      (article)
+      (identifier))
+    (copula)
+    (comparison)
+    (name
+      (contraction)
+      (identifier))
+    (sentence
+      (core_verb)
+      (number))))
+
+================================================================================
+Sem quebrar a linha
+================================================================================
+
+Escrevo o saldo sem quebrar a linha.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (name
+      (article)
+      (identifier))
+    (output)))
+
+================================================================================
+Verbo do programa e símbolos
+================================================================================
+
+Elevo 1,5 a n e escrevo x.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (identifier)
+    (number)
+    (article)
+    (symbol)
+    (conjunction)
+    (core_verb)
+    (symbol)))
+
+================================================================================
+Palavra composta com hífen
+================================================================================
+
+A soma-total cresce 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (name
+      (article)
+      (identifier))
+    (mutation_verb)
+    (number)))
+
+================================================================================
+Nome igual a uma palavra da língua
+================================================================================
+
+O texto é "a, b".
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (article)
+    (primitive_type)
+    (declaration_verb)
+    (string
+      (string_content))))
+
+================================================================================
+Maiúsculas em qualquer lugar
+================================================================================
+
+ESCREVO O SALDO.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (name
+      (article)
+      (identifier))))

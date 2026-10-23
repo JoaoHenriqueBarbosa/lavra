@@ -1,0 +1,182 @@
+================================================================================
+Comentários de linha inteira
+================================================================================
+
+Nota: uma nota.
+NOTA: em maiúsculas.
+-- com traços.
+Escrevo 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (comment)
+  (comment)
+  (comment)
+  (sentence
+    (core_verb)
+    (number)))
+
+================================================================================
+Comentário no fim da linha
+================================================================================
+
+Escrevo 1. -- depois do ponto
+Escrevo 2 -- no meio do período
+    mais 3.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (number)
+    (comment))
+  (sentence
+    (core_verb)
+    (number)
+    (comment)
+    (operator)
+    (number)))
+
+================================================================================
+Nota no meio da linha não é comentário
+================================================================================
+
+Para cada nota:
+    Escrevo a nota.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (for_statement
+    (repeat_keyword)
+    (repeat_keyword)
+    (identifier)
+    (block
+      (sentence
+        (core_verb)
+        (name
+          (article)
+          (identifier))))))
+
+================================================================================
+Comentário entre o cabeçalho e o corpo
+================================================================================
+
+Para começar:
+Nota: o corpo vem a seguir.
+    Escrevo 1.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (main_definition
+    (function_keyword)
+    (identifier)
+    (block
+      (comment)
+      (sentence
+        (core_verb)
+        (number)))))
+
+================================================================================
+Comentário na margem no meio do bloco
+================================================================================
+
+Para começar:
+    Escrevo 1.
+-- na margem, e o bloco continua
+    Escrevo 2.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (main_definition
+    (function_keyword)
+    (identifier)
+    (block
+      (sentence
+        (core_verb)
+        (number))
+      (comment)
+      (sentence
+        (core_verb)
+        (number)))))
+
+================================================================================
+Comentário de cada bloco quando eles fecham
+================================================================================
+
+Para começar:
+    Se 1 for igual a 1:
+        Escrevo 1.
+        -- do bloco de dentro
+    -- do bloco de fora
+    Escrevo 2.
+-- da margem, depois do último bloco
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (main_definition
+    (function_keyword)
+    (identifier)
+    (block
+      (if_statement
+        (conditional_keyword)
+        (number)
+        (copula)
+        (comparison)
+        (article)
+        (number)
+        (block
+          (sentence
+            (core_verb)
+            (number))
+          (comment)))
+      (comment)
+      (sentence
+        (core_verb)
+        (number))))
+  (comment))
+
+================================================================================
+Comentário no meio de um período
+================================================================================
+
+As notas são 7,
+Nota: entre as linhas do período
+    8 e 9.
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (name
+      (article)
+      (identifier))
+    (declaration_verb)
+    (number)
+    (comment)
+    (number)
+    (conjunction)
+    (number)))
+
+================================================================================
+Texto com traços e Nota
+================================================================================
+
+Escrevo "-- não" seguido de "Nota: nem isto".
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (sentence
+    (core_verb)
+    (string
+      (string_content))
+    (operator)
+    (preposition)
+    (string
+      (string_content))))

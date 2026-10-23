@@ -1,0 +1,93 @@
+Uso a biblioteca de textos.
+-- <- keyword.import
+--  ^ keyword.import
+--    ^ keyword.import
+--               ^ keyword.operator
+--                  ^ module
+
+Uma conta é um registro de:
+-- <- keyword
+--  ^ type.definition
+--        ^ keyword
+--          ^ keyword
+--             ^ keyword.type
+--                      ^ keyword.operator
+    o titular, um texto;
+--    ^ variable.member
+--                ^ type.builtin
+
+Uma forma é uma destas:
+--              ^ keyword.type
+    um ponto.
+--     ^ constant
+
+Para render a quantia, sendo a quantia um inteiro confiado:
+-- <- keyword.function
+--   ^ function
+--            ^ variable.parameter
+--                     ^ keyword
+--                                        ^ type.builtin
+--                                                ^ keyword.modifier
+    A quantia cresce 10.
+--    ^ variable
+--            ^ keyword
+--                   ^ number
+
+Para o valor exceder o limite, sendo ambos inteiros, devolvendo um lógico:
+--     ^ variable.parameter
+--           ^ function
+--                                   ^ keyword
+--                                                   ^ keyword
+--                                                                 ^ type.builtin
+    Devolvo o fato de o valor ser maior que o limite.
+--  ^ keyword.return
+--            ^ variable.builtin
+--                      ^ variable
+--                                ^ keyword.operator
+--                                      ^ keyword.operator
+
+Para começar:
+--   ^ function
+    O saldo começa em 100.
+--  ^ variable
+--    ^ variable
+--          ^ keyword
+--                 ^ keyword.operator
+--                    ^ number
+    Rendo o saldo.
+--  ^ function.call
+    Escrevo o saldo seguido de "!".
+--  ^ function.builtin
+--                  ^ keyword.operator
+--                             ^ string
+    Se o saldo for igual a 1: escrevo "um".
+--  ^ keyword.conditional
+--             ^ keyword.operator
+--                 ^ keyword.operator
+--                       ^ keyword.operator
+--                            ^ function.builtin
+    Senão, se o saldo exceder 5: escrevo "mais".
+--  ^ keyword.conditional
+--         ^ keyword.conditional
+--                    ^ function.call
+    Senão: escrevo o tamanho de "lavra" sem quebrar a linha.
+--                 ^ function.builtin
+--                   ^ function.builtin
+--                                      ^ keyword
+    Para cada i de 1 até 3: escrevo i.
+--  ^ keyword.repeat
+--       ^ keyword.repeat
+--            ^ variable
+--                   ^ keyword.repeat
+    Repito 2 vezes: escrevo "volta".
+--  ^ keyword.repeat
+--           ^ keyword.repeat
+    Escrevo o resultado de aparar " a ".
+--            ^ variable.builtin
+--                         ^ function.call
+    O sinal é 'x'. -- comentário
+--            ^ character
+--                 ^ comment
+    Escrevo verdadeiro e nada.
+--          ^ constant.builtin
+--                       ^ constant.builtin

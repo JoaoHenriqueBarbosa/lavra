@@ -1,0 +1,2443 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
+  "name": "lavra",
+  "word": "identifier",
+  "rules": {
+    "source_file": {
+      "type": "REPEAT",
+      "content": {
+        "type": "SYMBOL",
+        "name": "_statement"
+      }
+    },
+    "_statement": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "sentence"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "import"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "if_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "else_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "while_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "repeat_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "for_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "match_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "match_arm"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "function_definition"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "main_definition"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "type_definition"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "variant"
+        }
+      ]
+    },
+    "sentence": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_sentence_start"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_terminator"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_newline"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "_terminator": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "."
+        },
+        {
+          "type": "STRING",
+          "value": ";"
+        }
+      ]
+    },
+    "_items": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "SYMBOL",
+        "name": "_item"
+      }
+    },
+    "_item": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "name"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_other_item"
+        }
+      ]
+    },
+    "_header_items": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "name"
+            },
+            "named": true,
+            "value": "parameter"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_other_item"
+          }
+        ]
+      }
+    },
+    "_other_item": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "symbol"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "number"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "string"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "character"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "parenthesized"
+        },
+        {
+          "type": "STRING",
+          "value": ","
+        },
+        {
+          "type": "SYMBOL",
+          "name": "anaphora"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "article"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "comparison"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "conjunction"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "contraction"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "control_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "copula"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "core_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "declaration_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "definition_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "flow_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "indefinite_article"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "literal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "mutation_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "nominal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "operator"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "output"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "ownership_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "position"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "preposition"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "primitive_type"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "signature_keyword"
+        }
+      ]
+    },
+    "_sentence_start": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "name"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "symbol"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "number"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "string"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "character"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "parenthesized"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "anaphora"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "article"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "comparison"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "conjunction"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "contraction"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "copula"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "core_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "declaration_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "flow_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "literal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "mutation_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "nominal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "operator"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "output"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "ownership_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "position"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "primitive_type"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "signature_keyword"
+        }
+      ]
+    },
+    "parenthesized": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        }
+      ]
+    },
+    "name": {
+      "type": "PREC",
+      "value": 1,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "article"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "contraction"
+              }
+            ]
+          },
+          {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        ]
+      }
+    },
+    "_word": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "symbol"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "anaphora"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "article"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "comparison"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "conjunction"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "contraction"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "control_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "copula"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "core_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "declaration_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "definition_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "flow_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "indefinite_article"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "literal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "mutation_verb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "nominal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "operator"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "output"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "ownership_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "position"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "preposition"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "primitive_type"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "signature_keyword"
+        }
+      ]
+    },
+    "_body": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_newline"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "block"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_statement"
+        }
+      ]
+    },
+    "block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_indent"
+        },
+        {
+          "type": "REPEAT1",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_statement"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_dedent"
+        }
+      ]
+    },
+    "if_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "se",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "conditional_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "else_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "senão",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "conditional_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "while_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "enquanto",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "repeat_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "repeat_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "repito",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "repeat_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "for_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "para",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "repeat_keyword"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "cada",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "repeat_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "match_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "conforme",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "conditional_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "match_arm": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "sendo",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "conditional_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "function_definition": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "para",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "function_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "name",
+              "content": {
+                "type": "SYMBOL",
+                "name": "identifier"
+              }
+            },
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "subject",
+                  "content": {
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "ALIAS",
+                        "content": {
+                          "type": "SYMBOL",
+                          "name": "name"
+                        },
+                        "named": true,
+                        "value": "parameter"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "symbol"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "FIELD",
+                      "name": "name",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "identifier"
+                      }
+                    },
+                    {
+                      "type": "SEQ",
+                      "members": [
+                        {
+                          "type": "ALIAS",
+                          "content": {
+                            "type": "PATTERN",
+                            "value": "ser",
+                            "flags": "i"
+                          },
+                          "named": true,
+                          "value": "declaration_verb"
+                        },
+                        {
+                          "type": "FIELD",
+                          "name": "name",
+                          "content": {
+                            "type": "SYMBOL",
+                            "name": "_word"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_header_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "main_definition": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "para",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "function_keyword"
+        },
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "PATTERN",
+              "value": "começar",
+              "flags": "i"
+            },
+            "named": true,
+            "value": "identifier"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "import": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "uso",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "import_keyword"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "a",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "article"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "biblioteca",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "import_keyword"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "de",
+            "flags": "i"
+          },
+          "named": true,
+          "value": "preposition"
+        },
+        {
+          "type": "FIELD",
+          "name": "library",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_word"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "."
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_newline"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "type_definition": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_type_head"
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_body"
+        }
+      ]
+    },
+    "variant": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_type_head"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_terminator"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_newline"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "_type_head": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "indefinite_article"
+        },
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_items"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "number": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "0[xX][0-9a-fA-F]+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "-?[0-9]+( [0-9]{3})*(,[0-9]+)?"
+          }
+        ]
+      }
+    },
+    "string": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "[\"“”]"
+          },
+          "named": false,
+          "value": "\""
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "string_content"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "escape_sequence"
+              }
+            ]
+          }
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "IMMEDIATE_TOKEN",
+            "content": {
+              "type": "PATTERN",
+              "value": "[\"“”]"
+            }
+          },
+          "named": false,
+          "value": "\""
+        }
+      ]
+    },
+    "escape_sequence": {
+      "type": "IMMEDIATE_TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "\\\\."
+      }
+    },
+    "character": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "['‘’]([^'‘’\\\\\\n]|\\\\.)['‘’]"
+      }
+    },
+    "anaphora": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "fato",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "resultado",
+          "flags": "i"
+        }
+      ]
+    },
+    "article": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "a",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "as",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "o",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "os",
+          "flags": "i"
+        }
+      ]
+    },
+    "comparison": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "diferente",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "diferentes",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "iguais",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "igual",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "maior",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "maiores",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "menor",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "menores",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "máximo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "que",
+          "flags": "i"
+        }
+      ]
+    },
+    "conjunction": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "e",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "ou",
+          "flags": "i"
+        }
+      ]
+    },
+    "contraction": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "ao",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "aos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "da",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "das",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "do",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dum",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "duma",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "na",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "nas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "no",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "nos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "num",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "numa",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "pela",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "pelas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "pelo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "pelos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "à",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "às",
+          "flags": "i"
+        }
+      ]
+    },
+    "control_keyword": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "até",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "cada",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "conforme",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "enquanto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "repetir",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "repito",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "se",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sempre",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sendo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "senão",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "vezes",
+          "flags": "i"
+        }
+      ]
+    },
+    "copula": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "for",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "forem",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "houver",
+          "flags": "i"
+        }
+      ]
+    },
+    "core_verb": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "escrever",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "escrevo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "leio",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "ler",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "tomar",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "tomo",
+          "flags": "i"
+        }
+      ]
+    },
+    "declaration_verb": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "começa",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "começam",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "começar",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "ser",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "são",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "é",
+          "flags": "i"
+        }
+      ]
+    },
+    "definition_keyword": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "biblioteca",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "destas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "destes",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "registro",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "uso",
+          "flags": "i"
+        }
+      ]
+    },
+    "flow_verb": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "desistir",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "desisto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "devolver",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "devolvo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "parar",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "paro",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "pular",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "pulo",
+          "flags": "i"
+        }
+      ]
+    },
+    "indefinite_article": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "um",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "uma",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "umas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "uns",
+          "flags": "i"
+        }
+      ]
+    },
+    "literal": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "falso",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "nada",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "vazia",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "vazias",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "vazio",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "vazios",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "verdadeiro",
+          "flags": "i"
+        }
+      ]
+    },
+    "mutation_verb": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "cresce",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "crescem",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "crescer",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "diminuem",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "diminui",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "diminuir",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "ganha",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "ganham",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "ganhar",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "perde",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "perdem",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "perder",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "vira",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "viram",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "virar",
+          "flags": "i"
+        }
+      ]
+    },
+    "nominal": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "deslocamento",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "diferença",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "disjunção",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "interseção",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "inverso",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "módulo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "negativo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "potência",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "produto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quociente",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "raiz",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "resto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "soma",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "tamanho",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "união",
+          "flags": "i"
+        }
+      ]
+    },
+    "operator": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "como",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "direita",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dividido",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "esquerda",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "mais",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "menos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "não",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "seguida",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "seguido",
+          "flags": "i"
+        }
+      ]
+    },
+    "output": {
+      "type": "PATTERN",
+      "value": "sem\\s+quebrar\\s+a\\s+linha",
+      "flags": "i"
+    },
+    "ownership_keyword": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "confiada",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "confiadas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "confiado",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "confiados",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "cópia",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "emprestada",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "emprestadas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "emprestado",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "emprestados",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "talvez",
+          "flags": "i"
+        }
+      ]
+    },
+    "position": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "décima",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "décimas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "décimo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "décimos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "item",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "nona",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "nonas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "nono",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "nonos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "oitava",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "oitavas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "oitavo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "oitavos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "primeira",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "primeiras",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "primeiro",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "primeiros",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quarta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quartas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quarto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quartos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quinta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quintas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quinto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quintos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "segunda",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "segundas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "segundo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "segundos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sexta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sextas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sexto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sextos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sétima",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sétimas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sétimo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sétimos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "terceira",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "terceiras",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "terceiro",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "terceiros",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "última",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "últimas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "último",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "últimos",
+          "flags": "i"
+        }
+      ]
+    },
+    "preposition": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "ante",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "após",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "com",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "contra",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "de",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "desde",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "em",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "entre",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "para",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "por",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sem",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sob",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sobre",
+          "flags": "i"
+        }
+      ]
+    },
+    "primitive_type": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "bits",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "byte",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "bytes",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "caractere",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "caracteres",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "inteiro",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "inteiros",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "lista",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "listas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "lógico",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "lógicos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "naturais",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "natural",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "reais",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "real",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "texto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "textos",
+          "flags": "i"
+        }
+      ]
+    },
+    "signature_keyword": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "ambas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "ambos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "devolvendo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "falha",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "salvo",
+          "flags": "i"
+        }
+      ]
+    },
+    "symbol": {
+      "type": "PATTERN",
+      "value": "[b-df-np-zB-DF-NP-Z][0-9]*|[aeoAEO][0-9]+"
+    },
+    "identifier": {
+      "type": "PATTERN",
+      "value": "[\\p{L}_][\\p{L}\\p{M}0-9_]*(-\\p{L}[\\p{L}\\p{M}0-9_]*)*"
+    }
+  },
+  "extras": [
+    {
+      "type": "PATTERN",
+      "value": "[ \\t\\r\\n]"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "comment"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [
+    {
+      "type": "SYMBOL",
+      "name": "_newline"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_indent"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_dedent"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "string_content"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "comment"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_error_sentinel"
+    }
+  ],
+  "inline": [],
+  "supertypes": [
+    "_statement"
+  ],
+  "reserved": {}
+}

@@ -1,0 +1,28 @@
+Nota: blocos recuados e na mesma linha, "Senão" encadeado, laços e "Conforme".
+
+Uma cor é uma destas:
+    um verde;
+    um vermelho.
+
+Para começar:
+    O contador começa em 0.
+    Se o contador for igual a 0:
+        Escrevo "zero".
+    Senão, se o contador for maior que 10:
+        Escrevo "muito".
+    Senão:
+        Escrevo "pouco".
+    Se o contador for menor que 1: escrevo "menor". Senão: escrevo "maior".
+    Enquanto o contador for menor que 3:
+        O contador cresce 1.
+    Repito 2 vezes: o contador diminui 1.
+    Repito sempre:
+        Paro.
+    Para cada i de 1 até 3:
+        Se i for igual a 2: pulo.
+        Escrevo i.
+    A cor é um vermelho.
+    Conforme a cor:
+        Sendo um verde: escrevo "siga".
+        Sendo um vermelho:
+            Escrevo "pare".
