@@ -2,6 +2,20 @@
 
 As versões da Lavra, a mais nova primeiro.
 
+## [0.2.0](https://github.com/JoaoHenriqueBarbosa/lavra/compare/v0.1.0...v0.2.0) - 2026-10-23
+
+### Correções
+
+- *(parser)* o erro certo para o tipo no singular com vários nomes e para o tipo definido no plural
+
+### Novidades
+
+- *(tree-sitter)* a gramática da Lavra, gerada do léxico
+- *(lsp)* as configurações que desligam cada tipo de inlay hint
+- *(lsp)* a definição de um verbo de biblioteca abre o texto da biblioteca
+- *(lsp)* a posse no hover e o itálico no nome que entrega o valor
+- *(site)* o site da Lavra e o playground com o compilador no navegador
+
 ## [0.1.0] - 2026-10-22
 
 ### Novidades
