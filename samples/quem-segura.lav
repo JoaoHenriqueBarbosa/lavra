@@ -1,0 +1,14 @@
+Nota: Quem segura, companheiro de O animal no colo.
+Nota: este programa não compila de propósito: o animal não pode ir duas vezes à mesma chamada,
+Nota: uma como quem segura e outra como quem é segurado. O aperto é um campo do próprio animal.
+
+Um animal é um registro de:
+    o aperto, um inteiro;
+    o estresse, um inteiro.
+
+Para começar:
+    O animal começa em um animal com o aperto 1 e o estresse 0.
+    Seguro o animal pelo animal.
+
+Para segurar o segurado pelo dono, sendo ambos animais confiados:
+    O estresse do segurado cresce o aperto do dono.

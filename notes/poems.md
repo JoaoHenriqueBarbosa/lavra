@@ -3,7 +3,7 @@
 A proposta do user: programas que sejam ao mesmo tempo **úteis, que compilem e que
 sejam poesia**. Os versos funcionam porque o vocabulário técnico da Lavra (registro,
 resto, resultado, cópia, emprestado, confiado) também é vocabulário comum, e o poema usa
-as duas leituras ao mesmo tempo. Os cinco estão em `samples/`, com entrada e saída
+as duas leituras ao mesmo tempo. Estão em `samples/`, com entrada e saída
 esperadas, na suíte golden e na de paridade entre interpretador e nativo.
 
 ## Lavra dos dias (`samples/lavra-dos-dias.lav`)
@@ -121,6 +121,45 @@ Colho o trigo.
 Conferido contra Python de 0 a 100 000 (9 592 primos), com paridade entre interpretador e
 nativo. Este programa revelou que `o tamanho de` copiava a coleção no interpretador
 (ver [compiler.md](compiler.md)).
+
+## O animal no colo (`samples/o-animal-no-colo.lav`)
+
+Nasceu de uma cena do user: dirigindo estressado, ele se perguntou a quem aparecia o
+estresse, viu que segurava "o animal do mundo" no colo sem que ele quisesse, soltou, e o
+animal foi se acalmando; a ele, nada tinha se passado. Dias depois veio o fecho: o animal
+era quem o segurava. Pergunta por quantos minutos o animal foi segurado, mostra o estresse
+a que chegou e quanto tempo ele leva para ficar manso, uma meia-vida (60 minutos, a ordem
+do cortisol) por volta.
+
+- **`Seguro o animal no colo.`**: "o colo" é o tempo segurado, um inteiro, e a regência
+  ("no colo") é o verso. A narração é na 1ª pessoa, a voz que acha que segura.
+- **`o aperto do animal`**: o aperto é um campo do registro do próprio animal. O genitivo
+  tem as duas leituras, o aperto que o animal sofre e o aperto que o animal faz, e o
+  modelo de dados escolhe a segunda: dentro de "segurar", o único que age é o animal.
+- **`O aperto do animal vira 0.`**: a soltura não tem 1ª pessoa. O dado é o sujeito,
+  ninguém solta; e a calma também acontece só com o dado como sujeito (`O estresse do
+  animal vira ... dividido por 2.`), sem nenhum verbo do programa. A voz híbrida da
+  língua separa o que "eu faço" do que acontece por conta própria.
+- **`Enquanto o animal não for manso:`**: predicado adjetivo, e "manso" de *mansuetus*,
+  acostumado à mão. A condição recebe o animal emprestado: quem olha não mexe.
+- **`A roda`**: a roda do oleiro da Sāṃkhya Kārikā (verso 67), que segue girando depois
+  que o pé saiu e desacelera sozinha; conta os minutos.
+- **`A testemunha é "nada se passou".`**: constante, então o compilador garante que não
+  muda, e constante não se entrega a nenhuma função. Nenhuma chamada a toca; ela só é
+  lida na última linha.
+
+Conferido: 30 minutos chegam a 91 (o estresse cresce um décimo do que falta para 100 a
+cada minuto e nunca chega lá) e levam quatro meias-vidas até 5; 0 minutos dão "nem chegou
+a querer descer". Paridade entre interpretador e nativo para 0, 5, 30 e 600.
+
+### Quem segura (`samples/quem-segura.lav`)
+
+O companheiro que não compila, como o tropeço: `Seguro o animal pelo animal.`, com o
+cabeçalho `Para segurar o segurado pelo dono, sendo ambos animais confiados:`. O
+verificador de empréstimo recusa (L0406): o animal já vai confiado como "o segurado" e não
+pode ir de novo como "o dono". Não existem dois para um segurar o outro; o verso 63 da
+Kārikā (a natureza prende a si mesma, por si mesma) só se escreve com o aperto dentro do
+registro, que é o que o poema principal faz.
 
 ## Padrões emergentes
 

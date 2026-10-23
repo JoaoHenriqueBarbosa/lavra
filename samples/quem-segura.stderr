@@ -1,0 +1,8 @@
+Erro de empréstimo [L0406]: O animal já vai confiado a "segurar" como "o segurado" e não pode ir confiado de novo, como "o dono", na mesma chamada.
+  --> samples/quem-segura.lav:11:21
+   |
+11 |     Seguro o animal pelo animal.
+   |            -------- confiado aqui
+   |                     ^^^^^^^^^^^
+   = Quem é confiado a uma função fica só com ela até a chamada terminar.
+   = dica: Cada parâmetro confiado precisa de um lugar diferente.

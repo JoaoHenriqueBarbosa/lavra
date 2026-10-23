@@ -1,0 +1,42 @@
+Nota: O animal no colo.
+Nota: A natureza prende a si mesma, por si mesma, e por si mesma se solta.
+
+Um animal é um registro de:
+    o aperto, um inteiro;
+    o estresse, um inteiro.
+
+A testemunha é "nada se passou".
+A meia-vida é 60.
+A calma é 5.
+
+Para começar:
+    Escrevo "Por quantos minutos o seguraste? " e leio um inteiro, e o colo é o resultado.
+    O animal começa em um animal com o aperto 1 e o estresse 0.
+
+    Seguro o animal no colo.
+    O aperto do animal vira 0.
+
+    Se o animal for manso:
+        Escrevo "O animal nem chegou a querer descer.".
+    Senão:
+        Escrevo "O animal quer descer: estresse " seguido do estresse do animal seguido de ".".
+        Escrevo "A quem aparece o estresse? A mim.".
+        Escrevo "Quem sou eu? Não o animal.".
+        Escrevo "Solto, o animal se acalma sozinho:".
+        A roda começa em 0.
+        Enquanto o animal não for manso:
+            O estresse do animal vira o estresse do animal dividido por 2.
+            A roda cresce a meia-vida.
+            Escrevo "    " seguido da roda seguido de " minutos depois, "
+                seguido do estresse do animal seguido de ".".
+        Escrevo "Quem segurava o animal era o animal.".
+
+    Escrevo "A mim, " seguido da testemunha seguido de ".".
+
+Para segurar o animal no colo, sendo o animal um animal confiado e o colo um inteiro:
+    Repito o colo vezes:
+        O estresse do animal cresce
+            o aperto do animal vezes (100 menos o estresse do animal) dividido por 10.
+
+Para o animal ser manso, sendo o animal um animal emprestado, devolvendo um lógico:
+    Devolvo o fato de o estresse do animal ser no máximo a calma.
