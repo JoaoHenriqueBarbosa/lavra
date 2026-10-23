@@ -10,7 +10,8 @@ redundante. Extensão `.lav`.
 O compilador em Rust (`src/`, `runtime/`, crate `lavrac`) implementa a Lavra, "um Rust
 com gramática e morfologia": interpretador e nativo (Cranelift), posse e empréstimo,
 talvez e falha, registros e enumerações. Programas de exemplo e poemas em `samples/`.
-Extensão do VS Code em `editors/vscode`.
+Extensão do VS Code em `editors/vscode`; a gramática tree-sitter e as configurações do Helix,
+do Neovim e do Zed nas outras pastas de `editors/`.
 
 **A Lavra existe numa versão só.** Não mencione versões anteriores nem protótipos em
 código, comentários, mensagens, testes, notas ou memória: o risco de contaminar o
@@ -23,7 +24,8 @@ Leia antes de mexer em qualquer coisa: [`notes/README.md`](notes/README.md).
 - `notes/lavra.md`: **a língua como está implementada** (referência completa).
 - `notes/compiler.md`: o compilador, o nativo, os testes e como crescer a língua (a lista de conferência de uma feature e os roteiros).
 - `notes/morphology.md`: tabelas conferidas contra o dicionário e decisões de borda.
-- `notes/tooling.md`: extensão do VS Code e o caminho para o servidor de linguagem.
+- `notes/tooling.md`: o suporte de editor (VS Code, servidor de linguagem, depurador, site,
+  tree-sitter e os outros editores).
 - `notes/roadmap.md`: o plano em curso (tooling maduro e fundações para crescer a língua).
 - `notes/origin.md`: o pedido, a tese de design, as decisões que definiram a língua.
 - `notes/applications.md`: as aplicações discutidas.
@@ -62,6 +64,23 @@ cp ../../target/release/lavrac server/ && npx vsce package --target linux-x64 --
 code --install-extension lavra.vsix --force
 ```
 
+Gramática tree-sitter e os outros editores (`editors/tree-sitter-lavra`, `editors/helix`,
+`editors/neovim`, `editors/zed`; ver `notes/tooling.md` e o README de cada pasta):
+
+```bash
+cd editors/tree-sitter-lavra && npm ci
+npm run generate                             # src/ do lexicon.json e as cópias das queries
+npm test                                     # corpus e realce, queries de cada editor, deriva
+scripts/helix-health.sh                      # hx --health lavra e um programa aberto no Helix
+scripts/neovim-check.sh                      # o plugin no Neovim headless, sobre o corpus
+cd ../zed && cargo build --release --target wasm32-wasip2   # a extensão do Zed
+```
+
+Sem o Helix ou o Neovim no host, os dois roteiros rodam num `debian:trixie-slim` com o editor
+da release (o do Helix pede o git, o g++ e o tmux; o do Neovim, o gcc). As queries canônicas
+ficam em `queries/`, e as cópias dos editores saem do `npm run generate`, nunca à mão; à mão
+só o que é de um editor (o recuo do Helix e do Zed, os pares e o esboço do Zed).
+
 Site e playground (`site/`, ver `notes/tooling.md`): o wasm em `playground/`, depois
 `cd site && npm ci && node test-wasm.mjs && node build.mjs && node check-browser.mjs`.
 
@@ -69,8 +88,9 @@ Operação embutida nova? O cabeçalho numa biblioteca (`src/libraries/`), a var
 `src/builtins.rs` (com `interpret`) e a função `rt_*` em `runtime/lib.rs`; ver `notes/compiler.md`.
 
 Palavra nova na língua? Ela entra em `src/lexicon.rs` (com papel e documentação); depois
-`LAVRA_BLESS=1 cargo test --lib lexicon` regrava `editors/lexicon.json`, de onde a
-gramática do editor tira as palavras. Mudou uma regra do realce? Edite
+`LAVRA_BLESS=1 cargo test --lib lexicon` regrava `editors/lexicon.json`, de onde as
+gramáticas dos editores tiram as palavras (a do tree-sitter se regera com `npm run generate`
+em `editors/tree-sitter-lavra`). Mudou uma regra do realce? Edite
 `syntaxes/build.py` (nunca o JSON), rode `npm test`, revise e atualize os snapshots
 (`npm run test:update-snapshots`), confira a renderização com `scripts/preview.mjs` e
 reinstale.

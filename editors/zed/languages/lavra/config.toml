@@ -1,0 +1,21 @@
+name = "Lavra"
+grammar = "lavra"
+path_suffixes = ["lav"]
+line_comments = ["-- ", "Nota: "]
+tab_size = 4
+hard_tabs = false
+word_characters = ["-"]
+brackets = [
+  { start = "(", end = ")", close = true, newline = false },
+  { start = "\"", end = "\"", close = true, newline = false, not_in = ["string", "comment"] },
+]
+
+# Depois dos dois-pontos, a linha de baixo entra no bloco.
+increase_indent_pattern = ":\\s*(--.*)?$"
+
+# "Senão" se alinha com o "Se" (ou com o caso de "Conforme") que continua; "Sendo", com o
+# caso anterior.
+decrease_indent_patterns = [
+  { pattern = "(?i)^\\s*senão\\b", valid_after = ["if", "else", "arm"] },
+  { pattern = "(?i)^\\s*sendo\\b", valid_after = ["arm"] },
+]

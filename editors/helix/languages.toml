@@ -1,0 +1,54 @@
+# A Lavra no Helix (25.07 ou mais novo). Junte este arquivo ao seu
+# ~/.config/helix/languages.toml, copie runtime/queries/lavra para
+# ~/.config/helix/runtime/queries/lavra e rode `hx --grammar fetch` e `hx --grammar build`.
+# Ver editors/helix/README.md.
+
+[[language]]
+name = "lavra"
+scope = "source.lavra"
+injection-regex = "^lavra$"
+file-types = ["lav"]
+comment-tokens = ["--", "Nota:"]
+indent = { tab-width = 4, unit = "    " }
+language-servers = ["lavrac"]
+roots = []
+
+[language.auto-pairs]
+'(' = ')'
+'"' = '"'
+
+[language.debugger]
+name = "lavrac"
+transport = "stdio"
+command = "lavrac"
+args = ["dap"]
+
+[[language.debugger.templates]]
+name = "depurar o arquivo"
+request = "launch"
+completion = [{ name = "programa", completion = "filename", default = "." }]
+args = { program = "{0}" }
+
+[[language.debugger.templates]]
+name = "depurar o arquivo, com a entrada de um arquivo"
+request = "launch"
+completion = [
+  { name = "programa", completion = "filename", default = "." },
+  { name = "entrada", completion = "filename" },
+]
+args = { program = "{0}", stdin = "{1}" }
+
+[language-server.lavrac]
+command = "lavrac"
+args = ["lsp"]
+
+# As opções que o servidor recebe ao iniciar. Os inlay hints (o tipo das declarações sem
+# aposto, o modo dos argumentos e o tipo de "o resultado") começam ligados; ponha false no que
+# não quiser. O Helix só os mostra com `display-inlay-hints = true` em [editor.lsp], no
+# config.toml.
+[language-server.lavrac.config]
+inlayHints = { types = true, modes = true, result = true }
+
+[[grammar]]
+name = "lavra"
+source = { git = "https://github.com/JoaoHenriqueBarbosa/lavra", rev = "e2ab810ee4b6a76df070dbbfb0537ad4adc77b65", subpath = "editors/tree-sitter-lavra" }

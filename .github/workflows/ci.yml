@@ -65,6 +65,52 @@ jobs:
       - name: Tipos e empacotamento do cliente
         run: npm run compile
 
+  tree-sitter:
+    name: Gramática tree-sitter (Helix, Neovim e Zed)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/tree-sitter-lavra
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # O rev da gramática nas configurações do Helix e do Zed é um commit do histórico.
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: editors/tree-sitter-lavra/package-lock.json
+      - run: npm ci
+      - name: A gramática gerada do léxico e as cópias das queries estão em dia
+        run: |
+          npm run generate
+          if [ -n "$(git status --porcelain -- . ../helix ../neovim ../zed)" ]; then
+            git status --short -- . ../helix ../neovim ../zed
+            echo "::error::O gerado não bate com editors/lexicon.json e queries/: rode npm run generate em editors/tree-sitter-lavra e faça o commit do resultado."
+            exit 1
+          fi
+      - name: Corpus e realce do tree-sitter
+        run: npm run test:corpus
+      - name: As queries de cada editor compilam contra a gramática
+        run: npm run test:queries
+      - name: Deriva (o corpus da Lavra sem ERROR nem MISSING)
+        run: npm run test:drift
+      - name: O rev da gramática no Helix e no Zed é a gramática de src/
+        run: |
+          for config in ../helix/languages.toml ../zed/extension.toml; do
+            rev=$(sed -n 's/^.*rev = "\([0-9a-f]\{40\}\)".*$/\1/p' "$config")
+            if [ -z "$rev" ] || ! git diff --quiet "$rev" HEAD -- src; then
+              echo "::error file=editors/${config#../}::O rev não aponta para a gramática de agora: ponha nele o commit que mudou editors/tree-sitter-lavra/src."
+              exit 1
+            fi
+          done
+      - name: Helix (hx --health lavra e um programa aberto)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq tmux
+          curl -sSL https://github.com/helix-editor/helix/releases/download/25.07.1/helix-25.07.1-x86_64-linux.tar.xz | tar xJ -C "$RUNNER_TEMP"
+          PATH="$RUNNER_TEMP/helix-25.07.1-x86_64-linux:$PATH" scripts/helix-health.sh
+
   editor-integration:
     name: Extensão num VS Code de verdade
     if: github.event_name == 'push'

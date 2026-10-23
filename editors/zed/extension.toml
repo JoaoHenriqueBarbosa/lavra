@@ -1,0 +1,16 @@
+id = "lavra"
+name = "Lavra"
+version = "0.1.0"
+schema_version = 1
+authors = ["João Henrique Barbosa <joaohenriquebarbosa21@gmail.com>"]
+description = "A Lavra, a linguagem compilada em que cada instrução é uma oração em português: realce, recuo, estrutura e o servidor de linguagem (lavrac lsp)."
+repository = "https://github.com/JoaoHenriqueBarbosa/lavra"
+
+[grammars.lavra]
+repository = "https://github.com/JoaoHenriqueBarbosa/lavra"
+rev = "e2ab810ee4b6a76df070dbbfb0537ad4adc77b65"
+path = "editors/tree-sitter-lavra"
+
+[language_servers.lavrac]
+name = "lavrac"
+languages = ["Lavra"]

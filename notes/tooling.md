@@ -274,6 +274,117 @@ Aqui o wasm se compila no contêiner `rust:1` (o alvo wasm32 e o `wasm-bindgen-c
 versão do crate, instalado em `target/tools`), chamado de dentro de `playground/` para valer a
 configuração dele, e com `--locked` para o contêiner não reescrever o `Cargo.lock`.
 
+## tree-sitter e outros editores
+
+A gramática tree-sitter em `editors/tree-sitter-lavra` e as configurações do Helix
+(`editors/helix`), do Neovim (`editors/neovim`) e do Zed (`editors/zed`), cada uma com um
+README de instalação.
+
+- **Rasa de propósito**: orações (até o ponto final, ou o ponto e vírgula entre campos), blocos,
+  as construções de bloco ("Se", "Senão", "Enquanto", "Repito", "Para cada", "Conforme",
+  "Sendo"), cabeçalhos de função e de predicado (com `name` e `subject`), "Para começar",
+  "Uso a biblioteca de", registros e enumerações (com `name`), comentários, textos, números,
+  caracteres, parênteses, as palavras da língua por papel e os nomes com artigo. O resto é dos
+  tokens semânticos do servidor.
+- **As palavras vêm do léxico**: o `grammar.js` lê o `editors/lexicon.json`. Cada forma é um
+  token com um papel só (o primeiro da `ROLE_ORDER` entre os que o léxico dá a ela), escrita
+  como regex sem distinguir maiúsculas. As locuções se leem palavra por palavra, e a palavra
+  sem outro papel fica com o da locução. "Nota", as formas recusadas e as reservadas não
+  reservam a palavra. Os tokens das palavras vêm antes do `symbol` e do `identifier` na
+  gramática, porque diante do mesmo texto o gerador prefere o token definido antes; a regra
+  `name` tem precedência 1 sobre o artigo solto.
+- **O scanner externo** (`src/scanner.c`) segue o `src/lexer.rs`: NEWLINE só logo depois de
+  ".", ":" ou ";" e no fim da linha (o resto é enjambement, espaço para a gramática); INDENT e
+  DEDENT pela coluna da próxima linha de código, com o tab valendo quatro; comentário de linha
+  inteira ("Nota:" ou "--") e "--" no fim da linha; o conteúdo dos textos, para "--" dentro deles
+  ser texto. Os tokens de recuo têm largura zero e ficam no fim da linha que os provoca. A
+  coluna da próxima linha de código, calculada quando sai o NEWLINE, fica no estado: com ela,
+  o comentário que já está no recuo de fora fecha o bloco antes dele, e o alinhado com o bloco
+  fica dentro.
+- **Queries**: as de `queries/` usam os nomes do Neovim, e `scripts/sync-queries.js` gera as
+  cópias de cada editor trocando só os nomes de captura (o mapa do Helix é estrito: captura
+  sem nome nele é erro). Dá para copiar sem reordenar porque os três editores resolvem dois
+  padrões sobre o mesmo trecho do mesmo jeito, vence o que vem depois; no Helix, isso vale a
+  partir do 25.07. Ficam à mão só o recuo do Helix e do Zed, e os pares, o esboço e a
+  configuração do Zed.
+- **O parser** sai com a ABI 14, que os três editores carregam, pelo `tree-sitter-cli` 0.27.1,
+  preso no `package-lock.json` da gramática. O CLI pede a glibc 2.39; aqui roda no contêiner
+  `node:22-trixie`.
+
+### Os editores
+
+- **Helix** (25.07 ou mais novo): `languages.toml` com a língua, o servidor (`lavrac lsp`, com
+  `[language-server.lavrac.config]`, que o Helix manda nas opções de inicialização, para os
+  inlay hints), o depurador (`lavrac dap`, com dois modelos) e a gramática pelo git, presa a um
+  `rev`; as queries em `runtime/queries/lavra`. O Helix não tem tokens semânticos nem abre o
+  texto das bibliotecas.
+- **Neovim** (0.11 ou mais novo): um plugin com `ftdetect`, `ftplugin` (comentário, recuo de
+  quatro, realce pelo tree-sitter e o recuo do nvim-treesitter, se houver), as queries, e o
+  servidor em `lsp/lavrac.lua`, ligado pelo `plugin/lavra.lua` quando o comando existe; assim o
+  `vim.lsp.config('lavrac', ...)` do usuário vale por cima em qualquer ordem. O plugin registra
+  o parser no nvim-treesitter (branch `main`, `:TSInstall lavra`), define
+  `@lsp.mod.moved.lavra` como itálico sem cor (padrão, refeito a cada tema), abre
+  `lavra-library:/*` por um BufReadCmd que faz o pedido `lavra/library` (só leitura, com o
+  realce, sem tipo de arquivo, para o servidor não analisar o texto como programa, como no VS
+  Code) e, com o nvim-dap, registra o adaptador com o mesmo `lavrac`.
+- **Zed**: uma extensão em Rust (`zed_extension_api` 0.7.0, alvo `wasm32-wasip2`, com
+  `[workspace]` próprio) que acha o `lavrac` em `lsp.lavrac.binary` ou no PATH e repassa ao
+  servidor as `initialization_options` e os `settings` do usuário; a língua em
+  `languages/lavra` (configuração, realce, recuo, pares, esboço, objetos de texto) e a regra de
+  tokens semânticos que põe o `moved` em itálico sem trocar a cor (o Zed junta as regras que
+  casam, e a da extensão só define o estilo da fonte). O Zed deixa os tokens semânticos
+  desligados por padrão, não abre o texto das bibliotecas e, para depurar, pediria um
+  adaptador na extensão, que ela ainda não registra.
+- **O `rev` da gramática** no Helix e no Zed é o commit que mudou `editors/tree-sitter-lavra/src`
+  pela última vez; o CI confere que a gramática naquele commit é a de agora. Mudança na
+  gramática vai no mesmo push que a atualização do `rev`, e o commit precisa sobreviver ao
+  merge (avanço rápido ou merge, sem rebase), senão o editor não acha a revisão.
+
+### O que se confere e como
+
+| Conferência | Como rodar | O que garante |
+|---|---|---|
+| Gerado em dia | `npm run generate` e `git status` (no CI) | `src/` e as cópias das queries saem do léxico e de `queries/` |
+| Corpus e realce | `npm run test:corpus` | os 47 testes de `test/corpus` e as 67 asserções de `test/highlight/realce.lav` |
+| Queries | `npm run test:queries` | as cópias em dia, e as 20 queries (as daqui e as de cada editor) compilam contra a gramática |
+| Deriva | `npm run test:drift` | os 28 programas do corpus, os 10 da gramática e as 4 fixtures do VS Code sem ERROR nem MISSING, 650 orações na coluna do bloco, 45 linhas de comentário como `comment`, os 91 programas errados sem derrubar o parser |
+| Programas da gramática | `cargo test --test editor_programs` | os de `test/programs` (tabs, CRLF, sem quebra final, maiúsculas) compilam |
+| Helix | `scripts/helix-health.sh` | o Helix compila a gramática, o `hx --health lavra` dá o parser e as três queries com ✓, e um programa aberto, com o recuo e os objetos de texto usados, não deixa erro no log |
+| Neovim | `scripts/neovim-check.sh` | no 0.11.7 e no 0.12.6: as cinco queries carregam, os 38 programas abrem com o tipo, o ftplugin e o realce, sem erro de sintaxe, e a dobra começa em "Para começar:"; com o `lavrac`, o diagnóstico, o `moved` no token e no grupo, os inlay hints desligados por `vim.lsp.config` sem perder o `libraryDocuments`, e a definição de "Divido" abrindo `lavra-library:/textos.lav` na linha do cabeçalho, só de leitura e sem servidor |
+| Zed | `cargo build --release --target wasm32-wasip2` em `editors/zed` | a extensão compila, com o clippy e o rustfmt limpos |
+
+Os comandos `npm` e os roteiros rodam dentro de `editors/tree-sitter-lavra`, depois de um
+`npm ci`. O job `tree-sitter` do CI roda a geração, o corpus, as queries, a deriva, o `rev` e
+o roteiro do Helix (sem o `lavrac`, a sessão do Helix fica sem servidor). O teste dos
+programas da gramática vai no `cargo test` do job do compilador. O roteiro do Neovim e o build
+do Zed ficam para quando se mexe neles. Aqui rodaram em contêiner: o Helix 25.07.1 e o Neovim
+num `debian:trixie-slim`, com o `lavrac` do host montado, e o Zed no `rust:1`.
+
+Cada roteiro foi visto falhar: a query de realce ou a de recuo quebrada derruba o do Helix,
+a de realce derruba o do Neovim, e um programa recusado em `test/programs` derruba o teste do
+compilador.
+
+### O que se aprendeu no caminho
+
+- O `hx --health` só confere que o arquivo da query existe. A query compila quando a língua
+  carrega (realce e escopos) ou no primeiro uso (recuo e objetos de texto), e o erro vai para o
+  log do Helix. Por isso o roteiro abre um programa e usa os dois.
+- O `hx --grammar build` exige o git, mesmo com a gramática numa pasta local, e compila com o
+  compilador de C++; com `source = { path = ... }`, a pasta `runtime/grammars` precisa existir.
+- No fechamento, depois do `shutdown` respondido e do `exit`, o Helix sempre registra dois
+  erros do transporte (o canal e o stdout do servidor que fecharam). Não são do `lavrac`, e o
+  roteiro não os conta.
+- No tmux, o Escape colado na tecla seguinte vira Alt: as teclas vão em envios separados.
+- O padrão de um autocmd sem "/" se compara só com o fim do nome; o BufReadCmd do Neovim usa
+  `lavra-library:/*` para casar com o endereço inteiro.
+- O teste de realce do `tree-sitter` conta a coluna em caracteres, não em bytes.
+- O Zed aplica todas as regras de tokens semânticos que casam com o token, das padrão às do
+  usuário, e cada uma só sobrescreve os campos que define
+  (`crates/editor/src/semantic_tokens.rs`). A doc diz que "a primeira vence": vence nos campos
+  dela. Por isso a regra do `moved` só com `font_style` mantém a cor da regra padrão.
+
 ## Próximos passos
 
-A gramática tree-sitter com as configurações de outros editores: `notes/roadmap.md`, fase 8.
+O que falta nos outros editores (o depurador no Zed; os tokens semânticos no Helix; o texto das
+bibliotecas no Helix e no Zed, que só abrem arquivos) está na seção acima. O plano em curso
+está em `notes/roadmap.md`.

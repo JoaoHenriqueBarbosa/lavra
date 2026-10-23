@@ -1,0 +1,18 @@
+[package]
+name = "zed-lavra"
+version = "0.1.0"
+edition = "2024"
+description = "A extensão da Lavra no Zed: o servidor de linguagem é o próprio lavrac."
+license = "MIT"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+zed_extension_api = "0.7.0"
+
+# Um workspace próprio: o Zed compila a extensão nesta pasta, que não é membro do workspace do
+# compilador, mesmo que a raiz do repositório venha a ter um.
+[workspace]
