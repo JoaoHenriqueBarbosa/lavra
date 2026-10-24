@@ -1,0 +1,37 @@
+Uma estufa é um registro de:
+    a largura, um inteiro;
+    o comprimento, um inteiro.
+
+Para medir a área da estufa, sendo a estufa uma estufa emprestada, devolvendo um inteiro:
+    Devolvo a largura da estufa vezes o comprimento da estufa.
+
+Para perguntar as dimensões da estufa, sendo a estufa uma estufa confiada, salvo uma falha:
+    Escrevo "Largura da estufa (m): " e leio um inteiro, e a largura da estufa vira o resultado.
+    Escrevo "Comprimento da estufa (m): " e leio um inteiro, e o comprimento da estufa vira o resultado.
+    Se a largura da estufa for menor que 1: desisto com "a largura precisa ser de pelo menos 1 metro".
+    Se o comprimento da estufa for menor que 1: desisto com "o comprimento precisa ser de pelo menos 1 metro".
+
+Para começar:
+    O alvo começa em uma estufa com a largura 0 e o comprimento 0.
+    Pergunto as dimensões do alvo, ou desisto.
+
+    Escrevo "Quantos canteiros cabem no comprimento: " e leio um inteiro, e a quantidade é o resultado.
+    Escrevo "Plantas que cabem em um canteiro: " e leio um inteiro, e a lotação é o resultado.
+    Se a quantidade for menor que 1: desisto com "a estufa precisa ter pelo menos 1 canteiro".
+    Se a lotação for menor que 0: desisto com "as plantas por canteiro não podem ser negativas".
+
+    A área é o resultado de medir a área do alvo.
+    O total é a quantidade vezes a lotação.
+    A faixa é (o comprimento do alvo como real) dividido por (a quantidade como real).
+    A concentração é (a lotação como real) dividido por (a largura do alvo como real).
+    A densidade é (o total como real) dividido por (a área como real).
+
+    Escrevo "".
+    Escrevo "Área da estufa: " seguido da área seguido de " m²".
+    Escrevo "Cada canteiro cruza a estufa de lado a lado, com " seguido da largura do alvo seguido de " m de comprimento".
+    Escrevo "Faixa de cada canteiro, com o corredor: " seguido da faixa seguido de " m".
+    Escrevo "Total de plantas: " seguido do total.
+    Escrevo "Plantas por metro de canteiro: " seguido da concentração.
+    Escrevo "Plantas por m² da estufa: " seguido da densidade.
+    Se a faixa for menor que 1:
+        Escrevo "Aviso: a faixa de cada canteiro fica com menos de 1 m, confira a quantidade.".
