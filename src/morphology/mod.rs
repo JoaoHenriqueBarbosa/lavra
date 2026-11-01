@@ -164,11 +164,9 @@ pub fn has_accent(s: &str) -> bool {
 pub fn guess_gender(word: &str) -> Gender {
     // Nome composto com infinitivo ("intenção de continuar"): o gênero é do núcleo.
     let word = word.split(" de ").next().unwrap_or(word);
-    if word.ends_with('a') || word.ends_with("ção") || word.ends_with("dade") || word.ends_with("agem") {
-        Gender::Feminine
-    } else {
-        Gender::Masculine
-    }
+    // Onde a terminação não decide, "-a" ainda puxa para o feminino ("forma") e o resto
+    // fica no masculino.
+    gender_by_ending(word).unwrap_or(if word.ends_with('a') { Gender::Feminine } else { Gender::Masculine })
 }
 
 /// O gênero de um substantivo pela terminação, quando ela decide: "-o" é masculino;

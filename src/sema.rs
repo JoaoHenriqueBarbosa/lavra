@@ -1019,6 +1019,17 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     && let Some(a) = &mut item.article
                 {
                     a.gender = p.root.gender();
+                } else if let Some(a) = &mut item.article {
+                    // "Para cada questão da lista": o item que se chama como o tipo do
+                    // elemento tem o gênero que a declaração do tipo fixou ("Uma questão").
+                    let feminine = match self.resolve_ty(&elem) {
+                        Ty::Record(r) if r.name == item.word => Some(r.feminine),
+                        Ty::Enum(e) if e.name == item.word => Some(e.feminine),
+                        _ => None,
+                    };
+                    if let Some(f) = feminine {
+                        a.gender = if f { Gender::Feminine } else { Gender::Masculine };
+                    }
                 }
                 self.open_scope(span);
                 let id = match self.declare(&item, elem, false) {

@@ -1,0 +1,12 @@
+Uma questão é um registro de:
+    o valor, um inteiro.
+
+Para somar os valores da lista, sendo a lista uma lista de questões confiada, devolvendo um inteiro:
+    O total começa em 0.
+    Para cada questão da lista:
+        O total vira o total mais o valor do questão.
+    Devolvo o total.
+
+Para começar:
+    As questões começam vazias.
+    Escrevo o resultado de somar os valores das questões.

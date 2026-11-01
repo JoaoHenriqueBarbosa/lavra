@@ -1,0 +1,22 @@
+Uma questão é um registro de:
+    o valor, um inteiro.
+
+Para somar os valores da lista, sendo a lista uma lista de questões confiada, devolvendo um inteiro:
+    O total começa em 0.
+    Para cada questão da lista:
+        O total vira o total mais o valor da questão.
+    Devolvo o total.
+
+Para anunciar a lista, sendo a lista uma lista de textos confiada:
+    Para cada decisão da lista:
+        Escrevo a decisão.
+
+Para começar:
+    As questões começam vazias.
+    As questões ganham uma questão com o valor 2.
+    As questões ganham uma questão com o valor 3.
+    Escrevo o resultado de somar os valores das questões.
+
+    As decisões começam vazias.
+    As decisões ganham "aprovar".
+    Anuncio as decisões.

@@ -1,0 +1,7 @@
+Erro de concordância [L0336]: "do questão" não concorda: "questão" é feminino singular. Escreva "da questão".
+ --> tests/programs/err/para_cada_genero_do_tipo.lav:7:43
+  |
+6 |     Para cada questão da lista:
+  |               ------- declarado aqui
+7 |         O total vira o total mais o valor do questão.
+  |                                           ^^^^^^^^^^

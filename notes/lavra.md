@@ -189,7 +189,11 @@ Ainda falta: "talvez" só aparece no aposto da declaração. No cabeçalho de fu
 `Se/Senão, se/Senão`, `Enquanto`, `Repito N vezes`, `Repito sempre`,
 `Para cada i de A até B` (desce se A > B), `Para cada nota das notas`, `Para cada nota`
 (acha "as notas" pelo plural; nome invariável como "lápis" exige a coleção explícita),
-`Para cada letra do nome`, `Paro`, `Pulo`. Condições no futuro do subjuntivo com
+`Para cada letra do nome`, `Paro`, `Pulo`. O item vem sem artigo, e o gênero dele sai, nesta
+ordem, da coleção no plural ("Para cada questão das questões"), do tipo do elemento quando o
+item tem o nome dele ("Para cada questão da lista", com "Uma questão é um registro"), e da
+terminação ("-ção", "-são", "-dade", "-agem", "-a" femininos; o resto masculino, então
+"Para cada canção" acerta e um "-ão" ambíguo pede a coleção no plural ou o tipo). Condições no futuro do subjuntivo com
 concordância ("for"/"forem", "maior que"/"maiores que"); "e" antes de "ou"; "não" antes do
 verbo. "é", "está", "há" numa condição são erro de morfologia com a forma certa.
 Depois de "for"/"ser", "verdadeiro" e "falso" são predicativos e concordam com o sujeito
