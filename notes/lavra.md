@@ -224,7 +224,9 @@ junta o resultado ao resto da frase. Para juntar texto dentro de um argumento, p
 ## Entrada e saída
 
 `Escrevo X seguido de Y.` (quebra a linha, salvo se a oração seguinte do período for
-`Leio`), `Escrevo X sem quebrar a linha.`, `Leio o lugar.`, `Leio um inteiro.`
+`Leio`), `Escrevo X sem quebrar a linha.`, `Escrevo uma linha em branco.` ou `Escrevo uma
+quebra de linha.` (as duas escrevem o texto vazio e quebram a linha: depois de uma escrita
+sem quebra, só a terminam), `Leio o lugar.`, `Leio um inteiro.`
 (o valor vai para "o resultado"). Lista sai como `[7; 8,5; 9]` (ponto e vírgula, porque a
 vírgula é decimal); real com vírgula e até 12 algarismos; lógico como verdadeiro/falso.
 `LAVRA_ECO=1` ecoa a entrada lida.

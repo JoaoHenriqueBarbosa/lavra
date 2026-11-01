@@ -257,6 +257,8 @@ repository = {
         "patterns": [
             {"name": "support.function.builtin.lavra", "match": words(*CORE_VERBS)},
             {"name": "keyword.other.newline.lavra", "match": phrase("(?i:sem)", "quebrar", "a", "linha") + B1},
+            {"name": "keyword.other.newline.lavra", "match": B0 + phrase("(?i:uma)", "linha", "em", "branco") + B1},
+            {"name": "keyword.other.newline.lavra", "match": B0 + phrase("(?i:uma)", "quebra", "de", "linha") + B1},
             # O artigo acompanha a operação ("o tamanho"); a contração é preposição
             # ("seguido do tamanho").
             {

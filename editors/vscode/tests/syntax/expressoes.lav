@@ -20,3 +20,7 @@
     Escrevo 0xFF sem quebrar a linha.
 --          ^^^^ constant.numeric.hex.lavra
 --               ^^^^^^^^^^^^^^^^^^^ keyword.other.newline.lavra
+    Escrevo uma linha em branco.
+--          ^^^^^^^^^^^^^^^^^^^ keyword.other.newline.lavra
+    Escrevo uma quebra de linha.
+--          ^^^^^^^^^^^^^^^^^^^ keyword.other.newline.lavra

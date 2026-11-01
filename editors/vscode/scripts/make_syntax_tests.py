@@ -82,6 +82,8 @@ CASES = {
         ("    Escrevo o deslocamento de 1 por 4 à esquerda.", [("deslocamento", "support.function.nominal"), ("à esquerda", "keyword.operator.direction")]),
         ("    Escrevo 'ç' seguido de \"a\\nb\" seguido de verdadeiro.", [("'ç'", "constant.character"), ("\\n", "constant.character.escape"), ("verdadeiro", "constant.language.boolean")]),
         ("    Escrevo 0xFF sem quebrar a linha.", [("0xFF", "constant.numeric.hex"), ("sem quebrar a linha", "keyword.other.newline")]),
+        ("    Escrevo uma linha em branco.", [("uma linha em branco", "keyword.other.newline")]),
+        ("    Escrevo uma quebra de linha.", [("uma quebra de linha", "keyword.other.newline")]),
     ],
     "comentarios": [
         ("Nota: comentário que ocupa a linha.", [("Nota: comentário que ocupa a linha.", "comment.line.nota")]),

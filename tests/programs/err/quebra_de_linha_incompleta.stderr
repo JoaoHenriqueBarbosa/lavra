@@ -1,0 +1,6 @@
+Erro de sintaxe [L0101]: Esperava um valor para escrever, mas encontrei "uma".
+ --> tests/programs/err/quebra_de_linha_incompleta.lav:3:13
+  |
+3 |     Escrevo uma quebra.
+  |             ^^^
+  = dica: Para quebrar a linha, escreva "Escrevo uma linha em branco" ou "Escrevo uma quebra de linha".

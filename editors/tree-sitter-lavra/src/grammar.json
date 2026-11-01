@@ -1939,9 +1939,24 @@
       ]
     },
     "output": {
-      "type": "PATTERN",
-      "value": "sem\\s+quebrar\\s+a\\s+linha",
-      "flags": "i"
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "sem\\s+quebrar\\s+a\\s+linha",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "uma\\s+linha\\s+em\\s+branco",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "uma\\s+quebra\\s+de\\s+linha",
+          "flags": "i"
+        }
+      ]
     },
     "ownership_keyword": {
       "type": "CHOICE",

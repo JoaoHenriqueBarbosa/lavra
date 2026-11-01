@@ -596,6 +596,14 @@ pub const KEYWORDS: &[Keyword] = &[
         doc: "\"Escrevo x sem quebrar a linha.\": a próxima escrita continua na mesma linha.",
     },
     Keyword {
+        form: "uma linha em branco", role: Role::Output, doc: "\"Escrevo uma linha em branco.\": escreve uma linha vazia na saída."
+    },
+    Keyword {
+        form: "uma quebra de linha",
+        role: Role::Output,
+        doc: "\"Escrevo uma quebra de linha.\": quebra a linha da saída (o mesmo que \"uma linha em branco\").",
+    },
+    Keyword {
         form: "nota",
         role: Role::Comment,
         doc: "\"Nota:\" no começo da linha faz dela um comentário; \"--\" comenta até o fim da linha.",

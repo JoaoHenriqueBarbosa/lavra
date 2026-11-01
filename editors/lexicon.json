@@ -483,6 +483,16 @@
       "role": "output"
     },
     {
+      "doc": "\"Escrevo uma linha em branco.\": escreve uma linha vazia na saída.",
+      "form": "uma linha em branco",
+      "role": "output"
+    },
+    {
+      "doc": "\"Escrevo uma quebra de linha.\": quebra a linha da saída (o mesmo que \"uma linha em branco\").",
+      "form": "uma quebra de linha",
+      "role": "output"
+    },
+    {
       "doc": "\"Nota:\" no começo da linha faz dela um comentário; \"--\" comenta até o fim da linha.",
       "form": "nota",
       "role": "comment"
@@ -2361,6 +2371,18 @@
       "doc": "\"Escrevo x sem quebrar a linha.\": a próxima escrita continua na mesma linha.",
       "form": "sem quebrar a linha",
       "lemma": "sem quebrar a linha",
+      "role": "output"
+    },
+    {
+      "doc": "\"Escrevo uma linha em branco.\": escreve uma linha vazia na saída.",
+      "form": "uma linha em branco",
+      "lemma": "uma linha em branco",
+      "role": "output"
+    },
+    {
+      "doc": "\"Escrevo uma quebra de linha.\": quebra a linha da saída (o mesmo que \"uma linha em branco\").",
+      "form": "uma quebra de linha",
+      "lemma": "uma quebra de linha",
       "role": "output"
     },
     {

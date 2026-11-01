@@ -1147,7 +1147,25 @@ impl Parser {
         let kind = match w.as_str() {
             "escrevo" => {
                 self.bump();
-                let value = self.expr()?;
+                // "Escrevo uma linha em branco." e "Escrevo uma quebra de linha.": a escrita
+                // do texto vazio, que só quebra a linha.
+                let blank = [["uma", "linha", "em", "branco"], ["uma", "quebra", "de", "linha"]]
+                    .iter()
+                    .any(|form| form.iter().enumerate().all(|(k, w)| self.peek_at(k).is_word(w)));
+                let value = if blank {
+                    let first = self.bump().span;
+                    for _ in 0..3 {
+                        self.bump();
+                    }
+                    Expr { kind: ExprKind::Text(String::new()), span: first.to(self.prev_span()) }
+                } else if self.at_word("uma") && (self.peek_at(1).is_word("linha") || self.peek_at(1).is_word("quebra")) {
+                    return Err(Box::new(
+                        self.expected("um valor para escrever")
+                            .hint("Para quebrar a linha, escreva \"Escrevo uma linha em branco\" ou \"Escrevo uma quebra de linha\"."),
+                    ));
+                } else {
+                    self.expr()?
+                };
                 let mut newline = true;
                 if self.at_word("sem") && self.peek_at(1).is_word("quebrar") {
                     self.bump();

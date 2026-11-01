@@ -1287,6 +1287,11 @@
     "fields": {}
   },
   {
+    "type": "output",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "ownership_keyword",
     "named": true,
     "fields": {}
@@ -2244,10 +2249,6 @@
   },
   {
     "type": "number",
-    "named": true
-  },
-  {
-    "type": "output",
     "named": true
   },
   {
