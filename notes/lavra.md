@@ -185,6 +185,9 @@ Ainda falta: "talvez" só aparece no aposto da declaração. No cabeçalho de fu
 `Para cada letra do nome`, `Paro`, `Pulo`. Condições no futuro do subjuntivo com
 concordância ("for"/"forem", "maior que"/"maiores que"); "e" antes de "ou"; "não" antes do
 verbo. "é", "está", "há" numa condição são erro de morfologia com a forma certa.
+Depois de "for"/"ser", "verdadeiro" e "falso" são predicativos e concordam com o sujeito
+("a resposta for verdadeira", "as licenças forem falsas"; a discordância é L0137); como
+valor ("vira verdadeiro", "devolvo falso"), são literais e não flexionam.
 
 ## Expressões
 

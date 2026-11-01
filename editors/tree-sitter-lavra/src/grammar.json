@@ -1663,7 +1663,22 @@
       "members": [
         {
           "type": "PATTERN",
+          "value": "falsa",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "falsas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
           "value": "falso",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "falsos",
           "flags": "i"
         },
         {
@@ -1693,7 +1708,22 @@
         },
         {
           "type": "PATTERN",
+          "value": "verdadeira",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "verdadeiras",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
           "value": "verdadeiro",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "verdadeiros",
           "flags": "i"
         }
       ]

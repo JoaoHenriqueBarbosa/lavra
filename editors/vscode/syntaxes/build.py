@@ -43,9 +43,11 @@ CORE_VERBS = [v["firstPerson"] for v in LEXICON["coreVerbs"] if v["role"] == "st
 FLOW_VERBS = [v["firstPerson"] for v in LEXICON["coreVerbs"] if v["role"] == "flow"]
 COMPARISONS = [tuple(k["form"].split(" ")) for k in LEXICON["keywords"] if k["role"] == "comparison"]
 LITERALS = [k["form"] for k in LEXICON["keywords"] if k["role"] == "literal"]
+# "verdadeiro" e "falso" com as formas do predicativo ("Se a resposta for verdadeira").
+BOOLEANS = [w["form"] for w in LEXICON["words"] if w["role"] == "literal" and w["lemma"] in ("verdadeiro", "falso")]
 ART = "(?i:" + "|".join(ARTICLES) + ")"
 # Palavras que podem seguir "for" sem ser adjetivo de predicado.
-ADJ_STOP = ARTICLES + INDEFINITE + CONTRACTIONS + [a for a, _ in COMPARISONS] + LITERALS + ["não"]
+ADJ_STOP = ARTICLES + INDEFINITE + CONTRACTIONS + [a for a, _ in COMPARISONS] + LITERALS + BOOLEANS + ["não"]
 # Palavras que abrem linha sem ser verbo do usuário: toda palavra da língua (cada
 # palavra das locuções), menos as formas recusadas com dica, que o usuário pode definir.
 NOT_VERBS = sorted({part for w in LEXICON["words"] if w["role"] != "rejected" for part in w["form"].split(" ")})
@@ -310,7 +312,7 @@ repository = {
     },
     "literals": {
         "patterns": [
-            {"name": "constant.language.boolean.lavra", "match": words("verdadeiro", "falso")},
+            {"name": "constant.language.boolean.lavra", "match": words(*BOOLEANS)},
             {"name": "constant.language.nothing.lavra", "match": words("nada")},
         ]
     },

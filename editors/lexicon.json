@@ -2446,6 +2446,42 @@
       "form": "caso",
       "lemma": "caso",
       "role": "reserved"
+    },
+    {
+      "doc": "\"verdadeiro\" como predicativo, concordando com o sujeito: \"Se a resposta for verdadeira\". Como valor, não flexiona (\"vira verdadeiro\").",
+      "form": "verdadeira",
+      "lemma": "verdadeiro",
+      "role": "literal"
+    },
+    {
+      "doc": "\"verdadeiro\" como predicativo, concordando com o sujeito: \"Se os testes forem verdadeiros\". Como valor, não flexiona (\"vira verdadeiro\").",
+      "form": "verdadeiros",
+      "lemma": "verdadeiro",
+      "role": "literal"
+    },
+    {
+      "doc": "\"verdadeiro\" como predicativo, concordando com o sujeito: \"Se as respostas forem verdadeiras\". Como valor, não flexiona (\"vira verdadeiro\").",
+      "form": "verdadeiras",
+      "lemma": "verdadeiro",
+      "role": "literal"
+    },
+    {
+      "doc": "\"falso\" como predicativo, concordando com o sujeito: \"Se a resposta for falsa\". Como valor, não flexiona (\"vira falso\").",
+      "form": "falsa",
+      "lemma": "falso",
+      "role": "literal"
+    },
+    {
+      "doc": "\"falso\" como predicativo, concordando com o sujeito: \"Se os testes forem falsos\". Como valor, não flexiona (\"vira falso\").",
+      "form": "falsos",
+      "lemma": "falso",
+      "role": "literal"
+    },
+    {
+      "doc": "\"falso\" como predicativo, concordando com o sujeito: \"Se as respostas forem falsas\". Como valor, não flexiona (\"vira falso\").",
+      "form": "falsas",
+      "lemma": "falso",
+      "role": "literal"
     }
   ]
 }

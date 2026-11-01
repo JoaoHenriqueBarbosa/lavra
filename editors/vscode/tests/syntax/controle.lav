@@ -23,6 +23,9 @@
 --       ^^^^ keyword.control.loop.lavra
 --            ^^^^ variable.other.lavra
 --                     ^^^^^ variable.other.lavra
+    Se as respostas forem falsas: paro.
+--                  ^^^^^ keyword.operator.copula.lavra
+--                        ^^^^^^ constant.language.boolean.lavra
     Para cada i de 1 até 10:
 --            ^ variable.other.symbol.lavra
 --                   ^^^ keyword.control.loop.lavra

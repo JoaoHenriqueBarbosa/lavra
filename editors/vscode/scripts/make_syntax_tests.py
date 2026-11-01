@@ -44,6 +44,7 @@ CASES = {
         ("    Enquanto o senado for paciente e n for no máximo 4:", [("Enquanto", "keyword.control.loop"), ("paciente", "entity.name.function.adjective"), ("n", "variable.other.symbol"), ("no máximo", "keyword.operator.comparison")]),
         ("    Repito sempre:", [("Repito", "keyword.control.loop"), ("sempre", "keyword.control.loop")]),
         ("    Para cada nota das notas:", [("Para", "keyword.control.loop"), ("cada", "keyword.control.loop"), ("nota", "variable.other"), ("notas", "variable.other")]),
+        ("    Se as respostas forem falsas: paro.", [("forem", "keyword.operator.copula"), ("falsas", "constant.language.boolean")]),
         ("    Para cada i de 1 até 10:", [("i", "variable.other.symbol"), ("até", "keyword.control.loop")]),
         ("    Se não houver apelido: escrevo \"sem\".", [("não", "keyword.operator.logical"), ("houver", "keyword.operator.copula")]),
         ("    Conforme a figura:", [("Conforme", "keyword.control.conditional"), ("figura", "variable.other")]),

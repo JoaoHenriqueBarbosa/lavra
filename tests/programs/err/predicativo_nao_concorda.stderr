@@ -1,0 +1,5 @@
+Erro de concordância [L0137]: "verdadeiro" concorda com o sujeito (feminino singular): "verdadeira", não "verdadeiro".
+ --> tests/programs/err/predicativo_nao_concorda.lav:3:23
+  |
+3 |     Se a resposta for verdadeiro:
+  |                       ^^^^^^^^^^

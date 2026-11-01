@@ -91,6 +91,7 @@ codes! {
     L0134 = Morphology, "\"de\" contraído antes de verbo";
     L0135 = Morphology, "Contração antes do sujeito de \"o fato de\"";
     L0136 = Agreement, "\"cópia\" no masculino";
+    L0137 = Agreement, "\"verdadeiro\" ou \"falso\" que não concorda com o sujeito";
 
     // Parser: cabeçalhos e chamadas.
     L0150 = Morphology, "Predicado com \"ir\"";

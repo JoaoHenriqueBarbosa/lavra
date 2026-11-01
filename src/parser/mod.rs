@@ -894,6 +894,32 @@ impl Parser {
                 }
             }
             let rt = self.peek().clone();
+            // Predicativo lógico: "for verdadeira", "forem falsos" — concorda com o sujeito.
+            if let Some(bw) = rt.word() {
+                for base in ["verdadeiro", "falso"] {
+                    let Some((g, n)) = morphology::adjective_form(bw, base) else { continue };
+                    if (g, n) != (gender, number) {
+                        let right = morphology::inflect_adjective(base, Gender::Masculine, gender, number);
+                        return err(Diagnostic::new(
+                            L0137,
+                            format!(
+                                "\"{base}\" concorda com o sujeito ({}): \"{right}\", não \"{}\".",
+                                morphology::describe_gn(gender, number),
+                                rt.orig
+                            ),
+                            rt.span,
+                        )
+                        .fix(format!("Escrever \"{right}\""), rt.span, right.clone()));
+                    }
+                    self.bump();
+                    let rhs = Expr { kind: ExprKind::Bool(base == "verdadeiro"), span: rt.span };
+                    return Ok(Cond::Atom {
+                        negated,
+                        kind: Box::new(CondKind::Rel { subject, rel: Rel::Equal, rhs }),
+                        span: start.to(rt.span),
+                    });
+                }
+            }
             let plural_rel = |sing: &str, plur: &str, rel: Rel, me: &Self| -> Result<Rel> {
                 let got = if rt.is_word(plur) { Number::Plural } else { Number::Singular };
                 if got != number {
@@ -927,15 +953,6 @@ impl Parser {
                 Some("nada") => {
                     self.bump();
                     let rhs = Expr { kind: ExprKind::Nothing, span: rt.span };
-                    return Ok(Cond::Atom {
-                        negated,
-                        kind: Box::new(CondKind::Rel { subject, rel: Rel::Equal, rhs }),
-                        span: start.to(rt.span),
-                    });
-                }
-                Some("verdadeiro" | "falso") => {
-                    self.bump();
-                    let rhs = Expr { kind: ExprKind::Bool(rt.is_word("verdadeiro")), span: rt.span };
                     return Ok(Cond::Atom {
                         negated,
                         kind: Box::new(CondKind::Rel { subject, rel: Rel::Equal, rhs }),

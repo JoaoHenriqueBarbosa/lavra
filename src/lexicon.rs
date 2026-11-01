@@ -759,6 +759,20 @@ fn build_entries() -> Vec<Entry> {
     for k in KEYWORDS {
         push(k.form, k.form, k.role, k.doc.into());
     }
+    // Como predicativo, o lógico concorda com o sujeito ("Se a resposta for verdadeira").
+    for base in ["verdadeiro", "falso"] {
+        for (g, n, subject, verb) in [
+            (Gender::Feminine, Number::Singular, "a resposta", "for"),
+            (Gender::Masculine, Number::Plural, "os testes", "forem"),
+            (Gender::Feminine, Number::Plural, "as respostas", "forem"),
+        ] {
+            let form = morphology::inflect_adjective(base, Gender::Masculine, g, n);
+            let doc = format!(
+                "\"{base}\" como predicativo, concordando com o sujeito: \"Se {subject} {verb} {form}\". Como valor, não flexiona (\"vira {base}\")."
+            );
+            push(&form, base, Role::Literal, doc);
+        }
+    }
     out
 }
 
