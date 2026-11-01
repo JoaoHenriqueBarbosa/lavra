@@ -276,6 +276,13 @@ enum Action {
     Build(String),
 }
 
+/// As bibliotecas do sistema de que o runtime (uma staticlib do Rust) precisa na linkagem.
+/// No macOS a libSystem já traz tudo, e o `cc` a põe sozinho.
+#[cfg(target_os = "macos")]
+const SYSTEM_LIBS: &[&str] = &[];
+#[cfg(not(target_os = "macos"))]
+const SYSTEM_LIBS: &[&str] = &["-lgcc_s", "-lutil", "-lrt", "-lpthread", "-lm", "-ldl", "-lc"];
+
 /// Gera o objeto, junta com o runtime e linka com o `cc` do sistema.
 fn build(prog: &lavra::hir::Program, src: &SourceFile, out: &str) -> Result<(), String> {
     let object = lavra::codegen::compile(prog, &src.text, &src.name()).map_err(|e| format!("erro no gerador de código: {e}"))?;
@@ -290,7 +297,7 @@ fn build(prog: &lavra::hir::Program, src: &SourceFile, out: &str) -> Result<(), 
         .arg(out)
         .arg(&obj)
         .arg(&rt)
-        .args(["-lgcc_s", "-lutil", "-lrt", "-lpthread", "-lm", "-ldl", "-lc"])
+        .args(SYSTEM_LIBS)
         .status()
         .map_err(|e| format!("não consegui chamar o linker (cc): {e}"))?;
     let _ = std::fs::remove_dir_all(&dir);
