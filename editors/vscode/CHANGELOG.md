@@ -1,5 +1,18 @@
 # Mudanças
 
+## 0.8.0
+
+- Nome composto com infinitivo ("a intenção de continuar", "as vontades de vencer"): a
+  gramática pinta o nome inteiro como um nome só, e o servidor dá o token semântico e o
+  hover do nome em cada uma das palavras.
+- "verdadeiro" e "falso" concordando como predicativo ("Enquanto a intenção de continuar
+  for verdadeira") saem como lógicos, não como adjetivo de predicado.
+- O item de "Para cada" com o nome do tipo do elemento toma o gênero da declaração do
+  tipo ("Para cada questão da lista" aceita "da questão"), e "-são" conta como feminino
+  na terminação: o servidor parou de acusar "do questão" e "o decisão" como certos.
+- "Escrevo uma linha em branco." e "Escrevo uma quebra de linha." quebram a linha da
+  saída, e a gramática pinta as duas locuções como "sem quebrar a linha".
+
 ## 0.7.0
 
 - A posse no editor: o nome que entrega o valor sai em itálico (modificador semântico
