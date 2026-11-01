@@ -506,6 +506,10 @@ fn pluralize_compound(w: &str) -> String {
 }
 
 pub fn pluralize(p: &str) -> String {
+    // Nome composto com infinitivo ("intenção de continuar"): só o núcleo flexiona.
+    if let Some((head, tail)) = p.split_once(" de ") {
+        return format!("{} de {tail}", pluralize(head));
+    }
     if p.contains('-') {
         return pluralize_compound(p);
     }

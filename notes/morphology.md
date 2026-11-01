@@ -39,6 +39,12 @@ corrigidos do lado da referência, cada um documentado no checker correspondente
   Cunha e Cintra para montês e pedrês (uniformes). A volta ao masculino é estrita
   ("o pino for acesa" é erro), por isso adjetivo uniforme em "-a" fora das listas
   (hermafrodita) sai errado.
+- **Infinitivo por terminação** (`is_infinitive`: -ar/-er/-ir/-or, e "ir"): é o que
+  reconhece o nome composto ("a intenção de continuar"). Substantivo nessas terminações
+  passa ("a dor de amor" vale como nome composto), o que é inofensivo: antes era erro de
+  sintaxe. Num composto, a flexão e o gênero ficam no núcleo ("as intenções de
+  continuar"; `pluralize`, `singularize`, `guess_gender` e `gender_by_ending` partem o
+  nome no primeiro " de ").
 
 ## Pendente (decisão adiada)
 

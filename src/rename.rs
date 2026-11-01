@@ -89,6 +89,8 @@ fn sig_of(a: &Analysis, def: usize) -> Option<&FuncSig> {
 #[derive(Clone, Copy, Debug)]
 struct Occurrence {
     word: usize,
+    /// O último token do nome: o próprio `word`, ou o infinitivo de um nome composto.
+    last: usize,
     article: Option<usize>,
     form: Form,
 }
@@ -96,13 +98,33 @@ struct Occurrence {
 /// A ocorrência num trecho (a declaração ou um uso) que termina na palavra do nome.
 /// Trechos que não terminam no nome (o braço inteiro de um "Conforme") não são ocorrência.
 fn occurrence(a: &Analysis, span: Span, form: Form, fits: impl Fn(&str) -> bool) -> Option<Occurrence> {
-    let word = a.tokens.iter().rposition(|t| {
-        t.span.end == span.end && t.span.start >= span.start && !t.span.is_empty() && t.contraction.is_none() && t.word().is_some_and(&fits)
+    let last = a.tokens.iter().rposition(|t| {
+        t.span.end == span.end && t.span.start >= span.start && !t.span.is_empty() && t.contraction.is_none() && t.word().is_some()
     })?;
+    // O nome pode ser composto ("a intenção de continuar"): tenta a palavra sozinha e, a
+    // cada recusa, estende a sequência para trás sobre "de + infinitivo".
+    let mut word = last;
+    loop {
+        let joined = a.tokens[word..=last].iter().filter_map(|t| t.word()).collect::<Vec<_>>().join(" ");
+        if a.tokens[word].span.start >= span.start && fits(&joined) {
+            break;
+        }
+        if word >= 2
+            && a.tokens[word - 1].is_word("de")
+            && a.tokens[word - 1].contraction.is_none()
+            && a.tokens[word - 2].word().is_some()
+            && a.tokens[word - 2].contraction.is_none()
+            && a.tokens[word - 2].span.start >= span.start
+        {
+            word -= 2;
+            continue;
+        }
+        return None;
+    }
     let article = word
         .checked_sub(1)
         .filter(|&k| a.tokens[k].word().and_then(morphology::article).is_some() && a.tokens[k].contraction.is_none_or(|c| c.part == 2));
-    Some(Occurrence { word, article, form })
+    Some(Occurrence { word, last, article, form })
 }
 
 /// As ocorrências de uma definição: a própria declaração e cada uso, sem repetir.
@@ -142,12 +164,22 @@ struct NewName {
 fn parse_name(new: &str) -> Result<NewName, String> {
     let words: Vec<String> = new.split_whitespace().map(str::to_lowercase).collect();
     let valid = |w: &str| w.chars().all(|c| c.is_alphabetic() || c == '-') && w.chars().next().is_some_and(char::is_alphabetic);
+    // A cauda de um nome composto: pares "de + infinitivo" ("de vencer").
+    let compound_tail = |rest: &[String]| {
+        !rest.is_empty()
+            && rest.len().is_multiple_of(2)
+            && rest.chunks(2).all(|c| c[0] == "de" && valid(&c[1]) && morphology::is_infinitive(&c[1]))
+    };
     match words.as_slice() {
         [w] if morphology::is_symbol(w) => Ok(NewName { word: w.clone(), gender: None, number: None, symbol: true }),
         [w] if valid(w) => Ok(NewName { word: w.clone(), gender: None, number: None, symbol: false }),
-        [art, w] if valid(w) => {
+        [w, rest @ ..] if valid(w) && morphology::article(w).is_none() && compound_tail(rest) => {
+            Ok(NewName { word: format!("{w} {}", rest.join(" ")), gender: None, number: None, symbol: false })
+        }
+        [art, w, rest @ ..] if valid(w) && (rest.is_empty() || compound_tail(rest)) => {
             let a = morphology::article(art).ok_or_else(|| format!("\"{art}\" não é artigo: escreva \"o {w}\" ou \"a {w}\"."))?;
-            Ok(NewName { word: w.clone(), gender: Some(a.gender), number: Some(a.number), symbol: false })
+            let word = if rest.is_empty() { w.clone() } else { format!("{w} {}", rest.join(" ")) };
+            Ok(NewName { word, gender: Some(a.gender), number: Some(a.number), symbol: false })
         }
         _ => Err(format!("\"{}\" não é um nome: escreva uma palavra com o artigo, como \"a reserva\".", new.trim())),
     }
@@ -296,7 +328,7 @@ impl Plan<'_> {
             let m = &t.defs[member];
             let old_gender = m.gender;
             for o in occurrences(self.a, member) {
-                let word_span = self.token(o.word).span;
+                let word_span = self.token(o.word).span.to(self.token(o.last).span);
                 match o.form {
                     Form::Name => {
                         // O item de um "Para cada nota" que só este nome tem: a coleção
@@ -352,7 +384,7 @@ impl Plan<'_> {
         };
         let old = self.a.tables.defs[item].gender;
         for o in occurrences(self.a, item) {
-            let span = self.token(o.word).span;
+            let span = self.token(o.word).span.to(self.token(o.last).span);
             self.put(span, &singular);
             self.article(&o, old, gender);
         }
@@ -362,16 +394,29 @@ impl Plan<'_> {
     /// singular dela.
     fn derived_item(&self, o: &Occurrence, collection: &str) -> Option<usize> {
         let k = o.article?;
-        let item = k.checked_sub(2)?;
+        let last = k.checked_sub(2)?;
         let tokens = &self.a.tokens;
-        if !(tokens[k].contraction.is_some_and(|c| c.written.starts_with('d')) && item > 0 && tokens[item - 1].is_word("cada")) {
+        if !tokens[k].contraction.is_some_and(|c| c.written.starts_with('d')) {
             return None;
         }
-        let w = tokens[item].word()?;
-        if morphology::pluralize(w) != collection {
+        // O item pode ser composto ("vontade de vencer"): recua sobre "de + infinitivo".
+        let mut first = last;
+        while first >= 2
+            && tokens[first - 1].is_word("de")
+            && tokens[first - 1].contraction.is_none()
+            && tokens[first - 2].word().is_some()
+            && tokens[first - 2].contraction.is_none()
+        {
+            first -= 2;
+        }
+        if !(first > 0 && tokens[first - 1].is_word("cada")) {
             return None;
         }
-        let span = tokens[item].span;
+        let w = tokens[first..=last].iter().filter_map(|t| t.word()).collect::<Vec<_>>().join(" ");
+        if w.is_empty() || morphology::pluralize(&w) != collection {
+            return None;
+        }
+        let span = tokens[first].span.to(tokens[last].span);
         self.a.tables.defs.iter().position(|d| d.kind == DefKind::Local && d.span == span)
     }
 
@@ -383,14 +428,17 @@ impl Plan<'_> {
             return None;
         }
         let tokens = &self.a.tokens;
-        let w = tokens.iter().position(|tk| tk.span == d.span)?;
+        // Num item composto ("vontade de vencer") o trecho cobre mais de um token: o
+        // começo acha o núcleo, o fim acha o último token antes da coleção.
+        let w = tokens.iter().position(|tk| tk.span.start == d.span.start && tk.contraction.is_none() && !tk.span.is_empty())?;
         if !w.checked_sub(1).is_some_and(|k| tokens[k].is_word("cada")) {
             return None;
         }
         if let Some(r) = t.refs.iter().find(|r| r.form == Form::Singular && r.span == d.span) {
             return Some(r.def);
         }
-        let next = tokens.get(w + 1)?;
+        let end = tokens.iter().rposition(|tk| tk.span.end == d.span.end && tk.contraction.is_none() && !tk.span.is_empty())?;
+        let next = tokens.get(end + 1)?;
         t.refs
             .iter()
             .find(|r| r.span.start == next.span.start && r.form == Form::Name && t.defs[r.def].number == Number::Plural)

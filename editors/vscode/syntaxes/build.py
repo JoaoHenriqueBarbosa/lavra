@@ -17,6 +17,10 @@ B0 = r"(?<![\p{L}\p{N}_])"
 B1 = r"(?![\p{L}\p{N}_])"
 WORD = r"[\p{L}_][\p{L}\p{N}_]*(?:-[\p{L}][\p{L}\p{N}_]*)*"
 SYMBOL = r"(?:[b-df-np-zB-DF-NP-Z]\d*|[aeoAEO]\d+)"
+# Nome composto com infinitivo ("a intenção de continuar"): "de" sem artigo seguido de
+# infinitivo faz parte do nome, como no parser (o genitivo sempre leva artigo).
+INFINITIVE = r"(?:ir|[\p{L}_][\p{L}\p{N}_]*(?:ar|er|ir|or|ôr))" + B1
+NAME = WORD + r"(?:\s+de\s+" + INFINITIVE + ")*"
 
 
 def words(*ws: str) -> str:
@@ -54,11 +58,11 @@ NOT_VERBS = sorted({part for w in LEXICON["words"] if w["role"] != "rejected" fo
 CONTR = "(?i:" + "|".join(CONTRACTIONS) + ")"
 
 name_after_article = {
-    "match": B0 + "(" + ART + r")\s+(" + WORD + ")" + B1,
+    "match": B0 + "(" + ART + r")\s+(" + NAME + ")" + B1,
     "captures": {"1": {"name": "variable.other.article.lavra"}, "2": {"name": "variable.other.lavra"}},
 }
 name_after_contraction = {
-    "match": B0 + "(" + CONTR + r")\s+(" + WORD + ")" + B1,
+    "match": B0 + "(" + CONTR + r")\s+(" + NAME + ")" + B1,
     "captures": {"1": {"name": "keyword.operator.word.preposition.lavra"}, "2": {"name": "variable.other.lavra"}},
 }
 
@@ -134,7 +138,7 @@ repository = {
     # Cabeçalho de função: "Para transferir a quantia da origem para o destino, sendo ...:".
     # Pode ocupar várias linhas; termina nos dois-pontos do fim da linha.
     "header": {
-        "begin": r"^\s*(?i:(para))(?!\s+(?i:cada|começar)" + B1 + r")\s+(?:(" + ART + r")\s+(" + WORD + r")\s+|(" + SYMBOL + r")\s+)?"
+        "begin": r"^\s*(?i:(para))(?!\s+(?i:cada|começar)" + B1 + r")\s+(?:(" + ART + r")\s+(" + NAME + r")\s+|(" + SYMBOL + r")\s+)?"
         + r"(?:(ser)\s+(" + WORD + r")|(" + WORD + r"))(?:\s+(\()(" + WORD + r")(\)))?",
         "beginCaptures": {
             "1": {"name": "keyword.other.definition.lavra"},
@@ -168,11 +172,11 @@ repository = {
                 "captures": {"1": {"name": "entity.name.function.lavra"}, "2": {"name": "entity.name.function.adjective.lavra"}},
             },
             {
-                "match": B0 + "(" + ART + r")\s+(" + WORD + ")" + B1,
+                "match": B0 + "(" + ART + r")\s+(" + NAME + ")" + B1,
                 "captures": {"1": {"name": "variable.other.article.lavra"}, "2": {"name": "variable.parameter.lavra"}},
             },
             {
-                "match": B0 + "(" + CONTR + r")\s+(" + WORD + ")" + B1,
+                "match": B0 + "(" + CONTR + r")\s+(" + NAME + ")" + B1,
                 "captures": {"1": {"name": "keyword.operator.word.preposition.lavra"}, "2": {"name": "variable.parameter.lavra"}},
             },
             {"name": "keyword.operator.word.preposition.lavra", "match": words(*PREPOSITIONS)},
@@ -185,7 +189,7 @@ repository = {
     "control": {
         "patterns": [
             {
-                "match": r"^\s*(?i:(para))\s+(cada)\s+(?:(" + SYMBOL + ")|(" + WORD + "))" + B1,
+                "match": r"^\s*(?i:(para))\s+(cada)\s+(?:(" + SYMBOL + ")|(" + NAME + "))" + B1,
                 "captures": {
                     "1": {"name": "keyword.control.loop.lavra"},
                     "2": {"name": "keyword.control.loop.lavra"},

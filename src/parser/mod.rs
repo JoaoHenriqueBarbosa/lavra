@@ -478,15 +478,24 @@ impl Parser {
         if let Some(a) = self.definite_article_at_abs(at)
             && let Some(w) = tok(at + 1).word()
             && !morphology::is_symbol(w)
-            && declares(at + 2)
         {
-            let ws = tok(at + 1).span;
-            return vec![NameRef {
-                word: w.to_string(),
-                span: t.span.to(ws),
-                word_span: ws,
-                article: Some(ArticleUse { gender: a.gender, number: a.number, span: t.span, contraction: None }),
-            }];
+            // Nome composto ("a intenção de continuar"): absorve "de + infinitivo".
+            let mut word = w.to_string();
+            let mut k = at + 1;
+            while tok(k + 1).is_word("de") && tok(k + 1).contraction.is_none() && tok(k + 2).word().is_some_and(morphology::is_infinitive) {
+                word = format!("{word} de {}", tok(k + 2).word().unwrap());
+                k += 2;
+            }
+            if declares(k + 1) {
+                let ws = tok(at + 1).span.to(tok(k).span);
+                return vec![NameRef {
+                    word,
+                    span: t.span.to(ws),
+                    word_span: ws,
+                    article: Some(ArticleUse { gender: a.gender, number: a.number, span: t.span, contraction: None }),
+                }];
+            }
+            return Vec::new();
         }
         if let Some(w) = t.word()
             && morphology::is_symbol(w)
@@ -624,11 +633,20 @@ impl Parser {
         if morphology::article(&w).is_some() {
             return err(Diagnostic::new(L0108, "\"Cada\" já determina o nome: \"Para cada nota\", sem artigo.", t.span));
         }
+        // Nome composto: "Para cada vontade de vencer das vontades de vencer".
+        let mut w = w;
+        let mut end = t.span;
+        while self.at_word("de") && self.peek().contraction.is_none() && self.peek_at(1).word().is_some_and(morphology::is_infinitive) {
+            self.bump();
+            let v = self.bump();
+            w = format!("{w} de {}", v.word().unwrap());
+            end = v.span;
+        }
         let g = morphology::guess_gender(&w);
         Ok(NameRef {
             word: w,
-            span: t.span,
-            word_span: t.span,
+            span: t.span.to(end),
+            word_span: t.span.to(end),
             article: Some(ArticleUse { gender: g, number: Number::Singular, span: t.span, contraction: None }),
         })
     }
@@ -1436,12 +1454,24 @@ impl Parser {
                     w.span,
                 )));
             };
+            // Nome composto: "a intenção de continuar", "a sala de estar". O "de" sem
+            // contração seguido de infinitivo é complemento do nome, nunca genitivo
+            // (o genitivo pede artigo: "da conta") nem chamada ("o resultado de dobrar"
+            // e "o fato de" são tratados antes, nas expressões).
+            let mut word = word;
+            let mut end = w.span;
+            while self.at_word("de") && self.peek().contraction.is_none() && self.peek_at(1).word().is_some_and(morphology::is_infinitive) {
+                self.bump();
+                let v = self.bump();
+                word = format!("{word} de {}", v.word().unwrap());
+                end = v.span;
+            }
             let art_span = t.span;
             let contraction = t.contraction.map(|c| c.written);
             return Ok(NameRef {
                 word,
-                span: art_span.to(w.span),
-                word_span: w.span,
+                span: art_span.to(end),
+                word_span: w.span.to(end),
                 article: Some(ArticleUse { gender: a.gender, number: a.number, span: art_span, contraction }),
             });
         }

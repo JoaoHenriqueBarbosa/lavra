@@ -26,3 +26,11 @@ A sobra começa numa cópia da herança.
 --                  ^^^^^ support.function.copy.lavra
 --                        ^^ keyword.operator.word.preposition.lavra
 --                           ^^^^^^^ variable.other.lavra
+A intenção de continuar começa em verdadeiro.
+--<~~--------------------- variable.other.lavra
+--                      ^^^^^^ storage.modifier.mutable.lavra
+--                                ^^^^^^^^^^ constant.language.boolean.lavra
+A vontade de vencer da ana é 7.
+--<~~----------------- variable.other.lavra
+--                  ^^ keyword.operator.word.preposition.lavra
+--                     ^^^ variable.other.lavra

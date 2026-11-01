@@ -1,0 +1,17 @@
+Uma pessoa é um registro de:
+    o nome, um texto;
+    a vontade de vencer, um inteiro.
+
+Para começar:
+    A intenção de continuar começa em verdadeiro.
+    A sala de estar, um texto, é "arrumada".
+    As vontades de vencer começam vazias.
+    As vontades de vencer ganham 3.
+    Enquanto a intenção de continuar for verdadeira:
+        Escrevo a sala de estar.
+        A intenção de continuar vira falso.
+    Escrevo o tamanho das vontades de vencer.
+    A ana é uma pessoa com o nome "Ana" e a vontade de vencer 7.
+    Escrevo a vontade de vencer da ana.
+    Para cada vontade de vencer das vontades de vencer:
+        Escrevo a vontade de vencer.

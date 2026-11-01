@@ -305,6 +305,13 @@ impl Parser {
         }
     }
 
+    /// A palavra começa um nome de campo: é um campo, ou o núcleo de um campo
+    /// composto ("vontade", de "vontade de vencer").
+    pub(super) fn starts_field_name(&self, w: &str) -> bool {
+        self.vocab.field_names.contains(w)
+            || self.vocab.field_names.iter().any(|f| f.strip_prefix(w).is_some_and(|r| r.starts_with(" de ")))
+    }
+
     /// Lugar: "a carta", "x", "o saldo da conta", "o item i das notas", "a última das
     /// notas". O "de" genitivo se lê da direita para a esquerda.
     pub(super) fn place(&mut self) -> Result<Place> {
@@ -608,8 +615,7 @@ impl Parser {
                 let value = self.expr()?;
                 fields.push((n.word.clone(), n.span, value));
                 if (self.at_word("e") || self.at_punct(','))
-                    && ((self.definite_article_at(1).is_some()
-                        && self.peek_at(2).word().is_some_and(|w| self.vocab.field_names.contains(w)))
+                    && ((self.definite_article_at(1).is_some() && self.peek_at(2).word().is_some_and(|w| self.starts_field_name(w)))
                         || self.peek_at(1).word().is_some_and(|w| morphology::is_symbol(w) && self.vocab.field_names.contains(w)))
                 {
                     self.bump();

@@ -33,6 +33,13 @@ O apelido, talvez um texto, começa em nada.
 - Inicialização obrigatória. Nome no plural precisa ser coleção; "As notas são 7." é uma
   lista de um item. "Vazio" concorda ("as compras começam vazias").
 - Lista com inteiros e reais escritos ("7, 8,5 e 9") vira lista de reais.
+- **Nome composto com infinitivo**: "a intenção de continuar", "a sala de estar",
+  "a máquina de lavar" são um nome só. O "de" sem contração seguido de infinitivo é
+  complemento do nome, nunca genitivo (o genitivo pede artigo: "da conta") nem chamada
+  ("o resultado de dobrar" e "o fato de" vêm antes nas expressões). Pode encadear
+  ("a vontade de parar de fumar"); gênero e número vêm do artigo, e a flexão fica no
+  núcleo ("as intenções de continuar"). O infinitivo se reconhece pela terminação
+  (-ar/-er/-ir/-or), então "a dor de amor" também vale como nome composto.
 - No nível de fora só há constantes ("A taxa é 0,05."), funções e tipos. O que o programa
   faz fica em "Para começar:".
 

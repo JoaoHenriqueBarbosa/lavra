@@ -6,7 +6,7 @@ pub mod nouns;
 pub mod verbs;
 
 pub use nouns::pluralize;
-pub use verbs::{first_person, future_subjunctive, personal_infinitive, third_person};
+pub use verbs::{first_person, future_subjunctive, is_infinitive, personal_infinitive, third_person};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Gender {
@@ -162,6 +162,8 @@ pub fn has_accent(s: &str) -> bool {
 
 /// Gênero provável de um substantivo solto, quando nenhum artigo o fixou.
 pub fn guess_gender(word: &str) -> Gender {
+    // Nome composto com infinitivo ("intenção de continuar"): o gênero é do núcleo.
+    let word = word.split(" de ").next().unwrap_or(word);
     if word.ends_with('a') || word.ends_with("ção") || word.ends_with("dade") || word.ends_with("agem") {
         Gender::Feminine
     } else {
@@ -173,6 +175,8 @@ pub fn guess_gender(word: &str) -> Gender {
 /// "-a", "-ção", "-dade", "-agem" são femininos. "-ma" fica sem decidir ("o problema",
 /// "a forma"), e as outras terminações também ("o valor", "a cor").
 pub fn gender_by_ending(word: &str) -> Option<Gender> {
+    // Nome composto com infinitivo: a terminação que decide é a do núcleo.
+    let word = word.split(" de ").next().unwrap_or(word);
     let w = word.strip_suffix('s').filter(|w| !w.is_empty()).unwrap_or(word);
     let w = w.strip_suffix("õe").map(|stem| format!("{stem}ão")).unwrap_or_else(|| w.to_string());
     let w = w.strip_suffix("agen").map(|stem| format!("{stem}agem")).unwrap_or(w);
@@ -195,6 +199,10 @@ pub fn gender_by_ending(word: &str) -> Option<Gender> {
 /// "avaliação", "papéis" → "papel"); `None` quando nada volta. Sem dicionário, é o
 /// singular que a própria língua aceita: "Para cada lápi" acha "os lápis".
 pub fn singularize(plural: &str) -> Option<String> {
+    // Nome composto com infinitivo ("intenções de continuar"): só o núcleo flexiona.
+    if let Some((head, tail)) = plural.split_once(" de ") {
+        return Some(format!("{} de {tail}", singularize(head)?));
+    }
     const ENDINGS: &[(&str, &str)] = &[
         ("ões", "ão"),
         ("ães", "ão"),

@@ -1,0 +1,9 @@
+Erro de mutabilidade [L0342]: A vontade de vencer é fixa por definição e não vira.
+ --> tests/programs/err/nome_composto_imutavel.lav:4:5
+  |
+2 |     A vontade de vencer é 1.
+  |     ------------------- definido com "é"
+...
+4 |     A vontade de vencer vira 2.
+  |     ^^^^^^^^^^^^^^^^^^^
+  = dica: Quem varia se declara com "começa em": "A vontade de vencer começa em ...".

@@ -31,6 +31,8 @@ CASES = {
         ("As compras começam vazias.", [("compras", "variable.other"), ("começam", "storage.modifier.mutable"), ("vazias", "constant.language.empty")]),
         ("O apelido, talvez um texto, começa em nada.", [("talvez", "storage.modifier.maybe"), ("texto", "storage.type.primitive"), ("nada", "constant.language.nothing")]),
         ("A sobra começa numa cópia da herança.", [("cópia", "support.function.copy"), ("da", "keyword.operator.word.preposition"), ("herança", "variable.other")]),
+        ("A intenção de continuar começa em verdadeiro.", [("intenção de continuar", "variable.other"), ("começa", "storage.modifier.mutable"), ("verdadeiro", "constant.language.boolean")]),
+        ("A vontade de vencer da ana é 7.", [("vontade de vencer", "variable.other"), ("da", "keyword.operator.word.preposition"), ("ana", "variable.other")]),
     ],
     "mutacao": [
         ("    O saldo cresce o saldo vezes a taxa.", [("cresce", "keyword.other.mutation"), ("vezes", "keyword.operator.arithmetic"), ("taxa", "variable.other")]),
@@ -44,7 +46,9 @@ CASES = {
         ("    Enquanto o senado for paciente e n for no máximo 4:", [("Enquanto", "keyword.control.loop"), ("paciente", "entity.name.function.adjective"), ("n", "variable.other.symbol"), ("no máximo", "keyword.operator.comparison")]),
         ("    Repito sempre:", [("Repito", "keyword.control.loop"), ("sempre", "keyword.control.loop")]),
         ("    Para cada nota das notas:", [("Para", "keyword.control.loop"), ("cada", "keyword.control.loop"), ("nota", "variable.other"), ("notas", "variable.other")]),
+        ("    Enquanto a intenção de continuar for verdadeira:", [("intenção de continuar", "variable.other"), ("for", "keyword.operator.copula"), ("verdadeira", "constant.language.boolean")]),
         ("    Se as respostas forem falsas: paro.", [("forem", "keyword.operator.copula"), ("falsas", "constant.language.boolean")]),
+        ("    Para cada vontade de vencer das vontades de vencer:", [("vontade de vencer", "variable.other"), ("das", "keyword.operator.word.preposition"), ("vontades de vencer", "variable.other")]),
         ("    Para cada i de 1 até 10:", [("i", "variable.other.symbol"), ("até", "keyword.control.loop")]),
         ("    Se não houver apelido: escrevo \"sem\".", [("não", "keyword.operator.logical"), ("houver", "keyword.operator.copula")]),
         ("    Conforme a figura:", [("Conforme", "keyword.control.conditional"), ("figura", "variable.other")]),

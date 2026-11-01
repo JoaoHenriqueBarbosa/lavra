@@ -23,9 +23,17 @@
 --       ^^^^ keyword.control.loop.lavra
 --            ^^^^ variable.other.lavra
 --                     ^^^^^ variable.other.lavra
+    Enquanto a intenção de continuar for verdadeira:
+--             ^^^^^^^^^^^^^^^^^^^^^ variable.other.lavra
+--                                   ^^^ keyword.operator.copula.lavra
+--                                       ^^^^^^^^^^ constant.language.boolean.lavra
     Se as respostas forem falsas: paro.
 --                  ^^^^^ keyword.operator.copula.lavra
 --                        ^^^^^^ constant.language.boolean.lavra
+    Para cada vontade de vencer das vontades de vencer:
+--            ^^^^^^^^^^^^^^^^^ variable.other.lavra
+--                              ^^^ keyword.operator.word.preposition.lavra
+--                                  ^^^^^^^^^^^^^^^^^^ variable.other.lavra
     Para cada i de 1 até 10:
 --            ^ variable.other.symbol.lavra
 --                   ^^^ keyword.control.loop.lavra

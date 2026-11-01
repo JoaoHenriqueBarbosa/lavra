@@ -20,6 +20,10 @@ Extensão `joaohenriquebarbosa.lavra`, instalada no VS Code do WSL em 2026-10-22
   `support.function.nominal` (a soma de ...), `keyword.operator.*`, literais e comentários.
   O artigo leva o escopo da palavra que determina ("o tamanho", "o resultado", "o item");
   a contração leva o de preposição ("seguido do tamanho").
+  O nome composto com infinitivo ("a intenção de continuar") é um `variable.other` só, pela
+  mesma regra do parser ("de" sem artigo seguido de palavra com terminação de infinitivo);
+  os lógicos flexionados do predicativo ("for verdadeira") vêm do léxico e são
+  `constant.language.boolean`, como "verdadeiro".
 - Fronteira de palavra própria (`\b` do Oniguruma não serve para "é"); tudo sem
   diferenciar maiúsculas, porque a primeira palavra da oração vem maiúscula.
 - O TextMate escolhe o casamento que começa antes na linha; por isso a regra de chamada
@@ -99,7 +103,8 @@ erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro s�
   "o resultado de"; parâmetros com `borrowed` e `lent`; variáveis, `readonly` para o que "é";
   campos, tipos e casos; `declaration` e `modification`; `moved` no nome que entrega o valor)
   e do vocabulário (tipos e casos citados). As palavras da língua ficam com a gramática
-  TextMate. A contração conta um token.
+  TextMate. A contração conta um token. O nome composto leva um token por palavra
+  ("intenção", "de", "continuar"), porque um token semântico não atravessa linha.
 - **Hover**: nome com artigo, fixo ou variável, o tipo por extenso, o modo de posse e a linha
   da declaração; verbo com a regência, o retorno e se pode falhar; palavra da língua com a
   documentação do léxico. O estado de posse naquele ponto vem da própria análise de posse

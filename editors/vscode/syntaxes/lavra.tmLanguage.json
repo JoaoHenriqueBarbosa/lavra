@@ -166,7 +166,7 @@
       ]
     },
     "header": {
-      "begin": "^\\s*(?i:(para))(?!\\s+(?i:cada|começar)(?![\\p{L}\\p{N}_]))\\s+(?:((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)\\s+|((?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+))\\s+)?(?:(ser)\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)|([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*))(?:\\s+(\\()([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(\\)))?",
+      "begin": "^\\s*(?i:(para))(?!\\s+(?i:cada|começar)(?![\\p{L}\\p{N}_]))\\s+(?:((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*(?:\\s+de\\s+(?:ir|[\\p{L}_][\\p{L}\\p{N}_]*(?:ar|er|ir|or|ôr))(?![\\p{L}\\p{N}_]))*)\\s+|((?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+))\\s+)?(?:(ser)\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)|([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*))(?:\\s+(\\()([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(\\)))?",
       "beginCaptures": {
         "1": {
           "name": "keyword.other.definition.lavra"
@@ -244,7 +244,7 @@
           }
         },
         {
-          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*(?:\\s+de\\s+(?:ir|[\\p{L}_][\\p{L}\\p{N}_]*(?:ar|er|ir|or|ôr))(?![\\p{L}\\p{N}_]))*)(?![\\p{L}\\p{N}_])",
           "captures": {
             "1": {
               "name": "variable.other.article.lavra"
@@ -255,7 +255,7 @@
           }
         },
         {
-          "match": "(?<![\\p{L}\\p{N}_])((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "match": "(?<![\\p{L}\\p{N}_])((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*(?:\\s+de\\s+(?:ir|[\\p{L}_][\\p{L}\\p{N}_]*(?:ar|er|ir|or|ôr))(?![\\p{L}\\p{N}_]))*)(?![\\p{L}\\p{N}_])",
           "captures": {
             "1": {
               "name": "keyword.operator.word.preposition.lavra"
@@ -289,7 +289,7 @@
     "control": {
       "patterns": [
         {
-          "match": "^\\s*(?i:(para))\\s+(cada)\\s+(?:((?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+))|([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*))(?![\\p{L}\\p{N}_])",
+          "match": "^\\s*(?i:(para))\\s+(cada)\\s+(?:((?:[b-df-np-zB-DF-NP-Z]\\d*|[aeoAEO]\\d+))|([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*(?:\\s+de\\s+(?:ir|[\\p{L}_][\\p{L}\\p{N}_]*(?:ar|er|ir|or|ôr))(?![\\p{L}\\p{N}_]))*))(?![\\p{L}\\p{N}_])",
           "captures": {
             "1": {
               "name": "keyword.control.loop.lavra"
@@ -575,7 +575,7 @@
     "names": {
       "patterns": [
         {
-          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "match": "(?<![\\p{L}\\p{N}_])((?i:o|a|os|as))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*(?:\\s+de\\s+(?:ir|[\\p{L}_][\\p{L}\\p{N}_]*(?:ar|er|ir|or|ôr))(?![\\p{L}\\p{N}_]))*)(?![\\p{L}\\p{N}_])",
           "captures": {
             "1": {
               "name": "variable.other.article.lavra"
@@ -586,7 +586,7 @@
           }
         },
         {
-          "match": "(?<![\\p{L}\\p{N}_])((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*)(?![\\p{L}\\p{N}_])",
+          "match": "(?<![\\p{L}\\p{N}_])((?i:do|da|dos|das|no|na|nos|nas|ao|à|aos|às|pelo|pela|pelos|pelas|num|numa|dum|duma))\\s+([\\p{L}_][\\p{L}\\p{N}_]*(?:-[\\p{L}][\\p{L}\\p{N}_]*)*(?:\\s+de\\s+(?:ir|[\\p{L}_][\\p{L}\\p{N}_]*(?:ar|er|ir|or|ôr))(?![\\p{L}\\p{N}_]))*)(?![\\p{L}\\p{N}_])",
           "captures": {
             "1": {
               "name": "keyword.operator.word.preposition.lavra"

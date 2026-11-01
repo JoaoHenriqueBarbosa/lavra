@@ -522,3 +522,31 @@ fn inlay_hints_follow_the_configuration() {
     assert_eq!(refreshes(&c), 1);
     c.stop(handle);
 }
+
+const URI5: &str = "file:///tmp/composto.lav";
+const PROGRAM5: &str = "\
+Para começar:
+    A intenção de continuar começa em verdadeiro.
+    Enquanto a intenção de continuar for verdadeira:
+        A intenção de continuar vira falso.
+";
+
+/// O nome composto ("a intenção de continuar") é um nome só no editor: as três palavras
+/// levam o token da variável, e o hover em qualquer uma delas fala do nome inteiro.
+#[test]
+fn compound_name_in_tokens_and_hover() {
+    let (mut c, handle) = Client::start();
+    c.notify("textDocument/didOpen", json!({ "textDocument": { "uri": URI5, "languageId": "lavra", "version": 1, "text": PROGRAM5 } }));
+    assert!(c.diagnostics().is_empty());
+    let toks = semantic_tokens(&mut c, URI5);
+    for (line, cols) in [(1, [6, 15, 18]), (2, [15, 24, 27]), (3, [10, 19, 22])] {
+        for col in cols {
+            assert!(toks.iter().any(|t| (t.0, t.1, t.2) == (line, col, "variable")), "sem variável em {line}:{col}: {toks:?}");
+        }
+    }
+    for col in [16, 24, 30] {
+        let h = hover_text(&mut c, json!({ "textDocument": { "uri": URI5 }, "position": { "line": 2, "character": col } }));
+        assert!(h.contains("**a intenção de continuar**"), "{col}: {h}");
+    }
+    c.stop(handle);
+}
