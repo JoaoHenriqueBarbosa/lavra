@@ -27,6 +27,11 @@ Para apresentar a prova, sendo a prova uma prova emprestada:
         Escrevo "Valor: " seguido do valor da questão.
         Escrevo "Resposta: " seguido da resposta da questão.
 
+Para continuar, devolvendo um lógico:
+    A intenção de continuar começa em "n".
+    Escrevo "Deseja cadastrar outra questão? (s/n): " e leio um texto e a intenção de continuar vira o resultado.
+    Devolvo o fato de a intenção de continuar ser igual a "s".
+
 Para começar:
     As questões começam vazias.
 
@@ -34,7 +39,7 @@ Para começar:
     Enquanto a intenção de continuar for verdadeira:
         A questão começa em uma questão com o enunciado "", o valor 0 e a resposta "".
         Cadastro a questão nas questões.
-        Escrevo "Deseja cadastrar outra questão? (s/n): " e leio um texto, e a intenção de continuar vira o fato de o resultado ser igual a "s".
+        A intenção de continuar vira o resultado de continuar.
 
     O total é o resultado de somar os valores das questões.
     A prova é uma prova com as questões as questões e o valor o total.
