@@ -1,0 +1,21 @@
+Uma prova é um registro de:
+    as questões, uma lista de questões;
+    o valor, um inteiro.
+
+Uma questão é um registro de:
+    o enunciado, um texto;
+    o valor, um inteiro;
+    a resposta, um texto.
+
+Para começar:
+    A questão começa em uma questão com o enunciado "", o valor 0 e a resposta "".
+    Escrevo "Digite o enunciado da primeira pergunta: " e leio um texto, e o enunciado da questão vira o resultado.
+    Escrevo "Quanto ela vale: " e leio um inteiro, e o valor da questão vira o resultado.
+    Escrevo "Qual é a resposta: " e leio um texto, e a resposta da questão vira o resultado.
+
+    O total é o valor da questão.
+    As questões são a questão.
+    A prova é uma prova com as questões as questões e o valor o total.
+
+    Escrevo "".
+    Escrevo a prova.

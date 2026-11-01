@@ -1,0 +1,44 @@
+Uma prova é um registro de:
+    as questões, uma lista de questões;
+    o valor, um inteiro.
+
+Uma questão é um registro de:
+    o enunciado, um texto;
+    o valor, um inteiro;
+    a resposta, um texto.
+
+Para cadastrar a questão na lista, sendo a lista uma lista de questões confiada e a questão uma questão confiada:
+    Escrevo "Digite o enunciado da pergunta: " e leio um texto, e o enunciado da questão vira o resultado.
+    Escrevo "Quanto ela vale: " e leio um inteiro, e o valor da questão vira o resultado.
+    Escrevo "Qual é a resposta: " e leio um texto, e a resposta da questão vira o resultado.
+    A lista ganha a questão.
+
+Para somar os valores da lista, sendo a lista uma lista de questões confiada, devolvendo um inteiro:
+    O total começa em 0.
+    Para cada questão da lista:
+        O total vira o total mais o valor da questão.
+    Devolvo o total.
+
+Para apresentar a prova, sendo a prova uma prova emprestada:
+    Escrevo "A prova vale " seguido do valor da prova seguido de " pontos.".
+    Escrevo "Ela contém as seguintes questões:".
+    Para cada questão das questões da prova:
+        Escrevo "Enunciado: " seguido do enunciado da questão.
+        Escrevo "Valor: " seguido do valor da questão.
+        Escrevo "Resposta: " seguido da resposta da questão.
+
+Para começar:
+    As questões começam vazias.
+
+    A intenção de continuar começa em verdadeiro.
+    Enquanto a intenção de continuar for verdadeira:
+        A questão começa em uma questão com o enunciado "", o valor 0 e a resposta "".
+        Cadastro a questão nas questões.
+        Escrevo "Deseja cadastrar outra questão? (s/n): " e leio um texto, e a intenção de continuar vira o fato de o resultado ser igual a "s".
+
+    O total é o resultado de somar os valores das questões.
+    A prova é uma prova com as questões as questões e o valor o total.
+
+    Escrevo uma linha em branco.
+
+    Apresento a prova.
