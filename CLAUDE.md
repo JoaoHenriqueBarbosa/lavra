@@ -60,9 +60,23 @@ cd editors/vscode && npm install
 npm test                                     # escopos e snapshots da gramática
 npm run compile                              # tipos e empacotamento do cliente
 npm run test:integration                     # num VS Code de verdade (contêiner com xvfb)
-cp ../../target/release/lavrac server/ && npx vsce package --target linux-x64 --out lavra.vsix
-code --install-extension lavra.vsix --force
+cargo build --release && npm run compile    # o servidor e o cliente atualizados
+cp ../../target/release/lavrac server/ && npx vsce package --target darwin-arm64 --out lavra.vsix
+code --install-extension lavra.vsix --force  # depois, "Developer: Reload Window" no VS Code
+cargo install --path . --locked              # (na raiz) o servidor que o VS Code roda de fato
 ```
+
+**Reinstale a extensão ao fim de toda mudança no compilador ou nos editores.** O user
+escreve Lavra no VS Code, e a extensão leva o próprio `lavrac` (o servidor de linguagem) e a
+gramática: sem reinstalar, o editor continua acusando erro no que a mudança acabou de
+consertar. Faz parte de dar a tarefa como pronta, sem esperar o pedido (já foi preciso
+pedir em três conversas seguidas). O alvo é `darwin-arm64` neste Mac; `linux-x64` só no
+Linux. **O `.vsix` sozinho não atualiza o servidor:** o `settings.json` do user aponta
+`lavra.server.path` para `~/.cargo/bin/lavrac`, que ignora o `lavrac` embutido; por isso
+o `cargo install --path . --locked` é obrigatório. Confira com `cmp ~/.cargo/bin/lavrac
+target/release/lavrac` (e o mesmo com o `server/lavrac` da pasta instalada,
+`~/.vscode/extensions/joaohenriquebarbosa.lavra-<versão do package.json>`), rode
+`~/.cargo/bin/lavrac check` no arquivo que o user tem aberto e avise para recarregar a janela.
 
 Gramática tree-sitter e os outros editores (`editors/tree-sitter-lavra`, `editors/helix`,
 `editors/neovim`, `editors/zed`; ver `notes/tooling.md` e o README de cada pasta):
