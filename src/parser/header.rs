@@ -952,6 +952,14 @@ impl Parser {
     /// Lê os argumentos de uma chamada, guiado pela regência da assinatura. `skip_subject`
     /// quando o sujeito já foi lido (predicados).
     pub(super) fn call_args(&mut self, sig_id: usize, skip_subject: bool, verb_span: Span) -> Result<Vec<Expr>> {
+        // Dentro dos argumentos, o ", ou ..." é da chamada, e não do último argumento.
+        self.call_depth += 1;
+        let args = self.call_args_inner(sig_id, skip_subject, verb_span);
+        self.call_depth -= 1;
+        args
+    }
+
+    fn call_args_inner(&mut self, sig_id: usize, skip_subject: bool, verb_span: Span) -> Result<Vec<Expr>> {
         let sig = self.prog.sigs[sig_id].clone();
         let mut args = Vec::new();
         if sig.broken {

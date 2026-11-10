@@ -1461,6 +1461,47 @@ impl<'a, 'b> Fx<'a, 'b> {
                 r.and_then(|v| fresh(self, v))
             }
             ExprKind::Fact(c) => Some(self.cond(c)),
+            // A chave que o mapa tem dá uma cópia do valor dela; a que falta, o valor de reserva.
+            ExprKind::KeyOr { place, fallback } => {
+                let Some(PlaceProj::Key(k, _)) = place.proj.last() else { unreachable!("o lugar termina na chave") };
+                let (map, cty) = self.parent(place);
+                let Ty::Map(key_ty, value_ty) = &cty else { unreachable!() };
+                let key = self.expr(k, false).unwrap();
+                let kd = self.desc(key_ty);
+                let ks = self.slot_of(key, key_ty);
+                let has = self.rt1("rt_map_contains", &[kd, map, ks]);
+                let (found, missing, end) = (self.b.create_block(), self.b.create_block(), self.b.create_block());
+                let ty = clif(&e.ty).expect("o valor de um mapa");
+                self.b.append_block_param(end, ty);
+                self.b.ins().brif(has, found, &[], missing, &[]);
+                self.b.switch_to_block(found);
+                let (lo, hi) = self.span_vals(e.span);
+                let addr = self.rt1("rt_map_addr", &[map, kd, ks, lo, hi]);
+                let slot = self.b.ins().load(types::I64, flags(), addr, 0);
+                let slot = if value_ty.is_copy() {
+                    slot
+                } else {
+                    let vd = self.desc(value_ty);
+                    self.rt1("rt_clone", &[vd, slot])
+                };
+                let v = self.value_of(slot, value_ty);
+                self.b.ins().jump(end, &[BlockArg::Value(v)]);
+                self.b.switch_to_block(missing);
+                let mark = self.temps.len();
+                let copied = !fallback.ty.is_copy() && matches!(fallback.kind, ExprKind::Read(_));
+                let mut fv = self.expr(fallback, !copied).unwrap();
+                if copied {
+                    let d = self.desc(&fallback.ty);
+                    let s = self.slot_of(fv, &fallback.ty);
+                    let c = self.rt1("rt_clone", &[d, s]);
+                    fv = self.value_of(c, &fallback.ty);
+                }
+                self.flush_temps(mark);
+                self.b.ins().jump(end, &[BlockArg::Value(fv)]);
+                self.b.switch_to_block(end);
+                let r = self.b.block_params(end)[0];
+                fresh(self, r)
+            }
             ExprKind::FuncRef(f) => {
                 let id = self.cg.funcs[*f];
                 let r = *self.refs.entry(id).or_insert_with(|| self.cg.module.declare_func_in_func(id, self.b.func));
@@ -2066,6 +2107,7 @@ fn expr_addressed(e: &hir::Expr, out: &mut [bool]) {
         ExprKind::Concat(v) | ExprKind::List(v) | ExprKind::Set(v) | ExprKind::Record(v) | ExprKind::Variant { fields: v, .. } => {
             v.iter().for_each(|x| expr_addressed(x, out))
         }
+        ExprKind::KeyOr { fallback, .. } => expr_addressed(fallback, out),
         ExprKind::Invoke { verb, args } => {
             expr_addressed(verb, out);
             args.iter().for_each(|a| expr_addressed(&a.value, out));

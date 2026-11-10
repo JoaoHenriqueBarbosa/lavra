@@ -1,0 +1,6 @@
+Erro de tipo [L0379]: Aqui nada pode faltar: o valor de reserva é para a chave de um mapa, e este valor é um inteiro.
+ --> tests/programs/err/reserva_sem_falta.lav:3:13
+  |
+3 |     Escrevo o item 5 das notas, ou 0.
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^
+  = dica: Numa lista, a posição que não existe é falha de execução: confira antes com "o tamanho de".

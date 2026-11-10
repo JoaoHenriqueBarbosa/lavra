@@ -117,6 +117,7 @@ impl Parser {
             library: None,
             type_params: Vec::new(),
             in_header: false,
+            call_depth: 0,
         }
     }
 }
@@ -130,6 +131,8 @@ struct Parser {
     type_params: Vec<TypeParam>,
     /// Está-se lendo um cabeçalho: só ali um tipo qualquer se declara.
     in_header: bool,
+    /// Quantas chamadas abertas cujos argumentos se estão lendo.
+    call_depth: usize,
     prog: Program,
     /// Cabeçalhos lidos na pré-varredura: posição do "Para" → (assinatura, fim do cabeçalho).
     headers: HashMap<usize, (usize, usize)>,
@@ -1845,7 +1848,11 @@ impl Parser {
             }
             TokenKind::Punct('(') => {
                 self.bump();
-                let mut e = self.expr()?;
+                // Entre parênteses, o valor é inteiro dele: o ", ou ..." de dentro é dele.
+                let depth = std::mem::take(&mut self.call_depth);
+                let inner = self.expr();
+                self.call_depth = depth;
+                let mut e = inner?;
                 let close = self.expect_punct(')', "o parêntese de fechamento")?;
                 self.last_nominal = false;
                 e.span = t.span.to(close.span);
@@ -1961,7 +1968,20 @@ impl Parser {
             }
             TokenKind::Word(_) => {
                 let place = self.place()?;
-                Ok(Expr { span: place.span, kind: ExprKind::Place(place) })
+                let read = Expr { span: place.span, kind: ExprKind::Place(place) };
+                // "o item "Ana" das idades, ou 0": o valor de reserva da chave que falta.
+                let item = matches!(&read.kind, ExprKind::Place(p) if matches!(p.proj.last(), Some(Proj::Index(..))));
+                if item
+                    && self.call_depth == 0
+                    && self.at_punct(',')
+                    && self.peek_at(1).is_word("ou")
+                    && !self.peek_at(2).is_word("desisto")
+                {
+                    let fallback = self.fallback()?.expect("o \", ou\" conferido acima");
+                    let span = read.span.to(self.prev_span());
+                    return Ok(Expr { kind: ExprKind::OrElse { value: Box::new(read), fallback }, span });
+                }
+                Ok(read)
             }
             _ => Err(self.expected("um valor")),
         }

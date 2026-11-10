@@ -541,3 +541,10 @@ Um conserto depois do catálogo, achado pelo workflow do site, que vinha falhand
 - O teste da biblioteca de tempo estava quebrado desde que tirei "o segundo de x": eu tinha trocado a conta por um nome "O segundo", que é ordinal, e o programa passou a dar erro de sintaxe. A regravação das expectativas guardou o erro como saída esperada, e nada acusou. O programa foi corrigido, e o teste dos programas certos agora recusa qualquer um que dê erro, com ou sem regravação.
 - O teste do playground roda o corpus no navegador, onde não há disco nem relógio do sistema: os programas das bibliotecas de arquivos e de tempo ficam de fora dele.
 
+Dia 10/11/2026, as lacunas que o fecho do catálogo deixou anotadas, registro do Claude:
+
+Três das "decisões para revisar" eram coisas que faltavam, e foram feitas:
+- O valor de reserva na leitura de uma chave: "o item "Ana" das idades, ou 0" dá uma cópia do valor, ou o de reserva se a chave falta. Dentro dos argumentos de uma chamada o ", ou" continua sendo da chamada (ali, parênteses). Em lista, nome ou campo é o L0379. De passagem, o valor de reserva que é um nome deixou de contar como entregue para o verificador de posse: os back-ends já o copiavam.
+- "folhear o arquivo", na biblioteca de arquivos, dá as linhas, uma por item.
+- "talvez" passa a quebrar o ciclo de um registro, como a lista: "o próximo, talvez um elo" é a corrente que acaba em "nada". A explicação do L0302 dizia o contrário, e foi reescrita.
+

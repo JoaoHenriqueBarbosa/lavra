@@ -3,4 +3,4 @@ Erro de tipo [L0302]: "nó" contém a si mesmo e teria tamanho infinito.
   |
 1 | Um nó é um registro de:
   | ^^^^^
-  = dica: Uma lista guarda os itens por fora: "uma lista de nós" cabe. Ou guarde o que identifica o outro, como o nome.
+  = dica: Uma lista guarda os itens por fora ("uma lista de nós"), e "talvez" também ("talvez um nó").

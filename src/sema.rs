@@ -466,8 +466,9 @@ impl Env<'_> {
                     span,
                 )
                 .hint(format!(
-                    "Uma lista guarda os itens por fora: \"uma lista de {}\" cabe. Ou guarde o que identifica o outro, como o nome.",
-                    morphology::pluralize(word)
+                    "Uma lista guarda os itens por fora (\"uma lista de {}\"), e \"talvez\" também (\"talvez {} {word}\").",
+                    morphology::pluralize(word),
+                    morphology::indefinite_article(gender, Number::Singular)
                 )),
             );
         }
@@ -593,7 +594,14 @@ impl Env<'_> {
                 stack.pop();
                 Ty::List(Box::new(item))
             }
-            ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_in_record(inner, span, stack))),
+            // O "talvez" também guarda por fora (o valor presente fica numa caixa), e é ele
+            // que deixa escrever a lista encadeada: "o próximo, talvez um nó".
+            ast::TypeExpr::Maybe(inner) => {
+                stack.push(LIST);
+                let item = self.type_in_record(inner, span, stack);
+                stack.pop();
+                Ty::Maybe(Box::new(item))
+            }
             // O conjunto e o mapa também guardam por fora, mas as chaves são valores simples.
             ast::TypeExpr::Set(_) | ast::TypeExpr::Map(..) | ast::TypeExpr::Verb(..) => match self.type_expr(t, span) {
                 Ok(ty) => ty,
@@ -2849,6 +2857,26 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 };
                 (hir::ExprKind::Nothing, ty)
             }
+            // "o item "Ana" das idades, ou 0": a chave que falta dá o valor de reserva.
+            ExprKind::OrElse { value, fallback } if matches!(value.kind, ExprKind::Place(_)) => {
+                let ExprKind::Place(p) = &value.kind else { unreachable!() };
+                let (place, _) = self.place_read(p)?;
+                if !matches!(place.proj.last(), Some(hir::PlaceProj::Key(..))) {
+                    return err(Diagnostic::new(
+                        L0379,
+                        format!(
+                            "Aqui nada pode faltar: o valor de reserva é para a chave de um mapa, e este valor é {}.",
+                            place.ty.describe()
+                        ),
+                        e.span,
+                    )
+                    .hint("Numa lista, a posição que não existe é falha de execução: confira antes com \"o tamanho de\"."));
+                }
+                let ty = place.ty.clone();
+                let ast::Fallback::Value(v) = fallback else { unreachable!("o parser só põe valor de reserva num item") };
+                let fb = self.expr(v, Some(&ty))?;
+                (hir::ExprKind::KeyOr { place, fallback: Box::new(fb) }, ty)
+            }
             ExprKind::OrElse { value, fallback } => {
                 self.handled = true;
                 let call = self.expr(value, None);
@@ -3422,6 +3450,10 @@ fn resolve_expr(e: &mut hir::Expr, s: &[(Option<Ty>, Span)]) {
             if let Some(i) = index {
                 resolve_expr(i, s);
             }
+        }
+        KeyOr { place, fallback } => {
+            resolve_place(place, s);
+            resolve_expr(fallback, s);
         }
         Invoke { verb, args } => {
             resolve_expr(verb, s);

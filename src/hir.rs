@@ -285,6 +285,12 @@ pub enum ExprKind {
         callee: Callee,
         args: Vec<Arg>,
     },
+    /// "o item "Ana" das idades, ou 0": uma cópia do valor da chave, ou o valor de reserva
+    /// se o mapa não tem a chave. O lugar termina na chave.
+    KeyOr {
+        place: Place,
+        fallback: Box<Expr>,
+    },
     /// Um verbo do programa como valor ("com dobrar").
     FuncRef(FuncId),
     /// "invocar a ação com 2 e 3": a chamada de um verbo guardado.

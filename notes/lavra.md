@@ -82,7 +82,10 @@ Para cada nome das idades: ...          passa pelas chaves, em ordem
   tipos com ordem (L0367); o valor de um mapa é de qualquer tipo, até outra coleção.
 - A ordem é a dos valores (ou das chaves), não a de chegada: a escrita e o "Para cada" saem
   sempre iguais. Conjunto se escreve `{Ana; Bia}`, e mapa, `{Ana: 30; Bia: 25}`.
-- Ler a chave que o mapa não tem é falha de execução (L0919); "vira" a põe no mapa. O que o
+- Ler a chave que o mapa não tem é falha de execução (L0919); "vira" a põe no mapa. Com o
+  valor de reserva não há falha: `o item "Ana" das idades, ou 0` dá uma cópia do valor da
+  chave, ou 0 se ela falta (dentro dos argumentos de uma chamada, entre parênteses, porque
+  ali o ", ou" é da chamada). Só a chave de mapa aceita reserva (L0379). O que o
   conjunto ou o mapa perde e não estava lá não faz falta.
 - Não têm posição: "a primeira de", "o item 2 de" e "Tomo" são da lista (L0368). O mapa
   começa sempre vazio. `o tamanho de` e `for vazio` valem para os dois.
@@ -110,7 +113,8 @@ os campos. Campo no plural com um valor só vira coleção de um item.
 Registro que contém a si mesmo é erro (tamanho infinito), a não ser dentro de uma lista, que
 guarda os itens por fora: `as subpastas, uma lista de pastas` é campo de uma pasta, e é assim
 que se fazem árvores. O mesmo vale para a enumeração (`uma adição, com as parcelas, uma lista
-de expressões`) e para os ciclos entre dois tipos. "talvez" não quebra o ciclo. A escrita de um registro sai
+de expressões`) e para os ciclos entre dois tipos. "talvez" também guarda por fora, e é ele
+que dá a corrente que acaba em "nada": `o próximo, talvez um elo`. A escrita de um registro sai
 por extenso: `uma conta com o titular Ana, o saldo 150 e as movimentações [100; 50]`.
 
 ## Enumerações e "Conforme"
@@ -406,7 +410,8 @@ Para começar:
   mesmos sorteios, no interpretador e no nativo). Como nas operações da língua, a conta infixa
   encostada pede parênteses: `(o seno de x) mais 1`; `o pi` não pede.
 - A biblioteca de arquivos ("Uso a biblioteca de arquivos.") diz o arquivo pelo caminho, um
-  texto: "carregar o arquivo" (o conteúdo, como texto), "gravar o texto no arquivo" (no lugar
+  texto: "carregar o arquivo" (o conteúdo, como texto), "folhear o arquivo" (as linhas, uma por
+  item), "gravar o texto no arquivo" (no lugar
   do que havia), "acrescentar o texto ao arquivo" (no fim), "apagar o arquivo", "o arquivo
   existir" (condição: `Se o caminho existir:`) e "listar a pasta" (os nomes, em ordem). O que
   depende do disco pode falhar ("salvo engano"), e a chamada diz o que fazer:

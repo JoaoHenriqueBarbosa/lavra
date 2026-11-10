@@ -681,6 +681,17 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     (a, b) => arith(*op, a, b, &e.ty, e.span)?,
                 }
             }
+            ExprKind::KeyOr { place, fallback } => {
+                let Some(PlaceProj::Key(k, _)) = place.proj.last() else { unreachable!("o lugar termina na chave") };
+                let key = self.expr(k)?;
+                let steps = self.path_of(place, place.proj.len() - 1)?;
+                let t = self.target(place.root, steps);
+                let Value::Map(entries) = walk(self.base(&t), &t.steps) else { unreachable!() };
+                match entries.binary_search_by(|(x, _)| key_cmp(x, &key)) {
+                    Ok(i) => entries[i].1.clone(),
+                    Err(_) => self.expr(fallback)?,
+                }
+            }
             ExprKind::FuncRef(f) => Value::Func(*f),
             ExprKind::Invoke { verb, args } => {
                 let Value::Func(func) = self.expr(verb)? else { unreachable!("só se invoca um verbo") };

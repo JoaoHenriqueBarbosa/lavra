@@ -232,6 +232,7 @@ codes! {
     L0376 = Type, "Verbo que não serve onde se espera outro";
     L0377 = Type, "\"invocar\" o que não é verbo, ou com os valores errados";
     L0378 = Type, "Verbo escrito ou comparado";
+    L0379 = Type, "Valor de reserva onde nada pode faltar";
 
     // Posse e empréstimo.
     L0400 = Ownership, "Valor usado depois de entregue";

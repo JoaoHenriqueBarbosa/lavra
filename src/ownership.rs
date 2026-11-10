@@ -173,6 +173,12 @@ enum Use {
     Read,
 }
 
+/// O valor de reserva que é um nome entra como cópia (os back-ends o copiam): o nome
+/// continua dono do valor dele, e só se lê.
+fn fallback_use(fallback: &hir::Expr, use_: Use) -> Use {
+    if matches!(fallback.kind, ExprKind::Read(_)) { Use::Read } else { use_ }
+}
+
 fn join_st(a: &St, b: &St) -> St {
     match (a, b) {
         (St::Live, St::Live) => St::Live,
@@ -609,6 +615,12 @@ impl<'a> Checker<'a> {
                 self.expr(a, Use::Read, &How::Other)?
             }
             ExprKind::Map | ExprKind::FuncRef(_) => {}
+            // O valor da chave sai como cópia; o de reserva, como quem o usa pedir.
+            ExprKind::KeyOr { place, fallback } => {
+                self.place_exprs(place)?;
+                self.usable(place, e.span)?;
+                self.expr(fallback, fallback_use(fallback, use_), how)?;
+            }
             // O verbo guardado recebe com posse ou emprestado, como diz o tipo dele.
             ExprKind::Invoke { verb, args } => {
                 self.expr(verb, Use::Read, &How::Other)?;
@@ -621,7 +633,7 @@ impl<'a> Checker<'a> {
             ExprKind::Try { call, fallback } => {
                 self.expr(call, Use::Move, how)?;
                 if let Some(f) = fallback {
-                    self.expr(f, use_, how)?;
+                    self.expr(f, fallback_use(f, use_), how)?;
                 }
             }
             ExprKind::Concat(v) => {

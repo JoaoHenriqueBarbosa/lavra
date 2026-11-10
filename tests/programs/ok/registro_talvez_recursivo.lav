@@ -1,0 +1,17 @@
+Nota: "talvez" quebra o ciclo de um registro: a corrente que acaba em "nada".
+
+Um elo é um registro de:
+    o valor, um inteiro;
+    o próximo, talvez um elo.
+
+Para somar a corrente, sendo a corrente um elo emprestado, devolvendo um inteiro:
+    O seguinte é uma cópia do próximo da corrente.
+    Se houver seguinte: devolvo o valor da corrente mais o resultado de somar o seguinte.
+    Devolvo o valor da corrente.
+
+Para começar:
+    O fim é um elo com o valor 3 e o próximo nada.
+    O meio é um elo com o valor 2 e o próximo o fim.
+    A ponta é um elo com o valor 1 e o próximo o meio.
+    Escrevo o resultado de somar a ponta.
+    Escrevo a ponta.

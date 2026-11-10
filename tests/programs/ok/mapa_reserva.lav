@@ -1,0 +1,25 @@
+Nota: o valor de reserva na leitura de uma chave: "o item K do mapa, ou V".
+
+Para contar as palavras, sendo as palavras uma lista de textos emprestada, devolvendo um mapa de textos para inteiros:
+    As contagens, um mapa de textos para inteiros, começam vazias.
+    Para cada palavra das palavras:
+        O item a palavra das contagens vira (o item a palavra das contagens, ou 0) mais 1.
+    Devolvo as contagens.
+
+Para começar:
+    As palavras são "a", "lavra", "a", "dos", "a".
+    As contagens são o resultado de contar as palavras.
+    Escrevo as contagens.
+    Escrevo o item "lavra" das contagens, ou 0.
+    Escrevo o item "dias" das contagens, ou 0.
+    Os apelidos, um mapa de textos para textos, começam vazios.
+    O item "Ana" dos apelidos vira "Aninha".
+    O padrão é "sem apelido".
+    O achado é o item "Ana" dos apelidos, ou o padrão.
+    O perdido é o item "Bia" dos apelidos, ou o padrão.
+    Escrevo o achado seguido de " e " seguido do perdido.
+    Escrevo o padrão.
+    As turmas, um mapa de inteiros para listas de textos, são vazias.
+    As vazias, uma lista de textos, são vazias.
+    As alunas são o item 1 das turmas, ou as vazias.
+    Escrevo o tamanho das alunas.
