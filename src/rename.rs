@@ -552,6 +552,10 @@ impl Plan<'_> {
                 Form::Verb(VerbForm::Infinitive) => infinitive.clone(),
                 Form::Verb(VerbForm::Subjunctive(n)) => morphology::future_subjunctive(&infinitive, n),
                 Form::Verb(VerbForm::PersonalInfinitive(n)) => morphology::personal_infinitive(&infinitive, n),
+                Form::Verb(VerbForm::ThirdPerson(n)) => match morphology::third_person(&infinitive, n) {
+                    Some(form) => form,
+                    None => continue,
+                },
                 _ => continue,
             };
             self.put(r.span, &text);

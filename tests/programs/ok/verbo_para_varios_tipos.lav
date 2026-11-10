@@ -1,0 +1,55 @@
+Nota: o mesmo verbo para vários tipos, e o tipo qualquer que pede o verbo ("que se descreve").
+
+Uma conta é um registro de:
+    o titular, um texto;
+    o saldo, um inteiro.
+
+Uma forma é uma destas:
+    um quadrado, com o lado, um inteiro;
+    um ponto.
+
+Para descrever a conta, sendo a conta emprestada, devolvendo um texto:
+    Devolvo "conta de " seguido do titular da conta.
+
+Para descrever a forma, sendo a forma emprestada, devolvendo um texto:
+    Conforme a forma:
+        Sendo um quadrado: devolvo "quadrado de lado " seguido do lado.
+        Sendo um ponto: devolvo "ponto".
+
+Para descrever o número, sendo o número um inteiro, devolvendo um texto:
+    Devolvo "o número " seguido do número.
+
+Para pesar a conta, sendo a conta emprestada, devolvendo um inteiro:
+    Devolvo o saldo da conta.
+
+Para pesar a forma, sendo a forma emprestada, devolvendo um inteiro:
+    Conforme a forma:
+        Sendo um quadrado: devolvo o lado vezes o lado.
+        Sendo um ponto: devolvo 0.
+
+Para anunciar a coisa, sendo a coisa uma coisa qualquer que se descreve emprestada:
+    Escrevo "eis: " seguido do resultado de descrever a coisa.
+
+Para catalogar as coisas, sendo as coisas uma lista de coisas quaisquer que se descrevem e que se pesam emprestada,
+        devolvendo um inteiro:
+    O total começa em 0.
+    Para cada coisa das coisas:
+        Anuncio a coisa.
+        O total cresce o resultado de pesar a coisa.
+    Devolvo o total.
+
+Para começar:
+    A poupança é uma conta com o titular "Ana" e o saldo 10.
+    A figura é um quadrado com o lado 3.
+    Escrevo o resultado de descrever a poupança.
+    Escrevo o resultado de descrever a figura.
+    Escrevo o resultado de descrever 7.
+    Anuncio a poupança.
+    Anuncio a figura.
+    Anuncio 42.
+    As contas começam com a poupança.
+    As contas ganham uma conta com o titular "Bia" e o saldo 5.
+    Escrevo o resultado de catalogar as contas.
+    As formas começam com a figura.
+    As formas ganham um ponto.
+    Escrevo o resultado de catalogar as formas.

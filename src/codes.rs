@@ -224,6 +224,10 @@ codes! {
     L0369 = Type, "Referência a um valor sem lugar";
     L0370 = Type, "Tipo qualquer que a chamada não decide";
     L0371 = Type, "Tipo sem ordem onde se pede ordenável";
+    L0372 = Scope, "Verbo de \"que se ...\" que o programa não define";
+    L0373 = Type, "O mesmo verbo com formas que não combinam";
+    L0374 = Type, "Verbo que não está definido para o tipo";
+    L0375 = Type, "Tipo qualquer usado num verbo que o cabeçalho não pediu";
 
     // Posse e empréstimo.
     L0400 = Ownership, "Valor usado depois de entregue";

@@ -306,6 +306,16 @@ chegar começar do lugar certo.
   compilador e sai com a nota dos tipos). Nenhum back-end vê `Ty::Param`. O que a função
   pode fazer com um valor de tipo qualquer é o que a sema já deixa fazer com um tipo que
   ela não conhece: igualdade, escrita, cópia, posse.
+- **O verbo como interface (feito).** O parser deixa passar duas assinaturas com o mesmo
+  verbo e a mesma regência quando os tipos dos parâmetros diferem; `Env::check_overloads`
+  confere que o resto combina (L0373). `FnCx::dispatch` escolhe a definição pelos tipos dos
+  argumentos (que ele confere uma vez, sem tipo esperado). "que se descreve" entra em
+  `TypeParam::verbs` e, resolvido para o infinitivo, em `ParamTy::verbs`: o argumento de
+  tipo qualquer com o verbo pedido adia a escolha (a instância, com o tipo de verdade,
+  escolhe), e a chamada da genérica confere `Env::implements` para cada verbo pedido. Nas
+  tabelas, as definições do mesmo verbo são uma função só (as outras são menções do
+  cabeçalho), e o "que se descreve" é um uso na forma `VerbForm::ThirdPerson`: é o que deixa
+  o rename levar tudo junto.
 - **Genéricos e traits (o roteiro de antes).** Um `Ty::Param` existe só entre a sema e a monomorfização: a sema
   confere a função genérica uma vez e, a cada chamada, deduz os tipos dos parâmetros e pede
   a instância concreta, que vira um `hir::Func` comum. Nenhum back-end vê variável de tipo.

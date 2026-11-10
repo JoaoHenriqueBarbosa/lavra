@@ -1,0 +1,36 @@
+Erro de tipo [L0373]: "descrever" já está definido com essa regência para outro tipo, e as duas definições não combinam: elas devolvem tipos diferentes.
+ --> tests/programs/err/verbo_para_varios_tipos.lav:7:6
+  |
+4 | Para descrever a conta, sendo a conta emprestada, devolvendo um texto:
+  |      --------- a outra definição
+...
+7 | Para descrever o número, sendo o número um inteiro, devolvendo um inteiro:
+  |      ^^^^^^^^^
+  = dica: O mesmo verbo para outro tipo muda só o tipo do parâmetro: o que devolve, o "salvo engano" e os particípios são os mesmos.
+Erro de tipo [L0375]: Aqui "coisa" é um tipo qualquer, e nem todo tipo se mede.
+  --> tests/programs/err/verbo_para_varios_tipos.lav:20:34
+   |
+20 |     Escrevo o resultado de medir a coisa.
+   |                                  ^^^^^^^
+   = dica: Peça o verbo no cabeçalho: "coisa qualquer que se mede".
+Erro de escopo [L0372]: Nenhum verbo do programa se conjuga "inventa".
+  --> tests/programs/err/verbo_para_varios_tipos.lav:22:65
+   |
+22 | Para sussurrar a coisa, sendo a coisa uma coisa qualquer que se inventa emprestada:
+   |                                                                 ^^^^^^^
+   = dica: Depois de "que se" vem um verbo que o programa define, na 3ª pessoa: "que se descreve", com "Para descrever ...".
+Erro de tipo [L0374]: "medir" não está definido para um real.
+  --> tests/programs/err/verbo_para_varios_tipos.lav:26:13
+   |
+26 |     Escrevo o resultado de medir 2,5.
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^
+   = dica: Está definido para: uma conta; um texto.
+Erro de tipo [L0374]: "anunciar" pede um tipo que se mede, e "medir" não está definido para um inteiro.
+  --> tests/programs/err/verbo_para_varios_tipos.lav:28:5
+   |
+16 | Para anunciar a coisa, sendo a coisa uma coisa qualquer que se mede emprestada:
+   |                                          ----- pedido aqui
+...
+28 |     Anuncio 7.
+   |     ^^^^^^^^^
+   = dica: Defina "Para medir ..." com um parâmetro que seja um inteiro.

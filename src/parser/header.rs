@@ -267,7 +267,10 @@ impl Parser {
         let same: Vec<usize> = self.vocab.by_infinitive.get(&sig.infinitive).cloned().unwrap_or_default();
         for other in same {
             let o = &self.prog.sigs[other];
-            if o.slots == sig.slots {
+            // A mesma regência com outros tipos é o mesmo verbo para outro tipo ("descrever a
+            // conta", "descrever a forma"); com os mesmos tipos, é a função repetida.
+            let types = |s: &FuncSig| s.params.iter().map(|p| format!("{:?}", p.ty.ty)).collect::<Vec<_>>();
+            if o.slots == sig.slots && types(o) == types(sig) {
                 return err(Diagnostic::new(
                     L0155,
                     format!("\"{}\" já foi definido com essa mesma regência.", sig.infinitive),
@@ -867,9 +870,24 @@ impl Parser {
         } else {
             false
         };
+        // "que se descreve": o tipo tem de ter o verbo. Vários, com "e que se ...".
+        let mut verbs = Vec::new();
+        while self.at_word("que") && self.peek_at(1).is_word("se") {
+            self.bump();
+            self.bump();
+            let v = self.bump();
+            let Some(form) = v.word().map(str::to_string) else {
+                return Err(self.expected("o verbo que o tipo tem de ter (\"que se descreve\")"));
+            };
+            verbs.push((form, v.span));
+            if self.at_word("e") && self.peek_at(1).is_word("que") && self.peek_at(2).is_word("se") {
+                self.bump();
+            }
+        }
         let gender = match known {
             Some(i) => {
                 self.type_params[i].ordered |= ordered;
+                self.type_params[i].verbs.extend(verbs);
                 self.type_params[i].gender
             }
             None => {
@@ -888,7 +906,7 @@ impl Parser {
                     Some(a) => a.gender,
                     None => morphology::gender_by_ending(&name).unwrap_or(Gender::Masculine),
                 };
-                self.type_params.push(TypeParam { name: name.clone(), gender, ordered, span: t.span });
+                self.type_params.push(TypeParam { name: name.clone(), gender, ordered, verbs, span: t.span });
                 gender
             }
         };

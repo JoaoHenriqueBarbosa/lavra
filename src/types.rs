@@ -135,6 +135,8 @@ pub struct ParamTy {
     pub feminine: bool,
     /// "qualquer ordenável": compara-se com "maior que".
     pub ordered: bool,
+    /// "que se descreve": os verbos (no infinitivo) que o tipo tem de ter.
+    pub verbs: Vec<String>,
 }
 
 impl PartialEq for ParamTy {

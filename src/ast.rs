@@ -135,6 +135,8 @@ pub struct TypeParam {
     pub gender: Gender,
     /// "qualquer ordenável": o tipo tem de ter ordem.
     pub ordered: bool,
+    /// "que se descreve": os verbos que o tipo tem de ter, como foram escritos (3ª pessoa).
+    pub verbs: Vec<(String, Span)>,
     pub span: Span,
 }
 
@@ -453,6 +455,8 @@ pub enum VerbForm {
     PersonalInfinitive(Number),
     /// Predicado adjetivo, concordando com o sujeito: "Se o pino for aceso".
     Adjective(Gender, Number),
+    /// O verbo que um tipo qualquer tem de ter: "que se descreve", "que se descrevem".
+    ThirdPerson(Number),
 }
 
 #[derive(Clone, Debug)]

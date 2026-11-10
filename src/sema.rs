@@ -26,6 +26,7 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
         sig_types: Vec::new(),
         sig_params: Vec::new(),
         current: Vec::new(),
+        bound_mentions: Vec::new(),
         instances: HashMap::new(),
         pending: Vec::new(),
         next_func: 0,
@@ -67,6 +68,7 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
                     name: p.name.clone(),
                     feminine: p.gender == Gender::Feminine,
                     ordered: p.ordered,
+                    verbs: p.verbs.iter().filter_map(|(form, at)| env.bound_verb(form, *at)).collect(),
                 })
             })
             .collect();
@@ -76,6 +78,7 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
         let ret = sig.ret.as_ref().map(|t| env.type_or_error(t)).unwrap_or(Ty::Unit);
         env.sig_types.push(SigTypes { params, ret });
     }
+    env.check_overloads();
     env.program_defs();
 
     // Nível de fora: só constantes.
@@ -250,6 +253,8 @@ struct Env<'a> {
     /// O que cada tipo qualquer vale no cabeçalho ou no corpo que se confere agora: o
     /// próprio tipo qualquer, ou o tipo de quem chamou (na instância).
     current: Vec<(String, Ty)>,
+    /// Os verbos pedidos a tipos quaisquer, para virarem uso da função nas tabelas.
+    bound_mentions: Vec<(String, Span, Number)>,
     /// As instâncias já pedidas: (assinatura, tipos) → a função.
     instances: HashMap<(usize, String), usize>,
     /// As instâncias por conferir, na ordem das funções que elas vão ser.
@@ -386,6 +391,22 @@ impl Env<'_> {
                 self.sig_defs.push(usize::MAX);
                 continue;
             }
+            // O mesmo verbo para outro tipo é a mesma função para o editor: uma definição
+            // só, com este cabeçalho como mais uma menção (o rename leva todos juntos).
+            let first = prog.sigs[..si].iter().position(|o| {
+                o.builtin.is_none()
+                    && sig.builtin.is_none()
+                    && !o.is_main
+                    && o.infinitive == sig.infinitive
+                    && o.slots == sig.slots
+                    && o.kind == sig.kind
+            });
+            if let Some(first) = first.filter(|f| self.sig_defs[*f] != usize::MAX) {
+                let d = self.sig_defs[first];
+                self.sig_defs.push(d);
+                self.use_def_as(d, sig.name_span, Use::Mention, Form::Verb(ast::VerbForm::Infinitive));
+                continue;
+            }
             let ret = self.sig_types.get(si).map(|t| t.ret.clone());
             let name = match &sig.kind {
                 ast::SigKind::Adjective { adjective, .. } => adjective.clone(),
@@ -409,6 +430,14 @@ impl Env<'_> {
             if let (ast::SigKind::Adjective { span, .. }, Some(subject)) = (&sig.kind, sig.params.first()) {
                 let form = Form::Verb(ast::VerbForm::Adjective(subject.name.gender(), subject.name.number()));
                 self.use_def_as(d, *span, Use::Mention, form);
+            }
+        }
+        // O verbo pedido a um tipo qualquer ("que se descreve") cita a função.
+        for (infinitive, at, number) in std::mem::take(&mut self.bound_mentions) {
+            if let Some(si) = prog.sigs.iter().position(|s| s.builtin.is_none() && s.infinitive == infinitive)
+                && self.sig_defs[si] != usize::MAX
+            {
+                self.use_def_as(self.sig_defs[si], at, Use::Call, Form::Verb(ast::VerbForm::ThirdPerson(number)));
             }
         }
         // Cada citação de um tipo do programa pelo nome.
@@ -614,6 +643,84 @@ impl Env<'_> {
             ast::TypeExpr::Error => Ty::Error,
             other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(L0304, "Tipo ainda não suportado.", span)))?,
         })
+    }
+
+    /// O infinitivo do verbo escrito num "que se descreve" (3ª pessoa), entre os do programa.
+    fn bound_verb(&mut self, form: &str, at: Span) -> Option<String> {
+        let number = |s: &ast::FuncSig| {
+            [Number::Singular, Number::Plural].into_iter().find(|n| morphology::third_person(&s.infinitive, *n).as_deref() == Some(form))
+        };
+        let found = self.prog.sigs.iter().find(|s| s.builtin.is_none() && number(s).is_some());
+        if let Some(s) = found {
+            self.bound_mentions.push((s.infinitive.clone(), at, number(s).unwrap_or(Number::Singular)));
+        }
+        if found.is_none() {
+            self.diags.push(Diagnostic::new(L0372, format!("Nenhum verbo do programa se conjuga \"{form}\"."), at).hint(
+                "Depois de \"que se\" vem um verbo que o programa define, na 3ª pessoa: \"que se descreve\", com \"Para descrever ...\".",
+            ));
+        }
+        found.map(|s| s.infinitive.clone())
+    }
+
+    /// O verbo `verb` está definido para o tipo: há uma definição com um parâmetro dele (ou,
+    /// num tipo qualquer, o cabeçalho pediu o verbo).
+    fn implements(&self, verb: &str, t: &Ty) -> bool {
+        match t {
+            Ty::Error => true,
+            Ty::Param(p) => p.verbs.iter().any(|v| v == verb),
+            _ => self.prog.sigs.iter().enumerate().any(|(i, s)| {
+                s.builtin.is_none() && s.infinitive == verb && self.sig_types.get(i).is_some_and(|st| st.params.iter().any(|p| p == t))
+            }),
+        }
+    }
+
+    /// As definições do mesmo verbo com a mesma regência têm de combinar no resto: é o mesmo
+    /// verbo para outro tipo, e quem chama por um tipo qualquer não sabe qual vai rodar.
+    fn check_overloads(&mut self) {
+        let prog = self.prog;
+        for (i, s) in prog.sigs.iter().enumerate() {
+            if s.builtin.is_some() || s.broken {
+                continue;
+            }
+            let Some((j, o)) = prog.sigs[..i]
+                .iter()
+                .enumerate()
+                .find(|(_, o)| o.builtin.is_none() && !o.broken && o.infinitive == s.infinitive && o.slots == s.slots && o.kind == s.kind)
+            else {
+                continue;
+            };
+            // O valor simples se copia: recebê-lo ou pedi-lo emprestado dá no mesmo.
+            let modes = |x: usize| {
+                prog.sigs[x]
+                    .params
+                    .iter()
+                    .zip(&self.sig_types[x].params)
+                    .map(|(p, t)| if t.is_copy() && p.mode == ParamMode::Owned { ParamMode::Borrowed } else { p.mode })
+                    .collect::<Vec<_>>()
+            };
+            let why = if !s.type_params.is_empty() || !o.type_params.is_empty() {
+                Some("uma delas é genérica, e a genérica já vale para todo tipo")
+            } else if self.sig_types[i].ret != self.sig_types[j].ret {
+                Some("elas devolvem tipos diferentes")
+            } else if s.fallible != o.fallible {
+                Some("só uma delas pode falhar (\"salvo engano\")")
+            } else if modes(i) != modes(j) {
+                Some("uma recebe emprestado ou confiado o que a outra recebe de outro jeito")
+            } else {
+                None
+            };
+            if let Some(why) = why {
+                self.diags.push(
+                    Diagnostic::new(
+                        L0373,
+                        format!("\"{}\" já está definido com essa regência para outro tipo, e as duas definições não combinam: {why}.", s.infinitive),
+                        s.name_span,
+                    )
+                    .label(o.name_span, "a outra definição")
+                    .hint("O mesmo verbo para outro tipo muda só o tipo do parâmetro: o que devolve, o \"salvo engano\" e os particípios são os mesmos."),
+                );
+            }
+        }
     }
 
     /// Passa a conferir a assinatura `sig`: os tipos quaisquer dela valem `targs` (numa
@@ -1905,11 +2012,13 @@ impl<'e, 'a> FnCx<'e, 'a> {
     }
 
     fn call(&mut self, call: &ast::Call) -> Result<hir::Expr> {
-        let sig = &self.env.prog.sigs[call.sig];
         let handled = std::mem::take(&mut self.handled);
+        // O mesmo verbo pode estar definido para vários tipos: os argumentos escolhem.
+        let (chosen, deferred) = self.dispatch(call)?;
+        let sig = &self.env.prog.sigs[chosen];
         let callee = match sig.builtin {
             Some(b) => hir::Callee::Builtin(b),
-            None => hir::Callee::User(self.env.sig_func[call.sig]),
+            None => hir::Callee::User(self.env.sig_func[chosen]),
         };
         if sig.broken {
             return Ok(hir::Expr { kind: hir::ExprKind::Call { callee, args: Vec::new() }, ty: Ty::Error, span: call.span });
@@ -1924,13 +2033,13 @@ impl<'e, 'a> FnCx<'e, 'a> {
             .label(sig.name_span, "definido com \"salvo engano\"")
             .hint(format!("Passe a falha adiante (\"{usage}, ou desisto.\") ou dê um valor de reserva (\"..., ou 0\").")));
         }
-        let d = self.env.sig_defs[call.sig];
+        let d = self.env.sig_defs[chosen];
         self.env.use_def_as(d, call.verb_span, Use::Call, Form::Verb(call.form));
         for (a, p) in call.args.iter().zip(&sig.params) {
             self.env.tables.args.push((a.span, p.mode));
         }
-        let types = self.env.sig_types[call.sig].params.clone();
-        let mut ret = self.env.sig_types[call.sig].ret.clone();
+        let types = self.env.sig_types[chosen].params.clone();
+        let mut ret = self.env.sig_types[chosen].ret.clone();
         let mut callee = callee;
         let generic = !sig.type_params.is_empty();
         // Na função genérica, os tipos quaisquer se decidem pelos argumentos desta chamada.
@@ -1957,17 +2066,17 @@ impl<'e, 'a> FnCx<'e, 'a> {
             };
             // O parâmetro de tipo qualquer não diz o que esperar: o argumento é quem decide.
             let value = if generic && ty.has_param() {
-                let known = ty.with_params(call.sig, &bound.iter().map(|b| b.clone().unwrap_or(Ty::Error)).collect::<Vec<_>>());
-                let hint = (!known.has_param() && bound_all(ty, call.sig, &bound)).then_some(&known);
+                let known = ty.with_params(chosen, &bound.iter().map(|b| b.clone().unwrap_or(Ty::Error)).collect::<Vec<_>>());
+                let hint = (!known.has_param() && bound_all(ty, chosen, &bound)).then_some(&known);
                 let v = self.expr(a, hint)?;
                 let found = self.resolve_ty(&v.ty);
-                if !found.is_error() && !bind(ty, &found, call.sig, &mut bound) {
+                if !found.is_error() && !bind(ty, &found, chosen, &mut bound) {
                     let shown = ty.with_params(
-                        call.sig,
+                        chosen,
                         &bound
                             .iter()
                             .enumerate()
-                            .map(|(i, b)| b.clone().unwrap_or_else(|| Ty::Param(self.env.sig_params[call.sig][i].clone())))
+                            .map(|(i, b)| b.clone().unwrap_or_else(|| Ty::Param(self.env.sig_params[chosen][i].clone())))
                             .collect::<Vec<_>>(),
                     );
                     return err(Diagnostic::new(
@@ -1976,6 +2085,20 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         a.span,
                     )
                     .label(p.name.span, "o parâmetro"));
+                }
+                v
+            } else if deferred {
+                // O argumento de tipo qualquer que pediu este verbo: a definição certa é a
+                // da instância, e aqui o tipo dele vale por qualquer uma.
+                let v = self.expr(a, None)?;
+                let found = self.resolve_ty(&v.ty);
+                let asked = matches!(&found, Ty::Param(q) if q.verbs.contains(&sig.infinitive));
+                if !asked && !found.is_error() && !self.unify(ty, &found) {
+                    return err(Diagnostic::new(
+                        L0354,
+                        format!("Esperava {}, mas este valor é {}.", ty.describe(), found.describe()),
+                        a.span,
+                    ));
                 }
                 v
             } else {
@@ -2009,16 +2132,83 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     )
                     .label(param.span, "ordenável aqui"));
                 }
+                for verb in &self.env.sig_params[chosen][i].verbs {
+                    if !self.env.implements(verb, &t) {
+                        return err(Diagnostic::new(
+                            L0374,
+                            format!(
+                                "\"{}\" pede um tipo que se {}, e \"{verb}\" não está definido para {}.",
+                                sig.infinitive,
+                                morphology::third_person(verb, Number::Singular).unwrap_or_default(),
+                                t.describe()
+                            ),
+                            call.span,
+                        )
+                        .label(param.span, "pedido aqui")
+                        .hint(format!("Defina \"Para {verb} ...\" com um parâmetro que seja {}.", t.describe())));
+                    }
+                }
                 targs.push(t);
             }
-            ret = ret.with_params(call.sig, &targs);
+            ret = ret.with_params(chosen, &targs);
             // Com os tipos de quem chama, a função que roda é a instância. Dentro de outra
             // genérica ainda conferida com tipos quaisquer, a instância fica para as dela.
             if !targs.iter().any(Ty::has_param) {
-                callee = hir::Callee::User(self.env.instance(call.sig, targs));
+                callee = hir::Callee::User(self.env.instance(chosen, targs));
             }
         }
         Ok(hir::Expr { kind: hir::ExprKind::Call { callee, args }, ty: ret, span: call.span })
+    }
+
+    /// A definição que a chamada usa, quando o verbo (com a mesma regência) está definido
+    /// para vários tipos: a que casa com os tipos dos argumentos. O argumento de tipo
+    /// qualquer que pediu o verbo ("que se descreve") fica para a instância decidir.
+    fn dispatch(&mut self, call: &ast::Call) -> Result<(usize, bool)> {
+        let prog = self.env.prog;
+        let sig = &prog.sigs[call.sig];
+        if sig.builtin.is_some() || sig.broken || sig.is_main {
+            return Ok((call.sig, false));
+        }
+        let group: Vec<usize> = prog
+            .sigs
+            .iter()
+            .enumerate()
+            .filter(|(_, s)| {
+                s.builtin.is_none() && !s.broken && s.infinitive == sig.infinitive && s.slots == sig.slots && s.kind == sig.kind
+            })
+            .map(|(i, _)| i)
+            .collect();
+        let asked = self.env.current.iter().any(|(_, t)| matches!(t, Ty::Param(p) if p.verbs.contains(&sig.infinitive)));
+        if group.len() < 2 && !asked {
+            return Ok((call.sig, false));
+        }
+        let mut types = Vec::new();
+        for a in &call.args {
+            let v = self.expr(a, None)?;
+            types.push(self.resolve_ty(&v.ty));
+        }
+        let fits = |c: usize| self.env.sig_types[c].params.iter().zip(&types).all(|(p, t)| t.is_error() || p == t);
+        if let Some(&c) = group.iter().find(|&&c| fits(c)) {
+            return Ok((c, false));
+        }
+        // O tipo qualquer: com o verbo pedido no cabeçalho, a instância decide; sem, é erro.
+        for (t, a) in types.iter().zip(&call.args) {
+            let Ty::Param(p) = t else { continue };
+            if p.verbs.contains(&sig.infinitive) {
+                return Ok((group[0], true));
+            }
+            let third = morphology::third_person(&sig.infinitive, Number::Singular).unwrap_or_default();
+            return err(Diagnostic::new(L0375, format!("Aqui \"{}\" é um tipo qualquer, e nem todo tipo se {third}.", p.name), a.span)
+                .hint(format!("Peça o verbo no cabeçalho: \"{} qualquer que se {third}\".", p.name)));
+        }
+        if group.len() < 2 {
+            return Ok((call.sig, false));
+        }
+        let got: Vec<String> = types.iter().map(Ty::describe).collect();
+        let defined: Vec<String> =
+            group.iter().map(|&c| join_e(&self.env.sig_types[c].params.iter().map(Ty::describe).collect::<Vec<_>>())).collect();
+        err(Diagnostic::new(L0374, format!("\"{}\" não está definido para {}.", sig.infinitive, join_e(&got)), call.span)
+            .hint(format!("Está definido para: {}.", defined.join("; "))))
     }
 
     fn cond(&mut self, c: &ast::Cond) -> Result<hir::Cond> {

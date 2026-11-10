@@ -511,3 +511,15 @@ Item 11, genéricos e traits, primeira parte (genéricos):
 
 Decisão para revisar: o tipo qualquer não tem marca própria além da palavra "qualquer" na primeira vez; depois é um nome como o de um registro. Se um registro tiver o mesmo nome, o registro vence.
 
+Item 11, segunda parte (traits):
+- Na Lavra a regência já é a assinatura; a interface ficou sendo o verbo. Um verbo, com a mesma regência, pode ser definido para vários tipos ("Para descrever a conta, ..." e "Para descrever a forma, ..."), e a chamada usa a definição do tipo do argumento.
+- O tipo qualquer pede o verbo com uma oração: "sendo a coisa uma coisa qualquer que se descreve". Dentro da função, o verbo vale para o valor de tipo qualquer; fora, só se chama a função com tipos que se descrevem.
+- Não há nome de interface nem declaração separada: quem tem o verbo, tem. Vários verbos se pedem com "que se descreve e que se pesa".
+- Quatro códigos: L0372 (verbo de "que se" que não existe), L0373 (definições que não combinam), L0374 (verbo não definido para o tipo) e L0375 (tipo qualquer usado sem pedir o verbo).
+- No editor, as definições do mesmo verbo são uma função só, e o rename leva todas e os "que se ..." juntos.
+
+Decisões para revisar:
+- Sem interface com nome ("um descritível é quem sabe descrever"). O verbo como interface é mais curto e mais Lavra, mas não agrupa vários verbos sob um nome; se fizer falta, um nome para um conjunto de "que se" é uma extensão pequena.
+- As definições do mesmo verbo têm de devolver o mesmo tipo. Um verbo que devolve o próprio tipo qualquer ("copiar a coisa, devolvendo uma coisa") não cabe nessa regra.
+- A escolha é pelos tipos escritos: o inteiro escrito num argumento não vira real para casar com uma definição.
+

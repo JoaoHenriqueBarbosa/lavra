@@ -200,6 +200,22 @@ Para escolher entre o esquerdo e o direito, sendo ambos elementos quaisquer orde
   escrever e juntar com "seguido de", guardar em lista. Conta, campo e posição não valem.
 - "qualquer **ordenável**" pede um tipo com ordem (número, caractere ou texto) e libera
   "maior que" e "menor que"; chamar com outro tipo é erro (L0371).
+- **O mesmo verbo para vários tipos.** Um verbo, com a mesma regência, pode ser definido
+  mais de uma vez, para tipos diferentes ("Para descrever a conta, ..." e "Para descrever a
+  forma, ..."); a chamada usa a definição do tipo do argumento, e o tipo que não tem
+  definição é erro (L0374). As definições só diferem no tipo do parâmetro: devolvem o mesmo
+  tipo, concordam no "salvo engano" e nos particípios (L0373).
+- **"que se VERBO"** pede o verbo ao tipo qualquer, e é o que faz as vezes de interface:
+
+  ```
+  Para anunciar a coisa, sendo a coisa uma coisa qualquer que se descreve emprestada:
+      Escrevo "eis: " seguido do resultado de descrever a coisa.
+  ```
+
+  A função vale para todo tipo que se descreve, e dentro dela o verbo se usa no valor de tipo
+  qualquer (sem o pedido, L0375). O verbo vem na 3ª pessoa, concordando ("coisas quaisquer
+  que se descrevem"), e vários se encadeiam com "e que se". Chamar com um tipo que não tem o
+  verbo é erro na chamada (L0374).
 - A função genérica é conferida uma vez, como foi escrita; o programa compilado leva uma
   cópia dela para cada combinação de tipos que usa.
 
