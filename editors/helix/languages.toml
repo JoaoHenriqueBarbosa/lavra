@@ -51,4 +51,4 @@ inlayHints = { types = true, modes = true, result = true }
 
 [[grammar]]
 name = "lavra"
-source = { git = "https://github.com/JoaoHenriqueBarbosa/lavra", rev = "28a64f53237c9b9a9a9475530ac3bd2812b4e047", subpath = "editors/tree-sitter-lavra" }
+source = { git = "https://github.com/JoaoHenriqueBarbosa/lavra", rev = "958f4ed938f1f0aeeab8572394b7a0d6862ad443", subpath = "editors/tree-sitter-lavra" }
