@@ -355,21 +355,57 @@ pub struct Clause {
 
 #[derive(Clone, Debug)]
 pub enum ClauseKind {
-    Decl { name: NameRef, ann: Option<TypeAnn>, mutable: bool, init: Init },
-    Assign { place: Place, value: Init },
-    Grow { place: Place, value: Expr },
-    Shrink { place: Place, value: Expr },
-    Push { place: Place, value: Expr },
-    Remove { place: Place, which: Which },
-    Write { parts: Vec<Expr>, newline: bool },
-    ReadInto { place: Place },
-    ReadValue { ty: TypeAnn },
+    Decl {
+        name: NameRef,
+        ann: Option<TypeAnn>,
+        mutable: bool,
+        init: Init,
+        /// "A favorita é a primeira das contas, emprestada.": o nome não fica dono; é uma
+        /// referência ao lugar, de leitura (emprestada) ou para mudar (confiada).
+        reference: Option<(ParamMode, Span)>,
+    },
+    Assign {
+        place: Place,
+        value: Init,
+    },
+    Grow {
+        place: Place,
+        value: Expr,
+    },
+    Shrink {
+        place: Place,
+        value: Expr,
+    },
+    Push {
+        place: Place,
+        value: Expr,
+    },
+    Remove {
+        place: Place,
+        which: Which,
+    },
+    Write {
+        parts: Vec<Expr>,
+        newline: bool,
+    },
+    ReadInto {
+        place: Place,
+    },
+    ReadValue {
+        ty: TypeAnn,
+    },
     Return(Option<Expr>),
     Desist(Expr),
     Break,
     Continue,
-    Take { place: Place, which: Which },
-    Call { call: Call, handler: Option<Fallback> },
+    Take {
+        place: Place,
+        which: Which,
+    },
+    Call {
+        call: Call,
+        handler: Option<Fallback>,
+    },
 }
 
 #[derive(Clone, Debug)]

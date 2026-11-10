@@ -300,7 +300,15 @@ chegar começar do lugar certo.
   a instância concreta, que vira um `hir::Func` comum. Nenhum back-end vê variável de tipo.
   É a hora de internar os tipos (um id por tipo no lugar de `Box` e `Arc`), porque as
   instâncias multiplicam as comparações.
-- **Referências guardadas.** O empréstimo de hoje é lexical: o `Loan` de um "Para cada" ou
+- **Referências guardadas (feito).** ", emprestada" e ", confiada" numa declaração dão
+  `StmtKind::LetRef { var, place, mode }`. A posse abre um `LoanKind::Binding` sobre a raiz
+  do lugar, que vale até o fim do bloco (`Checker::block` corta os empréstimos na saída); o
+  confiado é exclusivo, e `usable` recusa até a leitura do dono. O local é uma vista
+  (`borrowed`), então não se entrega nem se libera. No interpretador a referência é um
+  `Value::Ref` com o endereço do lugar (a de leitura de um valor simples é o próprio valor);
+  no nativo, a confiada é um local `Storage::Ref` com o endereço (`place_addr`), como o
+  parâmetro confiado, e a de leitura é o valor lido sem posse.
+- **Referências guardadas (o roteiro de antes).** O empréstimo de hoje é lexical: o `Loan` de um "Para cada" ou
   de um "Conforme" vale do começo ao fim do bloco (`LoanKind::Loop` e `LoanKind::Match`).
   Uma referência guardada num nome entra como `LoanKind::Binding`, do mesmo jeito: vale da
   declaração até o fim do bloco em que o nome vive, e enquanto isso o dono não muda nem se

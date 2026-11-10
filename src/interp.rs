@@ -441,6 +441,16 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     _ => unreachable!(),
                 }
             }
+            StmtKind::LetRef { var, place, mode } => {
+                // A referência é o endereço do lugar; a de leitura de um valor simples é o valor.
+                let v = if *mode == ParamMode::Lent || !place.ty.is_copy() {
+                    let steps = self.path(place)?;
+                    Value::Ref(Box::new(self.target(place.root, steps)))
+                } else {
+                    self.read_place(place)?
+                };
+                self.frame_mut()[*var] = v;
+            }
             StmtKind::Discard { place, key } => {
                 let key = self.expr(key)?;
                 let steps = self.path(place)?;

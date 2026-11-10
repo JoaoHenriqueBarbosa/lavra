@@ -123,6 +123,8 @@ codes! {
     L0176 = Type, "Particípio sem tipo, com nome que não é de tipo";
     L0177 = Syntax, "Arquivo pedido fora da forma";
     L0178 = Scope, "Arquivo que não se conseguiu trazer";
+    L0179 = Agreement, "Particípio da referência que não concorda com o nome";
+    L0180 = Syntax, "Referência declarada com \"começa\"";
 
     // Parser: registros, enumerações, lugares e operações por extenso.
     L0200 = Syntax, "Faltou o nome do tipo";
@@ -217,6 +219,7 @@ codes! {
     L0366 = Type, "\"Conforme\" sobre valores sem \"Senão\"";
     L0367 = Type, "Chave de mapa ou valor de conjunto de tipo sem ordem";
     L0368 = Type, "Operação que o conjunto ou o mapa não tem";
+    L0369 = Type, "Referência a um valor sem lugar";
 
     // Posse e empréstimo.
     L0400 = Ownership, "Valor usado depois de entregue";
@@ -226,6 +229,7 @@ codes! {
     L0404 = Ownership, "Vista emprestada entregue";
     L0405 = Borrow, "Valor entregue enquanto está emprestado";
     L0406 = Borrow, "O mesmo valor duas vezes na mesma chamada";
+    L0407 = Borrow, "Valor usado enquanto está confiado a outro nome";
 
     // Avisos.
     L0500 = Warning, "\"começa\" que nunca muda";

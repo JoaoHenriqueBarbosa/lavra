@@ -645,7 +645,7 @@ impl Parser {
     }
 
     /// O particípio de modo que vem agora, em qualquer flexão: "emprestado" ou "confiado".
-    fn participle_at(&self) -> Option<(&'static str, ParamMode, Gender, Number)> {
+    pub(super) fn participle_at(&self) -> Option<(&'static str, ParamMode, Gender, Number)> {
         let w = self.peek().word()?;
         [("emprestado", ParamMode::Borrowed), ("confiado", ParamMode::Lent)]
             .into_iter()

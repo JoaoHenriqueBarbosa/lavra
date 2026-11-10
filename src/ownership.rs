@@ -141,22 +141,12 @@ struct Loan {
 enum LoanKind {
     Loop,
     Match,
-}
-
-impl LoanKind {
-    fn to_whom(self) -> &'static str {
-        match self {
-            LoanKind::Loop => "ao laço \"Para cada\"",
-            LoanKind::Match => "ao \"Conforme\"",
-        }
-    }
-
-    fn hint(self) -> &'static str {
-        match self {
-            LoanKind::Loop => "Junte as mudanças numa lista nova e aplique depois do laço.",
-            LoanKind::Match => "Mude o valor depois do \"Conforme\", fora dos casos.",
-        }
-    }
+    /// Uma referência guardada num nome ("..., emprestada" ou "..., confiada"): vale até o
+    /// fim do bloco em que o nome vive. A confiada é exclusiva: o dono nem se lê.
+    Binding {
+        name: hir::LocalId,
+        exclusive: bool,
+    },
 }
 
 struct Checker<'a> {
@@ -233,13 +223,36 @@ impl<'a> Checker<'a> {
     }
 
     fn block(&mut self, b: &hir::Block) -> Result<()> {
+        // As referências guardadas neste bloco acabam com ele.
+        let mark = self.loans.len();
         for s in &b.0 {
             if self.state.is_none() {
                 break;
             }
             self.stmt(s)?;
         }
+        self.loans.truncate(mark);
         Ok(())
+    }
+
+    /// A quem o valor está emprestado, como a mensagem o diz.
+    fn to_whom(&self, kind: LoanKind) -> String {
+        match kind {
+            LoanKind::Loop => "ao laço \"Para cada\"".to_string(),
+            LoanKind::Match => "ao \"Conforme\"".to_string(),
+            LoanKind::Binding { name, .. } => format!("a \"{}\"", self.func.locals[name].display),
+        }
+    }
+
+    fn loan_hint(&self, kind: LoanKind) -> String {
+        match kind {
+            LoanKind::Loop => "Junte as mudanças numa lista nova e aplique depois do laço.".to_string(),
+            LoanKind::Match => "Mude o valor depois do \"Conforme\", fora dos casos.".to_string(),
+            LoanKind::Binding { name, .. } => {
+                let n = &self.func.locals[name].display;
+                format!("A referência vale até o fim do bloco em que \"{n}\" foi declarado: mude por ela, ou feche o bloco antes.")
+            }
+        }
     }
 
     fn stmt(&mut self, s: &Stmt) -> Result<()> {
@@ -273,6 +286,19 @@ impl<'a> Checker<'a> {
             StmtKind::Discard { place, key } => {
                 self.expr(key, Use::Read, &How::Other)?;
                 self.mutate(place, "perder itens")?;
+            }
+            StmtKind::LetRef { var, place, mode } => {
+                self.place_exprs(place)?;
+                self.usable(place, place.span)?;
+                let exclusive = *mode == ParamMode::Lent;
+                // Confiar é mudar: o que já está emprestado não se confia a mais ninguém.
+                if exclusive {
+                    self.mutate(place, "confiar")?;
+                }
+                self.loans.push(Loan { var: place.root, span: s.span, what: LoanKind::Binding { name: *var, exclusive } });
+                if let Some(st) = &mut self.state {
+                    st[*var] = St::Live;
+                }
             }
             StmtKind::Write { value, .. } => self.expr(value, Use::Read, &How::Other)?,
             StmtKind::Error => {}
@@ -440,6 +466,27 @@ impl<'a> Checker<'a> {
 
     /// Confere que o lugar ainda tem dono, e acusa o uso depois de entregue.
     fn usable(&mut self, place: &Place, span: Span) -> Result<()> {
+        // O que está confiado a outro nome é dele enquanto ele durar: nem se lê.
+        if let Some(l) = self.loans.iter().find(|l| l.var == place.root && matches!(l.what, LoanKind::Binding { exclusive: true, .. })) {
+            let name = self.display(place.root);
+            let are = morphology::third_person("estar", gn(&name).1).unwrap_or_default();
+            let to = self.to_whom(l.what);
+            let hint = self.loan_hint(l.what);
+            let line = self.lines.line(l.span);
+            let d = Diagnostic::new(
+                L0407,
+                format!(
+                    "{} {are} {} {to} desde a linha {line} e não se {} enquanto a referência durar.",
+                    capitalize(&name),
+                    agree("confiado", &name),
+                    verb3("usar", &name)
+                ),
+                span,
+            )
+            .label(l.span, format!("{} {to} aqui", agree("confiado", &name)))
+            .hint(hint);
+            return self.fail(d);
+        }
         let Var::Local(id) = place.root else { return Ok(()) };
         let Some(st) = &self.state else { return Ok(()) };
         let (m, maybe) = match &st[id] {
@@ -532,13 +579,13 @@ impl<'a> Checker<'a> {
                         "{} {are} {} {} da linha {} e não {verb} enquanto ele durar.",
                         capitalize(&name),
                         agree("emprestado", &name),
-                        l.what.to_whom(),
+                        self.to_whom(l.what),
                         self.lines.line(l.span)
                     ),
                     place.span,
                 )
-                .label(l.span, format!("{} {} aqui", agree("emprestado", &name), l.what.to_whom()))
-                .hint(l.what.hint()),
+                .label(l.span, format!("{} {} aqui", agree("emprestado", &name), self.to_whom(l.what)))
+                .hint(self.loan_hint(l.what)),
             );
         }
         Ok(())
@@ -671,12 +718,12 @@ impl<'a> Checker<'a> {
                         "{} {are} {} {} e não se {} enquanto ele durar.",
                         capitalize(&name),
                         agree("emprestado", &name),
-                        l.what.to_whom(),
+                        self.to_whom(l.what),
                         verb3("entregar", &name)
                     ),
                     span,
                 )
-                .label(l.span, format!("{} {} aqui", agree("emprestado", &name), l.what.to_whom())),
+                .label(l.span, format!("{} {} aqui", agree("emprestado", &name), self.to_whom(l.what))),
             );
         }
         if let (Var::Local(id), Some(st)) = (p.root, &mut self.state) {

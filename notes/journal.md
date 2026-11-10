@@ -493,3 +493,13 @@ Decisões para revisar:
 - O rename não atravessa arquivos: ele recusa o nome que vem de fora.
 - O editor lê os arquivos trazidos do disco; o que está aberto sem salvar não entra na análise de quem o traz.
 
+Item 10, referências guardadas:
+- O particípio do cabeçalho passou a valer também na declaração: "A favorita é a primeira das contas, confiada." faz de "a favorita" uma referência à conta que está na lista, e o que muda por ela muda lá. ", emprestada" é a de leitura, sem cópia.
+- O modelo é o do roteiro: lexical. A referência vale da declaração até o fim do bloco, e enquanto isso o dono emprestado não muda nem se entrega, e o confiado nem se lê (código novo, L0407).
+- A referência não sai do bloco: não se entrega, não se devolve, não entra em registro nem em lista. É o que dispensa tempos de vida anotados.
+- Quatro códigos: L0179 (concordância do particípio com o nome), L0180 (referência com "começa"), L0369 (valor sem lugar) e L0407.
+
+Decisões para revisar:
+- A vida da referência é o bloco, e não o último uso (o Rust de hoje usa o último uso). Fica mais simples de explicar, e às vezes obriga a abrir um bloco só para a referência acabar. Não há um jeito de abrir um bloco sem condição; hoje se usa um "Se" que sempre vale.
+- O particípio concorda com o nome declarado ("a favorita ..., confiada"), enquanto no cabeçalho ele concorda com o tipo. É a concordância natural de cada frase, mas são duas regras.
+

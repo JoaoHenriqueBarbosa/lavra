@@ -207,8 +207,22 @@ Erro de posse: A carta foi entregue a "arquivar" na linha 6 e não volta.
 - Na mesma chamada, o que vai confiado não vai de novo nem emprestado (**Erro de
   empréstimo**). Durante "Para cada", a coleção está emprestada ao laço e não muda; o item
   e o valor de "Se houver" são vistas emprestadas e não se entregam.
-- Modelo atual: posse, empréstimo de parâmetro e vistas (sem referências guardadas em
-  variáveis, sem tempos de vida anotados). Referências de primeira classe ficam para depois.
+- **Referência guardada num nome**: o mesmo particípio do cabeçalho, depois do valor de uma
+  declaração, faz do nome uma referência ao lugar, em vez de dono de uma cópia:
+
+  ```
+  A favorita é a primeira das contas, confiada.     muda o que está lá (&mut)
+  O saldo da favorita cresce 5.                      a conta da lista mudou
+  O nome é o titular da conta, emprestado.           só lê (&)
+  ```
+
+  O particípio concorda com o nome declarado (L0179), a declaração é sempre com "é" (L0180),
+  e o valor tem de ser um lugar: um nome, um campo ou um item (L0369). A referência vale da
+  declaração até o fim do bloco em que o nome vive (não até o último uso): enquanto isso, o
+  dono emprestado não muda nem se entrega (L0401, L0405), e o confiado nem se lê (L0407). A
+  referência não se entrega, não se devolve e não se guarda em registro ou lista.
+- Modelo atual: posse, empréstimo de parâmetro, vistas e referências guardadas num nome,
+  todas com escopo de bloco (sem tempos de vida anotados, sem referência dentro de valor).
 
 ## Ausência e falha
 

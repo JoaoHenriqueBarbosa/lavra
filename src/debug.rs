@@ -393,7 +393,7 @@ impl Debugger {
                 .enumerate()
                 .filter(|(id, l)| !l.hidden && !func.params.iter().any(|(p, _)| p == id) && f.values[*id] != Value::Unit)
                 .filter(|(_, l)| self.visible(l, at))
-                .map(|(id, l)| (l.display.clone(), &f.values[id], &l.ty))
+                .map(|(id, l)| (l.display.clone(), view.value(&f.values[id]), &l.ty))
                 .collect(),
             (ScopeKind::Constants, _) => view
                 .prog

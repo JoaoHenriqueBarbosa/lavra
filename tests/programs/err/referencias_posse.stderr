@@ -1,0 +1,39 @@
+Erro de empréstimo [L0401]: As notas estão emprestadas a "a vista" da linha 7 e não ganham itens enquanto ele durar.
+ --> tests/programs/err/referencias_posse.lav:8:9
+  |
+7 |         A vista é as notas, emprestada.
+  |         ------------------------------ emprestadas a "a vista" aqui
+8 |         As notas ganham 10.
+  |         ^^^^^^^^
+  = dica: A referência vale até o fim do bloco em que "a vista" foi declarado: mude por ela, ou feche o bloco antes.
+Erro de empréstimo [L0405]: As notas estão emprestadas a "a vista" e não se entregam enquanto ele durar.
+ --> tests/programs/err/referencias_posse.lav:9:17
+  |
+7 |         A vista é as notas, emprestada.
+  |         ------------------------------ emprestadas a "a vista" aqui
+...
+9 |         Arquivo as notas.
+  |                 ^^^^^^^^
+Erro de posse [L0404]: A vista aqui é só uma vista emprestada do valor de fora e não se entrega.
+  --> tests/programs/err/referencias_posse.lav:10:17
+   |
+10 |         Arquivo a vista.
+   |                 ^^^^^^^
+   = dica: Entregue uma cópia: "uma cópia da vista".
+Erro de empréstimo [L0407]: As notas estão confiadas a "a dona" desde a linha 13 e não se usam enquanto a referência durar.
+  --> tests/programs/err/referencias_posse.lav:14:17
+   |
+13 |         A dona é as notas, confiada.
+   |         --------------------------- confiadas a "a dona" aqui
+14 |         Escrevo as notas.
+   |                 ^^^^^^^^
+   = dica: A referência vale até o fim do bloco em que "a dona" foi declarado: mude por ela, ou feche o bloco antes.
+Erro de empréstimo [L0407]: As notas estão confiadas a "a dona" desde a linha 13 e não se usam enquanto a referência durar.
+  --> tests/programs/err/referencias_posse.lav:15:19
+   |
+13 |         A dona é as notas, confiada.
+   |         --------------------------- confiadas a "a dona" aqui
+...
+15 |         A outra é as notas, emprestada.
+   |                   ^^^^^^^^
+   = dica: A referência vale até o fim do bloco em que "a dona" foi declarado: mude por ela, ou feche o bloco antes.

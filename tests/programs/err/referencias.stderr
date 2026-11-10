@@ -1,0 +1,34 @@
+Erro de mutabilidade [L0342]: A vista é fixa por definição e não ganha.
+ --> tests/programs/err/referencias.lav:5:9
+  |
+4 |         A vista é as notas, emprestada.
+  |         ------- definido com "é"
+5 |         A vista ganha 1.
+  |         ^^^^^^^
+  = dica: Quem varia se declara com "começa em": "A vista começa em ...".
+Erro de mutabilidade [L0342]: As fixas são fixas por definição e não se confiam.
+ --> tests/programs/err/referencias.lav:8:20
+  |
+6 |     As fixas são 1, 2.
+  |     -------- definido com "são"
+...
+8 |         A mexida é as fixas, confiada.
+  |                    ^^^^^^^^
+  = dica: Quem varia se declara com "começam em": "As fixas começam em ...".
+Erro de tipo [L0369]: Só se empresta o que tem lugar: um nome, um campo ou um item. Este valor é feito na hora e não tem dono.
+  --> tests/programs/err/referencias.lav:10:31
+   |
+10 |     A soma-pronta é 2 mais 2, emprestada.
+   |                               ^^^^^^^^^^
+   = dica: Sem o particípio, o nome fica dono do valor.
+Erro de concordância [L0179]: O particípio concorda com o nome (a torta): "emprestada", não "emprestado".
+  --> tests/programs/err/referencias.lav:11:25
+   |
+11 |     A torta é as notas, emprestado.
+   |                         ^^^^^^^^^^
+Erro de sintaxe [L0180]: Uma referência não troca de dono no caminho: declara-se com "é".
+  --> tests/programs/err/referencias.lav:12:31
+   |
+12 |     A movel começa nas notas, confiada.
+   |                               ^^^^^^^^
+   = dica: Escreva "A favorita é a primeira das contas, confiada."; o valor muda por ela, e ela continua a mesma.

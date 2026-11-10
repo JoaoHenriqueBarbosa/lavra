@@ -160,6 +160,13 @@ pub enum StmtKind {
         source: Expr,
         body: Block,
     },
+    /// "A favorita é a primeira das contas, confiada.": o nome é uma referência ao lugar,
+    /// e o lugar fica emprestado até o fim do bloco em que o nome vive.
+    LetRef {
+        var: LocalId,
+        place: Place,
+        mode: ParamMode,
+    },
     /// "Os vistos perdem "Ana".": tira o valor do conjunto, ou a chave do mapa. O que não
     /// está lá não faz falta.
     Discard {

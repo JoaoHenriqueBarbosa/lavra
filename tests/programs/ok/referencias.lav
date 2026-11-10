@@ -1,0 +1,46 @@
+Nota: referências guardadas num nome: ", emprestada" lê o lugar, ", confiada" muda por ele.
+
+Uma conta é um registro de:
+    o titular, um texto;
+    o saldo, um inteiro;
+    as movimentações, uma lista de inteiros.
+
+Para depositar a quantia na conta, sendo a quantia um inteiro e a conta confiada:
+    O saldo da conta cresce a quantia.
+    As movimentações da conta ganham a quantia.
+
+Para começar:
+    As contas começam com uma conta com o titular "Ana", o saldo 10 e as movimentações 10.
+    As contas ganham uma conta com o titular "Bia", o saldo 20 e as movimentações 20.
+
+    Se o tamanho das contas for maior que 1:
+        A favorita é a última das contas, confiada.
+        O saldo da favorita cresce 5.
+        Deposito 100 na favorita.
+        O titular da favorita vira "Beatriz".
+        Escrevo a favorita.
+    Se o tamanho das contas for maior que 1:
+        Os lances são as movimentações da primeira das contas, confiados.
+        Os lances ganham 1.
+        Escrevo os lances.
+    Escrevo as contas.
+
+    Para cada i de 1 até 2:
+        A vista é o item i das contas, emprestada.
+        O nome é o titular da vista, emprestado.
+        Escrevo o nome seguido de " tem " seguido do saldo da vista.
+
+    O total começa em 0.
+    Repito 3 vezes:
+        O acumulado é o total, confiado.
+        O acumulado cresce 7.
+    Escrevo o total.
+
+    A primeira-conta começa em uma conta com o titular "Caio", o saldo 1 e as movimentações 1.
+    Se o saldo da primeira-conta for igual a 1:
+        A inteira é a primeira-conta, confiada.
+        A inteira vira uma conta com o titular "Dora", o saldo 2 e as movimentações 2.
+        O saldo da inteira cresce 40.
+    Escrevo a primeira-conta.
+    As contas ganham a primeira-conta.
+    Escrevo o tamanho das contas.

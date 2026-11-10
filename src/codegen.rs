@@ -405,6 +405,9 @@ impl<'a, 'b> Fx<'a, 'b> {
         // Locais confiados a outra função precisam de endereço.
         let mut addressed = vec![false; f.locals.len()];
         mark_addressed(&f.body, &mut addressed);
+        // Os nomes que são referência confiada a um lugar guardam o endereço dele.
+        let mut confided = vec![false; f.locals.len()];
+        mark_confided(&f.body, &mut confided);
         let entry = b.create_block();
         b.append_block_params_for_function_params(entry);
         b.switch_to_block(entry);
@@ -412,7 +415,7 @@ impl<'a, 'b> Fx<'a, 'b> {
         let mut owned = Vec::new();
         for (i, l) in f.locals.iter().enumerate() {
             let param = f.params.iter().find(|(id, _)| *id == i).map(|(_, m)| *m);
-            let st = if param == Some(ParamMode::Lent) {
+            let st = if param == Some(ParamMode::Lent) || confided[i] {
                 Storage::Ref(b.declare_var(PTR))
             } else if addressed[i] {
                 Storage::Slot(b.create_sized_stack_slot(StackSlotData::new(StackSlotKind::ExplicitSlot, 8, 3)))
@@ -432,6 +435,13 @@ impl<'a, 'b> Fx<'a, 'b> {
             } else {
                 None
             });
+        }
+        // A referência confiada começa sem endereço (o Cranelift exige definição).
+        for (i, st) in storage.iter().enumerate() {
+            if let (Storage::Ref(v), true) = (st, confided[i]) {
+                let z = b.ins().iconst(PTR, 0);
+                b.def_var(*v, z);
+            }
         }
         // Variáveis escalares sem valor inicial recebem zero (o Cranelift exige definição).
         for (i, l) in f.locals.iter().enumerate() {
@@ -852,6 +862,17 @@ impl<'a, 'b> Fx<'a, 'b> {
                         let s = self.slot_of(v, &t);
                         self.b.ins().store(flags(), s, addr, 0);
                     }
+                }
+            }
+            StmtKind::LetRef { var, place, mode } => {
+                if *mode == ParamMode::Lent {
+                    let addr = self.place_addr(place);
+                    let Storage::Ref(v) = self.storage[*var] else { unreachable!("referência confiada sem endereço") };
+                    self.b.def_var(v, addr);
+                } else {
+                    // A de leitura é uma vista: o valor (ou o ponteiro), sem posse.
+                    let v = self.read_place(place);
+                    self.write_local(*var, v);
                 }
             }
             StmtKind::Assign { place, value } => {
@@ -1909,6 +1930,12 @@ fn stmt_addressed(s: &Stmt, out: &mut [bool]) {
         StmtKind::Let { value, .. } | StmtKind::Write { value, .. } | StmtKind::Expr(value) | StmtKind::Desist(value) => {
             expr_addressed(value, out)
         }
+        // O nome confiado inteiro (sem campo nem item) precisa de endereço.
+        StmtKind::LetRef { place, mode: ParamMode::Lent, .. } => {
+            if let (Var::Local(id), true) = (place.root, place.proj.is_empty()) {
+                out[id] = true;
+            }
+        }
         StmtKind::Assign { value, .. }
         | StmtKind::Compound { value, .. }
         | StmtKind::Push { value, .. }
@@ -1937,6 +1964,32 @@ fn stmt_addressed(s: &Stmt, out: &mut [bool]) {
         }
         StmtKind::Return(Some(v)) => expr_addressed(v, out),
         _ => {}
+    }
+}
+
+/// Marca os locais declarados como referência confiada ("..., confiada").
+fn mark_confided(b: &hir::Block, out: &mut [bool]) {
+    for s in &b.0 {
+        match &s.kind {
+            StmtKind::LetRef { var, mode: ParamMode::Lent, .. } => out[*var] = true,
+            StmtKind::If { arms, otherwise } => {
+                arms.iter().for_each(|(_, b)| mark_confided(b, out));
+                if let Some(o) = otherwise {
+                    mark_confided(o, out);
+                }
+            }
+            StmtKind::While { body, .. }
+            | StmtKind::Repeat { body, .. }
+            | StmtKind::ForRange { body, .. }
+            | StmtKind::ForEach { body, .. } => mark_confided(body, out),
+            StmtKind::Match { arms, otherwise, .. } => {
+                arms.iter().for_each(|a| mark_confided(&a.body, out));
+                if let Some(o) = otherwise {
+                    mark_confided(o, out);
+                }
+            }
+            _ => {}
+        }
     }
 }
 

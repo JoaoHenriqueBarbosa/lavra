@@ -32,6 +32,9 @@ As versões da Lavra, a mais nova primeiro.
 - A biblioteca de arquivos ("Uso a biblioteca de arquivos."): carregar, gravar, acrescentar,
   apagar, listar e "Se o caminho existir". O que depende do disco pode falhar, e a chamada
   trata com ", ou desisto" ou ", ou VALOR".
+- Referências guardadas num nome: "A favorita é a primeira das contas, confiada." muda a conta
+  que está na lista, e ", emprestada" lê sem copiar. Valem até o fim do bloco, e o
+  verificador de posse confere o dono enquanto isso.
 - Arquivos trazidos: `Uso o arquivo "contas.lav".` traz as funções, os tipos e as constantes
   de outro arquivo Lavra. Cada arquivo pode ter o seu "Para começar" e rodar sozinho, e o
   erro de um arquivo trazido aparece nele.

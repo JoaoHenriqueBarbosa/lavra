@@ -1419,7 +1419,32 @@ impl<'e, 'a> FnCx<'e, 'a> {
     fn clause(&mut self, c: &ast::Clause, out: &mut Vec<hir::Stmt>) -> Result<()> {
         let span = c.span;
         match &c.kind {
-            ClauseKind::Decl { name, ann, mutable, init } => {
+            ClauseKind::Decl { name, init, reference: Some((mode, at)), .. } => {
+                // O nome não fica dono: é uma referência ao lugar, que fica emprestado (ou
+                // confiado) até o fim do bloco.
+                let Init::Expr(ast::Expr { kind: ExprKind::Place(p), .. }) = init else {
+                    return err(Diagnostic::new(
+                        L0369,
+                        "Só se empresta o que tem lugar: um nome, um campo ou um item. Este valor é feito na hora e não tem dono.",
+                        *at,
+                    )
+                    .hint("Sem o particípio, o nome fica dono do valor."));
+                };
+                if self.top {
+                    return Err(top_level_error(c.span));
+                }
+                let place = match mode {
+                    ParamMode::Lent => self.place_mut(p, if p.number() == Number::Plural { "se confiam" } else { "se confia" })?,
+                    _ => self.place_read(p)?.0,
+                };
+                let ty = place.ty.clone();
+                let id = self.declare(name, ty, *mode == ParamMode::Lent)?;
+                self.locals[id].local.borrowed = true;
+                self.locals[id].mutated = true;
+                out.push_at(span, hir::StmtKind::LetRef { var: id, place, mode: *mode });
+                self.result = None;
+            }
+            ClauseKind::Decl { name, ann, mutable, init, .. } => {
                 let annotated = ann.as_ref().map(|a| self.env.type_of(a)).transpose()?;
                 let plural = name.number() == Number::Plural;
                 let value = match init {
@@ -2729,6 +2754,7 @@ fn resolve_stmt(st: &mut hir::Stmt, s: &[(Option<Ty>, Span)]) {
     use hir::StmtKind::*;
     match &mut st.kind {
         Let { value, .. } | Write { value, .. } | Expr(value) => resolve_expr(value, s),
+        LetRef { place, .. } => resolve_place(place, s),
         Assign { place, value } | Compound { place, value, .. } | Push { place, value } | Discard { place, key: value } => {
             resolve_place(place, s);
             resolve_expr(value, s);

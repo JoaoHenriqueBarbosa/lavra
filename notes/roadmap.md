@@ -350,7 +350,7 @@ Cada ponto é **provado** com um uso real e pequeno, ou fica **documentado como 
 | Mapas e conjuntos **(feito)** | `KIND_*`, builtins | aditiva |
 | Registro recursivo via lista (`sema.rs:195`) **(feito)** | descritores | aditiva |
 | Módulos **(feito)** | F4, F7 | aditiva |
-| Referências guardadas | loans lexicais | aditiva; regras novas |
+| Referências guardadas **(feito)** | loans lexicais | aditiva; regras novas |
 | Genéricos, traits | monomorfização | aditiva |
 | Verbos de primeira classe | HIR, ponteiro de função | aditiva |
 | Nativo em macOS e Windows | linha de link por SO | aditiva |

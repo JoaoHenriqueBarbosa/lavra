@@ -1433,7 +1433,8 @@ impl Parser {
         Ok(match inf {
             "ser" => {
                 let init = if let Some(span) = self.empty_word(&place.root)? { Init::Empty(span) } else { self.item_list()? };
-                ClauseKind::Decl { name: place.root, ann, mutable: false, init }
+                let reference = self.reference(&place.root)?;
+                ClauseKind::Decl { name: place.root, ann, mutable: false, init, reference }
             }
             "começar" => {
                 let init = if let Some(span) = self.empty_word(&place.root)? {
@@ -1450,7 +1451,11 @@ impl Parser {
                     self.expect_word("em")?;
                     Init::Expr(self.expr()?)
                 };
-                ClauseKind::Decl { name: place.root, ann, mutable: true, init }
+                if let Some((_, span)) = self.reference(&place.root)? {
+                    return err(Diagnostic::new(L0180, "Uma referência não troca de dono no caminho: declara-se com \"é\".", span)
+                        .hint("Escreva \"A favorita é a primeira das contas, confiada.\"; o valor muda por ela, e ela continua a mesma."));
+                }
+                ClauseKind::Decl { name: place.root, ann, mutable: true, init, reference: None }
             }
             "virar" => ClauseKind::Assign { place, value: Init::Expr(self.expr()?) },
             "ganhar" => ClauseKind::Push { place, value: self.expr()? },
@@ -1459,6 +1464,30 @@ impl Parser {
             "diminuir" => ClauseKind::Shrink { place, value: self.expr()? },
             _ => unreachable!(),
         })
+    }
+
+    /// Depois do valor de uma declaração: ", emprestada" ou ", confiada" faz do nome uma
+    /// referência ao lugar. O particípio concorda com o nome.
+    fn reference(&mut self, name: &NameRef) -> Result<Option<(ParamMode, Span)>> {
+        if !self.at_punct(',') {
+            return Ok(None);
+        }
+        self.pos += 1;
+        let found = self.participle_at();
+        self.pos -= 1;
+        let Some((base, mode, g, n)) = found else { return Ok(None) };
+        self.bump();
+        let pt = self.bump();
+        if !name.is_symbol() && (g, n) != (name.gender(), name.number()) {
+            let right = morphology::inflect_adjective(base, Gender::Masculine, name.gender(), name.number());
+            return err(Diagnostic::new(
+                L0179,
+                format!("O particípio concorda com o nome ({}): \"{right}\", não \"{}\".", name.display(), pt.orig),
+                pt.span,
+            )
+            .fix(format!("Escrever \"{right}\""), pt.span, right.clone()));
+        }
+        Ok(Some((mode, pt.span)))
     }
 
     /// Aposto de tipo: "um inteiro de 32 bits", "talvez um texto".
