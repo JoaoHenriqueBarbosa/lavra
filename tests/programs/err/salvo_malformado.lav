@@ -1,0 +1,7 @@
+Para dividir a conta entre as pessoas, sendo a conta e as pessoas inteiros,
+        devolvendo um inteiro, salvo um engano:
+    Se as pessoas forem menores que 1: desisto com "ninguém para dividir".
+    Devolvo a conta dividido pelas pessoas.
+
+Para começar:
+    Escrevo o resultado de dividir 100 entre 4, ou 0.

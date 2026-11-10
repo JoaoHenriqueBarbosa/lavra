@@ -418,13 +418,12 @@ impl Parser {
                 ret = Some(TypeAnn { ty, span: s0.to(self.prev_span()) });
             } else if self.eat_word("salvo") {
                 let a = self.bump();
-                let f = self.bump();
-                if !(a.is_word("uma") && f.is_word("falha")) {
-                    return err(Diagnostic::new(L0159, "Esperava \"salvo uma falha\".", a.span.to(f.span)));
+                if !a.is_word("engano") {
+                    return err(Diagnostic::new(L0159, "Esperava \"salvo engano\".", a.span));
                 }
                 fallible = true;
             } else {
-                return Err(self.expected("\"sendo\", \"devolvendo\" ou \"salvo uma falha\""));
+                return Err(self.expected("\"sendo\", \"devolvendo\" ou \"salvo engano\""));
             }
         }
         // Na biblioteca, o cabeçalho que termina em ponto é uma operação da própria língua.

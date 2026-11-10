@@ -41,8 +41,8 @@ tomadas com o user:
   100"); o programa narra em 1ª pessoa quando age no mundo ("Escrevo", "Leio") e nos
   verbos que o usuário define.
 - **Posse e empréstimo** como modelo de memória, com particípios no cabeçalho
-  ("emprestado", "confiado"); sem null ("talvez", "nada"); falha declarada ("salvo uma
-  falha", "Desisto com", ", ou desisto").
+  ("emprestado", "confiado"); sem null ("talvez", "nada"); falha declarada ("salvo
+  engano", "Desisto com", ", ou desisto").
 
 A referência da língua está em [lavra.md](lavra.md); o compilador, em
 [compiler.md](compiler.md).

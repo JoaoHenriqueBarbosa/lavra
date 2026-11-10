@@ -1509,7 +1509,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 format!("\"{}\" pode falhar, e a chamada não diz o que fazer se falhar.", sig.infinitive),
                 call.span,
             )
-            .label(sig.name_span, "definido com \"salvo uma falha\"")
+            .label(sig.name_span, "definido com \"salvo engano\"")
             .hint(format!("Passe a falha adiante (\"{usage}, ou desisto.\") ou dê um valor de reserva (\"..., ou 0\").")));
         }
         let d = self.env.sig_defs[call.sig];
@@ -2177,11 +2177,11 @@ impl<'e, 'a> FnCx<'e, 'a> {
         if !sig.fallible {
             return err(Diagnostic::new(
                 L0357,
-                format!("\"{}\" não pode desistir: o cabeçalho não diz \"salvo uma falha\".", sig.infinitive),
+                format!("\"{}\" não pode desistir: o cabeçalho não diz \"salvo engano\".", sig.infinitive),
                 span,
             )
-            .label(sig.name_span, "definido sem \"salvo uma falha\"")
-            .hint("Acrescente \", salvo uma falha\" ao cabeçalho, ou trate a falha aqui com \", ou VALOR\"."));
+            .label(sig.name_span, "definido sem \"salvo engano\"")
+            .hint("Acrescente \", salvo engano\" ao cabeçalho, ou trate a falha aqui com \", ou VALOR\"."));
         }
         Ok(())
     }

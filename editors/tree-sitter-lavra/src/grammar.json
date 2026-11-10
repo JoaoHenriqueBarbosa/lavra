@@ -2423,7 +2423,7 @@
         },
         {
           "type": "PATTERN",
-          "value": "falha",
+          "value": "engano",
           "flags": "i"
         },
         {

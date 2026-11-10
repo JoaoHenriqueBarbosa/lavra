@@ -151,7 +151,7 @@ ${highlight(example)}
 <div class="card"><h3>A concordância é conferida</h3><p>Artigo, verbo, particípio, adjetivo e comparação: "Se as notas forem maiores que 5".</p></div>
 </div>
 <h2>Um Rust com gramática e morfologia</h2>
-<p>Posse e empréstimo ("emprestado", "confiado"), "talvez" e falha ("salvo uma falha"), registros e enumerações com "Conforme", bibliotecas ("Uso a biblioteca de textos."). O interpretador e o compilador para executável nativo dão a mesma saída, byte a byte. Os erros dizem o que a gramática espera, cada um com o código da <a href="erros.html">explicação</a>, e muitos com a correção que o compilador aplica sozinho.</p>
+<p>Posse e empréstimo ("emprestado", "confiado"), "talvez" e falha ("salvo engano"), registros e enumerações com "Conforme", bibliotecas ("Uso a biblioteca de textos."). O interpretador e o compilador para executável nativo dão a mesma saída, byte a byte. Os erros dizem o que a gramática espera, cada um com o código da <a href="erros.html">explicação</a>, e muitos com a correção que o compilador aplica sozinho.</p>
 <p>E os programas podem ser <a href="poemas/index.html">poemas</a>.</p>
 <h2>Instalar</h2>
 <p>Na página da <a href="${repo}/releases/latest">última versão</a> estão o <code>lavrac</code> pronto para Linux (x86_64, o PC comum; aarch64, os computadores ARM), que roda sem instalar mais nada, e a extensão do VS Code, que já traz o <code>lavrac</code> dentro: os erros ao digitar, o completar guiado pela gramática, o rename que acerta o artigo, o depurador. Com o Rust instalado: <code>cargo install --git ${repo} lavrac</code>.</p>`,

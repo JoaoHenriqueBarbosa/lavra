@@ -1,4 +1,4 @@
-Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto, salvo uma falha:
+Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto, salvo engano:
     Desisto com "emperrou".
 
 Para mostrar a gaveta, sendo a gaveta um inteiro:

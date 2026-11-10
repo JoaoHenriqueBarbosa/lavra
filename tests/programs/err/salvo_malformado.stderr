@@ -1,0 +1,5 @@
+Erro de sintaxe [L0159]: Esperava "salvo engano".
+ --> tests/programs/err/salvo_malformado.lav:2:38
+  |
+2 |         devolvendo um inteiro, salvo um engano:
+  |                                      ^^

@@ -61,7 +61,7 @@ CASES = {
         ("Para o valor exceder o limite, sendo ambos inteiros, devolvendo um lógico:", [("valor", "variable.parameter"), ("exceder", "entity.name.function"), ("limite", "variable.parameter"), ("ambos", "keyword.other.both"), ("inteiros", "storage.type.primitive")]),
         ("Para o terreno ser quadrado, sendo o terreno um terreno emprestado, devolvendo um lógico:", [("ser", "entity.name.function"), ("quadrado", "entity.name.function.adjective"), ("terreno", "variable.parameter")]),
         ("Para trovejar (trovejo) a nuvem, sendo a nuvem um texto:", [("trovejar", "entity.name.function"), ("trovejo", "entity.name.function")]),
-        ("Para dividir a conta entre as pessoas, sendo a conta e as pessoas inteiros, devolvendo um inteiro, salvo uma falha:", [("dividir", "entity.name.function"), ("entre", "keyword.operator.word.preposition"), ("salvo uma falha", "keyword.other.fallible")]),
+        ("Para dividir a conta entre as pessoas, sendo a conta e as pessoas inteiros, devolvendo um inteiro, salvo engano:", [("dividir", "entity.name.function"), ("entre", "keyword.operator.word.preposition"), ("salvo engano", "keyword.other.fallible")]),
         ("    Transfiro 300 da conta para a poupança.", [("Transfiro", "entity.name.function.call"), ("da", "keyword.operator.word.preposition"), ("para", "keyword.operator.word.preposition")]),
         ("    Ameaço a cidade pelo réu e deixo a cidade com o réu.", [("Ameaço", "entity.name.function.call"), ("pelo", "keyword.operator.word.preposition"), ("deixo", "entity.name.function.call")]),
         ("    A parte é o resultado de dividir a conta entre 3, ou desisto.", [("resultado", "variable.language.result"), ("dividir", "entity.name.function.call"), (", ou desisto", "keyword.control.flow")]),

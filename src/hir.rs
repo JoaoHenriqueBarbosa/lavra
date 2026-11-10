@@ -48,7 +48,7 @@ pub struct Func {
     pub locals: Vec<Local>,
     pub body: Block,
     pub ret: Ty,
-    /// "salvo uma falha": devolve, além do valor, a falha (ou nada).
+    /// "salvo engano": devolve, além do valor, a falha (ou nada).
     pub fallible: bool,
     pub span: Span,
     /// A função teve erro (dela ou do cabeçalho): a posse não a analisa, e os

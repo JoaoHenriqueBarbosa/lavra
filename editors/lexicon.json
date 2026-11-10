@@ -177,7 +177,7 @@
       "role": "flow"
     },
     {
-      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo uma falha\".",
+      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo engano\".",
       "firstPerson": "desisto",
       "infinitive": "desistir",
       "role": "flow"
@@ -318,13 +318,13 @@
       "role": "signature"
     },
     {
-      "doc": "\", salvo uma falha\": a função pode desistir, e quem chama tem de tratar.",
+      "doc": "\", salvo engano\": a função pode desistir, e quem chama tem de tratar.",
       "form": "salvo",
       "role": "signature"
     },
     {
-      "doc": "\", salvo uma falha\": a função pode desistir, e quem chama tem de tratar.",
-      "form": "falha",
+      "doc": "\", salvo engano\": a função pode desistir, e quem chama tem de tratar.",
+      "form": "engano",
       "role": "signature"
     },
     {
@@ -1342,13 +1342,13 @@
       "role": "flow"
     },
     {
-      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo uma falha\".",
+      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo engano\".",
       "form": "desisto",
       "lemma": "desistir",
       "role": "flow"
     },
     {
-      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo uma falha\".",
+      "doc": "A função falha com uma mensagem: \"Desisto com \"saldo insuficiente\".\" Só em função \"salvo engano\".",
       "form": "desistir",
       "lemma": "desistir",
       "role": "flow"
@@ -2176,15 +2176,15 @@
       "role": "signature"
     },
     {
-      "doc": "\", salvo uma falha\": a função pode desistir, e quem chama tem de tratar.",
+      "doc": "\", salvo engano\": a função pode desistir, e quem chama tem de tratar.",
       "form": "salvo",
       "lemma": "salvo",
       "role": "signature"
     },
     {
-      "doc": "\", salvo uma falha\": a função pode desistir, e quem chama tem de tratar.",
-      "form": "falha",
-      "lemma": "falha",
+      "doc": "\", salvo engano\": a função pode desistir, e quem chama tem de tratar.",
+      "form": "engano",
+      "lemma": "engano",
       "role": "signature"
     },
     {

@@ -1,13 +1,13 @@
 Nota: ausência sem null, falha sem exceção escondida.
 
 Para dividir a conta entre as pessoas, sendo a conta e as pessoas inteiros,
-        devolvendo um inteiro, salvo uma falha:
+        devolvendo um inteiro, salvo engano:
     Se as pessoas forem menores que 1:
         Desisto com "ninguém para dividir".
     Devolvo a conta dividido pelas pessoas.
 
 Para repartir a conta entre as pessoas, sendo a conta e as pessoas inteiros,
-        devolvendo um inteiro, salvo uma falha:
+        devolvendo um inteiro, salvo engano:
     A parte é o resultado de dividir a conta entre as pessoas, ou desisto.
     Devolvo a parte mais 1.
 

@@ -47,7 +47,7 @@ pub fn describe(a: &Analysis, text: &Text, def: usize) -> String {
                 s.push_str("Não devolve valor.");
             }
             if sig.is_some_and(|s| s.fallible) {
-                s.push_str(" Pode falhar (\"salvo uma falha\").");
+                s.push_str(" Pode falhar (\"salvo engano\").");
             }
             match crate::builtins::library_at(d.span.start) {
                 Some(lib) => s.push_str(&format!("\n\nVem da biblioteca de {}.", lib.name)),

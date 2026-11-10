@@ -1,4 +1,4 @@
-Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto, salvo uma falha:
+Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto, salvo engano:
     Se a gaveta for maior que 3: desisto com "não há gaveta".
     Devolvo "papéis".
 

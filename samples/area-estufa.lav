@@ -5,7 +5,7 @@ Uma estufa é um registro de:
 Para medir a área da estufa, sendo a estufa uma estufa emprestada, devolvendo um inteiro:
     Devolvo a largura da estufa vezes o comprimento da estufa.
 
-Para perguntar as dimensões da estufa, sendo a estufa uma estufa confiada, salvo uma falha:
+Para perguntar as dimensões da estufa, sendo a estufa uma estufa confiada, salvo engano:
     Escrevo "Largura da estufa (m): " e leio um inteiro, e a largura da estufa vira o resultado.
     Escrevo "Comprimento da estufa (m): " e leio um inteiro, e o comprimento da estufa vira o resultado.
     Se a largura da estufa for menor que 1: desisto com "a largura precisa ser de pelo menos 1 metro".

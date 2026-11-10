@@ -171,7 +171,7 @@ Se houver apelido: escrevo o apelido.       dentro do bloco, o valor presente
 Se não houver troco: ...
 Se o apelido for nada: ...
 
-Para dividir a conta entre as pessoas, ..., devolvendo um inteiro, salvo uma falha:
+Para dividir a conta entre as pessoas, ..., devolvendo um inteiro, salvo engano:
     Se as pessoas forem menores que 1: desisto com "ninguém para dividir".
 A parte é o resultado de dividir a conta entre as pessoas, ou desisto.   passa a falha adiante
 Escrevo o resultado de dividir 100 entre 0, ou 0.                       valor de reserva

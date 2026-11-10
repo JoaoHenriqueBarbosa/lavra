@@ -159,7 +159,7 @@ repository = {
             {"include": "#comments"},
             {"name": "keyword.other.signature.lavra", "match": words("sendo", "devolvendo")},
             {
-                "match": phrase("(?i:salvo)", "(uma)", "(falha)"),
+                "match": phrase("(?i:salvo)", "(engano)"),
                 "name": "keyword.other.fallible.lavra",
             },
             {"name": "keyword.other.both.lavra", "match": words("ambos", "ambas")},

@@ -1,8 +1,8 @@
 Erro de tipo [L0328]: "abrir" pode falhar, e a chamada não diz o que fazer se falhar.
  --> tests/programs/err/falha_sem_tratar.lav:6:13
   |
-1 | Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto, salvo uma falha:
-  |      ----- definido com "salvo uma falha"
+1 | Para abrir a gaveta, sendo a gaveta um inteiro, devolvendo um texto, salvo engano:
+  |      ----- definido com "salvo engano"
 ...
 6 |     Escrevo o resultado de abrir 5.
   |             ^^^^^^^^^^^^^^^^^^^^^^

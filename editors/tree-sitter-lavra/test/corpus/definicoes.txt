@@ -285,7 +285,7 @@ Para trovejar (trovejo) a nuvem, sendo a nuvem um texto:
 Função que pode falhar, com o corpo na mesma linha
 ================================================================================
 
-Para dividir a conta entre as pessoas, sendo ambas inteiros, devolvendo um inteiro, salvo uma falha: devolvo 1.
+Para dividir a conta entre as pessoas, sendo ambas inteiros, devolvendo um inteiro, salvo engano: devolvo 1.
 
 --------------------------------------------------------------------------------
 
@@ -307,7 +307,6 @@ Para dividir a conta entre as pessoas, sendo ambas inteiros, devolvendo um intei
     (indefinite_article)
     (primitive_type)
     (signature_keyword)
-    (indefinite_article)
     (signature_keyword)
     (sentence
       (flow_verb)

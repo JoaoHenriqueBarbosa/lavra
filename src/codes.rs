@@ -103,7 +103,7 @@ codes! {
     L0156 = Morphology, "Cabeçalho sem verbo no infinitivo";
     L0157 = Morphology, "Verbo defectivo sem 1ª pessoa";
     L0158 = Syntax, "Tipo devolvido sem artigo indefinido";
-    L0159 = Syntax, "\"salvo uma falha\" malformado";
+    L0159 = Syntax, "\"salvo engano\" malformado";
     L0160 = Scope, "Nome tipado que não está no cabeçalho";
     L0161 = Type, "Predicado que não devolve lógico";
     L0162 = Syntax, "\"Ambos\" sem dois parâmetros";

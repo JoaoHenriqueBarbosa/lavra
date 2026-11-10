@@ -26,10 +26,10 @@ Para o terreno ser quadrado, sendo o terreno um terreno emprestado, devolvendo u
 Para trovejar (trovejo) a nuvem, sendo a nuvem um texto:
 --   ^^^^^^^^ entity.name.function.lavra
 --             ^^^^^^^ entity.name.function.lavra
-Para dividir a conta entre as pessoas, sendo a conta e as pessoas inteiros, devolvendo um inteiro, salvo uma falha:
+Para dividir a conta entre as pessoas, sendo a conta e as pessoas inteiros, devolvendo um inteiro, salvo engano:
 --   ^^^^^^^ entity.name.function.lavra
 --                   ^^^^^ keyword.operator.word.preposition.lavra
---                                                                                                 ^^^^^^^^^^^^^^^ keyword.other.fallible.lavra
+--                                                                                                 ^^^^^^^^^^^^ keyword.other.fallible.lavra
     Transfiro 300 da conta para a poupança.
 --  ^^^^^^^^^ entity.name.function.call.lavra
 --                ^^ keyword.operator.word.preposition.lavra
