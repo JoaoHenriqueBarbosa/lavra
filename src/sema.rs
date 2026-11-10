@@ -2406,7 +2406,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
     }
 
     fn require_fallible(&self, span: Span) -> Result<()> {
-        let sig = &self.env.prog.sigs[self.sig.unwrap()];
+        // No nível de fora não há função para desistir.
+        let Some(sig) = self.sig.map(|s| &self.env.prog.sigs[s]) else { return Err(top_level_error(span)) };
         if !sig.fallible {
             return err(Diagnostic::new(
                 L0357,

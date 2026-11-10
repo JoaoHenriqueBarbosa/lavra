@@ -296,6 +296,14 @@ Para começar:
   (um inteiro ao acaso, limites incluídos) e "semear a semente" (a mesma semente dá sempre os
   mesmos sorteios, no interpretador e no nativo). Como nas operações da língua, a conta infixa
   encostada pede parênteses: `(o seno de x) mais 1`; `o pi` não pede.
+- A biblioteca de arquivos ("Uso a biblioteca de arquivos.") diz o arquivo pelo caminho, um
+  texto: "carregar o arquivo" (o conteúdo, como texto), "gravar o texto no arquivo" (no lugar
+  do que havia), "acrescentar o texto ao arquivo" (no fim), "apagar o arquivo", "o arquivo
+  existir" (condição: `Se o caminho existir:`) e "listar a pasta" (os nomes, em ordem). O que
+  depende do disco pode falhar ("salvo engano"), e a chamada diz o que fazer:
+  `O conteúdo é o resultado de carregar "notas.txt", ou desisto.`,
+  `Gravo o relatório em "saída.txt", ou desisto.` A falha diz o que não deu certo:
+  `Falha: Não consegui carregar "notas.txt": não existe.`
 - Operação por extenso de biblioteca só existe no programa que traz a biblioteca: sem ela,
   "o seno" é um nome qualquer. Com ela, "o pi" passa a ser a constante.
 - Verbo de biblioteca não reserva palavra em programa que não a traz. No programa que a

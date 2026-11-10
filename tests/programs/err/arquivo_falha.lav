@@ -1,0 +1,6 @@
+Uso a biblioteca de arquivos.
+
+Para começar:
+    Escrevo o resultado de carregar "/tmp/lavra-arquivo-que-nao-existe.txt", ou "sem arquivo".
+    Apago "/tmp/lavra-arquivo-que-nao-existe.txt", ou desisto.
+    Escrevo "não chega aqui".

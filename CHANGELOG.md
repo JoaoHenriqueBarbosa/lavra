@@ -29,6 +29,9 @@ As versões da Lavra, a mais nova primeiro.
 - A biblioteca de matemática ("Uso a biblioteca de matemática."): "o seno de x", "o cosseno",
   "a tangente", "o logaritmo", "a exponencial", "o piso", "o teto" e "o pi", como operações por
   extenso, e os verbos arredondar, sortear e semear.
+- A biblioteca de arquivos ("Uso a biblioteca de arquivos."): carregar, gravar, acrescentar,
+  apagar, listar e "Se o caminho existir". O que depende do disco pode falhar, e a chamada
+  trata com ", ou desisto" ou ", ou VALOR".
 
 ### Desempenho
 

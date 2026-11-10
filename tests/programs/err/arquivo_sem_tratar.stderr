@@ -1,0 +1,12 @@
+Erro de tipo [L0328]: "carregar" pode falhar, e a chamada não diz o que fazer se falhar.
+ --> tests/programs/err/arquivo_sem_tratar.lav:4:18
+  |
+4 |     O conteúdo é o resultado de carregar "notas.txt".
+  |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = dica: Passe a falha adiante ("Carrego ARQUIVO, ou desisto.") ou dê um valor de reserva ("..., ou 0").
+Erro de tipo [L0328]: "gravar" pode falhar, e a chamada não diz o que fazer se falhar.
+ --> tests/programs/err/arquivo_sem_tratar.lav:5:5
+  |
+5 |     Gravo o conteúdo em "copia.txt".
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = dica: Passe a falha adiante ("Gravo TEXTO em ARQUIVO, ou desisto.") ou dê um valor de reserva ("..., ou 0").

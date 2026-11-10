@@ -91,6 +91,11 @@ assinatura tirada dos tipos dos argumentos e do valor, e o trecho da chamada (`l
 fim para relatar uma falha. As operações recebem emprestado e devolvem um valor novo (o teste
 de `builtins.rs` confere).
 
+A operação que pode falhar ("salvo engano" no cabeçalho, `Builtin::fallible`) devolve no
+interpretador uma falha declarada, e no nativo recebe, antes do trecho, o endereço de uma
+casa onde deixa a falha (`fail_into`); a chamada lê a casa e segue como a de uma função do
+programa que pode falhar.
+
 Uma operação nova toca quatro lugares: o cabeçalho na biblioteca, a variante em `Builtin`
 (com a biblioteca, o verbo e o símbolo), o `interpret` e a função `rt_*` em `runtime/lib.rs`.
 Regência, tipos, posse, codegen e o editor saem do cabeçalho. Programa certo (com a

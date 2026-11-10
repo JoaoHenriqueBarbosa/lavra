@@ -1,0 +1,5 @@
+Falha: Não consegui apagar "/tmp/lavra-arquivo-que-nao-existe.txt": não existe.
+ --> tests/programs/err/arquivo_falha.lav:5:5
+  |
+5 |     Apago "/tmp/lavra-arquivo-que-nao-existe.txt", ou desisto.
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ o programa desistiu aqui

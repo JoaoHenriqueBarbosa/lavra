@@ -1,0 +1,6 @@
+Erro de sintaxe [L0362]: No nível de fora só se definem constantes ("A taxa é 0,05."), funções e tipos.
+ --> tests/programs/err/desisto_no_nivel_de_fora.lav:3:1
+  |
+3 | Apago "x", ou desisto.
+  | ^^^^^^^^^^^^^^^^^^^^^
+  = dica: O que o programa faz vai dentro de "Para começar:".

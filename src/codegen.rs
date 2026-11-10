@@ -1440,7 +1440,7 @@ impl<'a, 'b> Fx<'a, 'b> {
         }
         let func = match callee {
             hir::Callee::User(f) => f,
-            hir::Callee::Builtin(b) => return (self.builtin(b, args, &vals, ret, span), None),
+            hir::Callee::Builtin(b) => return self.builtin(b, args, &vals, ret, span),
         };
         let (lo, hi) = self.span_vals(span);
         self.rt("rt_enter", &[lo, hi]);
@@ -1459,7 +1459,10 @@ impl<'a, 'b> Fx<'a, 'b> {
     /// Uma operação da própria língua: a função do runtime (`Builtin::symbol`), com a
     /// assinatura tirada dos tipos dos argumentos e do valor, e o trecho da chamada no fim
     /// para relatar uma falha. Uma operação nova não mexe aqui.
-    fn builtin(&mut self, b: Builtin, args: &[hir::Arg], vals: &[Value], ret: &Ty, span: Span) -> Option<Value> {
+    ///
+    /// A que pode falhar recebe, antes do trecho, o endereço de uma casa onde deixa a falha
+    /// (ou nulo); devolve-se o valor e a falha, como na chamada de uma função do programa.
+    fn builtin(&mut self, b: Builtin, args: &[hir::Arg], vals: &[Value], ret: &Ty, span: Span) -> (Option<Value>, Option<Value>) {
         let id = match self.cg.builtins.get(&b) {
             Some(id) => *id,
             None => {
@@ -1467,6 +1470,9 @@ impl<'a, 'b> Fx<'a, 'b> {
                 for a in args {
                     let t = if a.mode == ParamMode::Lent { PTR } else { clif(&a.value.ty).expect("argumento com valor") };
                     sig.params.push(AbiParam::new(t));
+                }
+                if b.fallible() {
+                    sig.params.push(AbiParam::new(PTR));
                 }
                 sig.params.extend([AbiParam::new(types::I32), AbiParam::new(types::I32)]);
                 sig.returns.extend(clif(ret).map(AbiParam::new));
@@ -1478,9 +1484,18 @@ impl<'a, 'b> Fx<'a, 'b> {
         let r = *self.refs.entry(id).or_insert_with(|| self.cg.module.declare_func_in_func(id, self.b.func));
         let (lo, hi) = self.span_vals(span);
         let mut all = vals.to_vec();
+        let slot = b.fallible().then(|| {
+            let slot = self.b.create_sized_stack_slot(StackSlotData::new(StackSlotKind::ExplicitSlot, 8, 3));
+            let null = self.b.ins().iconst(PTR, 0);
+            self.b.ins().stack_store(PTR, null, slot, 0);
+            all.push(self.b.ins().stack_addr(PTR, slot, 0));
+            slot
+        });
         all.extend([lo, hi]);
         let call = self.b.ins().call(r, &all);
-        self.b.inst_results(call).first().copied()
+        let value = self.b.inst_results(call).first().copied();
+        let failure = slot.map(|slot| self.b.ins().stack_load(PTR, PTR, slot, 0));
+        (value, failure)
     }
 
     /// "x como T": mesma regra do interpretador (não cabe é falha, nunca truncamento).

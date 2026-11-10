@@ -1,0 +1,6 @@
+Uso a biblioteca de arquivos.
+
+Para começar:
+    O conteúdo é o resultado de carregar "notas.txt".
+    Gravo o conteúdo em "copia.txt".
+    Escrevo o conteúdo.

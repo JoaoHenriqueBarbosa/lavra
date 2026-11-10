@@ -1,0 +1,22 @@
+Uso a biblioteca de arquivos.
+Uso a biblioteca de textos.
+
+Para começar:
+    O caminho é "/tmp/lavra-teste-arquivos.txt".
+    Se o caminho existir: apago o caminho, ou desisto.
+    Se o caminho não existir: escrevo "ainda não existe".
+    Gravo "primeira linha\n" no caminho, ou desisto.
+    Acrescento "segunda linha\n" ao caminho, ou desisto.
+    Se o caminho existir: escrevo "agora existe".
+    O conteúdo é o resultado de carregar o caminho, ou desisto.
+    As linhas são o resultado de dividir (o resultado de aparar o conteúdo) por "\n".
+    Escrevo o tamanho das linhas.
+    Para cada linha das linhas: escrevo "> " seguido da linha.
+    Gravo "outra" no caminho, ou desisto.
+    Escrevo o resultado de carregar o caminho, ou "nada".
+    Apago o caminho, ou desisto.
+    Escrevo o resultado de carregar o caminho, ou "sumiu".
+    As coisas são o resultado de listar "/tmp/lavra-pasta-que-nao-existe", ou as linhas.
+    Escrevo o tamanho das coisas.
+    Os nomes são o resultado de listar "/", ou desisto.
+    Se houver "tmp" nos nomes: escrevo "a raiz tem tmp".

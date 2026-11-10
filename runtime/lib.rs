@@ -471,6 +471,71 @@ pub unsafe extern "C" fn rt_text_slice(t: *const String, from: i64, to: i64, lo:
     }
 }
 
+// --------------------------------------------------------------- arquivos
+
+/// Deixa a falha da operação na casa que o programa passou, com o trecho da chamada.
+unsafe fn fail_into(out: *mut *mut Failure, message: String, lo: u32, hi: u32) {
+    unsafe { *out = Box::into_raw(Box::new(Failure { message, lo, hi })) }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_file_load(path: *const String, out: *mut *mut Failure, lo: u32, hi: u32) -> *mut String {
+    unsafe {
+        match textfmt::file_load(&*path) {
+            Ok(t) => Box::into_raw(Box::new(t)),
+            Err(m) => {
+                fail_into(out, m, lo, hi);
+                std::ptr::null_mut()
+            }
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_file_save(text: *const String, path: *const String, out: *mut *mut Failure, lo: u32, hi: u32) {
+    unsafe {
+        if let Err(m) = textfmt::file_save(&*text, &*path, false) {
+            fail_into(out, m, lo, hi);
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_file_append(text: *const String, path: *const String, out: *mut *mut Failure, lo: u32, hi: u32) {
+    unsafe {
+        if let Err(m) = textfmt::file_save(&*text, &*path, true) {
+            fail_into(out, m, lo, hi);
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_file_remove(path: *const String, out: *mut *mut Failure, lo: u32, hi: u32) {
+    unsafe {
+        if let Err(m) = textfmt::file_remove(&*path) {
+            fail_into(out, m, lo, hi);
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_file_exists(path: *const String, _lo: u32, _hi: u32) -> u8 {
+    unsafe { textfmt::file_exists(&*path) as u8 }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_dir_list(path: *const String, out: *mut *mut Failure, lo: u32, hi: u32) -> *mut Vec<u64> {
+    unsafe {
+        match textfmt::dir_list(&*path) {
+            Ok(names) => Box::into_raw(Box::new(names.into_iter().map(text_slot).collect::<Vec<u64>>())),
+            Err(m) => {
+                fail_into(out, m, lo, hi);
+                std::ptr::null_mut()
+            }
+        }
+    }
+}
+
 // ------------------------------------------------------------- matemática
 
 #[unsafe(no_mangle)]

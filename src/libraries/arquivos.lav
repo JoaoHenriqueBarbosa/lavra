@@ -1,0 +1,22 @@
+Nota: A biblioteca de arquivos. O programa a traz com "Uso a biblioteca de arquivos.".
+Nota: Cada operação é feita pela própria língua: o cabeçalho termina em ponto, sem corpo.
+Nota: O arquivo se diz pelo caminho, um texto. O que depende do disco pode falhar
+Nota: ("salvo engano"), e quem chama diz o que fazer: ", ou desisto", ", ou VALOR".
+
+Nota: O conteúdo inteiro do arquivo, como texto.
+Para carregar o arquivo, sendo o arquivo um texto emprestado, devolvendo um texto, salvo engano.
+
+Nota: Escreve o texto no arquivo, no lugar do que havia; cria o arquivo se não existe.
+Para gravar o texto no arquivo, sendo ambos textos emprestados, salvo engano.
+
+Nota: Escreve o texto no fim do arquivo; cria o arquivo se não existe.
+Para acrescentar o texto ao arquivo, sendo ambos textos emprestados, salvo engano.
+
+Nota: Tira o arquivo do disco.
+Para apagar o arquivo, sendo o arquivo um texto emprestado, salvo engano.
+
+Nota: Se há um arquivo (ou uma pasta) nesse caminho.
+Para o arquivo existir, sendo o arquivo um texto emprestado, devolvendo um lógico.
+
+Nota: Os nomes do que há na pasta, em ordem alfabética.
+Para listar a pasta, sendo a pasta um texto emprestado, devolvendo uma lista de textos, salvo engano.

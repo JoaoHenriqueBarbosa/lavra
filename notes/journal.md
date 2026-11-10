@@ -448,3 +448,10 @@ Decisões para revisar:
 - As funções vieram como nomes, e não como verbos: português não tem verbo para "seno", e um verbo genérico como "calcular" tomaria do programa um verbo que todo mundo usa. O custo: no programa que traz a biblioteca, "o pi" é a constante, e não pode ser nome de variável.
 - Ângulos em radianos.
 
+Item 7, terceira parte (arquivos):
+- "Uso a biblioteca de arquivos." traz "carregar o arquivo", "gravar o texto no arquivo", "acrescentar o texto ao arquivo", "apagar o arquivo", "listar a pasta" e a condição "Se o caminho existir". O arquivo é o caminho, um texto.
+- São as primeiras operações da língua que podem falhar: o cabeçalho leva "salvo engano", e a chamada tem de dizer o que fazer, como com uma função do programa. A falha explica em português ("Não consegui carregar "notas.txt": não existe."), sem o texto do sistema, que mudaria de máquina para máquina.
+- No nativo, a operação recebe o endereço de uma casa onde deixa a falha.
+
+Decisão para revisar: o arquivo inteiro é lido e gravado de uma vez, como texto. Não há leitura linha a linha nem arquivo aberto: para as linhas, "dividir" o conteúdo por "\n", da biblioteca de textos.
+

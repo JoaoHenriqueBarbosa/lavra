@@ -29,6 +29,7 @@ pub struct Library {
 pub const LIBRARIES: &[Library] = &[
     Library { name: "textos", file: "textos", source: include_str!("libraries/textos.lav") },
     Library { name: "matemática", file: "matematica", source: include_str!("libraries/matematica.lav") },
+    Library { name: "arquivos", file: "arquivos", source: include_str!("libraries/arquivos.lav") },
 ];
 
 /// O estado dos sorteios do interpretador; sem semente, começa pelo relógio.
@@ -68,6 +69,12 @@ pub enum Builtin {
     Round,
     Random,
     Seed,
+    FileLoad,
+    FileSave,
+    FileAppend,
+    FileRemove,
+    FileExists,
+    DirList,
 }
 
 impl Builtin {
@@ -93,7 +100,19 @@ impl Builtin {
         Builtin::Round,
         Builtin::Random,
         Builtin::Seed,
+        Builtin::FileLoad,
+        Builtin::FileSave,
+        Builtin::FileAppend,
+        Builtin::FileRemove,
+        Builtin::FileExists,
+        Builtin::DirList,
     ];
+
+    /// A operação pode falhar ("salvo engano"): quem chama trata, e o nativo recebe onde
+    /// deixar a falha.
+    pub fn fallible(self) -> bool {
+        matches!(self, Builtin::FileLoad | Builtin::FileSave | Builtin::FileAppend | Builtin::FileRemove | Builtin::DirList)
+    }
 
     /// A biblioteca e o verbo (no infinitivo) que declaram a operação. A operação por
     /// extenso leva o nome junto: "calcular o seno".
@@ -120,6 +139,12 @@ impl Builtin {
             Builtin::Round => ("matemática", "arredondar"),
             Builtin::Random => ("matemática", "sortear"),
             Builtin::Seed => ("matemática", "semear"),
+            Builtin::FileLoad => ("arquivos", "carregar"),
+            Builtin::FileSave => ("arquivos", "gravar"),
+            Builtin::FileAppend => ("arquivos", "acrescentar"),
+            Builtin::FileRemove => ("arquivos", "apagar"),
+            Builtin::FileExists => ("arquivos", "existir"),
+            Builtin::DirList => ("arquivos", "listar"),
         }
     }
 
@@ -168,6 +193,12 @@ impl Builtin {
             Builtin::Round => "rt_math_round",
             Builtin::Random => "rt_math_random",
             Builtin::Seed => "rt_math_seed",
+            Builtin::FileLoad => "rt_file_load",
+            Builtin::FileSave => "rt_file_save",
+            Builtin::FileAppend => "rt_file_append",
+            Builtin::FileRemove => "rt_file_remove",
+            Builtin::FileExists => "rt_file_exists",
+            Builtin::DirList => "rt_dir_list",
         }
     }
 }
@@ -205,7 +236,15 @@ pub fn interpret(b: Builtin, args: &[Value], span: Span) -> Result<Value, Fault>
             })
         }
     };
+    // A falha declarada da operação, que sobe até quem a trata.
+    let failed = |message: String| Fault { code: None, message, span, desist: true };
     Ok(match b {
+        Builtin::FileLoad => Value::Text(textfmt::file_load(&text(&args[0])).map_err(failed)?),
+        Builtin::FileSave => textfmt::file_save(&text(&args[0]), &text(&args[1]), false).map(|_| Value::Unit).map_err(failed)?,
+        Builtin::FileAppend => textfmt::file_save(&text(&args[0]), &text(&args[1]), true).map(|_| Value::Unit).map_err(failed)?,
+        Builtin::FileRemove => textfmt::file_remove(&text(&args[0])).map(|_| Value::Unit).map_err(failed)?,
+        Builtin::FileExists => Value::Bool(textfmt::file_exists(&text(&args[0]))),
+        Builtin::DirList => Value::List(textfmt::dir_list(&text(&args[0])).map_err(failed)?.into_iter().map(Value::Text).collect()),
         Builtin::Sin => Value::Real(real(&args[0]).sin()),
         Builtin::Cos => Value::Real(real(&args[0]).cos()),
         Builtin::Tan => Value::Real(real(&args[0]).tan()),
@@ -270,7 +309,7 @@ mod tests {
             assert_eq!(declared, expected, "as operações da biblioteca de {}", lib.name);
             assert_eq!(sigs.len(), expected.len(), "cada operação de {} uma vez só", lib.name);
             for s in sigs {
-                assert!(!s.fallible, "\"{}\" não falha pela regência", s.infinitive);
+                assert_eq!(s.fallible, s.builtin.unwrap().fallible(), "\"{}\" e o \"salvo engano\" do cabeçalho", s.infinitive);
                 for p in &s.params {
                     // O que tem dono vem emprestado; número, lógico e caractere se copiam.
                     let copies = matches!(

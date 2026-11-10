@@ -150,6 +150,63 @@ pub fn clock_seed() -> u64 {
     }
 }
 
+/// O motivo de uma operação de arquivo não ter dado certo, em português e sem depender do
+/// texto do sistema (que muda de máquina para máquina).
+pub fn io_reason(kind: std::io::ErrorKind) -> &'static str {
+    use std::io::ErrorKind::*;
+    match kind {
+        NotFound => "não existe",
+        PermissionDenied => "não há permissão",
+        AlreadyExists => "já existe",
+        IsADirectory => "é uma pasta",
+        NotADirectory => "não é uma pasta",
+        InvalidData => "não é texto (UTF-8)",
+        _ => "o sistema recusou",
+    }
+}
+
+/// A mensagem da falha de uma operação de arquivo: "Não consegui carregar "x.txt": não existe."
+pub fn file_failure(action: &str, path: &str, kind: std::io::ErrorKind) -> String {
+    format!("Não consegui {action} \"{path}\": {}.", io_reason(kind))
+}
+
+/// "carregar o arquivo".
+pub fn file_load(path: &str) -> Result<String, String> {
+    std::fs::read_to_string(path).map_err(|e| file_failure("carregar", path, e.kind()))
+}
+
+/// "gravar o texto no arquivo" e "acrescentar o texto ao arquivo".
+pub fn file_save(text: &str, path: &str, append: bool) -> Result<(), String> {
+    use std::io::Write;
+    let action = if append { "acrescentar a" } else { "gravar em" };
+    let mut options = std::fs::OpenOptions::new();
+    options.create(true).write(true);
+    if append {
+        options.append(true);
+    } else {
+        options.truncate(true);
+    }
+    options.open(path).and_then(|mut f| f.write_all(text.as_bytes())).map_err(|e| file_failure(action, path, e.kind()))
+}
+
+/// "apagar o arquivo".
+pub fn file_remove(path: &str) -> Result<(), String> {
+    std::fs::remove_file(path).map_err(|e| file_failure("apagar", path, e.kind()))
+}
+
+/// "o arquivo existir".
+pub fn file_exists(path: &str) -> bool {
+    std::path::Path::new(path).exists()
+}
+
+/// "listar a pasta": os nomes, em ordem.
+pub fn dir_list(path: &str) -> Result<Vec<String>, String> {
+    let entries = std::fs::read_dir(path).map_err(|e| file_failure("listar", path, e.kind()))?;
+    let mut names: Vec<String> = entries.filter_map(|e| e.ok()).map(|e| e.file_name().to_string_lossy().into_owned()).collect();
+    names.sort();
+    Ok(names)
+}
+
 /// O real `x`, sem a parte fracionária, cabe no inteiro? (NaN e infinito não cabem.)
 pub fn real_fits(x: f64, bits: u8, signed: bool) -> bool {
     let t = x.trunc();
