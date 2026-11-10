@@ -1,0 +1,16 @@
+Uso a biblioteca de textos.
+
+Para começar:
+    A frase é "A lavra dos dias".
+    Escrevo o resultado de maiusculizar a frase.
+    Escrevo o resultado de minusculizar a frase.
+    Escrevo o resultado de inverter "Ação".
+    Escrevo o resultado de substituir "a" por "4" na frase.
+    Escrevo o resultado de substituir "" por "x" na frase.
+    A posição é o resultado de localizar "dos" na frase.
+    Se houver posição: escrevo "achei na posição " seguido da posição.
+    A falta é o resultado de localizar "noites" na frase.
+    Se não houver falta: escrevo "não achei".
+    Escrevo o resultado de recortar a frase desde 3 até 7.
+    Escrevo "[" seguido do resultado de recortar a frase desde 4 até 3 seguido de "]".
+    Escrevo o resultado de recortar "ação" desde 2 até 4.

@@ -9,6 +9,7 @@
 
 use crate::interp::{Fault, Value};
 use crate::span::Span;
+use crate::textfmt;
 
 /// O começo da faixa de posições das bibliotecas. Um programa nunca chega a 1 GiB, então
 /// uma posição daqui em diante é de uma biblioteca, e não do arquivo do programa.
@@ -42,10 +43,27 @@ pub enum Builtin {
     Join,
     Contains,
     Trim,
+    Upper,
+    Lower,
+    Reverse,
+    Replace,
+    Locate,
+    Slice,
 }
 
 impl Builtin {
-    pub const ALL: &[Builtin] = &[Builtin::Split, Builtin::Join, Builtin::Contains, Builtin::Trim];
+    pub const ALL: &[Builtin] = &[
+        Builtin::Split,
+        Builtin::Join,
+        Builtin::Contains,
+        Builtin::Trim,
+        Builtin::Upper,
+        Builtin::Lower,
+        Builtin::Reverse,
+        Builtin::Replace,
+        Builtin::Locate,
+        Builtin::Slice,
+    ];
 
     /// A biblioteca e o verbo (no infinitivo) que declaram a operação.
     pub fn declared_as(self) -> (&'static str, &'static str) {
@@ -54,6 +72,12 @@ impl Builtin {
             Builtin::Join => ("textos", "juntar"),
             Builtin::Contains => ("textos", "conter"),
             Builtin::Trim => ("textos", "aparar"),
+            Builtin::Upper => ("textos", "maiusculizar"),
+            Builtin::Lower => ("textos", "minusculizar"),
+            Builtin::Reverse => ("textos", "inverter"),
+            Builtin::Replace => ("textos", "substituir"),
+            Builtin::Locate => ("textos", "localizar"),
+            Builtin::Slice => ("textos", "recortar"),
         }
     }
 
@@ -73,6 +97,12 @@ impl Builtin {
             Builtin::Join => "rt_text_join",
             Builtin::Contains => "rt_text_contains",
             Builtin::Trim => "rt_text_trim",
+            Builtin::Upper => "rt_text_upper",
+            Builtin::Lower => "rt_text_lower",
+            Builtin::Reverse => "rt_text_reverse",
+            Builtin::Replace => "rt_text_replace",
+            Builtin::Locate => "rt_text_locate",
+            Builtin::Slice => "rt_text_slice",
         }
     }
 }
@@ -84,7 +114,11 @@ pub fn split(text: &str, separator: &str) -> Vec<String> {
 }
 
 /// A operação no interpretador, sobre os valores dos argumentos na ordem do cabeçalho.
-pub fn interpret(b: Builtin, args: &[Value], _span: Span) -> Result<Value, Fault> {
+pub fn interpret(b: Builtin, args: &[Value], span: Span) -> Result<Value, Fault> {
+    let int = |v: &Value| match v {
+        Value::Int(n) => *n,
+        other => unreachable!("{b:?} recebeu {other:?} onde o cabeçalho pede inteiro"),
+    };
     let text = |v: &Value| match v {
         Value::Text(t) => t.clone(),
         other => unreachable!("{b:?} recebeu {other:?} onde o cabeçalho pede texto"),
@@ -97,6 +131,18 @@ pub fn interpret(b: Builtin, args: &[Value], _span: Span) -> Result<Value, Fault
         }
         Builtin::Contains => Value::Bool(text(&args[0]).contains(&text(&args[1]))),
         Builtin::Trim => Value::Text(text(&args[0]).trim().to_string()),
+        Builtin::Upper => Value::Text(text(&args[0]).to_uppercase()),
+        Builtin::Lower => Value::Text(text(&args[0]).to_lowercase()),
+        Builtin::Reverse => Value::Text(text(&args[0]).chars().rev().collect()),
+        Builtin::Replace => Value::Text(textfmt::replace(&text(&args[2]), &text(&args[0]), &text(&args[1]))),
+        Builtin::Locate => match textfmt::locate(&text(&args[1]), &text(&args[0])) {
+            Some(p) => Value::Int(p as i128),
+            None => Value::Nothing,
+        },
+        Builtin::Slice => match textfmt::slice(&text(&args[0]), int(&args[1]), int(&args[2])) {
+            Ok(t) => Value::Text(t),
+            Err(message) => return Err(Fault { code: Some(crate::codes::L0917), message, span, desist: false }),
+        },
     })
 }
 
@@ -120,7 +166,17 @@ mod tests {
             for s in sigs {
                 assert!(!s.fallible, "\"{}\" não falha pela regência", s.infinitive);
                 for p in &s.params {
-                    assert_eq!(p.mode, ParamMode::Borrowed, "\"{}\" recebe {} emprestado", s.infinitive, p.name.display());
+                    // O que tem dono vem emprestado; número, lógico e caractere se copiam.
+                    let copies = matches!(
+                        p.ty.ty,
+                        crate::ast::TypeExpr::Int { .. }
+                            | crate::ast::TypeExpr::Byte
+                            | crate::ast::TypeExpr::Real { .. }
+                            | crate::ast::TypeExpr::Bool
+                            | crate::ast::TypeExpr::Char
+                    );
+                    let expected = if copies { ParamMode::Owned } else { ParamMode::Borrowed };
+                    assert_eq!(p.mode, expected, "\"{}\" recebe {} emprestado", s.infinitive, p.name.display());
                 }
             }
         }

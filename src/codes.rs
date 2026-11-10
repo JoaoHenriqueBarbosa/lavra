@@ -248,6 +248,7 @@ codes! {
     L0914 = Runtime, "Chamadas demais, uma dentro da outra";
     L0915 = Runtime, "Texto que não é número";
     L0916 = Runtime, "Número que não é código de caractere";
+    L0917 = Runtime, "Recorte fora do texto";
 }
 
 /// O código pelo identificador ("L0334") ou pelo número (334).

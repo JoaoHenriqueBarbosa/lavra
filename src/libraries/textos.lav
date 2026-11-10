@@ -16,3 +16,26 @@ Para o texto conter o trecho, sendo ambos textos emprestados, devolvendo um lóg
 
 Nota: O texto sem os espaços, as tabulações e as quebras do começo e do fim.
 Para aparar o texto, sendo o texto um texto emprestado, devolvendo um texto.
+
+Nota: O texto com as letras em maiúsculas.
+Para maiusculizar o texto, sendo o texto emprestado, devolvendo um texto.
+
+Nota: O texto com as letras em minúsculas.
+Para minusculizar o texto, sendo o texto emprestado, devolvendo um texto.
+
+Nota: O texto de trás para a frente, caractere por caractere.
+Para inverter o texto, sendo o texto emprestado, devolvendo um texto.
+
+Nota: O texto com cada aparição do trecho trocada pelo novo. O trecho vazio não troca nada.
+Para substituir o trecho pelo novo no texto,
+        sendo o trecho um texto emprestado, o novo um texto emprestado e o texto emprestado,
+        devolvendo um texto.
+
+Nota: A posição (a partir de 1) em que o trecho aparece pela primeira vez no texto, ou nada.
+Para localizar o trecho no texto, sendo ambos textos emprestados, devolvendo talvez um inteiro.
+
+Nota: Os caracteres do texto da posição do início à do fim, as duas incluídas e a partir
+Nota: de 1. O fim logo antes do início dá o texto vazio; fora do texto é falha de execução.
+Para recortar o texto desde o início até o fim,
+        sendo o texto emprestado, o início um inteiro e o fim um inteiro,
+        devolvendo um texto.

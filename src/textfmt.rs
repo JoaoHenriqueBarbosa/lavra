@@ -95,6 +95,27 @@ pub fn char_of(x: i128) -> Option<char> {
     u32::try_from(x).ok().and_then(char::from_u32)
 }
 
+/// "localizar": a posição (a partir de 1, em caracteres) da primeira aparição do trecho.
+pub fn locate(text: &str, part: &str) -> Option<i64> {
+    text.find(part).map(|byte| text[..byte].chars().count() as i64 + 1)
+}
+
+/// "substituir": cada aparição do trecho trocada; o trecho vazio não troca nada.
+pub fn replace(text: &str, part: &str, new: &str) -> String {
+    if part.is_empty() { text.to_string() } else { text.replace(part, new) }
+}
+
+/// "recortar": os caracteres de `from` a `to` (a partir de 1, incluídos), ou a mensagem da
+/// falha quando o recorte sai do texto.
+pub fn slice(text: &str, from: i128, to: i128) -> Result<String, String> {
+    let len = text.chars().count() as i128;
+    if from < 1 || to > len || from > to + 1 {
+        let size = if len == 1 { "1 caractere".to_string() } else { format!("{len} caracteres") };
+        return Err(format!("Não há como recortar da posição {from} à {to}: o texto tem {size}."));
+    }
+    Ok(text.chars().skip(from as usize - 1).take((to - from + 1) as usize).collect())
+}
+
 /// O real `x`, sem a parte fracionária, cabe no inteiro? (NaN e infinito não cabem.)
 pub fn real_fits(x: f64, bits: u8, signed: bool) -> bool {
     let t = x.trunc();

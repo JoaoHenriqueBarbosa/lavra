@@ -429,6 +429,48 @@ pub unsafe extern "C" fn rt_text_trim(t: *const String, _lo: u32, _hi: u32) -> *
     unsafe { Box::into_raw(Box::new((*t).trim().to_string())) }
 }
 
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_upper(t: *const String, _lo: u32, _hi: u32) -> *mut String {
+    unsafe { Box::into_raw(Box::new((*t).to_uppercase())) }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_lower(t: *const String, _lo: u32, _hi: u32) -> *mut String {
+    unsafe { Box::into_raw(Box::new((*t).to_lowercase())) }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_reverse(t: *const String, _lo: u32, _hi: u32) -> *mut String {
+    unsafe { Box::into_raw(Box::new((*t).chars().rev().collect::<String>())) }
+}
+
+/// "substituir o trecho pelo novo no texto": os argumentos na ordem do cabeçalho.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_replace(part: *const String, new: *const String, t: *const String, _lo: u32, _hi: u32) -> *mut String {
+    unsafe { Box::into_raw(Box::new(textfmt::replace(&*t, &*part, &*new))) }
+}
+
+/// "localizar o trecho no texto": a posição, ou nada (o "talvez" é a caixa de `rt_box`).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_locate(part: *const String, t: *const String, _lo: u32, _hi: u32) -> *mut u64 {
+    unsafe {
+        match textfmt::locate(&*t, &*part) {
+            Some(p) => rt_box(p as u64),
+            None => std::ptr::null_mut(),
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_slice(t: *const String, from: i64, to: i64, lo: u32, hi: u32) -> *mut String {
+    unsafe {
+        match textfmt::slice(&*t, from as i128, to as i128) {
+            Ok(s) => Box::into_raw(Box::new(s)),
+            Err(message) => report(L0917, message, lo, hi),
+        }
+    }
+}
+
 // ------------------------------------------------------------------ lista
 
 #[unsafe(no_mangle)]

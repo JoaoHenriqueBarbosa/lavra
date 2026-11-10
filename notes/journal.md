@@ -431,3 +431,10 @@ Decisões para revisar:
 - "talvez" continua não quebrando o ciclo (a explicação do L0302 já dizia isso). No nativo ele é um ponteiro e caberia; se você quiser lista encadeada com "o próximo, talvez um nó", é uma mudança pequena.
 - O tipo recursivo é um ciclo de Arc, que não é liberado: alguns bytes por análise. No servidor de linguagem isso se acumula numa sessão longa com tipo recursivo aberto. Está anotado em notes/compiler.md.
 
+Item 7, bibliotecas, primeira parte (textos):
+- Seis verbos novos: "maiusculizar o texto", "minusculizar o texto", "inverter o texto", "substituir o trecho pelo novo no texto", "localizar o trecho no texto" e "recortar o texto desde o início até o fim".
+- "localizar" é a primeira operação que devolve "talvez" (a posição, ou nada), e "recortar" a primeira que recebe números; as posições são de caractere e começam em 1, como no resto da língua.
+- O recorte fora do texto é falha de execução (L0917). A lógica de cada operação mora no arquivo que o interpretador e o runtime compartilham.
+
+Decisão para revisar: os verbos "maiusculizar" e "minusculizar" existem no dicionário, mas são pouco usados. Preferi um verbo próprio a uma locução como "pôr as maiúsculas no texto".
+

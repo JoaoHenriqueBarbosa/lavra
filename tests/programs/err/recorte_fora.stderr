@@ -1,0 +1,5 @@
+Erro de execução [L0917]: Não há como recortar da posição 3 à 9: o texto tem 5 caracteres.
+ --> tests/programs/err/recorte_fora.lav:6:13
+  |
+6 |     Escrevo o resultado de recortar a frase desde 3 até 9.
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

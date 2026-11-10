@@ -24,6 +24,8 @@ As versões da Lavra, a mais nova primeiro.
   "vinte e cinco", "dois mil e trezentos". Concordam antes de "vezes" ("duas vezes").
 - Registro e enumeração recursivos por lista: "as subpastas, uma lista de pastas" é campo de
   uma pasta, e "uma adição, com as parcelas, uma lista de expressões" é caso de uma expressão.
+- A biblioteca de textos ganhou maiusculizar, minusculizar, inverter, substituir, localizar
+  (que devolve "talvez um inteiro") e recortar.
 
 ### Desempenho
 

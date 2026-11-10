@@ -283,8 +283,11 @@ Para começar:
   "o resultado de", no subjuntivo das condições, com a regência do cabeçalho.
 - A biblioteca de textos traz "dividir o texto pelo separador" (o separador vazio dá cada
   caractere), "juntar os textos com o separador", "o texto conter o trecho" (o trecho vazio
-  está em todo texto) e "aparar o texto" (tira o espaço em branco do começo e do fim). Todas
-  recebem emprestado e devolvem um valor novo.
+  está em todo texto), "aparar o texto" (tira o espaço em branco do começo e do fim),
+  "maiusculizar", "minusculizar" e "inverter o texto", "substituir o trecho pelo novo no
+  texto", "localizar o trecho no texto" (a posição a partir de 1, ou nada: devolve "talvez um
+  inteiro") e "recortar o texto desde o início até o fim" (posições a partir de 1, as duas
+  incluídas; fora do texto é falha, L0917). Todas recebem emprestado e devolvem um valor novo.
 - Verbo de biblioteca não reserva palavra em programa que não a traz. No programa que a
   traz, definir um verbo com o mesmo nome (ou a mesma 1ª pessoa) é erro (L0175). Usar o verbo
   sem trazer a biblioteca dá a dica de como trazer.
