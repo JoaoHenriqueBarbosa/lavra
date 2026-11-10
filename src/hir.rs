@@ -160,6 +160,12 @@ pub enum StmtKind {
         source: Expr,
         body: Block,
     },
+    /// "Os vistos perdem "Ana".": tira o valor do conjunto, ou a chave do mapa. O que não
+    /// está lá não faz falta.
+    Discard {
+        place: Place,
+        key: Expr,
+    },
     /// "Desisto com ...": a função falha com a mensagem.
     Desist(Expr),
     /// "Conforme a figura: Sendo um círculo: ...".
@@ -227,6 +233,8 @@ pub enum PlaceProj {
     Index(Box<Expr>, Span),
     /// "o último", "a última".
     Last(Span),
+    /// "o item "Ana" das idades": o valor da chave, num mapa.
+    Key(Box<Expr>, Span),
 }
 
 #[derive(Debug, Clone)]
@@ -266,6 +274,10 @@ pub enum ExprKind {
     Fact(Box<Cond>),
     Unary(UnOp, Box<Expr>),
     List(Vec<Expr>),
+    /// Um conjunto com os valores dados (repetidos contam uma vez).
+    Set(Vec<Expr>),
+    /// Um mapa vazio.
+    Map,
     /// Valores dos campos, na ordem da definição.
     Record(Vec<Expr>),
     Copy(Box<Expr>),

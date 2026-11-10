@@ -376,6 +376,17 @@ impl Parser {
     }
 
     /// "o último", "a primeira", "o item 2": qual item sai de uma coleção.
+    /// Depois de "perde": qual item (de uma lista), ou o valor (de um conjunto) ou a chave
+    /// (de um mapa).
+    pub(super) fn which_or_value(&mut self) -> Result<Which> {
+        let ordinal = self.definite_article_at(0).is_some() && self.peek_at(1).word().is_some_and(|w| morphology::ordinal(w).is_some());
+        let item = self.definite_article_at(0).is_some() && self.peek_at(1).is_word("item");
+        if ordinal || item || !self.starts_value(0) {
+            return self.which();
+        }
+        Ok(Which::Value(self.expr()?))
+    }
+
     pub(super) fn which(&mut self) -> Result<Which> {
         match self.segment()? {
             Segment::Ordinal { position, span, .. } => Ok(Which::Ordinal { position, span }),

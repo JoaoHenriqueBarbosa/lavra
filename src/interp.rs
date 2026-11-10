@@ -18,6 +18,10 @@ pub enum Value {
     Char(char),
     Text(String),
     List(Vec<Value>),
+    /// Um conjunto: os valores em ordem, sem repetição.
+    Set(Vec<Value>),
+    /// Um mapa: os pares de chave e valor, em ordem de chave.
+    Map(Vec<(Value, Value)>),
     Record(Vec<Value>),
     /// O "nada" de um "talvez"; o valor presente é guardado como ele mesmo.
     Nothing,
@@ -326,9 +330,23 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
 
     /// Calcula o caminho de um lugar, conferindo cada posição contra o tamanho da coleção.
     fn path(&mut self, p: &hir::Place) -> Exec<Vec<Step>> {
+        self.path_of(p, p.proj.len())
+    }
+
+    /// O caminho das `n` primeiras partes do lugar.
+    fn path_of(&mut self, p: &hir::Place, n: usize) -> Exec<Vec<Step>> {
         let mut steps = Vec::new();
-        for pr in &p.proj {
+        for pr in &p.proj[..n] {
             match pr {
+                PlaceProj::Key(e, span) => {
+                    let key = self.expr(e)?;
+                    let t = self.target(p.root, steps.clone());
+                    let Value::Map(entries) = walk(self.base(&t), &t.steps) else { unreachable!() };
+                    match entries.binary_search_by(|(k, _)| key_cmp(k, &key)) {
+                        Ok(i) => steps.push(Step::Index(i)),
+                        Err(_) => return fault(L0919, textfmt::missing_key(&key_shown(&key)), *span),
+                    }
+                }
                 PlaceProj::Field(i) => steps.push(Step::Field(*i)),
                 PlaceProj::Index(e, span) => {
                     let Value::Int(n) = self.expr(e)? else { unreachable!() };
@@ -353,7 +371,8 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
     fn len_at(&self, root: Var, steps: &[Step]) -> usize {
         let t = self.target(root, steps.to_vec());
         match walk(self.base(&t), &t.steps) {
-            Value::List(v) => v.len(),
+            Value::List(v) | Value::Set(v) => v.len(),
+            Value::Map(m) => m.len(),
             Value::Text(t) => t.chars().count(),
             _ => 0,
         }
@@ -376,6 +395,17 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
     }
 
     fn write_place(&mut self, p: &hir::Place, v: Value) -> Exec<()> {
+        // "O item "Ana" das idades vira 30.": a chave que não existe passa a existir.
+        if let Some(PlaceProj::Key(e, _)) = p.proj.last() {
+            let key = self.expr(e)?;
+            let steps = self.path_of(p, p.proj.len() - 1)?;
+            let Value::Map(entries) = self.place_mut(p.root, &steps) else { unreachable!() };
+            match entries.binary_search_by(|(k, _)| key_cmp(k, &key)) {
+                Ok(i) => entries[i].1 = v,
+                Err(i) => entries.insert(i, (key, v)),
+            }
+            return Ok(());
+        }
         let steps = self.path(p)?;
         *self.place_mut(p.root, &steps) = v;
         Ok(())
@@ -400,12 +430,38 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             StmtKind::Push { place, value } => {
                 let v = self.expr(value)?;
                 let steps = self.path(place)?;
-                let Value::List(list) = self.place_mut(place.root, &steps) else { unreachable!() };
-                list.push(v);
+                match self.place_mut(place.root, &steps) {
+                    Value::List(list) => list.push(v),
+                    // O conjunto guarda em ordem, e o que já está lá não entra de novo.
+                    Value::Set(set) => {
+                        if let Err(i) = set.binary_search_by(|x| key_cmp(x, &v)) {
+                            set.insert(i, v);
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            StmtKind::Discard { place, key } => {
+                let key = self.expr(key)?;
+                let steps = self.path(place)?;
+                match self.place_mut(place.root, &steps) {
+                    Value::Set(set) => {
+                        if let Ok(i) = set.binary_search_by(|x| key_cmp(x, &key)) {
+                            set.remove(i);
+                        }
+                    }
+                    Value::Map(entries) => {
+                        if let Ok(i) = entries.binary_search_by(|(k, _)| key_cmp(k, &key)) {
+                            entries.remove(i);
+                        }
+                    }
+                    _ => unreachable!(),
+                }
             }
             StmtKind::ForEach { var, source, body } => {
                 let items: Vec<Value> = match self.expr(source)? {
-                    Value::List(v) => v,
+                    Value::List(v) | Value::Set(v) => v,
+                    Value::Map(entries) => entries.into_iter().map(|(k, _)| k).collect(),
                     Value::Text(t) => t.chars().map(Value::Char).collect(),
                     _ => unreachable!(),
                 };
@@ -546,6 +602,8 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                 let i = self.expr(item)?;
                 match (c, i) {
                     (Value::List(l), i) => l.contains(&i),
+                    (Value::Set(s), i) => s.binary_search_by(|x| key_cmp(x, &i)).is_ok(),
+                    (Value::Map(m), i) => m.binary_search_by(|(k, _)| key_cmp(k, &i)).is_ok(),
                     (Value::Text(t), Value::Text(part)) => t.contains(part.as_str()),
                     (Value::Text(t), Value::Char(ch)) => t.contains(ch),
                     _ => unreachable!(),
@@ -596,8 +654,32 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             ExprKind::Binary(op, l, r) => {
                 let a = self.expr(l)?;
                 let b = self.expr(r)?;
-                arith(*op, a, b, &e.ty, e.span)?
+                match (a, b) {
+                    // Entre conjuntos: a união, a interseção e a diferença, em ordem.
+                    (Value::Set(x), Value::Set(y)) => {
+                        let has = |set: &[Value], v: &Value| set.binary_search_by(|k| key_cmp(k, v)).is_ok();
+                        let mut out: Vec<Value> = match op {
+                            BinOp::BitOr => x.iter().chain(y.iter().filter(|v| !has(&x, v))).cloned().collect(),
+                            BinOp::BitAnd => x.iter().filter(|v| has(&y, v)).cloned().collect(),
+                            _ => x.iter().filter(|v| !has(&y, v)).cloned().collect(),
+                        };
+                        out.sort_by(key_cmp);
+                        Value::Set(out)
+                    }
+                    (a, b) => arith(*op, a, b, &e.ty, e.span)?,
+                }
             }
+            ExprKind::Set(items) => {
+                let mut set: Vec<Value> = Vec::with_capacity(items.len());
+                for it in items {
+                    let v = self.expr(it)?;
+                    if let Err(i) = set.binary_search_by(|x| key_cmp(x, &v)) {
+                        set.insert(i, v);
+                    }
+                }
+                Value::Set(set)
+            }
+            ExprKind::Map => Value::Map(Vec::new()),
             ExprKind::Concat(parts) => {
                 let mut s = String::new();
                 for p in parts {
@@ -709,6 +791,7 @@ fn walk<'a>(mut v: &'a Value, steps: &[Step]) -> &'a Value {
         v = match (v, s) {
             (Value::Record(f), Step::Field(i)) => &f[*i],
             (Value::List(l), Step::Index(i)) => &l[*i],
+            (Value::Map(m), Step::Index(i)) => &m[*i].1,
             _ => return v,
         };
     }
@@ -720,6 +803,7 @@ fn walk_mut<'a>(mut v: &'a mut Value, steps: &[Step]) -> &'a mut Value {
         v = match (v, s) {
             (Value::Record(f), Step::Field(i)) => &mut f[*i],
             (Value::List(l), Step::Index(i)) => &mut l[*i],
+            (Value::Map(m), Step::Index(i)) => &mut m[*i].1,
             _ => unreachable!(),
         };
     }
@@ -730,7 +814,8 @@ use textfmt::position_error;
 
 fn unary(op: UnOp, v: Value, ty: &Ty, span: Span) -> Exec<Value> {
     Ok(match (op, v) {
-        (UnOp::Len, Value::List(l)) => Value::Int(l.len() as i128),
+        (UnOp::Len, Value::List(l) | Value::Set(l)) => Value::Int(l.len() as i128),
+        (UnOp::Len, Value::Map(m)) => Value::Int(m.len() as i128),
         (UnOp::Len, Value::Text(t)) => Value::Int(t.chars().count() as i128),
         (UnOp::Neg, Value::Int(x)) => Value::Int(int_arith(BinOp::Sub, 0, x, int_ty(ty), span)?),
         (UnOp::Neg, Value::Real(x)) => Value::Real(-x),
@@ -821,22 +906,52 @@ pub fn parse_input(line: &str, ty: &Ty) -> Option<Value> {
     }
 }
 
+/// A ordem das chaves de um mapa e dos valores de um conjunto (inteiro, caractere, texto
+/// ou lógico: a sema só deixa esses).
+pub fn key_cmp(a: &Value, b: &Value) -> Ordering {
+    match (a, b) {
+        (Value::Int(x), Value::Int(y)) => x.cmp(y),
+        (Value::Char(x), Value::Char(y)) => x.cmp(y),
+        (Value::Text(x), Value::Text(y)) => x.cmp(y),
+        (Value::Bool(x), Value::Bool(y)) => x.cmp(y),
+        _ => Ordering::Equal,
+    }
+}
+
+/// A chave como se escreve no programa, para a mensagem da chave que falta.
+fn key_shown(key: &Value) -> String {
+    match key {
+        Value::Text(t) => textfmt::quoted_text(t),
+        Value::Char(c) => textfmt::quoted_char(*c),
+        Value::Bool(b) => textfmt::format_bool(*b).to_string(),
+        Value::Int(n) => n.to_string(),
+        other => format!("{other:?}"),
+    }
+}
+
 pub fn compare(rel: Rel, a: &Value, b: &Value) -> bool {
-    let ord =
-        match (a, b) {
-            (Value::Int(x), Value::Int(y)) => x.partial_cmp(y),
-            (Value::Real(x), Value::Real(y)) => x.partial_cmp(y),
-            (Value::Char(x), Value::Char(y)) => x.partial_cmp(y),
-            (Value::Text(x), Value::Text(y)) => x.partial_cmp(y),
-            (Value::Bool(x), Value::Bool(y)) => x.partial_cmp(y),
-            // Coleções e registros só se comparam por igualdade.
-            (Value::Nothing, Value::Nothing) => Some(Ordering::Equal),
-            (Value::Nothing, _) | (_, Value::Nothing) => Some(Ordering::Less),
-            (Value::List(_), Value::List(_)) | (Value::Record(_), Value::Record(_)) | (Value::Variant(..), Value::Variant(..)) => {
-                if a == b { Some(Ordering::Equal) } else { Some(Ordering::Less) }
+    let ord = match (a, b) {
+        (Value::Int(x), Value::Int(y)) => x.partial_cmp(y),
+        (Value::Real(x), Value::Real(y)) => x.partial_cmp(y),
+        (Value::Char(x), Value::Char(y)) => x.partial_cmp(y),
+        (Value::Text(x), Value::Text(y)) => x.partial_cmp(y),
+        (Value::Bool(x), Value::Bool(y)) => x.partial_cmp(y),
+        // Coleções e registros só se comparam por igualdade.
+        (Value::Nothing, Value::Nothing) => Some(Ordering::Equal),
+        (Value::Nothing, _) | (_, Value::Nothing) => Some(Ordering::Less),
+        (Value::List(_), Value::List(_))
+        | (Value::Set(_), Value::Set(_))
+        | (Value::Map(_), Value::Map(_))
+        | (Value::Record(_), Value::Record(_))
+        | (Value::Variant(..), Value::Variant(..)) => {
+            if a == b {
+                Some(Ordering::Equal)
+            } else {
+                Some(Ordering::Less)
             }
-            _ => None,
-        };
+        }
+        _ => None,
+    };
     let Some(ord) = ord else { return rel == Rel::Different };
     match rel {
         Rel::Greater => ord == Ordering::Greater,
@@ -927,6 +1042,14 @@ pub fn format_value(v: &Value, ty: &Ty) -> String {
         (Value::List(items), Ty::List(elem)) => {
             let parts: Vec<String> = items.iter().map(|x| format_value(x, elem)).collect();
             format!("[{}]", parts.join("; "))
+        }
+        (Value::Set(items), Ty::Set(elem)) => {
+            let parts: Vec<String> = items.iter().map(|x| format_value(x, elem)).collect();
+            format!("{{{}}}", parts.join("; "))
+        }
+        (Value::Map(entries), Ty::Map(key, value)) => {
+            let parts: Vec<String> = entries.iter().map(|(k, v)| format!("{}: {}", format_value(k, key), format_value(v, value))).collect();
+            format!("{{{}}}", parts.join("; "))
         }
         (Value::Record(fields), Ty::Record(r)) => {
             let parts: Vec<String> = fields

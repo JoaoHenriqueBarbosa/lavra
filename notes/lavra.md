@@ -58,8 +58,34 @@ O verbo concorda com o sujeito ("as notas ganham"). Texto não muda letra por le
 ## Tipos
 
 `inteiro` (64 bits com sinal, ou `de 8/16/32 bits`), `natural` (sem sinal), `byte`,
-`real` (64, ou `de 32 bits`), `lógico`, `caractere`, `texto`, `lista de Xs`, registros,
-enumerações, `talvez um X`. Tipos de valor copiam; os demais têm dono.
+`real` (64, ou `de 32 bits`), `lógico`, `caractere`, `texto`, `lista de Xs`, `conjunto de Xs`,
+`mapa de Xs para Ys`, registros, enumerações, `talvez um X`. Tipos de valor copiam; os demais
+têm dono.
+
+## Conjuntos e mapas
+
+```
+Os vistos, um conjunto de textos, começam vazios.       sem repetição, em ordem
+Os pares, um conjunto de inteiros, são 4, 2, 4 e 6.      {2; 4; 6}
+Os vistos ganham "Ana".          Os vistos perdem "Ana".          (o próprio valor)
+Se houver "Ana" nos vistos: ...  Para cada visto dos vistos: ...  (em ordem)
+a união dos pares e dos primos   a interseção de A e B            a diferença de A e B
+
+As idades, um mapa de textos para inteiros, começam vazias.
+O item "Ana" das idades vira 30.        põe a chave, ou troca o valor dela
+O item "Ana" das idades cresce 1.       Escrevo o item "Ana" das idades.
+Se houver "Ana" nas idades: ...         As idades perdem "Ana".
+Para cada nome das idades: ...          passa pelas chaves, em ordem
+```
+
+- O valor de um conjunto e a chave de um mapa são inteiro, caractere, texto ou lógico, os
+  tipos com ordem (L0367); o valor de um mapa é de qualquer tipo, até outra coleção.
+- A ordem é a dos valores (ou das chaves), não a de chegada: a escrita e o "Para cada" saem
+  sempre iguais. Conjunto se escreve `{Ana; Bia}`, e mapa, `{Ana: 30; Bia: 25}`.
+- Ler a chave que o mapa não tem é falha de execução (L0919); "vira" a põe no mapa. O que o
+  conjunto ou o mapa perde e não estava lá não faz falta.
+- Não têm posição: "a primeira de", "o item 2 de" e "Tomo" são da lista (L0368). O mapa
+  começa sempre vazio. `o tamanho de` e `for vazio` valem para os dois.
 
 ## Lugares e acesso
 

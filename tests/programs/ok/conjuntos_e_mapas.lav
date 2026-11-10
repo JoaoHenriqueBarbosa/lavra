@@ -1,0 +1,69 @@
+Nota: conjuntos (sem repetição, em ordem) e mapas (um valor para cada chave).
+
+Uma pessoa é um registro de:
+    o nome, um texto;
+    as notas, uma lista de inteiros.
+
+Para contar as palavras, sendo as palavras uma lista de textos emprestada, devolvendo um mapa de textos para inteiros:
+    As contagens, um mapa de textos para inteiros, começam vazias.
+    Para cada palavra das palavras:
+        Se houver a palavra nas contagens: o item a palavra das contagens cresce 1.
+        Senão: o item a palavra das contagens vira 1.
+    Devolvo as contagens.
+
+Para listar o mapa, sendo o mapa um mapa de textos para inteiros emprestado:
+    Para cada palavra do mapa: escrevo a palavra seguido de " aparece " seguido do item a palavra do mapa.
+
+Para começar:
+    Os vistos, um conjunto de textos, começam vazios.
+    Se os vistos forem vazios: escrevo "ninguém ainda".
+    Os vistos ganham "Caio".
+    Os vistos ganham "Ana".
+    Os vistos ganham "Bia".
+    Os vistos ganham "Ana".
+    Escrevo os vistos.
+    Escrevo o tamanho dos vistos.
+    Se houver "Bia" nos vistos: escrevo "Bia passou".
+    Os vistos perdem "Bia".
+    Os vistos perdem "Zeca".
+    Se não houver "Bia" nos vistos: escrevo "Bia saiu".
+    Para cada visto dos vistos: escrevo "- " seguido do visto.
+
+    Os pares, um conjunto de inteiros, são 4, 2, 4 e 6.
+    Os primos, um conjunto de inteiros, são 2, 3, 5 e 7.
+    Escrevo a união dos pares e dos primos.
+    Escrevo a interseção dos pares e dos primos.
+    Escrevo a diferença dos pares e dos primos.
+    As cópias são uma cópia dos pares.
+    Se as cópias forem iguais aos pares: escrevo "cópia igual".
+    O sozinho, um conjunto de caracteres, é 'x'.
+    Escrevo o sozinho.
+
+    As idades, um mapa de textos para inteiros, começam vazias.
+    O item "Bia" das idades vira 25.
+    O item "Ana" das idades vira 30.
+    O item "Bia" das idades vira 26.
+    O item "Ana" das idades cresce 1.
+    Escrevo as idades.
+    Escrevo o item "Ana" das idades.
+    Escrevo o tamanho das idades.
+    Se houver "Ana" nas idades e não houver "Caio" nas idades: escrevo "só as duas".
+    As idades perdem "Bia".
+    As idades perdem o item "Zeca".
+    Escrevo as idades.
+
+    As palavras são "a", "lavra", "dos", "dias", "a", "lavra", "a".
+    As contagens são o resultado de contar as palavras.
+    Listo as contagens.
+
+    As turmas, um mapa de inteiros para pessoas, começam vazias.
+    As iniciais são 7, 8.
+    O item 1 das turmas vira uma pessoa com o nome "Ana" e as notas as iniciais.
+    As notas do item 1 das turmas ganham 10.
+    Escrevo o nome do item 1 das turmas.
+    Escrevo o item 1 das turmas.
+    Os grupos, um mapa de caracteres para conjuntos de textos, começam vazios.
+    Os nomes, um conjunto de textos, são "Ana" e "Alba".
+    O item 'A' dos grupos vira os nomes.
+    O item 'A' dos grupos ganha "Aldo".
+    Escrevo os grupos.

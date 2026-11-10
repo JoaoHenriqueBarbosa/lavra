@@ -413,6 +413,8 @@ impl Debugger {
         let (value, ty) = unwrap_maybe(value, ty);
         let has_parts = match (value, ty) {
             (Value::List(items), Ty::List(_)) => !items.is_empty(),
+            (Value::Set(items), Ty::Set(_)) => !items.is_empty(),
+            (Value::Map(entries), Ty::Map(..)) => !entries.is_empty(),
             (Value::Record(_), Ty::Record(_)) => true,
             (Value::Variant(_, fields), Ty::Enum(_)) => !fields.is_empty(),
             _ => false,
@@ -535,6 +537,13 @@ fn parts(value: &Value, ty: &Ty) -> Vec<(String, Value, Ty)> {
     match (value, ty) {
         (Value::List(items), Ty::List(elem)) => {
             items.iter().enumerate().map(|(i, v)| (format!("o item {}", i + 1), v.clone(), (**elem).clone())).collect()
+        }
+        // O conjunto mostra cada valor, e o mapa, o valor de cada chave ("o item "Ana"").
+        (Value::Set(items), Ty::Set(elem)) => {
+            items.iter().enumerate().map(|(i, v)| (format!("o valor {}", i + 1), v.clone(), (**elem).clone())).collect()
+        }
+        (Value::Map(entries), Ty::Map(key, value)) => {
+            entries.iter().map(|(k, v)| (format!("o item {}", summary(k, key)), v.clone(), (**value).clone())).collect()
         }
         (Value::Record(fields), Ty::Record(r)) => fields
             .iter()

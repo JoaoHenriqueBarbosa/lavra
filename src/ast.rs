@@ -61,6 +61,10 @@ pub enum TypeExpr {
     Char,
     Text,
     List(Box<TypeExpr>),
+    /// "um conjunto de textos".
+    Set(Box<TypeExpr>),
+    /// "um mapa de textos para inteiros": a chave e o valor.
+    Map(Box<TypeExpr>, Box<TypeExpr>),
     Slice(Box<TypeExpr>),
     Named(String),
     Maybe(Box<TypeExpr>),
@@ -334,8 +338,13 @@ impl Init {
 
 #[derive(Clone, Debug)]
 pub enum Which {
-    Ordinal { position: u32, span: Span },
+    Ordinal {
+        position: u32,
+        span: Span,
+    },
     Item(Expr),
+    /// "Os vistos perdem "Ana".": o próprio valor (de um conjunto) ou a chave (de um mapa).
+    Value(Expr),
 }
 
 #[derive(Clone, Debug)]

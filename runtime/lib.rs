@@ -35,6 +35,11 @@ const KIND_LIST: u32 = 5;
 const KIND_RECORD: u32 = 6;
 const KIND_MAYBE: u32 = 7;
 const KIND_ENUM: u32 = 8;
+/// Conjunto: os valores em ordem, sem repetição (`elem` é o tipo deles).
+const KIND_SET: u32 = 9;
+/// Mapa: chave e valor lado a lado, em ordem de chave (`elem` é a chave; `fields` aponta
+/// para o descritor do valor).
+const KIND_MAP: u32 = 10;
 
 /// Descritor de tipo. O layout é o mesmo que o gerador de código escreve.
 #[repr(C)]
@@ -289,6 +294,30 @@ unsafe fn format_into(s: &mut String, d: *const Desc, slot: u64) {
                     format_into(s, d.elem, *x);
                 }
                 s.push(']');
+            }
+            KIND_SET => {
+                let v = &*(slot as *const Vec<u64>);
+                s.push('{');
+                for (i, x) in v.iter().enumerate() {
+                    if i > 0 {
+                        s.push_str("; ");
+                    }
+                    format_into(s, d.elem, *x);
+                }
+                s.push('}');
+            }
+            KIND_MAP => {
+                let v = &*(slot as *const Vec<u64>);
+                s.push('{');
+                for (i, pair) in v.chunks(2).enumerate() {
+                    if i > 0 {
+                        s.push_str("; ");
+                    }
+                    format_into(s, d.elem, pair[0]);
+                    s.push_str(": ");
+                    format_into(s, map_value(d), pair[1]);
+                }
+                s.push('}');
             }
             KIND_RECORD => {
                 s.push_str(if d.feminine != 0 { "uma " } else { "um " });
@@ -739,12 +768,19 @@ pub unsafe extern "C" fn rt_drop(d: *const Desc, slot: u64) {
         let d = &*d;
         match d.kind {
             KIND_TEXT => drop(Box::from_raw(slot as *mut String)),
-            KIND_LIST => {
+            KIND_LIST | KIND_SET => {
                 let v = Box::from_raw(slot as *mut Vec<u64>);
                 if !is_copy(d.elem) {
                     for x in v.iter() {
                         rt_drop(d.elem, *x);
                     }
+                }
+            }
+            KIND_MAP => {
+                let v = Box::from_raw(slot as *mut Vec<u64>);
+                for pair in v.chunks(2) {
+                    drop_slot(d.elem, pair[0]);
+                    drop_slot(map_value(d), pair[1]);
                 }
             }
             KIND_RECORD => {
@@ -780,6 +816,142 @@ pub unsafe extern "C" fn rt_drop(d: *const Desc, slot: u64) {
     }
 }
 
+/// Libera o valor, se ele tem dono.
+unsafe fn drop_slot(d: *const Desc, slot: u64) {
+    unsafe {
+        if !is_copy(d) {
+            rt_drop(d, slot);
+        }
+    }
+}
+
+/// O descritor dos valores de um mapa.
+unsafe fn map_value(d: &Desc) -> *const Desc {
+    d.fields as *const Desc
+}
+
+/// A chave como se escreve no programa, para a mensagem da chave que falta.
+unsafe fn key_shown(d: *const Desc, slot: u64) -> String {
+    unsafe {
+        match (*d).kind {
+            KIND_TEXT => textfmt::quoted_text(&*(slot as *const String)),
+            KIND_CHAR => textfmt::quoted_char(char::from_u32(slot as u32).unwrap_or('\u{fffd}')),
+            _ => {
+                let mut s = String::new();
+                format_into(&mut s, d, slot);
+                s
+            }
+        }
+    }
+}
+
+/// Onde a chave está (ou onde entraria) numa coleção em ordem, com `stride` casas por item.
+unsafe fn find(v: &[u64], stride: usize, d: *const Desc, key: u64) -> Result<usize, usize> {
+    unsafe {
+        let (mut lo, mut hi) = (0, v.len() / stride);
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            match rt_cmp(d, v[mid * stride], key) {
+                0 => return Ok(mid),
+                c if c < 0 => lo = mid + 1,
+                _ => hi = mid,
+            }
+        }
+        Err(lo)
+    }
+}
+
+/// "Os vistos ganham "Ana".": o valor entra no lugar dele; o que já está lá não entra de
+/// novo (e o valor que veio é liberado).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_set_insert(set: *mut Vec<u64>, d: *const Desc, slot: u64) {
+    unsafe {
+        let v = &mut *set;
+        match find(v, 1, d, slot) {
+            Ok(_) => drop_slot(d, slot),
+            Err(i) => v.insert(i, slot),
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_set_remove(set: *mut Vec<u64>, d: *const Desc, slot: u64) {
+    unsafe {
+        let v = &mut *set;
+        if let Ok(i) = find(v, 1, d, slot) {
+            drop_slot(d, v.remove(i));
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_set_contains(d: *const Desc, set: *const Vec<u64>, slot: u64) -> u8 {
+    unsafe { find(&*set, 1, d, slot).is_ok() as u8 }
+}
+
+/// A união (0), a interseção (1) e a diferença (2) de dois conjuntos: um conjunto novo.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_set_op(op: u32, d: *const Desc, a: *const Vec<u64>, b: *const Vec<u64>) -> *mut Vec<u64> {
+    unsafe {
+        let (a, b) = (&*a, &*b);
+        let mut out: Vec<u64> = match op {
+            0 => a.iter().chain(b.iter().filter(|x| find(a, 1, d, **x).is_err())).map(|x| rt_clone(d, *x)).collect(),
+            1 => a.iter().filter(|x| find(b, 1, d, **x).is_ok()).map(|x| rt_clone(d, *x)).collect(),
+            _ => a.iter().filter(|x| find(b, 1, d, **x).is_err()).map(|x| rt_clone(d, *x)).collect(),
+        };
+        out.sort_by(|x, y| rt_cmp(d, *x, *y).cmp(&0));
+        Box::into_raw(Box::new(out))
+    }
+}
+
+/// A casa do valor de uma chave; a chave que o mapa não tem é falha.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_map_addr(map: *mut Vec<u64>, kd: *const Desc, key: u64, lo: u32, hi: u32) -> *mut u64 {
+    unsafe {
+        let v = &mut *map;
+        match find(v, 2, kd, key) {
+            Ok(i) => v.as_mut_ptr().add(i * 2 + 1),
+            Err(_) => report(L0919, textfmt::missing_key(&key_shown(kd, key)), lo, hi),
+        }
+    }
+}
+
+/// "O item "Ana" das idades vira 30.": troca o valor da chave, ou a põe no mapa (com uma
+/// cópia da chave, que veio emprestada).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_map_put(map: *mut Vec<u64>, kd: *const Desc, vd: *const Desc, key: u64, value: u64) {
+    unsafe {
+        let v = &mut *map;
+        match find(v, 2, kd, key) {
+            Ok(i) => {
+                drop_slot(vd, v[i * 2 + 1]);
+                v[i * 2 + 1] = value;
+            }
+            Err(i) => {
+                let own = rt_clone(kd, key);
+                v.splice(i * 2..i * 2, [own, value]);
+            }
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_map_remove(map: *mut Vec<u64>, kd: *const Desc, vd: *const Desc, key: u64) {
+    unsafe {
+        let v = &mut *map;
+        if let Ok(i) = find(v, 2, kd, key) {
+            let gone: Vec<u64> = v.drain(i * 2..i * 2 + 2).collect();
+            drop_slot(kd, gone[0]);
+            drop_slot(vd, gone[1]);
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_map_contains(kd: *const Desc, map: *const Vec<u64>, key: u64) -> u8 {
+    unsafe { find(&*map, 2, kd, key).is_ok() as u8 }
+}
+
 unsafe fn is_copy(d: *const Desc) -> bool {
     unsafe { matches!((*d).kind, KIND_INT | KIND_REAL | KIND_BOOL | KIND_CHAR) }
 }
@@ -790,9 +962,14 @@ pub unsafe extern "C" fn rt_clone(d: *const Desc, slot: u64) -> u64 {
         let d = &*d;
         match d.kind {
             KIND_TEXT => Box::into_raw(Box::new((*(slot as *const String)).clone())) as u64,
-            KIND_LIST => {
+            KIND_LIST | KIND_SET => {
                 let v = &*(slot as *const Vec<u64>);
                 let c: Vec<u64> = v.iter().map(|x| rt_clone(d.elem, *x)).collect();
+                Box::into_raw(Box::new(c)) as u64
+            }
+            KIND_MAP => {
+                let v = &*(slot as *const Vec<u64>);
+                let c: Vec<u64> = v.chunks(2).flat_map(|p| [rt_clone(d.elem, p[0]), rt_clone(map_value(d), p[1])]).collect();
                 Box::into_raw(Box::new(c)) as u64
             }
             KIND_RECORD => {
@@ -845,9 +1022,15 @@ pub unsafe extern "C" fn rt_cmp(d: *const Desc, a: u64, b: u64) -> i32 {
             KIND_BOOL => ord((a != 0).partial_cmp(&(b != 0))),
             KIND_CHAR => ord((a as u32).partial_cmp(&(b as u32))),
             KIND_TEXT => ord((*(a as *const String)).partial_cmp(&*(b as *const String))),
-            KIND_LIST => {
+            KIND_LIST | KIND_SET => {
                 let (x, y) = (&*(a as *const Vec<u64>), &*(b as *const Vec<u64>));
                 let eq = x.len() == y.len() && x.iter().zip(y).all(|(p, q)| rt_cmp(d.elem, *p, *q) == 0);
+                if eq { 0 } else { 2 }
+            }
+            KIND_MAP => {
+                let (x, y) = (&*(a as *const Vec<u64>), &*(b as *const Vec<u64>));
+                let eq = x.len() == y.len()
+                    && x.chunks(2).zip(y.chunks(2)).all(|(p, q)| rt_cmp(d.elem, p[0], q[0]) == 0 && rt_cmp(map_value(d), p[1], q[1]) == 0);
                 if eq { 0 } else { 2 }
             }
             KIND_RECORD => {
@@ -898,7 +1081,8 @@ pub unsafe extern "C" fn rt_len(d: *const Desc, slot: u64) -> i64 {
     unsafe {
         match (*d).kind {
             KIND_TEXT => (*(slot as *const String)).chars().count() as i64,
-            KIND_LIST => (*(slot as *const Vec<u64>)).len() as i64,
+            KIND_LIST | KIND_SET => (*(slot as *const Vec<u64>)).len() as i64,
+            KIND_MAP => (*(slot as *const Vec<u64>)).len() as i64 / 2,
             _ => unreachable!(),
         }
     }

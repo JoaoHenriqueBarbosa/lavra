@@ -465,3 +465,17 @@ Decisões para revisar:
 - Não há "o segundo de x": "o segundo de" já é a posição 2 de uma coleção, e as duas leituras brigariam no programa que traz a biblioteca. O segundo sai da conta, "o resto de (x dividido por 1 000) e 60".
 - "o agora" é um nome, como "o pi". No programa que traz a biblioteca de tempo, não serve de nome de variável.
 
+Item 8, conjuntos e mapas:
+- Dois tipos novos, com a sintaxe da lista: "um conjunto de textos" e "um mapa de textos para inteiros".
+- O conjunto ganha e perde o próprio valor ("Os vistos ganham "Ana".", "Os vistos perdem "Ana"."), responde a "Se houver "Ana" nos vistos" e tem união, interseção e diferença, com os nomes que a língua já tinha ("a união de A e B").
+- O mapa usa "o item" com a chave no lugar da posição: "O item "Ana" das idades vira 30." põe ou troca, "o item "Ana" das idades" lê (a chave que falta é falha de execução, L0919), "As idades perdem "Ana"." tira, e "Para cada nome das idades" passa pelas chaves.
+- Os dois ficam em ordem (dos valores, ou das chaves), então a escrita e o laço saem sempre iguais, e a paridade com o nativo confere. Escrevem-se "{Ana; Bia}" e "{Ana: 30; Bia: 25}".
+- Três códigos novos: L0367 (chave de tipo sem ordem), L0368 (operação que a coleção não tem) e L0919.
+
+Decisões para revisar:
+- Chave e valor de conjunto só de inteiro, caractere, texto ou lógico. Real ficou de fora pelo arredondamento; registro, por não ter ordem.
+- Não há valor de reserva na leitura de uma chave ("o item "Ana" das idades, ou 0"): pergunta-se antes com "Se houver". Se fizer falta, é uma forma nova pequena.
+- O mapa começa sempre vazio; não há jeito de escrever um mapa com os pares de uma vez.
+- "Para cada" num mapa dá as chaves, e o valor se lê pelo item. Não há laço que dê os dois.
+- O valgrind sobre a suíte inteira (num contêiner) passou nos conjuntos e mapas e achou um vazamento antigo, que o teste da biblioteca de arquivos tocou pela primeira vez: no nativo, o valor de reserva lido de um nome (", ou as linhas") era copiado e, além disso, tirado do nome, que ficava sem quem o liberasse. Corrigido no mesmo envio.
+

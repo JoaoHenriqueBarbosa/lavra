@@ -1,0 +1,5 @@
+Erro de execução [L0919]: Não há item 'a' no mapa.
+ --> tests/programs/err/mapa_cresce_sem_chave.lav:3:5
+  |
+3 |     O item 'a' dos pontos cresce 1.
+  |     ^^^^^^^^^^

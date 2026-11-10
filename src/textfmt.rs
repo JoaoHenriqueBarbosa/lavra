@@ -278,6 +278,20 @@ pub fn sleep_millis(millis: i64) {
     let _ = millis;
 }
 
+/// O item de uma chave que o mapa não tem; `shown` é a chave como se escreve no programa.
+pub fn missing_key(shown: &str) -> String {
+    format!("Não há item {shown} no mapa.")
+}
+
+/// A chave como se escreve no programa: o texto entre aspas, o caractere entre aspas simples.
+pub fn quoted_text(text: &str) -> String {
+    format!("\"{text}\"")
+}
+
+pub fn quoted_char(c: char) -> String {
+    format!("'{c}'")
+}
+
 /// O real `x`, sem a parte fracionária, cabe no inteiro? (NaN e infinito não cabem.)
 pub fn real_fits(x: f64, bits: u8, signed: bool) -> bool {
     let t = x.trunc();

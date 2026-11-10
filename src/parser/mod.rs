@@ -1447,7 +1447,7 @@ impl Parser {
             }
             "virar" => ClauseKind::Assign { place, value: Init::Expr(self.expr()?) },
             "ganhar" => ClauseKind::Push { place, value: self.expr()? },
-            "perder" => ClauseKind::Remove { which: self.which()?, place },
+            "perder" => ClauseKind::Remove { which: self.which_or_value()?, place },
             "crescer" => ClauseKind::Grow { place, value: self.expr()? },
             "diminuir" => ClauseKind::Shrink { place, value: self.expr()? },
             _ => unreachable!(),

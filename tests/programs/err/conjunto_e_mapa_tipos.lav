@@ -1,0 +1,21 @@
+Uma pessoa é um registro de:
+    o nome, um texto.
+
+Para começar:
+    Os reais, um conjunto de reais, começam vazios.
+    As fichas, um mapa de pessoas para inteiros, começam vazias.
+    Os vistos, um conjunto de textos, começam vazios.
+    As idades, um mapa de textos para inteiros, começam vazias.
+    As notas começam com 7, 8 e 9.
+    Os vistos ganham 7.
+    Os vistos perdem a primeira.
+    Escrevo a primeira dos vistos.
+    As idades ganham 30.
+    O item 1 das idades vira 30.
+    Escrevo a última das idades.
+    As notas perdem 7.
+    Tomo a última dos vistos.
+    Os números, um conjunto de inteiros, começam vazios.
+    Escrevo os vistos mais os vistos.
+    Escrevo a união dos vistos e dos números.
+    As tabelas, um mapa de textos para inteiros, começam com 1 e 2.

@@ -1273,6 +1273,18 @@
       "gender": "feminine",
       "plural": "listas",
       "singular": "lista"
+    },
+    {
+      "doc": "Coleção sem repetição, em ordem: \"um conjunto de textos\". Ganha e perde valores, e \"Se houver X no conjunto\" pergunta por um.",
+      "gender": "masculine",
+      "plural": "conjuntos",
+      "singular": "conjunto"
+    },
+    {
+      "doc": "Um valor para cada chave: \"um mapa de textos para inteiros\". \"O item K do mapa\" lê e muda o valor da chave K.",
+      "gender": "masculine",
+      "plural": "mapas",
+      "singular": "mapa"
     }
   ],
   "version": 1,
@@ -1851,6 +1863,30 @@
       "doc": "Coleção de valores do mesmo tipo: \"uma lista de inteiros\".",
       "form": "listas",
       "lemma": "lista",
+      "role": "type"
+    },
+    {
+      "doc": "Coleção sem repetição, em ordem: \"um conjunto de textos\". Ganha e perde valores, e \"Se houver X no conjunto\" pergunta por um.",
+      "form": "conjunto",
+      "lemma": "conjunto",
+      "role": "type"
+    },
+    {
+      "doc": "Coleção sem repetição, em ordem: \"um conjunto de textos\". Ganha e perde valores, e \"Se houver X no conjunto\" pergunta por um.",
+      "form": "conjuntos",
+      "lemma": "conjunto",
+      "role": "type"
+    },
+    {
+      "doc": "Um valor para cada chave: \"um mapa de textos para inteiros\". \"O item K do mapa\" lê e muda o valor da chave K.",
+      "form": "mapa",
+      "lemma": "mapa",
+      "role": "type"
+    },
+    {
+      "doc": "Um valor para cada chave: \"um mapa de textos para inteiros\". \"O item K do mapa\" lê e muda o valor da chave K.",
+      "form": "mapas",
+      "lemma": "mapa",
       "role": "type"
     },
     {

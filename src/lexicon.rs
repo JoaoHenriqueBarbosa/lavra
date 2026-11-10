@@ -417,7 +417,24 @@ pub const TYPE_NOUNS: &[TypeNoun] = &[
         gender: Gender::Feminine,
         doc: "Coleção de valores do mesmo tipo: \"uma lista de inteiros\".",
     },
+    TypeNoun {
+        singular: "conjunto",
+        plural: "conjuntos",
+        gender: Gender::Masculine,
+        doc: "Coleção sem repetição, em ordem: \"um conjunto de textos\". Ganha e perde valores, e \"Se houver X no conjunto\" pergunta por um.",
+    },
+    TypeNoun {
+        singular: "mapa",
+        plural: "mapas",
+        gender: Gender::Masculine,
+        doc: "Um valor para cada chave: \"um mapa de textos para inteiros\". \"O item K do mapa\" lê e muda o valor da chave K.",
+    },
 ];
+
+/// Os tipos que levam outros dentro ("lista de", "conjunto de", "mapa de ... para").
+pub fn is_collection_noun(singular: &str) -> bool {
+    matches!(singular, "lista" | "conjunto" | "mapa")
+}
 
 /// Radicais dos ordinais e a posição de cada um; "último" tem posição 0.
 pub const ORDINALS: &[(&str, u32)] = &[

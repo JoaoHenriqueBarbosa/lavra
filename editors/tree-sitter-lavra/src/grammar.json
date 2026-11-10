@@ -2583,6 +2583,16 @@
         },
         {
           "type": "PATTERN",
+          "value": "conjunto",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "conjuntos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
           "value": "inteiro",
           "flags": "i"
         },
@@ -2609,6 +2619,16 @@
         {
           "type": "PATTERN",
           "value": "lógicos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "mapa",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "mapas",
           "flags": "i"
         },
         {

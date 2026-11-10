@@ -730,7 +730,8 @@ impl Parser {
                 Some(t) => t.singular.to_string(),
                 None if self.vocab.record_plurals.contains_key(&w) || self.vocab.enum_plurals.contains_key(&w) => w.clone(),
                 None => {
-                    let plurals: Vec<&str> = lexicon::TYPE_NOUNS.iter().filter(|t| t.singular != "lista").map(|t| t.plural).collect();
+                    let plurals: Vec<&str> =
+                        lexicon::TYPE_NOUNS.iter().filter(|t| !lexicon::is_collection_noun(t.singular)).map(|t| t.plural).collect();
                     return err(Diagnostic::new(L0168, format!("Tipo desconhecido: \"{}\".", t.orig), t.span)
                         .hint(format!("No plural: {}.", plurals.join(", "))));
                 }
@@ -751,6 +752,20 @@ impl Parser {
             let (elem, _) = self.type_word(Number::Plural)?;
             return Ok((TypeExpr::List(Box::new(elem)), Gender::Feminine));
         }
+        if sing == "conjunto" {
+            self.expect_word("de")?;
+            let (elem, _) = self.type_word(Number::Plural)?;
+            return Ok((TypeExpr::Set(Box::new(elem)), Gender::Masculine));
+        }
+        if sing == "mapa" {
+            self.expect_word("de")?;
+            let (key, _) = self.type_word(Number::Plural)?;
+            if !self.eat_word("para") {
+                return Err(self.expected("\"para\" e o tipo dos valores do mapa (\"um mapa de textos para inteiros\")"));
+            }
+            let (value, _) = self.type_word(Number::Plural)?;
+            return Ok((TypeExpr::Map(Box::new(key), Box::new(value)), Gender::Masculine));
+        }
         if let Some((name, g)) = self.record_type_word(&w, number) {
             self.prog.type_uses.push(TypeUse { word: name.clone(), span: t.span, number });
             return Ok((TypeExpr::Named(name), g));
@@ -769,7 +784,8 @@ impl Parser {
             "caractere" => TypeExpr::Char,
             "texto" => TypeExpr::Text,
             _ => {
-                let singulars: Vec<&str> = lexicon::TYPE_NOUNS.iter().filter(|t| t.singular != "lista").map(|t| t.singular).collect();
+                let singulars: Vec<&str> =
+                    lexicon::TYPE_NOUNS.iter().filter(|t| !lexicon::is_collection_noun(t.singular)).map(|t| t.singular).collect();
                 let mut d = Diagnostic::new(L0168, format!("Tipo desconhecido: \"{}\".", t.orig), t.span).hint(format!(
                     "Tipos: {}, lista de ..., ou um registro definido com \"Uma conta é um registro de:\".",
                     singulars.join(", ")

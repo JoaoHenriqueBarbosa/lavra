@@ -478,6 +478,14 @@ impl Env<'_> {
                 Ty::List(Box::new(item))
             }
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_in_record(inner, span, stack))),
+            // O conjunto e o mapa também guardam por fora, mas as chaves são valores simples.
+            ast::TypeExpr::Set(_) | ast::TypeExpr::Map(..) => match self.type_expr(t, span) {
+                Ok(ty) => ty,
+                Err(d) => {
+                    self.diags.push(*d);
+                    Ty::Error
+                }
+            },
             ast::TypeExpr::Error => Ty::Error,
             other => simple_type(other).unwrap_or_else(|| {
                 self.diags.push(Diagnostic::new(L0304, "Tipo ainda não suportado.", span));
@@ -509,6 +517,10 @@ impl Env<'_> {
                 (None, None) => Ty::Error,
             },
             ast::TypeExpr::List(inner) => Ty::List(Box::new(self.type_expr(inner, span)?)),
+            ast::TypeExpr::Set(inner) => Ty::Set(Box::new(key_type(self.type_expr(inner, span)?, "O valor de um conjunto", span)?)),
+            ast::TypeExpr::Map(key, value) => {
+                Ty::Map(Box::new(key_type(self.type_expr(key, span)?, "A chave de um mapa", span)?), Box::new(self.type_expr(value, span)?))
+            }
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_expr(inner, span)?)),
             ast::TypeExpr::Error => Ty::Error,
             other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(L0304, "Tipo ainda não suportado.", span)))?,
@@ -734,7 +746,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 self.subst[*i as usize].0 = Some(t.clone());
                 true
             }
-            (Ty::List(x), Ty::List(y)) | (Ty::Maybe(x), Ty::Maybe(y)) => self.unify(x, y),
+            (Ty::List(x), Ty::List(y)) | (Ty::Maybe(x), Ty::Maybe(y)) | (Ty::Set(x), Ty::Set(y)) => self.unify(x, y),
+            (Ty::Map(k, v), Ty::Map(k2, v2)) => self.unify(k, k2) && self.unify(v, v2),
             (Ty::Error, _) | (_, Ty::Error) => true,
             _ => a == b,
         }
@@ -1044,7 +1057,13 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if implicit && let Some(r) = self.env.tables.refs[refs_before..].iter_mut().find(|r| r.span == item.span) {
                     r.form = Form::Singular;
                 }
-                let elem = match self.element_of(&src.ty, "a coleção", source.span) {
+                // O conjunto dá os valores, e o mapa dá as chaves, em ordem.
+                let iterated = match self.resolve_ty(&src.ty) {
+                    Ty::Set(e) => Ok(*e),
+                    Ty::Map(k, _) => Ok(*k),
+                    _ => self.element_of(&src.ty, "a coleção", source.span),
+                };
+                let elem = match iterated {
                     Ok(t) => t,
                     Err(d) => {
                         self.report(d);
@@ -1401,10 +1420,20 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let annotated = ann.as_ref().map(|a| self.env.type_of(a)).transpose()?;
                 let plural = name.number() == Number::Plural;
                 let value = match init {
+                    // "O elenco, um conjunto de textos, começa com "Ana".": um valor só.
+                    Init::Expr(e)
+                        if matches!(annotated.as_ref().map(|t| self.resolve_ty(t)), Some(Ty::Set(_)))
+                            && !matches!(e.kind, ExprKind::Place(_) | ExprKind::Call(_) | ExprKind::Copy(_) | ExprKind::Binary { .. }) =>
+                    {
+                        let Some(Ty::Set(elem)) = annotated.as_ref().map(|t| self.resolve_ty(t)) else { unreachable!() };
+                        let v = self.expr(e, Some(&elem))?;
+                        let span = v.span;
+                        hir::Expr { ty: Ty::Set(elem), kind: hir::ExprKind::Set(vec![v]), span }
+                    }
                     Init::Expr(e) => {
                         let v = self.expr(e, annotated.as_ref())?;
                         let vt = self.resolve_ty(&v.ty);
-                        if plural && !matches!(vt, Ty::List(_)) && annotated.is_none() {
+                        if plural && !vt.is_collection() && annotated.is_none() {
                             // "As notas são 7.": coleção de um item só.
                             let span = v.span;
                             hir::Expr { ty: Ty::List(Box::new(vt)), kind: hir::ExprKind::List(vec![v]), span }
@@ -1413,8 +1442,14 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         }
                     }
                     Init::List(items, span) => {
-                        let mut elem = match annotated.as_ref().map(|t| self.resolve_ty(t)) {
-                            Some(Ty::List(e)) => Some(*e),
+                        let wanted = annotated.as_ref().map(|t| self.resolve_ty(t));
+                        let as_set = matches!(wanted, Some(Ty::Set(_)));
+                        let mut elem = match wanted {
+                            Some(Ty::List(e)) | Some(Ty::Set(e)) => Some(*e),
+                            Some(Ty::Map(..)) => {
+                                return err(Diagnostic::new(L0368, "Um mapa começa vazio, e cada chave entra com o valor dela.", *span)
+                                    .hint("Escreva \"..., um mapa de textos para inteiros, começa vazio.\" e depois \"O item \\\"Ana\\\" do mapa vira 30.\""));
+                            }
                             Some(other) => {
                                 return err(Diagnostic::new(
                                     L0315,
@@ -1434,16 +1469,20 @@ impl<'e, 'a> FnCx<'e, 'a> {
                             }
                             out.push(v);
                         }
-                        hir::Expr { ty: Ty::List(Box::new(elem.unwrap())), kind: hir::ExprKind::List(out), span: *span }
+                        if as_set {
+                            hir::Expr { ty: Ty::Set(Box::new(elem.unwrap())), kind: hir::ExprKind::Set(out), span: *span }
+                        } else {
+                            hir::Expr { ty: Ty::List(Box::new(elem.unwrap())), kind: hir::ExprKind::List(out), span: *span }
+                        }
                     }
                     Init::Empty(span) => {
                         let ty = match annotated.as_ref().map(|t| self.resolve_ty(t)) {
-                            Some(t @ Ty::List(_)) => t,
+                            Some(t @ (Ty::List(_) | Ty::Set(_) | Ty::Map(..))) => t,
                             Some(Ty::Text) => Ty::Text,
                             Some(other) => {
                                 return err(Diagnostic::new(
                                     L0316,
-                                    format!("Só lista e texto começam vazios, e o aposto diz {}.", other.describe()),
+                                    format!("Só lista, conjunto, mapa e texto começam vazios, e o aposto diz {}.", other.describe()),
                                     *span,
                                 ));
                             }
@@ -1452,12 +1491,17 @@ impl<'e, 'a> FnCx<'e, 'a> {
                                 Ty::List(Box::new(item))
                             }
                         };
-                        let kind = if ty == Ty::Text { hir::ExprKind::Text(String::new()) } else { hir::ExprKind::List(Vec::new()) };
+                        let kind = match &ty {
+                            Ty::Text => hir::ExprKind::Text(String::new()),
+                            Ty::Set(_) => hir::ExprKind::Set(Vec::new()),
+                            Ty::Map(..) => hir::ExprKind::Map,
+                            _ => hir::ExprKind::List(Vec::new()),
+                        };
                         hir::Expr { ty, kind, span: *span }
                     }
                 };
                 let ty = annotated.unwrap_or_else(|| value.ty.clone());
-                let is_list = matches!(self.resolve_ty(&ty), Ty::List(_));
+                let is_list = self.resolve_ty(&ty).is_collection();
                 let unknown = self.resolve_ty(&ty).is_error();
                 if plural && !is_list && !unknown {
                     return err(Diagnostic::new(
@@ -1504,8 +1548,16 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ClauseKind::Push { place, value } => {
                 let p = self.place_mut(place, &morphology::third_person("ganhar", place.number()).unwrap_or_default())?;
                 let elem = match self.resolve_ty(&p.ty) {
-                    Ty::List(elem) => elem,
+                    Ty::List(elem) | Ty::Set(elem) => elem,
                     Ty::Error => Box::new(Ty::Error),
+                    Ty::Map(..) => {
+                        return err(Diagnostic::new(
+                            L0368,
+                            "Um mapa não ganha itens soltos: cada chave entra com o valor dela.",
+                            place.span,
+                        )
+                        .hint("Escreva \"O item \\\"Ana\\\" das idades vira 30.\""));
+                    }
                     _ => {
                         return err(Diagnostic::new(
                             L0319,
@@ -1523,6 +1575,36 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let verb =
                     if take { "dá itens".to_string() } else { morphology::third_person("perder", place.number()).unwrap_or_default() };
                 let p = self.place_mut(place, &verb)?;
+                // O conjunto perde o valor, e o mapa perde a chave: o que não está lá não faz falta.
+                if let found @ (Ty::Set(_) | Ty::Map(..)) = self.resolve_ty(&p.ty) {
+                    let key_ty = match &found {
+                        Ty::Set(e) => (**e).clone(),
+                        Ty::Map(k, _) => (**k).clone(),
+                        _ => unreachable!(),
+                    };
+                    let key = match which {
+                        ast::Which::Value(e) | ast::Which::Item(e) if !take => self.expr(e, Some(&key_ty))?,
+                        _ => {
+                            let (what, how) = if matches!(found, Ty::Set(_)) {
+                                ("Um conjunto não tem posição: perde o próprio valor.", "Escreva \"Os vistos perdem \\\"Ana\\\".\"")
+                            } else {
+                                ("Um mapa não tem posição: perde a chave.", "Escreva \"As idades perdem \\\"Ana\\\".\"")
+                            };
+                            return err(Diagnostic::new(L0368, what, c.span).hint(how));
+                        }
+                    };
+                    let found_key = self.resolve_ty(&key.ty);
+                    if !found_key.is_error() && !self.unify(&key_ty, &found_key) {
+                        return err(Diagnostic::new(
+                            L0354,
+                            format!("Esperava {}, mas este valor é {}.", key_ty.describe(), found_key.describe()),
+                            key.span,
+                        ));
+                    }
+                    out.push_at(span, hir::StmtKind::Discard { place: p, key });
+                    self.result = None;
+                    return Ok(());
+                }
                 let elem = match self.resolve_ty(&p.ty) {
                     Ty::List(elem) => elem,
                     Ty::Error => Box::new(Ty::Error),
@@ -1540,6 +1622,10 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         Some(Box::new(hir::Expr { kind: hir::ExprKind::Int(*position as i128), ty: Ty::Int(IntTy::I64), span: *span }))
                     }
                     ast::Which::Item(e) => Some(Box::new(self.expr(e, Some(&Ty::Int(IntTy::I64)))?)),
+                    ast::Which::Value(e) => {
+                        return err(Diagnostic::new(L0368, "Uma lista perde pela posição, e não pelo valor.", e.span)
+                            .hint("Escreva \"As notas perdem a primeira.\", \"... perdem o item 2.\" ou \"... perdem a última.\""));
+                    }
                 };
                 let e = hir::Expr { kind: hir::ExprKind::Take { place: p, index }, ty: *elem, span: c.span };
                 if take {
@@ -1764,7 +1850,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     ast::CondKind::Empty { subject } => {
                         let v = self.expr(subject, None)?;
                         let vt = self.resolve_ty(&v.ty);
-                        if !matches!(vt, Ty::List(_) | Ty::Text | Ty::Error) {
+                        if !vt.is_collection() && !matches!(vt, Ty::Text | Ty::Error) {
                             return err(Diagnostic::new(
                                 L0363,
                                 format!("Só lista e texto ficam vazios, e este valor é {}.", vt.describe()),
@@ -1781,7 +1867,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let collection = self.expr(subject, None)?;
                         let ct = self.resolve_ty(&collection.ty);
                         let item = match &ct {
-                            Ty::List(elem) => {
+                            Ty::List(elem) | Ty::Set(elem) | Ty::Map(elem, _) => {
                                 let elem = self.resolve_ty(elem);
                                 let it = self.expr(item, Some(&elem))?;
                                 let found = self.resolve_ty(&it.ty);
@@ -1971,6 +2057,21 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     proj.push(hir::PlaceProj::Field(i));
                     ty = fty;
                 }
+                // "o item "Ana" das idades": num mapa, o item é o valor da chave.
+                ast::Proj::Index(e, span) if matches!(self.resolve_ty(&ty), Ty::Map(..)) => {
+                    let Ty::Map(key_ty, value_ty) = self.resolve_ty(&ty) else { unreachable!() };
+                    let key = self.expr(e, Some(&key_ty))?;
+                    let found = self.resolve_ty(&key.ty);
+                    if !found.is_error() && !self.unify(&key_ty, &found) {
+                        return err(Diagnostic::new(
+                            L0354,
+                            format!("A chave deste mapa é {}, e este valor é {}.", key_ty.describe(), found.describe()),
+                            key.span,
+                        ));
+                    }
+                    proj.push(hir::PlaceProj::Key(Box::new(key), *span));
+                    ty = *value_ty;
+                }
                 ast::Proj::Index(e, span) => {
                     let elem = self.element_of(&ty, &owner, *span)?;
                     let idx = self.expr(e, Some(&Ty::Int(IntTy::I64)))?;
@@ -1998,6 +2099,12 @@ impl<'e, 'a> FnCx<'e, 'a> {
             Ty::List(e) => Ok(*e),
             Ty::Text => Ok(Ty::Char),
             Ty::Error => Ok(Ty::Error),
+            Ty::Set(_) => err(Diagnostic::new(L0368, format!("\"{owner}\" é um conjunto, e conjunto não tem posição."), span)
+                .hint("Pergunte pelo valor (\"Se houver X no conjunto\") ou passe por todos (\"Para cada ...\").")),
+            Ty::Map(..) => {
+                err(Diagnostic::new(L0368, format!("\"{owner}\" é um mapa, e mapa não tem posição: o item se pede pela chave."), span)
+                    .hint("Escreva \"o item \\\"Ana\\\" das idades\"."))
+            }
             Ty::Infer(_) => err(Diagnostic::new(L0340, format!("Ainda não sei de que é \"{owner}\" para tirar um item."), span)),
             other => err(Diagnostic::new(L0341, format!("\"{owner}\" é {} e não tem itens.", other.describe()), span)),
         }
@@ -2228,7 +2335,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let vt = self.resolve_ty(&v.ty);
                 let ty = match op {
                     UnOp::Len => match vt {
-                        Ty::List(_) | Ty::Text | Ty::Error => Ty::Int(IntTy::I64),
+                        Ty::List(_) | Ty::Set(_) | Ty::Map(..) | Ty::Text | Ty::Error => Ty::Int(IntTy::I64),
                         other => {
                             return err(Diagnostic::new(
                                 L0349,
@@ -2421,6 +2528,21 @@ impl<'e, 'a> FnCx<'e, 'a> {
     }
 
     fn binary_type(&self, op: BinOp, l: &hir::Expr, r: &hir::Expr, span: Span) -> Result<Ty> {
+        // Entre conjuntos: a união, a interseção e a diferença.
+        if let (Ty::Set(a), Ty::Set(b)) = (&l.ty, &r.ty) {
+            if !matches!(op, BinOp::BitOr | BinOp::BitAnd | BinOp::Sub) {
+                return err(Diagnostic::new(L0368, format!("Entre conjuntos não há \"{}\".", op.words()), span)
+                    .hint("Entre conjuntos há \"a união de A e B\", \"a interseção de A e B\" e \"a diferença de A e B\"."));
+            }
+            if a != b {
+                return err(Diagnostic::new(
+                    L0361,
+                    format!("Os dois conjuntos têm de ser do mesmo tipo: um é {} e o outro, {}.", l.ty.describe(), r.ty.describe()),
+                    span,
+                ));
+            }
+            return Ok(l.ty.clone());
+        }
         if op == BinOp::Add && (l.ty == Ty::Text || r.ty == Ty::Text) {
             return err(Diagnostic::new(L0358, "Texto não se soma: se junta.", span)
                 .hint("Para juntar textos, use \"seguido de\": Escrevo \"total: \" seguido do total."));
@@ -2558,6 +2680,15 @@ fn stmt_span(s: &ast::Stmt) -> Span {
     }
 }
 
+/// O tipo serve de chave de mapa ou de valor de conjunto: tem de ter ordem.
+fn key_type(t: Ty, what: &str, span: Span) -> Result<Ty> {
+    if t.is_key() {
+        return Ok(t);
+    }
+    err(Diagnostic::new(L0367, format!("{what} é um inteiro, um caractere, um texto ou um lógico, e aqui é {}.", t.describe()), span)
+        .hint("Esses são os tipos que têm ordem, e é por ela que o conjunto e o mapa acham um valor."))
+}
+
 fn readable(t: &Ty) -> bool {
     matches!(t, Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Text | Ty::Error)
 }
@@ -2569,6 +2700,8 @@ fn resolve(t: &Ty, subst: &[(Option<Ty>, Span)]) -> Ty {
             None => t.clone(),
         },
         Ty::List(x) => Ty::List(Box::new(resolve(x, subst))),
+        Ty::Set(x) => Ty::Set(Box::new(resolve(x, subst))),
+        Ty::Map(k, v) => Ty::Map(Box::new(resolve(k, subst)), Box::new(resolve(v, subst))),
         Ty::Maybe(x) => Ty::Maybe(Box::new(resolve(x, subst))),
         other => other.clone(),
     }
@@ -2577,7 +2710,8 @@ fn resolve(t: &Ty, subst: &[(Option<Ty>, Span)]) -> Ty {
 fn contains_infer(t: &Ty) -> bool {
     match t {
         Ty::Infer(_) => true,
-        Ty::List(x) | Ty::Maybe(x) => contains_infer(x),
+        Ty::List(x) | Ty::Maybe(x) | Ty::Set(x) => contains_infer(x),
+        Ty::Map(k, v) => contains_infer(k) || contains_infer(v),
         _ => false,
     }
 }
@@ -2592,7 +2726,7 @@ fn resolve_stmt(st: &mut hir::Stmt, s: &[(Option<Ty>, Span)]) {
     use hir::StmtKind::*;
     match &mut st.kind {
         Let { value, .. } | Write { value, .. } | Expr(value) => resolve_expr(value, s),
-        Assign { place, value } | Compound { place, value, .. } | Push { place, value } => {
+        Assign { place, value } | Compound { place, value, .. } | Push { place, value } | Discard { place, key: value } => {
             resolve_place(place, s);
             resolve_expr(value, s);
         }
@@ -2662,7 +2796,7 @@ fn resolve_cond(c: &mut hir::Cond, s: &[(Option<Ty>, Span)]) {
 fn resolve_place(p: &mut hir::Place, s: &[(Option<Ty>, Span)]) {
     p.ty = resolve(&p.ty, s);
     for pr in &mut p.proj {
-        if let hir::PlaceProj::Index(e, _) = pr {
+        if let hir::PlaceProj::Index(e, _) | hir::PlaceProj::Key(e, _) = pr {
             resolve_expr(e, s);
         }
     }
@@ -2684,7 +2818,7 @@ fn resolve_expr(e: &mut hir::Expr, s: &[(Option<Ty>, Span)]) {
                 resolve_expr(f, s);
             }
         }
-        Concat(v) | List(v) | Record(v) | Variant { fields: v, .. } => v.iter_mut().for_each(|e| resolve_expr(e, s)),
+        Concat(v) | List(v) | Set(v) | Record(v) | Variant { fields: v, .. } => v.iter_mut().for_each(|e| resolve_expr(e, s)),
         VariantField { value, .. } => resolve_expr(value, s),
         Call { args, .. } => {
             for a in args {
@@ -2701,7 +2835,7 @@ fn resolve_expr(e: &mut hir::Expr, s: &[(Option<Ty>, Span)]) {
                 resolve_expr(i, s);
             }
         }
-        Int(_) | Real(_) | Text(_) | Char(_) | Bool(_) | Input | Nothing => {}
+        Int(_) | Real(_) | Text(_) | Char(_) | Bool(_) | Input | Nothing | Map => {}
     }
 }
 

@@ -1,0 +1,75 @@
+Erro de tipo [L0367]: O valor de um conjunto é um inteiro, um caractere, um texto ou um lógico, e aqui é um real.
+ --> tests/programs/err/conjunto_e_mapa_tipos.lav:5:15
+  |
+5 |     Os reais, um conjunto de reais, começam vazios.
+  |               ^^^^^^^^^^^^^^^^^^^^
+  = dica: Esses são os tipos que têm ordem, e é por ela que o conjunto e o mapa acham um valor.
+Erro de tipo [L0367]: A chave de um mapa é um inteiro, um caractere, um texto ou um lógico, e aqui é uma pessoa.
+ --> tests/programs/err/conjunto_e_mapa_tipos.lav:6:16
+  |
+6 |     As fichas, um mapa de pessoas para inteiros, começam vazias.
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = dica: Esses são os tipos que têm ordem, e é por ela que o conjunto e o mapa acham um valor.
+Erro de tipo [L0354]: Esperava um texto, mas este valor é um inteiro.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:10:22
+   |
+10 |     Os vistos ganham 7.
+   |                      ^
+Erro de tipo [L0368]: Um conjunto não tem posição: perde o próprio valor.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:11:5
+   |
+11 |     Os vistos perdem a primeira.
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = dica: Escreva "Os vistos perdem \"Ana\"."
+Erro de tipo [L0368]: "os vistos" é um conjunto, e conjunto não tem posição.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:12:13
+   |
+12 |     Escrevo a primeira dos vistos.
+   |             ^^^^^^^^^^
+   = dica: Pergunte pelo valor ("Se houver X no conjunto") ou passe por todos ("Para cada ...").
+Erro de tipo [L0368]: Um mapa não ganha itens soltos: cada chave entra com o valor dela.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:13:5
+   |
+13 |     As idades ganham 30.
+   |     ^^^^^^^^^
+   = dica: Escreva "O item \"Ana\" das idades vira 30."
+Erro de tipo [L0354]: Esperava um texto, mas este valor é um inteiro.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:14:12
+   |
+14 |     O item 1 das idades vira 30.
+   |            ^
+Erro de tipo [L0368]: "as idades" é um mapa, e mapa não tem posição: o item se pede pela chave.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:15:13
+   |
+15 |     Escrevo a última das idades.
+   |             ^^^^^^^^
+   = dica: Escreva "o item \"Ana\" das idades".
+Erro de tipo [L0368]: Uma lista perde pela posição, e não pelo valor.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:16:21
+   |
+16 |     As notas perdem 7.
+   |                     ^
+   = dica: Escreva "As notas perdem a primeira.", "... perdem o item 2." ou "... perdem a última."
+Erro de tipo [L0368]: Um conjunto não tem posição: perde o próprio valor.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:17:5
+   |
+17 |     Tomo a última dos vistos.
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   = dica: Escreva "Os vistos perdem \"Ana\"."
+Erro de tipo [L0368]: Entre conjuntos não há "mais".
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:19:13
+   |
+19 |     Escrevo os vistos mais os vistos.
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^
+   = dica: Entre conjuntos há "a união de A e B", "a interseção de A e B" e "a diferença de A e B".
+Erro de tipo [L0361]: Os dois conjuntos têm de ser do mesmo tipo: um é um conjunto de textos e o outro, um conjunto de inteiros.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:20:13
+   |
+20 |     Escrevo a união dos vistos e dos números.
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Erro de tipo [L0368]: Um mapa começa vazio, e cada chave entra com o valor dela.
+  --> tests/programs/err/conjunto_e_mapa_tipos.lav:21:62
+   |
+21 |     As tabelas, um mapa de textos para inteiros, começam com 1 e 2.
+   |                                                              ^^^^^
+   = dica: Escreva "..., um mapa de textos para inteiros, começa vazio." e depois "O item \"Ana\" do mapa vira 30."

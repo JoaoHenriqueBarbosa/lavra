@@ -265,6 +265,10 @@ impl<'a> Checker<'a> {
                 self.expr(value, Use::Move, &how)?;
                 self.mutate(place, "ganhar itens")?;
             }
+            StmtKind::Discard { place, key } => {
+                self.expr(key, Use::Read, &How::Other)?;
+                self.mutate(place, "perder itens")?;
+            }
             StmtKind::Write { value, .. } => self.expr(value, Use::Read, &How::Other)?,
             StmtKind::Error => {}
             StmtKind::Match { scrutinee, arms, otherwise } => {
@@ -551,6 +555,7 @@ impl<'a> Checker<'a> {
             ExprKind::Unary(_, a) | ExprKind::Copy(a) | ExprKind::Unwrap(a) | ExprKind::Convert(a) => {
                 self.expr(a, Use::Read, &How::Other)?
             }
+            ExprKind::Map => {}
             ExprKind::Wrap(a) => self.expr(a, use_, how)?,
             ExprKind::Try { call, fallback } => {
                 self.expr(call, Use::Move, how)?;
@@ -564,7 +569,7 @@ impl<'a> Checker<'a> {
                 }
             }
             ExprKind::VariantField { value, .. } => self.expr(value, Use::Read, &How::Other)?,
-            ExprKind::List(v) | ExprKind::Record(v) | ExprKind::Variant { fields: v, .. } => {
+            ExprKind::List(v) | ExprKind::Set(v) | ExprKind::Record(v) | ExprKind::Variant { fields: v, .. } => {
                 for x in v {
                     self.expr(x, Use::Move, how)?;
                 }
@@ -592,7 +597,7 @@ impl<'a> Checker<'a> {
 
     fn place_exprs(&mut self, p: &Place) -> Result<()> {
         for pr in &p.proj {
-            if let PlaceProj::Index(e, _) = pr {
+            if let PlaceProj::Index(e, _) | PlaceProj::Key(e, _) = pr {
                 self.expr(e, Use::Read, &How::Other)?;
             }
         }
@@ -787,6 +792,10 @@ fn place_display(c: &Checker, p: &Place) -> String {
                     _ => "o item".to_string(),
                 };
                 name = format!("{at} {}", of_name(&name));
+                ty_rec = None;
+            }
+            PlaceProj::Key(..) => {
+                name = format!("o item {}", of_name(&name));
                 ty_rec = None;
             }
             PlaceProj::Last(_) => {

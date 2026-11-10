@@ -131,6 +131,10 @@ pub enum Ty {
     Char,
     Text,
     List(Box<Ty>),
+    /// "um conjunto de textos": sem repetição, em ordem.
+    Set(Box<Ty>),
+    /// "um mapa de textos para inteiros": a chave e o valor.
+    Map(Box<Ty>, Box<Ty>),
     Record(Arc<RecordTy>),
     Enum(Arc<EnumTy>),
     /// "talvez um texto": um valor ou nada.
@@ -157,6 +161,17 @@ impl Ty {
         matches!(self, Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Unit | Ty::Error)
     }
 
+    /// Lista, conjunto ou mapa: o que um nome no plural guarda.
+    pub fn is_collection(&self) -> bool {
+        matches!(self, Ty::List(_) | Ty::Set(_) | Ty::Map(..))
+    }
+
+    /// Serve de chave de mapa e de valor de conjunto: tem ordem total e não é dono de nada
+    /// além de si.
+    pub fn is_key(&self) -> bool {
+        matches!(self, Ty::Int(_) | Ty::Char | Ty::Text | Ty::Bool | Ty::Error)
+    }
+
     pub fn is_feminine(&self) -> bool {
         match self {
             Ty::List(_) => true,
@@ -177,6 +192,8 @@ impl Ty {
             Ty::Char => pick("caractere", "caracteres"),
             Ty::Text => pick("texto", "textos"),
             Ty::List(t) => format!("{} de {}", if plural { "listas" } else { "lista" }, t.noun(true)),
+            Ty::Set(t) => format!("{} de {}", if plural { "conjuntos" } else { "conjunto" }, t.noun(true)),
+            Ty::Map(k, v) => format!("{} de {} para {}", if plural { "mapas" } else { "mapa" }, k.noun(true), v.noun(true)),
             Ty::Record(r) => pick(&r.name, &r.plural),
             Ty::Enum(e) => pick(&e.name, &e.plural),
             Ty::Maybe(t) => format!("talvez {}", if plural { t.noun(true) } else { t.describe() }),

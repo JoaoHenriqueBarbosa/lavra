@@ -347,7 +347,7 @@ Cada ponto é **provado** com um uso real e pequeno, ou fica **documentado como 
 | Texto, matemática, arquivos, tempo **(feito)** | builtins e bibliotecas | aditiva |
 | Numerais por extenso **(feito)** | léxico | aditiva; reserva palavras |
 | `Pattern::Literal`, `CondKind::Empty/Contains` (já na AST) **(feito)** | sema, back-ends | aditiva |
-| Mapas e conjuntos | `KIND_*`, builtins | aditiva |
+| Mapas e conjuntos **(feito)** | `KIND_*`, builtins | aditiva |
 | Registro recursivo via lista (`sema.rs:195`) **(feito)** | descritores | aditiva |
 | Módulos | F4, F7 | aditiva |
 | Referências guardadas | loans lexicais | aditiva; regras novas |

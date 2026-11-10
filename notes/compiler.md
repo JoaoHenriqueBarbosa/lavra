@@ -298,6 +298,14 @@ chegar começar do lugar certo.
   isso se acumula devagar ao longo da sessão). Por causa do ciclo, comparar e mostrar um
   tipo do programa é pelo nome, nunca pelos campos, e quem anda pela estrutura de um tipo
   tem de parar no registro (o `desc` do codegen guarda o descritor antes de descer).
+- **Conjunto e mapa** foram os primeiros tipos novos, pelo roteiro abaixo: `Ty::Set` e
+  `Ty::Map`, `KIND_SET` (9) e `KIND_MAP` (10). Os dois são a mesma coleção de casas da lista,
+  guardada em ordem: o conjunto, um valor por casa; o mapa, chave e valor lado a lado (o
+  descritor do valor vai na casa `fields` do `Desc`). Achar é busca binária com o `rt_cmp`,
+  por isso a chave tem de ser de tipo com ordem. Na HIR entraram `PlaceProj::Key` (o item de
+  uma chave), `StmtKind::Discard` (perder um valor ou uma chave) e as expressões `Set` e
+  `Map`; "ganha", "Para cada", "o tamanho" e "houver ... em" são os da lista, e os
+  back-ends escolhem pelo tipo.
 - **Tipos novos no runtime.** O nativo descreve cada tipo por um `Desc` estático
   (`runtime/lib.rs`), que o codegen escreve num lugar só (`desc` em `src/codegen.rs`, com o
   mesmo número de `KIND_*`). Um tipo novo (mapa, conjunto) ganha um `KIND_*` e o braço dele

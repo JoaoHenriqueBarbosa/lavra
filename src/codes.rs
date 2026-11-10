@@ -213,6 +213,8 @@ codes! {
     L0364 = Type, "\"houver ... em\" fora de lista e de texto";
     L0365 = Type, "Caso de \"Conforme\" que não é do tipo do valor";
     L0366 = Type, "\"Conforme\" sobre valores sem \"Senão\"";
+    L0367 = Type, "Chave de mapa ou valor de conjunto de tipo sem ordem";
+    L0368 = Type, "Operação que o conjunto ou o mapa não tem";
 
     // Posse e empréstimo.
     L0400 = Ownership, "Valor usado depois de entregue";
@@ -250,6 +252,7 @@ codes! {
     L0916 = Runtime, "Número que não é código de caractere";
     L0917 = Runtime, "Recorte fora do texto";
     L0918 = Runtime, "Logaritmo de número que não é positivo";
+    L0919 = Runtime, "Chave que o mapa não tem";
 }
 
 /// O código pelo identificador ("L0334") ou pelo número (334).

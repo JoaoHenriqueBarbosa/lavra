@@ -33,6 +33,14 @@ const RUNTIME: &[(&str, &[types::Type], &[types::Type])] = &[
     ("rt_fault_convert_int", &[types::I64, types::I32, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_fault_convert_real", &[types::F64, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_list_contains", &[PTR, PTR, types::I64], &[types::I8]),
+    ("rt_set_insert", &[PTR, PTR, types::I64], &[]),
+    ("rt_set_remove", &[PTR, PTR, types::I64], &[]),
+    ("rt_set_contains", &[PTR, PTR, types::I64], &[types::I8]),
+    ("rt_set_op", &[types::I32, PTR, PTR, PTR], &[PTR]),
+    ("rt_map_addr", &[PTR, PTR, types::I64, types::I32, types::I32], &[PTR]),
+    ("rt_map_put", &[PTR, PTR, PTR, types::I64, types::I64], &[]),
+    ("rt_map_remove", &[PTR, PTR, PTR, types::I64], &[]),
+    ("rt_map_contains", &[PTR, PTR, types::I64], &[types::I8]),
     ("rt_text_has", &[PTR, PTR], &[types::I8]),
     ("rt_text_has_char", &[PTR, types::I32], &[types::I8]),
     ("rt_text_to_int", &[PTR, types::I32, types::I32, types::I32, types::I32], &[types::I64]),
@@ -155,7 +163,7 @@ fn clif(t: &Ty) -> Option<types::Type> {
         Ty::Real(_) => types::F64,
         Ty::Bool => types::I8,
         Ty::Char => types::I32,
-        Ty::Text | Ty::List(_) | Ty::Record(_) | Ty::Maybe(_) | Ty::Enum(_) => PTR,
+        Ty::Text | Ty::List(_) | Ty::Set(_) | Ty::Map(..) | Ty::Record(_) | Ty::Maybe(_) | Ty::Enum(_) => PTR,
         Ty::Unit => return None,
         Ty::Infer(_) | Ty::Error => panic!("tipo não resolvido no gerador de código: {t:?}"),
     })
@@ -178,6 +186,8 @@ fn type_key(t: &Ty) -> String {
         Ty::Char => "c".into(),
         Ty::Text => "t".into(),
         Ty::List(e) => format!("l({})", type_key(e)),
+        Ty::Set(e) => format!("s({})", type_key(e)),
+        Ty::Map(k, v) => format!("map({},{})", type_key(k), type_key(v)),
         Ty::Record(r) => format!("rec{}", r.id),
         Ty::Enum(e) => format!("enum{}", e.id),
         Ty::Maybe(e) => format!("m({})", type_key(e)),
@@ -250,6 +260,8 @@ impl Codegen {
             Ty::Record(r) => (6, 0, 0, r.feminine as u32),
             Ty::Maybe(_) => (7, 0, 0, 0),
             Ty::Enum(e) => (8, 0, 0, e.feminine as u32),
+            Ty::Set(_) => (9, 0, 0, 0),
+            Ty::Map(..) => (10, 0, 0, 0),
             _ => unreachable!(),
         };
         let mut bytes = vec![0u8; 56];
@@ -261,7 +273,12 @@ impl Codegen {
         d.set_align(8);
         let mut relocs: Vec<(u32, DataId)> = Vec::new();
         match t {
-            Ty::List(e) | Ty::Maybe(e) => relocs.push((16, self.desc(e))),
+            Ty::List(e) | Ty::Maybe(e) | Ty::Set(e) => relocs.push((16, self.desc(e))),
+            // A chave vai na casa do item, e o valor na dos campos.
+            Ty::Map(k, v) => {
+                relocs.push((16, self.desc(k)));
+                relocs.push((32, self.desc(v)));
+            }
             Ty::Enum(e) => {
                 bytes[24..32].copy_from_slice(&(e.variants.len() as u64).to_le_bytes());
                 bytes[48..56].copy_from_slice(&(e.name.len() as u64).to_le_bytes());
@@ -685,6 +702,7 @@ impl<'a, 'b> Fx<'a, 'b> {
             t = match (pr, &t) {
                 (PlaceProj::Field(i), Ty::Record(r)) => r.fields[*i].1.clone(),
                 (_, Ty::List(e)) => (**e).clone(),
+                (_, Ty::Map(_, v)) => (**v).clone(),
                 (_, Ty::Text) => Ty::Char,
                 _ => unreachable!(),
             };
@@ -718,6 +736,14 @@ impl<'a, 'b> Fx<'a, 'b> {
                 let (lo, hi) = self.span_vals(*span);
                 self.rt1("rt_list_last_addr", &[container, lo, hi])
             }
+            PlaceProj::Key(e, span) => {
+                let Ty::Map(key_ty, _) = container_ty else { unreachable!() };
+                let key = self.expr(e, false).unwrap();
+                let kd = self.desc(key_ty);
+                let ks = self.slot_of(key, key_ty);
+                let (lo, hi) = self.span_vals(*span);
+                self.rt1("rt_map_addr", &[container, kd, ks, lo, hi])
+            }
         }
     }
 
@@ -739,7 +765,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                     let (lo, hi) = self.span_vals(*span);
                     self.rt1("rt_text_last_char", &[container, lo, hi])
                 }
-                PlaceProj::Field(_) => unreachable!(),
+                PlaceProj::Field(_) | PlaceProj::Key(..) => unreachable!(),
             };
         }
         let addr = self.step_addr(container, &cty, last);
@@ -772,6 +798,17 @@ impl<'a, 'b> Fx<'a, 'b> {
                     self.b.ins().store(flags(), s, addr, 0);
                 }
             }
+            return;
+        }
+        // "O item "Ana" das idades vira 30.": a chave que não existe passa a existir.
+        if let Some(PlaceProj::Key(e, _)) = p.proj.last() {
+            let (map, cty) = self.parent(p);
+            let Ty::Map(key_ty, value_ty) = &cty else { unreachable!() };
+            let key = self.expr(e, false).unwrap();
+            let (kd, vd) = (self.desc(key_ty), self.desc(value_ty));
+            let ks = self.slot_of(key, key_ty);
+            let vs = self.slot_of(val, value_ty);
+            self.rt("rt_map_put", &[map, kd, vd, ks, vs]);
             return;
         }
         let addr = self.place_addr(p);
@@ -825,9 +862,35 @@ impl<'a, 'b> Fx<'a, 'b> {
             StmtKind::Push { place, value } => {
                 let list = self.read_place(place);
                 let v = self.expr(value, true).unwrap();
-                let Ty::List(elem) = &place.ty else { unreachable!() };
-                let s = self.slot_of(v, elem);
-                self.rt("rt_list_push", &[list, s]);
+                match &place.ty {
+                    Ty::List(elem) => {
+                        let s = self.slot_of(v, elem);
+                        self.rt("rt_list_push", &[list, s]);
+                    }
+                    Ty::Set(elem) => {
+                        let d = self.desc(elem);
+                        let s = self.slot_of(v, elem);
+                        self.rt("rt_set_insert", &[list, d, s]);
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            StmtKind::Discard { place, key } => {
+                let coll = self.read_place(place);
+                let k = self.expr(key, false).unwrap();
+                match &place.ty {
+                    Ty::Set(elem) => {
+                        let d = self.desc(elem);
+                        let s = self.slot_of(k, elem);
+                        self.rt("rt_set_remove", &[coll, d, s]);
+                    }
+                    Ty::Map(key_ty, value_ty) => {
+                        let (kd, vd) = (self.desc(key_ty), self.desc(value_ty));
+                        let s = self.slot_of(k, key_ty);
+                        self.rt("rt_map_remove", &[coll, kd, vd, s]);
+                    }
+                    _ => unreachable!(),
+                }
             }
             StmtKind::Write { value, newline } => {
                 let v = self.expr(value, false).unwrap();
@@ -953,9 +1016,11 @@ impl<'a, 'b> Fx<'a, 'b> {
                     src
                 };
                 let elem = match &source.ty {
-                    Ty::List(e) => (**e).clone(),
+                    Ty::List(e) | Ty::Set(e) | Ty::Map(e, _) => (**e).clone(),
                     _ => Ty::Char,
                 };
+                // O mapa guarda chave e valor lado a lado: o laço anda de chave em chave.
+                let stride = if matches!(source.ty, Ty::Map(..)) { 2 } else { 1 };
                 let len = self.rt1("rt_list_len", &[list]);
                 let data = self.rt1("rt_list_data", &[list]);
                 let i = self.b.declare_var(types::I64);
@@ -979,7 +1044,7 @@ impl<'a, 'b> Fx<'a, 'b> {
                 self.loop_body(body, next, exit);
                 self.b.switch_to_block(next);
                 let iv = self.b.use_var(i);
-                let i1 = self.b.ins().iadd_imm_s(iv, 1);
+                let i1 = self.b.ins().iadd_imm_s(iv, stride);
                 self.b.def_var(i, i1);
                 self.b.ins().jump(head, &[]);
                 self.b.switch_to_block(exit);
@@ -1116,6 +1181,16 @@ impl<'a, 'b> Fx<'a, 'b> {
                         let s = self.slot_of(i, &item.ty);
                         self.rt1("rt_list_contains", &[d, c, s])
                     }
+                    (Ty::Set(elem), _) => {
+                        let d = self.desc(elem);
+                        let s = self.slot_of(i, &item.ty);
+                        self.rt1("rt_set_contains", &[d, c, s])
+                    }
+                    (Ty::Map(key, _), _) => {
+                        let d = self.desc(key);
+                        let s = self.slot_of(i, &item.ty);
+                        self.rt1("rt_map_contains", &[d, c, s])
+                    }
                     (_, Ty::Char) => self.rt1("rt_text_has_char", &[c, i]),
                     _ => self.rt1("rt_text_has", &[c, i]),
                 };
@@ -1244,6 +1319,21 @@ impl<'a, 'b> Fx<'a, 'b> {
                 }
                 Some(v)
             }
+            // Entre conjuntos: a união, a interseção e a diferença dão um conjunto novo.
+            ExprKind::Binary(op, l, r) if matches!(l.ty, Ty::Set(_)) => {
+                let Ty::Set(elem) = &l.ty else { unreachable!() };
+                let a = self.expr(l, false).unwrap();
+                let b = self.expr(r, false).unwrap();
+                let code = match op {
+                    BinOp::BitOr => 0,
+                    BinOp::BitAnd => 1,
+                    _ => 2,
+                };
+                let code = self.b.ins().iconst(types::I32, code);
+                let d = self.desc(elem);
+                let out = self.rt1("rt_set_op", &[code, d, a, b]);
+                fresh(self, out)
+            }
             ExprKind::Binary(op, l, r) => {
                 let a = self.expr(l, false).unwrap();
                 let b = self.expr(r, false).unwrap();
@@ -1322,9 +1412,12 @@ impl<'a, 'b> Fx<'a, 'b> {
                     Some(fb) => {
                         self.rt("rt_failure_drop", &[fail]);
                         let mark = self.temps.len();
-                        let mut fv = self.expr(fb, true).unwrap();
-                        // O valor de reserva lido de um lugar vira cópia, para o resultado ter dono nos dois caminhos.
-                        if !fb.ty.is_copy() && matches!(fb.kind, ExprKind::Read(_)) {
+                        // O valor de reserva lido de um lugar vira cópia, para o resultado ter dono nos dois
+                        // caminhos; o lugar continua dono do dele (lê-lo com posse o deixaria sem ninguém
+                        // para liberar).
+                        let copied = !fb.ty.is_copy() && matches!(fb.kind, ExprKind::Read(_));
+                        let mut fv = self.expr(fb, !copied).unwrap();
+                        if copied {
                             let d = self.desc(&fb.ty);
                             let s = self.slot_of(fv, &fb.ty);
                             let c = self.rt1("rt_clone", &[d, s]);
@@ -1339,6 +1432,22 @@ impl<'a, 'b> Fx<'a, 'b> {
                 r.and_then(|v| fresh(self, v))
             }
             ExprKind::Fact(c) => Some(self.cond(c)),
+            ExprKind::Set(items) => {
+                let l = self.rt1("rt_list_new", &[]);
+                let Ty::Set(elem) = &e.ty else { unreachable!() };
+                let d = self.desc(elem);
+                for it in items {
+                    let v = self.expr(it, true).unwrap();
+                    let s = self.slot_of(v, elem);
+                    self.rt("rt_set_insert", &[l, d, s]);
+                }
+                fresh(self, l)
+            }
+            // O mapa vazio é a mesma coleção vazia; as chaves entram com "vira".
+            ExprKind::Map => {
+                let l = self.rt1("rt_list_new", &[]);
+                fresh(self, l)
+            }
             ExprKind::List(items) => {
                 let l = self.rt1("rt_list_new", &[]);
                 let Ty::List(elem) = &e.ty else { unreachable!() };
@@ -1795,7 +1904,10 @@ fn stmt_addressed(s: &Stmt, out: &mut [bool]) {
         StmtKind::Let { value, .. } | StmtKind::Write { value, .. } | StmtKind::Expr(value) | StmtKind::Desist(value) => {
             expr_addressed(value, out)
         }
-        StmtKind::Assign { value, .. } | StmtKind::Compound { value, .. } | StmtKind::Push { value, .. } => expr_addressed(value, out),
+        StmtKind::Assign { value, .. }
+        | StmtKind::Compound { value, .. }
+        | StmtKind::Push { value, .. }
+        | StmtKind::Discard { key: value, .. } => expr_addressed(value, out),
         StmtKind::If { arms, otherwise } => {
             for (c, b) in arms {
                 cond_addressed(c, out);
@@ -1866,7 +1978,7 @@ fn expr_addressed(e: &hir::Expr, out: &mut [bool]) {
         ExprKind::Unary(_, a) | ExprKind::Copy(a) | ExprKind::Wrap(a) | ExprKind::Unwrap(a) | ExprKind::Convert(a) => {
             expr_addressed(a, out)
         }
-        ExprKind::Concat(v) | ExprKind::List(v) | ExprKind::Record(v) | ExprKind::Variant { fields: v, .. } => {
+        ExprKind::Concat(v) | ExprKind::List(v) | ExprKind::Set(v) | ExprKind::Record(v) | ExprKind::Variant { fields: v, .. } => {
             v.iter().for_each(|x| expr_addressed(x, out))
         }
         ExprKind::Fact(c) => cond_addressed(c, out),

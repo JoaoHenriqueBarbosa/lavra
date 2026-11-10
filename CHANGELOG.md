@@ -32,6 +32,9 @@ As versões da Lavra, a mais nova primeiro.
 - A biblioteca de arquivos ("Uso a biblioteca de arquivos."): carregar, gravar, acrescentar,
   apagar, listar e "Se o caminho existir". O que depende do disco pode falhar, e a chamada
   trata com ", ou desisto" ou ", ou VALOR".
+- Conjuntos e mapas: "um conjunto de textos" (sem repetição, em ordem; ganha e perde o
+  próprio valor; união, interseção e diferença) e "um mapa de textos para inteiros" ("O item
+  "Ana" das idades vira 30."), com "Se houver ... em", "Para cada" e "o tamanho de".
 - A biblioteca de tempo ("Uso a biblioteca de tempo."): "o agora", as partes de um instante
   ("o ano de x", "a hora de x"...), "datar o instante" e "aguardar o tempo".
 
@@ -43,6 +46,8 @@ As versões da Lavra, a mais nova primeiro.
 
 ### Correções
 
+- O nativo não perde mais memória quando o valor de reserva de uma chamada é um nome
+  (", ou as linhas"): o nome continua dono do valor dele, e o resultado fica com uma cópia.
 - Um verbo do programa pode ter a 1ª pessoa igual a um numeral ("zerar" dá "zero"): o verbo
   abre a oração, e o número nunca abre.
 
