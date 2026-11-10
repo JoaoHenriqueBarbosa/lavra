@@ -645,6 +645,11 @@ pub extern "C" fn rt_time_minute(millis: i64, _lo: u32, _hi: u32) -> i64 {
 }
 
 #[unsafe(no_mangle)]
+pub extern "C" fn rt_time_second(millis: i64, _lo: u32, _hi: u32) -> i64 {
+    textfmt::civil(millis)[5]
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn rt_time_text(millis: i64, _lo: u32, _hi: u32) -> *mut String {
     Box::into_raw(Box::new(textfmt::date_text(millis)))
 }

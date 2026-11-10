@@ -2199,6 +2199,21 @@ impl<'e, 'a> FnCx<'e, 'a> {
         Ok(hir::Expr { kind: hir::ExprKind::Call { callee, args }, ty: ret, span: call.span })
     }
 
+    /// O lugar é "o segundo de X" com X um inteiro, num programa que traz a operação de
+    /// biblioteca "o segundo de" (a de tempo): a assinatura dela e o lugar de X.
+    fn clock_part(&self, p: &ast::Place) -> Option<(usize, ast::Place)> {
+        let Some(ast::Proj::Ordinal { position: 2, gender: Gender::Masculine, .. }) = p.proj.last() else { return None };
+        let &sig = self.env.prog.vocab.nominals.get(morphology::ordinal_word(2, Gender::Masculine).as_str())?;
+        let mut inner = p.clone();
+        inner.proj.pop();
+        // O tipo de X, sem conferir nada: só a raiz e os campos já conhecidos.
+        if !inner.proj.is_empty() {
+            return None;
+        }
+        let info = self.lookup(&inner.root.word)?;
+        matches!(self.resolve_ty(&info.ty), Ty::Int(_)).then_some((sig, inner))
+    }
+
     /// O tipo de uma função do programa como verbo guardado, se ela pode ser um: sem tipo
     /// qualquer, sem "salvo engano", sem parâmetro confiado.
     fn verb_type_of(&self, si: usize) -> Option<Ty> {
@@ -2751,6 +2766,24 @@ impl<'e, 'a> FnCx<'e, 'a> {
             ExprKind::Text(s) => (hir::ExprKind::Text(s.clone()), Ty::Text),
             ExprKind::Char(c) => (hir::ExprKind::Char(*c), Ty::Char),
             ExprKind::Bool(b) => (hir::ExprKind::Bool(*b), Ty::Bool),
+            // "o segundo do começo": com a biblioteca de tempo, o ordinal sobre um instante
+            // (um inteiro, que não tem itens) é o segundo do relógio.
+            ExprKind::Place(p) if self.clock_part(p).is_some() => {
+                let (sig, inner) = self.clock_part(p).expect("conferido acima");
+                let (hp, _) = self.place_read(&inner)?;
+                let prog = self.env.prog;
+                let b = prog.sigs[sig].builtin.expect("operação de biblioteca");
+                let d = self.env.sig_defs[sig];
+                if let Some(ast::Proj::Ordinal { span, .. }) = p.proj.last() {
+                    self.env.use_def_as(d, *span, Use::Call, Form::Verb(ast::VerbForm::Infinitive));
+                }
+                let ty = hp.ty.clone();
+                let span = hp.span;
+                let value = hir::Expr { kind: hir::ExprKind::Read(hp), ty, span };
+                let param = prog.sigs[sig].params.first().map(|x| x.name.display()).unwrap_or_default();
+                let arg = hir::Arg { value, param, mode: ParamMode::Owned, place: None };
+                (hir::ExprKind::Call { callee: hir::Callee::Builtin(b), args: vec![arg] }, self.env.sig_types[sig].ret.clone())
+            }
             ExprKind::Place(p) => {
                 let (hp, _) = self.place_read(p)?;
                 let ty = hp.ty.clone();

@@ -21,8 +21,10 @@ Para calcular a hora de x, sendo x um inteiro, devolvendo um inteiro.
 Nota: O minuto do instante, de 0 a 59.
 Para calcular o minuto de x, sendo x um inteiro, devolvendo um inteiro.
 
-Nota: O segundo não tem operação: "o segundo" já é a posição 2 de uma coleção. Ele sai da
-Nota: conta, e não depende do lugar: o resto de (x dividido por 1 000) e 60.
+Nota: O segundo do instante, de 0 a 59. "o segundo de" também é a posição 2 de uma coleção:
+Nota: vale o segundo do relógio quando o que vem depois é um instante (um inteiro), e não
+Nota: uma coleção.
+Para calcular o segundo de x, sendo x um inteiro, devolvendo um inteiro.
 
 Nota: O instante por extenso: "10/11/2026 14:57:03".
 Para datar o instante, sendo o instante um inteiro, devolvendo um texto.

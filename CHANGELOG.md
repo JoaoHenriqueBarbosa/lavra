@@ -35,6 +35,8 @@ As versões da Lavra, a mais nova primeiro.
 - Funções genéricas: "sendo a lista uma lista de coisas quaisquer" declara um tipo qualquer,
   que cada chamada decide pelos argumentos. "qualquer ordenável" pede um tipo com ordem e
   libera "maior que".
+- "o segundo de x" na biblioteca de tempo: é o segundo do relógio quando x é um instante, e a
+  posição 2 quando é uma coleção.
 - A extensão do Zed registra o `lavrac dap` como adaptador de depuração.
 - O rename atravessa os arquivos: muda o nome no documento, nos arquivos que ele traz e nos
   que o trazem.

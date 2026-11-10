@@ -420,9 +420,10 @@ Para começar:
   `Falha: Não consegui carregar "notas.txt": não existe.`
 - A biblioteca de tempo ("Uso a biblioteca de tempo.") trata o instante como um inteiro, os
   milissegundos desde o começo de 1970: `o agora` é o instante em que a oração roda;
-  `o ano de x`, `o mês de x`, `o dia de x`, `a hora de x` e `o minuto de x` são as partes de um
-  instante, no horário do lugar em que o programa roda (o segundo sai da conta, porque "o
-  segundo de" já é a posição 2 de uma coleção: `o resto de (x dividido por 1 000) e 60`); "datar o
+  `o ano de x`, `o mês de x`, `o dia de x`, `a hora de x`, `o minuto de x` e `o segundo de x`
+  são as partes de um instante, no horário do lugar em que o programa roda ("o segundo de"
+  também é a posição 2 de uma coleção: vale o do relógio quando x é o nome de um instante,
+  isto é, de um inteiro); "datar o
   instante" dá o texto "10/11/2026 14:57:03"; "aguardar o tempo" para o programa pelos
   milissegundos dados. Duração é conta de inteiros: `(o agora) menos o começo`.
 - Operação por extenso de biblioteca só existe no programa que traz a biblioteca: sem ela,

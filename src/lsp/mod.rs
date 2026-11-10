@@ -366,8 +366,16 @@ impl Server {
             Some((base, file)) => Some((crate::modules::normalize(&file.path), span.start - base)),
             None => path.as_ref().map(|p| (crate::modules::normalize(p), span.start)),
         });
+        // Onde procurar quem traz o arquivo: as pastas abertas no editor e, para o arquivo
+        // aberto fora delas (ou sem pasta nenhuma), a pasta dele e a de cima.
+        let mut places: Vec<PathBuf> = self.roots.clone();
+        for near in path.iter().flat_map(|p| p.ancestors().skip(1).take(2)) {
+            if !places.iter().any(|r| near.starts_with(r)) {
+                places.push(near.to_path_buf());
+            }
+        }
         if let Some((home, local)) = home {
-            for root in &self.roots {
+            for root in &places {
                 for other in lav_files(root, 4) {
                     let other = crate::modules::normalize(&other);
                     if touched.contains(&other) {

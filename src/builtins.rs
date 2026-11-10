@@ -78,7 +78,7 @@ pub enum Builtin {
     FileExists,
     DirList,
     Now,
-    /// Uma parte do instante: 0 é o ano, e daí mês, dia, hora e minuto.
+    /// Uma parte do instante: 0 é o ano, e daí mês, dia, hora, minuto e segundo.
     TimePart(u8),
     DateText,
     Sleep,
@@ -120,6 +120,7 @@ impl Builtin {
         Builtin::TimePart(2),
         Builtin::TimePart(3),
         Builtin::TimePart(4),
+        Builtin::TimePart(5),
         Builtin::DateText,
         Builtin::Sleep,
     ];
@@ -170,7 +171,8 @@ impl Builtin {
             Builtin::TimePart(1) => ("tempo", "calcular o mês"),
             Builtin::TimePart(2) => ("tempo", "calcular o dia"),
             Builtin::TimePart(3) => ("tempo", "calcular a hora"),
-            Builtin::TimePart(_) => ("tempo", "calcular o minuto"),
+            Builtin::TimePart(4) => ("tempo", "calcular o minuto"),
+            Builtin::TimePart(_) => ("tempo", "calcular o segundo"),
             Builtin::DateText => ("tempo", "datar"),
             Builtin::Sleep => ("tempo", "aguardar"),
         }
@@ -233,7 +235,8 @@ impl Builtin {
             Builtin::TimePart(1) => "rt_time_month",
             Builtin::TimePart(2) => "rt_time_day",
             Builtin::TimePart(3) => "rt_time_hour",
-            Builtin::TimePart(_) => "rt_time_minute",
+            Builtin::TimePart(4) => "rt_time_minute",
+            Builtin::TimePart(_) => "rt_time_second",
             Builtin::DateText => "rt_time_text",
             Builtin::Sleep => "rt_time_sleep",
         }

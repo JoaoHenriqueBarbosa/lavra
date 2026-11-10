@@ -296,8 +296,10 @@ nome muda no documento, nos arquivos que ele traz e, das pastas abertas no edito
 trazem o arquivo que o define. Cada arquivo trazido é visto também como programa, para os
 usos do "Para começar" dele mudarem junto; as correções de concordância rodam em cada
 arquivo, e a conferência final analisa o programa com todos os arquivos como ficaram. O
-arquivo fora das pastas abertas que traga o nome não é achado, e fica por conta de quem o
-abre. Ainda não há: completar o caminho, nem
+servidor procura quem traz o arquivo nas pastas abertas e, para o documento fora delas, na
+pasta dele e na de cima (até quatro níveis para dentro). Um arquivo em outro canto do disco
+que traga o nome por um caminho comprido não é achado: não há índice de todos os arquivos
+Lavra da máquina. Ainda não há: completar o caminho, nem
 reanalisar quem traz um arquivo quando ele muda (a análise se refaz na próxima edição).
 
 ## tree-sitter e outros editores
@@ -362,8 +364,10 @@ README de instalação.
   desligados por padrão e não abre o texto das bibliotecas. Para depurar, a extensão
   registra o `lavrac dap` como adaptador (`[debug_adapters.lavrac]` no `extension.toml`, o
   esquema da configuração em `debug_adapter_schemas/`, e `get_dap_binary`,
-  `dap_request_kind` e `dap_config_to_scenario` no código). Conferido só pela compilação da
-  extensão: não havia um Zed à mão para abrir uma sessão.
+  `dap_request_kind` e `dap_config_to_scenario` no código). Conferido de três jeitos: a
+  extensão compila para wasm, o registro segue a documentação do Zed para extensões de
+  depuração, e `tests/dap.rs` abre uma sessão com a configuração exata que a extensão monta.
+  Falta só o que pede um Zed aberto: ver a sessão no painel dele.
 - **O `rev` da gramática** no Helix e no Zed é o commit que mudou `editors/tree-sitter-lavra/src`
   pela última vez; o CI confere que a gramática naquele commit é a de agora. Mudança na
   gramática vai no mesmo push que a atualização do `rev`, e o commit precisa sobreviver ao

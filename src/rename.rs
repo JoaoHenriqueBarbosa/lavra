@@ -397,7 +397,11 @@ impl Plan<'_> {
                     Form::Verb(_) => continue,
                 }
                 self.article(&o, old_gender, gender);
-                self.ordinal(&o, old_gender, gender);
+                // O ordinal segue a coleção; "o segundo do começo", com um instante, é o
+                // segundo do relógio, e não muda de gênero com o nome.
+                if m.ty.as_ref().is_none_or(|t| t.is_collection() || matches!(t, crate::types::Ty::Text)) {
+                    self.ordinal(&o, old_gender, gender);
+                }
             }
         }
         Ok(())

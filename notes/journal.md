@@ -559,3 +559,10 @@ O depurador no Zed, que tinha ficado de fora na fase 8:
 - Conferido só pela compilação da extensão para wasm (num contêiner): não havia um Zed nesta máquina para abrir uma sessão de verdade. Fica para você testar.
 - Os tokens semânticos no Helix continuam fora: o Helix não os pede ao servidor, e não há o que a configuração possa fazer.
 
+Mais três lacunas da lista do fecho:
+- "o segundo de x" voltou à biblioteca de tempo. A colisão com o ordinal ("o segundo das notas") se resolve pelo tipo: o parser lê sempre o ordinal, e a sema, vendo que o que vem depois é o nome de um inteiro num programa que traz a biblioteca, troca pela parte do relógio. Vale para um nome; para uma conta, guarde num nome antes.
+- O rename procura quem traz o arquivo também pela pasta do documento e pela de cima, para o arquivo aberto sem pasta no editor. O limite que sobra é o de qualquer rename: não há índice de todos os arquivos Lavra da máquina.
+- O depurador do Zed ganhou conferência além da compilação: o registro da extensão foi comparado com a documentação do Zed, e um teste abre uma sessão no lavrac dap com a configuração exata que a extensão monta (com o "request" e o "stopOnEntry"). Continua faltando ver a sessão num Zed aberto, que esta máquina não tem.
+
+O que fica de fora por não depender do projeto: os tokens semânticos no Helix (o Helix não os pede a servidor nenhum).
+

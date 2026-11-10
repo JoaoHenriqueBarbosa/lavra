@@ -1808,7 +1808,10 @@ impl Parser {
     fn nominal_ahead(&self) -> bool {
         self.definite_article_at(0).is_some()
             && self.peek_at(1).word().is_some_and(|w| {
+                // "o segundo de" é a posição 2: o ordinal vem antes da operação de biblioteca
+                // com o mesmo nome, e a sema decide pelo tipo do que vem depois.
                 !self.field_hides_nominal(w)
+                    && morphology::ordinal(w).is_none()
                     && match self.vocab.nominals.get(w) {
                         // A operação de biblioteca sem termo ("o pi") é o nome sozinho.
                         Some(&sig) => self.prog.sigs[sig].params.is_empty() || self.peek_at(2).is_word("de"),

@@ -566,7 +566,8 @@ fn rename_reaches_the_files_that_bring_the_document() {
     let (server, client) = Connection::memory();
     let handle = std::thread::spawn(move || lavra::lsp::run(&server).expect("servidor"));
     let mut c = Client { conn: client, next: 1, notes: Vec::new(), asked: Vec::new() };
-    c.request("initialize", json!({ "capabilities": {}, "processId": null, "rootUri": format!("file://{}", dir.display()) }));
+    // Sem pasta aberta: o servidor procura quem traz o documento pela pasta dele e pela de cima.
+    c.request("initialize", json!({ "capabilities": {}, "processId": null, "rootUri": null }));
     c.notify("initialized", json!({}));
     let contas = std::fs::read_to_string(dir.join("lib/contas.lav")).unwrap();
     c.notify(

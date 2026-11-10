@@ -212,3 +212,23 @@ fn a_session_in_the_integrated_terminal() {
     assert_eq!(c.output("stdout"), "");
     c.finish();
 }
+
+/// A sessão como o Zed a abre: a extensão (`editors/zed`) monta esta configuração em
+/// `dap_config_to_scenario`, com o "request" junto, e pede para parar na entrada.
+#[test]
+fn a_session_with_the_configuration_the_zed_extension_builds() {
+    let path = program_file("zed", PROGRAM);
+    let p = path.display().to_string();
+    let mut c = Client::start();
+    c.ok("initialize", json!({ "adapterID": "lavrac", "linesStartAt1": true, "columnsStartAt1": true }));
+    c.event("initialized");
+    c.ok("launch", json!({ "request": "launch", "program": p, "stopOnEntry": true }));
+    c.ok("configurationDone", json!({}));
+    assert_eq!(c.event("stopped")["reason"], "entry");
+    assert_eq!(c.top()["source"]["path"], json!(p));
+    c.ok("continue", json!({ "threadId": 1 }));
+    assert_eq!(c.event("exited")["exitCode"], 0);
+    c.event("terminated");
+    assert_eq!(c.output("stdout"), "110\n");
+    c.finish();
+}
