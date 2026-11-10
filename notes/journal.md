@@ -523,3 +523,17 @@ Decisões para revisar:
 - As definições do mesmo verbo têm de devolver o mesmo tipo. Um verbo que devolve o próprio tipo qualquer ("copiar a coisa, devolvendo uma coisa") não cabe nessa regra.
 - A escolha é pelos tipos escritos: o inteiro escrito num argumento não vira real para casar com uma definição.
 
+Item 12, verbos de primeira classe, que fecha o catálogo:
+- O tipo: "um verbo de inteiro para inteiro" (o que recebe depois de "de", o que devolve depois de "para"; "emprestado" no que vem emprestado).
+- O valor é o infinitivo, que em português já é o nome do verbo: "transformar as notas com dobrar", "A escolhida, um verbo de inteiro para inteiro, começa em dobrar."
+- A chamada é com "invocar", verbo novo da língua: "Invoco a ação com o item.", "o resultado de invocar a junção com o total e o número".
+- Guarda-se em nome, lista, registro e mapa; combina com os genéricos ("um verbo de coisa emprestada para texto"). No nativo é o endereço da função, chamado direto.
+- Quatro códigos: L0183, L0376, L0377 e L0378.
+
+Decisões para revisar:
+- "invocar", e não "aplicar" ou "chamar": os dois são verbos que os programas definem muito ("aplicar o rendimento", "chamar o cliente"), e reservar um deles quebraria programas. "invocar" quase ninguém define.
+- Não há fecho: o verbo guardado é sempre uma função com nome, e não leva valores do lugar em que foi escrito.
+- Ficam de fora, como valor: a função genérica, a que pode falhar e a que recebe algo confiado.
+
+Com isso o catálogo de features do roteiro (seção 2.4) está feito, menos o nativo em macOS e Windows, que ficou fora por pedido. As pendências que dependem de você continuam as do fim do roteiro: os tokens de publicação e o merge do PR de release.
+

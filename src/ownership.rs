@@ -608,7 +608,15 @@ impl<'a> Checker<'a> {
             ExprKind::Unary(_, a) | ExprKind::Copy(a) | ExprKind::Unwrap(a) | ExprKind::Convert(a) => {
                 self.expr(a, Use::Read, &How::Other)?
             }
-            ExprKind::Map => {}
+            ExprKind::Map | ExprKind::FuncRef(_) => {}
+            // O verbo guardado recebe com posse ou emprestado, como diz o tipo dele.
+            ExprKind::Invoke { verb, args } => {
+                self.expr(verb, Use::Read, &How::Other)?;
+                for a in args {
+                    let use_ = if a.mode == ParamMode::Owned { Use::Move } else { Use::Read };
+                    self.expr(&a.value, use_, &How::Other)?;
+                }
+            }
             ExprKind::Wrap(a) => self.expr(a, use_, how)?,
             ExprKind::Try { call, fallback } => {
                 self.expr(call, Use::Move, how)?;

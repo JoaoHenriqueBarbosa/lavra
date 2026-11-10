@@ -1,0 +1,59 @@
+Nota: verbos de primeira classe: o infinitivo é o verbo como valor, e "invocar" o chama.
+
+Para dobrar o número, sendo o número um inteiro, devolvendo um inteiro:
+    Devolvo o número vezes 2.
+
+Para triplicar o número, sendo o número um inteiro, devolvendo um inteiro:
+    Devolvo o número vezes 3.
+
+Para somar o primeiro-valor com o segundo-valor, sendo ambos inteiros, devolvendo um inteiro:
+    Devolvo o primeiro-valor mais o segundo-valor.
+
+Para gritar a frase, sendo a frase um texto emprestado, devolvendo um texto:
+    Devolvo a frase seguido de "!".
+
+Para anunciar a frase, sendo a frase um texto emprestado:
+    Escrevo ">> " seguido da frase.
+
+Para saudar:
+    Escrevo "olá".
+
+Para transformar a lista com a ação, sendo a lista uma lista de inteiros emprestada e a ação um verbo de inteiro para inteiro,
+        devolvendo uma lista de inteiros:
+    As novas, uma lista de inteiros, começam vazias.
+    Para cada número da lista: as novas ganham o resultado de invocar a ação com o número.
+    Devolvo as novas.
+
+Para reduzir a lista com a junção, sendo a lista uma lista de inteiros emprestada e a junção um verbo de inteiro e inteiro para inteiro,
+        devolvendo um inteiro:
+    O total começa em 0.
+    Para cada número da lista: o total vira o resultado de invocar a junção com o total e o número.
+    Devolvo o total.
+
+Para mapear a lista com a ação, sendo a lista uma lista de coisas quaisquer emprestada e a ação um verbo de coisa emprestada para texto,
+        devolvendo uma lista de textos:
+    Os textos, uma lista de textos, começam vazios.
+    Para cada coisa da lista: os textos ganham o resultado de invocar a ação com a coisa.
+    Devolvo os textos.
+
+Para reiterar a ação pelas vezes, sendo a ação um verbo e as vezes um inteiro:
+    Repito as vezes vezes: invoco a ação.
+
+Para começar:
+    As notas são 1, 2 e 3.
+    Escrevo o resultado de transformar as notas com dobrar.
+    Escrevo o resultado de transformar as notas com triplicar.
+    Escrevo o resultado de reduzir as notas com somar.
+    A escolhida, um verbo de inteiro para inteiro, começa em dobrar.
+    Escrevo o resultado de invocar a escolhida com 21.
+    A escolhida vira triplicar.
+    Escrevo o resultado de invocar a escolhida com 21.
+    Os nomes são "ana" e "bia".
+    Escrevo o resultado de mapear os nomes com gritar.
+    As ações, uma lista de verbos de inteiro para inteiro, começam vazias.
+    As ações ganham dobrar.
+    As ações ganham triplicar.
+    Para cada ação das ações: escrevo o resultado de invocar a ação com 10.
+    A fala é anunciar.
+    Invoco a fala com "pronto".
+    Reitero saudar por 2.

@@ -165,6 +165,12 @@
       "role": "statement"
     },
     {
+      "doc": "Chama o verbo guardado num nome: \"Invoco a ação com o item.\", \"o resultado de invocar a ação com 2 e 3\".",
+      "firstPerson": "invoco",
+      "infinitive": "invocar",
+      "role": "statement"
+    },
+    {
       "doc": "Tira um item da coleção, com a posse dele: \"Tomo a última das notas.\" O item fica em \"o resultado\".",
       "firstPerson": "tomo",
       "infinitive": "tomar",
@@ -1301,6 +1307,12 @@
       "singular": "conjunto"
     },
     {
+      "doc": "Um verbo do programa como valor: \"um verbo de inteiro para inteiro\" recebe um inteiro e devolve outro. Passa-se pelo infinitivo (\"com dobrar\") e chama-se com \"invocar\".",
+      "gender": "masculine",
+      "plural": "verbos",
+      "singular": "verbo"
+    },
+    {
       "doc": "Um valor para cada chave: \"um mapa de textos para inteiros\". \"O item K do mapa\" lê e muda o valor da chave K.",
       "gender": "masculine",
       "plural": "mapas",
@@ -1589,6 +1601,18 @@
       "doc": "Lê uma linha da entrada para um lugar (\"Leio o nome.\") ou como valor (\"leio um inteiro\").",
       "form": "ler",
       "lemma": "ler",
+      "role": "statement"
+    },
+    {
+      "doc": "Chama o verbo guardado num nome: \"Invoco a ação com o item.\", \"o resultado de invocar a ação com 2 e 3\".",
+      "form": "invoco",
+      "lemma": "invocar",
+      "role": "statement"
+    },
+    {
+      "doc": "Chama o verbo guardado num nome: \"Invoco a ação com o item.\", \"o resultado de invocar a ação com 2 e 3\".",
+      "form": "invocar",
+      "lemma": "invocar",
       "role": "statement"
     },
     {
@@ -1895,6 +1919,18 @@
       "doc": "Coleção sem repetição, em ordem: \"um conjunto de textos\". Ganha e perde valores, e \"Se houver X no conjunto\" pergunta por um.",
       "form": "conjuntos",
       "lemma": "conjunto",
+      "role": "type"
+    },
+    {
+      "doc": "Um verbo do programa como valor: \"um verbo de inteiro para inteiro\" recebe um inteiro e devolve outro. Passa-se pelo infinitivo (\"com dobrar\") e chama-se com \"invocar\".",
+      "form": "verbo",
+      "lemma": "verbo",
+      "role": "type"
+    },
+    {
+      "doc": "Um verbo do programa como valor: \"um verbo de inteiro para inteiro\" recebe um inteiro e devolve outro. Passa-se pelo infinitivo (\"com dobrar\") e chama-se com \"invocar\".",
+      "form": "verbos",
+      "lemma": "verbo",
       "role": "type"
     },
     {

@@ -285,6 +285,13 @@ pub enum ExprKind {
         callee: Callee,
         args: Vec<Arg>,
     },
+    /// Um verbo do programa como valor ("com dobrar").
+    FuncRef(FuncId),
+    /// "invocar a ação com 2 e 3": a chamada de um verbo guardado.
+    Invoke {
+        verb: Box<Expr>,
+        args: Vec<Arg>,
+    },
     Fact(Box<Cond>),
     Unary(UnOp, Box<Expr>),
     List(Vec<Expr>),

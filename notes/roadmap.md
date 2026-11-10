@@ -352,7 +352,7 @@ Cada ponto é **provado** com um uso real e pequeno, ou fica **documentado como 
 | Módulos **(feito)** | F4, F7 | aditiva |
 | Referências guardadas **(feito)** | loans lexicais | aditiva; regras novas |
 | Genéricos, traits **(feito)** | monomorfização | aditiva |
-| Verbos de primeira classe | HIR, ponteiro de função | aditiva |
+| Verbos de primeira classe **(feito)** | HIR, ponteiro de função | aditiva |
 | Nativo em macOS e Windows | linha de link por SO | aditiva |
 
 ---

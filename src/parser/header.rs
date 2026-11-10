@@ -666,7 +666,7 @@ impl Parser {
     }
 
     /// Lê o particípio de modo, se houver, e confere a concordância com o tipo.
-    fn participle(&mut self, ty_gender: Gender, number: Number) -> Result<ParamMode> {
+    pub(super) fn participle(&mut self, ty_gender: Gender, number: Number) -> Result<ParamMode> {
         let Some((base, mode, g, n)) = self.participle_at() else { return Ok(ParamMode::Owned) };
         let pt = self.bump();
         if g != ty_gender || n != number {
@@ -771,6 +771,9 @@ impl Parser {
             let (elem, _) = self.type_word(Number::Plural)?;
             return Ok((TypeExpr::List(Box::new(elem)), Gender::Feminine));
         }
+        if sing == "verbo" {
+            return self.verb_type();
+        }
         if sing == "conjunto" {
             self.expect_word("de")?;
             let (elem, _) = self.type_word(Number::Plural)?;
@@ -821,6 +824,37 @@ impl Parser {
             }
         };
         Ok((ty, Gender::Masculine))
+    }
+
+    /// O resto de "um verbo de inteiro e texto emprestado para lógico": o que o verbo recebe
+    /// (cada tipo no singular, sem artigo, com o particípio se for emprestado) e, depois de
+    /// "para", o que devolve. Sem "de", não recebe nada; sem "para", não devolve.
+    fn verb_type(&mut self) -> Result<(TypeExpr, Gender)> {
+        let mut params = Vec::new();
+        if self.eat_word("de") {
+            loop {
+                let (ty, gender) = self.type_word(Number::Singular)?;
+                let mode = self.participle(gender, Number::Singular)?;
+                params.push((ty, mode));
+                // Outro tipo do verbo, e não o próximo parâmetro do cabeçalho ("e a lista ...").
+                let more = self.at_word("e") && self.peek_at(1).word().is_some_and(|w| self.type_noun_word(w));
+                if !more {
+                    break;
+                }
+                self.bump();
+            }
+        }
+        let ret = if self.eat_word("para") { Some(Box::new(self.type_word(Number::Singular)?.0)) } else { None };
+        Ok((TypeExpr::Verb(params, ret), Gender::Masculine))
+    }
+
+    /// A palavra nomeia um tipo, no singular: um da língua, um registro, uma enumeração ou um
+    /// tipo qualquer do cabeçalho.
+    fn type_noun_word(&self, w: &str) -> bool {
+        lexicon::TYPE_NOUNS.iter().any(|t| t.singular == w)
+            || self.vocab.records.contains_key(w)
+            || self.vocab.enums.contains_key(w)
+            || self.type_params.iter().any(|p| p.name == w)
     }
 
     /// O nome singular de um tipo qualquer escrito em `w`, no número dado.

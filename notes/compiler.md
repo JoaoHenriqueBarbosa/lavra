@@ -349,6 +349,14 @@ chegar começar do lugar certo.
   uma chave), `StmtKind::Discard` (perder um valor ou uma chave) e as expressões `Set` e
   `Map`; "ganha", "Para cada", "o tamanho" e "houver ... em" são os da lista, e os
   back-ends escolhem pelo tipo.
+- **Verbos guardados (feito).** `Ty::Verb(params, ret)`, com o tipo de cada valor recebido e
+  se vem emprestado. O infinitivo como valor é `ast::ExprKind::VerbRef` (o parser o
+  reconhece pelo vocabulário) e baixa para `hir::ExprKind::FuncRef(FuncId)`, depois de a
+  sema casar a função com o tipo esperado (`verb_type_of`). "invocar" é verbo da língua e
+  baixa para `hir::ExprKind::Invoke`. No interpretador o valor é `Value::Func`; no nativo, o
+  endereço da função (`func_addr`), chamado com `call_indirect` e a assinatura tirada do
+  tipo. Para o runtime o verbo guardado é um inteiro de 64 bits (copia, não libera). Não há
+  fecho: o verbo guardado não leva valores consigo.
 - **Tipos novos no runtime.** O nativo descreve cada tipo por um `Desc` estático
   (`runtime/lib.rs`), que o codegen escreve num lugar só (`desc` em `src/codegen.rs`, com o
   mesmo número de `KIND_*`). Um tipo novo (mapa, conjunto) ganha um `KIND_*` e o braço dele

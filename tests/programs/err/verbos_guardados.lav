@@ -1,0 +1,28 @@
+Para dobrar o número, sendo o número um inteiro, devolvendo um inteiro:
+    Devolvo o número vezes 2.
+
+Para gritar a frase, sendo a frase um texto emprestado, devolvendo um texto:
+    Devolvo a frase seguido de "!".
+
+Para anular o número, sendo o número um inteiro confiado:
+    O número vira 0.
+
+Para arriscar o número, sendo o número um inteiro, devolvendo um inteiro, salvo engano:
+    Devolvo o número.
+
+Para transformar a lista com a ação, sendo a lista uma lista de inteiros emprestada e a ação um verbo de inteiro para inteiro,
+        devolvendo uma lista de inteiros:
+    As novas, uma lista de inteiros, começam vazias.
+    Para cada número da lista: as novas ganham o resultado de invocar a ação com o número.
+    Devolvo as novas.
+
+Para começar:
+    As notas são 1, 2 e 3.
+    Escrevo o resultado de transformar as notas com gritar.
+    Escrevo o resultado de transformar as notas com arriscar.
+    A escolhida é dobrar.
+    Escrevo a escolhida.
+    Se a escolhida for igual a dobrar: escrevo "igual".
+    Escrevo o resultado de invocar a escolhida com 1 e 2.
+    Escrevo o resultado de invocar as notas com 1.
+    Invoco.

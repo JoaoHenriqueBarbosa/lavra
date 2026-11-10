@@ -27,6 +27,8 @@ pub enum Value {
     Nothing,
     /// Caso de enumeração com os campos.
     Variant(usize, Vec<Value>),
+    /// Um verbo do programa como valor: a função.
+    Func(hir::FuncId),
     /// O parâmetro emprestado ou confiado: o valor mora no quadro de quem chamou, e a
     /// função o lê e muda lá, sem cópia.
     Ref(Box<Target>),
@@ -679,6 +681,15 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                     (a, b) => arith(*op, a, b, &e.ty, e.span)?,
                 }
             }
+            ExprKind::FuncRef(f) => Value::Func(*f),
+            ExprKind::Invoke { verb, args } => {
+                let Value::Func(func) = self.expr(verb)? else { unreachable!("só se invoca um verbo") };
+                let mut vals = Vec::with_capacity(args.len());
+                for a in args {
+                    vals.push(self.argument(a)?);
+                }
+                self.call(func, vals, e.span)??
+            }
             ExprKind::Set(items) => {
                 let mut set: Vec<Value> = Vec::with_capacity(items.len());
                 for it in items {
@@ -1071,6 +1082,7 @@ pub fn format_value(v: &Value, ty: &Ty) -> String {
             format!("{} {} com {joined}", if r.feminine { "uma" } else { "um" }, r.name)
         }
         (Value::Unit, _) => String::new(),
+        (Value::Func(_), _) => "um verbo".to_string(),
         (Value::Nothing, _) => "nada".to_string(),
         (Value::Variant(tag, fields), Ty::Enum(e)) => {
             let v = &e.variants[*tag];

@@ -595,7 +595,7 @@ impl Env<'_> {
             }
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_in_record(inner, span, stack))),
             // O conjunto e o mapa também guardam por fora, mas as chaves são valores simples.
-            ast::TypeExpr::Set(_) | ast::TypeExpr::Map(..) => match self.type_expr(t, span) {
+            ast::TypeExpr::Set(_) | ast::TypeExpr::Map(..) | ast::TypeExpr::Verb(..) => match self.type_expr(t, span) {
                 Ok(ty) => ty,
                 Err(d) => {
                     self.diags.push(*d);
@@ -638,6 +638,27 @@ impl Env<'_> {
                 Ty::Map(Box::new(key_type(self.type_expr(key, span)?, "A chave de um mapa", span)?), Box::new(self.type_expr(value, span)?))
             }
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_expr(inner, span)?)),
+            ast::TypeExpr::Verb(params, ret) => {
+                let mut each = Vec::new();
+                for (t, mode) in params {
+                    if *mode == ParamMode::Lent {
+                        return err(Diagnostic::new(
+                            L0376,
+                            "Um verbo guardado recebe os valores com posse ou emprestados, e não confiados.",
+                            span,
+                        )
+                        .hint("Para mudar um valor de quem chama, a função devolve o valor novo."));
+                    }
+                    let ty = self.type_expr(t, span)?;
+                    let borrowed = *mode == ParamMode::Borrowed && !ty.is_copy();
+                    each.push((ty, borrowed));
+                }
+                let ret = match ret {
+                    Some(r) => self.type_expr(r, span)?,
+                    None => Ty::Unit,
+                };
+                Ty::Verb(each, Box::new(ret))
+            }
             // O tipo qualquer do cabeçalho que se confere (ou, numa instância, o de quem chamou).
             ast::TypeExpr::Param(name) => self.current.iter().find(|(n, _)| n == name).map_or(Ty::Error, |(_, t)| t.clone()),
             ast::TypeExpr::Error => Ty::Error,
@@ -1922,6 +1943,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 if value.ty == Ty::Unit {
                     return err(Diagnostic::new(L0322, "Esse valor não existe: a função não devolve nada.", parts[0].span));
                 }
+                not_a_verb(&value.ty, parts[0].span)?;
                 out.push_at(span, hir::StmtKind::Write { value, newline: *newline });
                 self.result = None;
             }
@@ -1979,6 +2001,15 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     (Some(e), t) => Some(self.expr(e, Some(t))?),
                 };
                 out.push_at(span, hir::StmtKind::Return(v));
+            }
+            ClauseKind::Invoke { verb, args } => {
+                let e = self.invoke(verb, args, c.span)?;
+                if e.ty == Ty::Unit {
+                    out.push_at(span, hir::StmtKind::Expr(e));
+                    self.result = None;
+                } else {
+                    self.set_result(e, out);
+                }
             }
             ClauseKind::Call { call, handler } => {
                 let e = match handler {
@@ -2160,6 +2191,98 @@ impl<'e, 'a> FnCx<'e, 'a> {
         Ok(hir::Expr { kind: hir::ExprKind::Call { callee, args }, ty: ret, span: call.span })
     }
 
+    /// O tipo de uma função do programa como verbo guardado, se ela pode ser um: sem tipo
+    /// qualquer, sem "salvo engano", sem parâmetro confiado.
+    fn verb_type_of(&self, si: usize) -> Option<Ty> {
+        let sig = &self.env.prog.sigs[si];
+        if sig.builtin.is_some()
+            || sig.broken
+            || sig.fallible
+            || !sig.type_params.is_empty()
+            || sig.params.iter().any(|p| p.mode == ParamMode::Lent)
+        {
+            return None;
+        }
+        let types = &self.env.sig_types[si];
+        let params =
+            sig.params.iter().zip(&types.params).map(|(p, t)| (t.clone(), p.mode == ParamMode::Borrowed && !t.is_copy())).collect();
+        Some(Ty::Verb(params, Box::new(types.ret.clone())))
+    }
+
+    /// "transformar as notas com dobrar": o infinitivo como valor. Com o verbo definido para
+    /// vários tipos, o tipo esperado escolhe.
+    fn verb_ref(&mut self, word: &str, span: Span, expected: Option<&Ty>) -> Result<(hir::ExprKind, Ty)> {
+        let prog = self.env.prog;
+        let all: Vec<usize> =
+            prog.sigs.iter().enumerate().filter(|(_, s)| s.builtin.is_none() && s.infinitive == word).map(|(i, _)| i).collect();
+        let usable: Vec<(usize, Ty)> = all.iter().filter_map(|&i| self.verb_type_of(i).map(|t| (i, t))).collect();
+        let wanted = expected.map(|t| self.resolve_ty(t)).filter(|t| matches!(t, Ty::Verb(..)));
+        let found = match &wanted {
+            Some(w) => usable.iter().find(|(_, t)| t == w),
+            None if usable.len() == 1 => usable.first(),
+            None => None,
+        };
+        let Some((si, ty)) = found.cloned() else {
+            let d = match (&wanted, usable.as_slice()) {
+                (_, []) => Diagnostic::new(
+                    L0376,
+                    format!(
+                        "\"{word}\" não serve de verbo guardado: só a função sem tipo qualquer, sem \"salvo engano\" e sem parâmetro confiado."
+                    ),
+                    span,
+                ),
+                (Some(w), _) => Diagnostic::new(
+                    L0376,
+                    format!(
+                        "Aqui se espera {}, e \"{word}\" é {}.",
+                        w.describe(),
+                        join_e(&usable.iter().map(|(_, t)| t.describe()).collect::<Vec<_>>())
+                    ),
+                    span,
+                ),
+                (None, _) => Diagnostic::new(L0376, format!("\"{word}\" está definido para vários tipos, e aqui nada diz qual."), span)
+                    .hint("Passe o verbo a um parâmetro com tipo (\"um verbo de inteiro para inteiro\"), ou guarde-o num nome com aposto."),
+            };
+            return err(d);
+        };
+        let d = self.env.sig_defs[si];
+        self.env.use_def_as(d, span, Use::Call, Form::Verb(ast::VerbForm::Infinitive));
+        Ok((hir::ExprKind::FuncRef(self.env.sig_func[si]), ty))
+    }
+
+    /// "invocar a ação com 2 e 3": a chamada de um verbo guardado.
+    fn invoke(&mut self, verb: &ast::Expr, args: &[ast::Expr], span: Span) -> Result<hir::Expr> {
+        let v = self.expr(verb, None)?;
+        let (params, ret) = match self.resolve_ty(&v.ty) {
+            Ty::Verb(params, ret) => (params, *ret),
+            Ty::Error => return Ok(error_expr(span)),
+            other => {
+                return err(Diagnostic::new(
+                    L0377,
+                    format!("Só se invoca um verbo guardado, e este valor é {}.", other.describe()),
+                    verb.span,
+                )
+                .hint("Um verbo do programa se chama pelo nome: \"Dobro o saldo.\", \"o resultado de dobrar 2\"."));
+            }
+        };
+        if params.len() != args.len() {
+            let needs = match params.len() {
+                0 => "não recebe nada".to_string(),
+                1 => "recebe um valor".to_string(),
+                n => format!("recebe {n} valores"),
+            };
+            return err(Diagnostic::new(L0377, format!("Este verbo {needs}, e a chamada dá {}.", args.len()), span)
+                .hint("Os valores vêm depois de \"com\", ligados por \"e\": \"invocar a ação com 2 e 3\"."));
+        }
+        let mut out = Vec::new();
+        for (a, (ty, borrowed)) in args.iter().zip(&params) {
+            let value = self.expr(a, Some(ty))?;
+            let mode = if *borrowed { ParamMode::Borrowed } else { ParamMode::Owned };
+            out.push(hir::Arg { value, param: String::new(), mode, place: None });
+        }
+        Ok(hir::Expr { kind: hir::ExprKind::Invoke { verb: Box::new(v), args: out }, ty: ret, span })
+    }
+
     /// A definição que a chamada usa, quando o verbo (com a mesma regência) está definido
     /// para vários tipos: a que casa com os tipos dos argumentos. O argumento de tipo
     /// qualquer que pediu o verbo ("que se descreve") fica para a instância decidir.
@@ -2219,6 +2342,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let inner = match kind.as_ref() {
                     ast::CondKind::Rel { subject, rel, rhs } => {
                         let lhs = self.expr(subject, None)?;
+                        not_a_verb(&lhs.ty, subject.span)?;
                         let lt = lhs.ty.clone();
                         let rhs = self.expr(rhs, Some(&lt))?;
                         let ordered = !matches!(rel, Rel::Equal | Rel::Different);
@@ -2656,10 +2780,16 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let ty = self.locals[id].local.ty.clone();
                 (hir::ExprKind::Read(hir::Place::var(Var::Local(id), ty.clone(), e.span)), ty)
             }
+            ExprKind::VerbRef { word } => self.verb_ref(word, e.span, expected)?,
+            ExprKind::Invoke { verb, args } => {
+                let x = self.invoke(verb, args, e.span)?;
+                (x.kind, x.ty)
+            }
             ExprKind::Concat(parts) => {
                 let mut out = Vec::new();
                 for p in parts {
                     let v = self.expr(p, None)?;
+                    not_a_verb(&v.ty, p.span)?;
                     if v.ty == Ty::Unit {
                         return err(Diagnostic::new(L0322, "Esse valor não existe: a função não devolve nada.", p.span));
                     }
@@ -3114,6 +3244,9 @@ fn bind(pattern: &Ty, actual: &Ty, sig: usize, out: &mut [Option<Ty>]) -> bool {
         },
         (Ty::List(a), Ty::List(b)) | (Ty::Set(a), Ty::Set(b)) | (Ty::Maybe(a), Ty::Maybe(b)) => bind(a, b, sig, out),
         (Ty::Map(k, v), Ty::Map(k2, v2)) => bind(k, k2, sig, out) && bind(v, v2, sig, out),
+        (Ty::Verb(ps, r), Ty::Verb(ps2, r2)) => {
+            ps.len() == ps2.len() && ps.iter().zip(ps2).all(|((a, x), (b, y))| x == y && bind(a, b, sig, out)) && bind(r, r2, sig, out)
+        }
         // O valor posto onde se espera "talvez".
         (Ty::Maybe(a), b) => bind(a, b, sig, out),
         (a, b) => a == b,
@@ -3128,6 +3261,19 @@ fn bound_all(pattern: &Ty, sig: usize, out: &[Option<Ty>]) -> bool {
         Ty::Map(k, v) => bound_all(k, sig, out) && bound_all(v, sig, out),
         _ => true,
     }
+}
+
+/// Um verbo guardado não se escreve nem se compara: só se guarda, se passa e se invoca.
+fn not_a_verb(ty: &Ty, span: Span) -> Result<()> {
+    if ty.has_verb() {
+        return err(Diagnostic::new(
+            L0378,
+            format!("Um verbo guardado não se escreve nem se compara, e este valor é {}.", ty.describe()),
+            span,
+        )
+        .hint("Com um verbo guardado se faz três coisas: guardar num nome, passar a uma função e invocar."));
+    }
+    Ok(())
 }
 
 fn readable(t: &Ty) -> bool {
@@ -3277,7 +3423,13 @@ fn resolve_expr(e: &mut hir::Expr, s: &[(Option<Ty>, Span)]) {
                 resolve_expr(i, s);
             }
         }
-        Int(_) | Real(_) | Text(_) | Char(_) | Bool(_) | Input | Nothing | Map => {}
+        Invoke { verb, args } => {
+            resolve_expr(verb, s);
+            for a in args {
+                resolve_expr(&mut a.value, s);
+            }
+        }
+        Int(_) | Real(_) | Text(_) | Char(_) | Bool(_) | Input | Nothing | Map | FuncRef(_) => {}
     }
 }
 

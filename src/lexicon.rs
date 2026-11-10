@@ -207,6 +207,12 @@ pub const CORE_VERBS: &[CoreVerb] = &[
         doc: "Lê uma linha da entrada para um lugar (\"Leio o nome.\") ou como valor (\"leio um inteiro\").",
     },
     CoreVerb {
+        infinitive: "invocar",
+        first_person: "invoco",
+        role: Role::Statement,
+        doc: "Chama o verbo guardado num nome: \"Invoco a ação com o item.\", \"o resultado de invocar a ação com 2 e 3\".",
+    },
+    CoreVerb {
         infinitive: "tomar",
         first_person: "tomo",
         role: Role::Statement,
@@ -424,6 +430,12 @@ pub const TYPE_NOUNS: &[TypeNoun] = &[
         doc: "Coleção sem repetição, em ordem: \"um conjunto de textos\". Ganha e perde valores, e \"Se houver X no conjunto\" pergunta por um.",
     },
     TypeNoun {
+        singular: "verbo",
+        plural: "verbos",
+        gender: Gender::Masculine,
+        doc: "Um verbo do programa como valor: \"um verbo de inteiro para inteiro\" recebe um inteiro e devolve outro. Passa-se pelo infinitivo (\"com dobrar\") e chama-se com \"invocar\".",
+    },
+    TypeNoun {
         singular: "mapa",
         plural: "mapas",
         gender: Gender::Masculine,
@@ -431,9 +443,10 @@ pub const TYPE_NOUNS: &[TypeNoun] = &[
     },
 ];
 
-/// Os tipos que levam outros dentro ("lista de", "conjunto de", "mapa de ... para").
+/// Os tipos que levam outros dentro ("lista de", "conjunto de", "mapa de ... para", "verbo de
+/// ... para").
 pub fn is_collection_noun(singular: &str) -> bool {
-    matches!(singular, "lista" | "conjunto" | "mapa")
+    matches!(singular, "lista" | "conjunto" | "mapa" | "verbo")
 }
 
 /// Radicais dos ordinais e a posição de cada um; "último" tem posição 0.

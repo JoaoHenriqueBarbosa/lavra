@@ -35,6 +35,8 @@ As versões da Lavra, a mais nova primeiro.
 - Funções genéricas: "sendo a lista uma lista de coisas quaisquer" declara um tipo qualquer,
   que cada chamada decide pelos argumentos. "qualquer ordenável" pede um tipo com ordem e
   libera "maior que".
+- Verbos guardados: o tipo "um verbo de inteiro para inteiro", o infinitivo como valor
+  ("transformar as notas com dobrar") e "invocar" para chamar ("Invoco a ação com o item.").
 - O mesmo verbo para vários tipos ("Para descrever a conta, ..." e "Para descrever a forma,
   ..."), e o tipo qualquer que pede o verbo: "uma coisa qualquer que se descreve".
 - Referências guardadas num nome: "A favorita é a primeira das contas, confiada." muda a conta

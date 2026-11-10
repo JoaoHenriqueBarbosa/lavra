@@ -127,6 +127,7 @@ codes! {
     L0180 = Syntax, "Referência declarada com \"começa\"";
     L0181 = Agreement, "\"qualquer\" que não concorda com o tipo";
     L0182 = Syntax, "Tipo qualquer fora de um cabeçalho";
+    L0183 = Syntax, "\"invocar\" fora da forma";
 
     // Parser: registros, enumerações, lugares e operações por extenso.
     L0200 = Syntax, "Faltou o nome do tipo";
@@ -228,6 +229,9 @@ codes! {
     L0373 = Type, "O mesmo verbo com formas que não combinam";
     L0374 = Type, "Verbo que não está definido para o tipo";
     L0375 = Type, "Tipo qualquer usado num verbo que o cabeçalho não pediu";
+    L0376 = Type, "Verbo que não serve onde se espera outro";
+    L0377 = Type, "\"invocar\" o que não é verbo, ou com os valores errados";
+    L0378 = Type, "Verbo escrito ou comparado";
 
     // Posse e empréstimo.
     L0400 = Ownership, "Valor usado depois de entregue";

@@ -1,0 +1,40 @@
+Erro de tipo [L0376]: Aqui se espera um verbo de inteiro para inteiro, e "gritar" é um verbo de texto emprestado para texto.
+  --> tests/programs/err/verbos_guardados.lav:21:53
+   |
+21 |     Escrevo o resultado de transformar as notas com gritar.
+   |                                                     ^^^^^^
+Erro de tipo [L0376]: "arriscar" não serve de verbo guardado: só a função sem tipo qualquer, sem "salvo engano" e sem parâmetro confiado.
+  --> tests/programs/err/verbos_guardados.lav:22:53
+   |
+22 |     Escrevo o resultado de transformar as notas com arriscar.
+   |                                                     ^^^^^^^^
+Erro de tipo [L0378]: Um verbo guardado não se escreve nem se compara, e este valor é um verbo de inteiro para inteiro.
+  --> tests/programs/err/verbos_guardados.lav:24:13
+   |
+24 |     Escrevo a escolhida.
+   |             ^^^^^^^^^^^
+   = dica: Com um verbo guardado se faz três coisas: guardar num nome, passar a uma função e invocar.
+Erro de tipo [L0378]: Um verbo guardado não se escreve nem se compara, e este valor é um verbo de inteiro para inteiro.
+  --> tests/programs/err/verbos_guardados.lav:25:8
+   |
+25 |     Se a escolhida for igual a dobrar: escrevo "igual".
+   |        ^^^^^^^^^^^
+   = dica: Com um verbo guardado se faz três coisas: guardar num nome, passar a uma função e invocar.
+Erro de tipo [L0377]: Este verbo recebe um valor, e a chamada dá 2.
+  --> tests/programs/err/verbos_guardados.lav:26:13
+   |
+26 |     Escrevo o resultado de invocar a escolhida com 1 e 2.
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = dica: Os valores vêm depois de "com", ligados por "e": "invocar a ação com 2 e 3".
+Erro de tipo [L0377]: Só se invoca um verbo guardado, e este valor é uma lista de inteiros.
+  --> tests/programs/err/verbos_guardados.lav:27:36
+   |
+27 |     Escrevo o resultado de invocar as notas com 1.
+   |                                    ^^^^^^^^
+   = dica: Um verbo do programa se chama pelo nome: "Dobro o saldo.", "o resultado de dobrar 2".
+Erro de sintaxe [L0183]: Depois de "invocar" vem o verbo guardado, mas encontrei o ponto final.
+  --> tests/programs/err/verbos_guardados.lav:28:11
+   |
+28 |     Invoco.
+   |           ^
+   = dica: Escreva "Invoco a ação com o item." ou "o resultado de invocar a ação com 2 e 3".

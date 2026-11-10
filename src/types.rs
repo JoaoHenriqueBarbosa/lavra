@@ -163,6 +163,9 @@ pub enum Ty {
     Maybe(Box<Ty>),
     /// Um tipo qualquer de uma função genérica.
     Param(Arc<ParamTy>),
+    /// "um verbo de inteiro para inteiro": um verbo do programa como valor. De cada valor
+    /// que recebe, o tipo e se vem emprestado; e o que devolve.
+    Verb(Vec<(Ty, bool)>, Box<Ty>),
     Unit,
     /// Ainda por inferir (lista vazia antes do primeiro uso).
     Infer(u32),
@@ -182,7 +185,7 @@ impl Ty {
     /// Tipos de valor se copiam; os donos (texto, lista, registro) se movem.
     pub fn is_copy(&self) -> bool {
         // "talvez" é dono mesmo de um inteiro: no nativo é um ponteiro que pode ser nulo.
-        matches!(self, Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Unit | Ty::Error)
+        matches!(self, Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Unit | Ty::Error | Ty::Verb(..))
     }
 
     /// Lista, conjunto ou mapa: o que um nome no plural guarda.
@@ -211,6 +214,7 @@ impl Ty {
             Ty::Param(_) => true,
             Ty::List(t) | Ty::Set(t) | Ty::Maybe(t) => t.has_param(),
             Ty::Map(k, v) => k.has_param() || v.has_param(),
+            Ty::Verb(params, ret) => ret.has_param() || params.iter().any(|(t, _)| t.has_param()),
             _ => false,
         }
     }
@@ -224,7 +228,21 @@ impl Ty {
             Ty::Set(t) => Ty::Set(Box::new(t.with_params(sig, args))),
             Ty::Maybe(t) => Ty::Maybe(Box::new(t.with_params(sig, args))),
             Ty::Map(k, v) => Ty::Map(Box::new(k.with_params(sig, args)), Box::new(v.with_params(sig, args))),
+            Ty::Verb(params, ret) => {
+                Ty::Verb(params.iter().map(|(t, b)| (t.with_params(sig, args), *b)).collect(), Box::new(ret.with_params(sig, args)))
+            }
             other => other.clone(),
+        }
+    }
+
+    /// O tipo é um verbo, ou leva um dentro: não se escreve nem se compara.
+    pub fn has_verb(&self) -> bool {
+        match self {
+            Ty::Verb(..) => true,
+            Ty::List(t) | Ty::Set(t) | Ty::Maybe(t) => t.has_verb(),
+            Ty::Map(k, v) => k.has_verb() || v.has_verb(),
+            Ty::Record(r) => r.fields.iter().any(|(_, t)| matches!(t, Ty::Verb(..))),
+            _ => false,
         }
     }
 
@@ -254,6 +272,24 @@ impl Ty {
             Ty::Record(r) => pick(&r.name, &r.plural),
             Ty::Enum(e) => pick(&e.name, &e.plural),
             Ty::Maybe(t) => format!("talvez {}", if plural { t.noun(true) } else { t.describe() }),
+            Ty::Verb(params, ret) => {
+                let mut s = if plural { "verbos".to_string() } else { "verbo".to_string() };
+                if !params.is_empty() {
+                    let each: Vec<String> = params
+                        .iter()
+                        .map(|(t, borrowed)| match (borrowed, t.is_feminine()) {
+                            (false, _) => t.noun(false),
+                            (true, true) => format!("{} emprestada", t.noun(false)),
+                            (true, false) => format!("{} emprestado", t.noun(false)),
+                        })
+                        .collect();
+                    s.push_str(&format!(" de {}", each.join(" e ")));
+                }
+                if **ret != Ty::Unit {
+                    s.push_str(&format!(" para {}", ret.noun(false)));
+                }
+                s
+            }
             Ty::Param(p) if plural => format!("{} quaisquer", crate::morphology::pluralize(&p.name)),
             Ty::Param(p) => format!("{} qualquer", p.name),
             Ty::Unit => pick("nada", "nada"),

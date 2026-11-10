@@ -1311,6 +1311,11 @@ impl Parser {
                 }
                 ClauseKind::Desist(self.expr()?)
             }
+            "invoco" => {
+                self.bump();
+                let (verb, args) = self.invocation()?;
+                ClauseKind::Invoke { verb, args }
+            }
             "tomo" => {
                 self.bump();
                 let which = self.which()?;
@@ -1498,6 +1503,38 @@ impl Parser {
             .fix(format!("Escrever \"{right}\""), pt.span, right.clone()));
         }
         Ok(Some((mode, pt.span)))
+    }
+
+    /// Depois de "invoco" ou "invocar": o verbo guardado e, depois de "com", os valores que
+    /// ele recebe ("a ação com 2 e 3").
+    fn invocation(&mut self) -> Result<(Expr, Vec<Expr>)> {
+        if !self.starts_value(0) {
+            let t = self.peek().clone();
+            return err(Diagnostic::new(
+                L0183,
+                format!("Depois de \"invocar\" vem o verbo guardado, mas encontrei {}.", t.describe()),
+                t.span,
+            )
+            .hint("Escreva \"Invoco a ação com o item.\" ou \"o resultado de invocar a ação com 2 e 3\"."));
+        }
+        let verb = self.primary()?;
+        let mut args = Vec::new();
+        if self.eat_word("com") {
+            loop {
+                args.push(self.additive()?);
+                if !self.at_word("e") {
+                    break;
+                }
+                // "... com 2 e 3" segue; "... com 2 e escrevo" é outra oração.
+                let save = self.pos;
+                self.bump();
+                if !self.starts_value(0) || self.is_clause_start() {
+                    self.pos = save;
+                    break;
+                }
+            }
+        }
+        Ok((verb, args))
     }
 
     /// Aposto de tipo: "um inteiro de 32 bits", "talvez um texto".
@@ -1748,6 +1785,7 @@ impl Parser {
             TokenKind::Word(w) => {
                 self.definite_article_at(k).is_some()
                     || morphology::is_symbol(w)
+                    || (self.vocab.by_infinitive.contains_key(w.as_str()) && t.contraction.is_none())
                     || matches!(w.as_str(), "verdadeiro" | "falso" | "nada")
                     || (morphology::article(w).is_some_and(|a| !a.definite)
                         && self
@@ -1841,6 +1879,16 @@ impl Parser {
                         "\"{inf}\" vem da biblioteca de {lib}: escreva \"Uso a biblioteca de {lib}.\" no começo do programa."
                     )));
                 }
+                if self.at_word("de") && self.peek_at(1).is_word("invocar") {
+                    let de = self.bump();
+                    if de.contraction.is_some() {
+                        return err(Diagnostic::new(L0134, "Antes do verbo, \"de\" não contrai.", de.span));
+                    }
+                    self.bump();
+                    let (verb, args) = self.invocation()?;
+                    let span = t.span.to(self.prev_span());
+                    return Ok(Expr { kind: ExprKind::Invoke { verb: Box::new(verb), args }, span });
+                }
                 if self.at_word("de")
                     && let Some(inf) = self.peek_at(1).word()
                     && let Some(&sig) = self.vocab.by_infinitive.get(inf).and_then(|v| v.first())
@@ -1905,6 +1953,11 @@ impl Parser {
             TokenKind::Word(w) if w == "verdadeiro" || w == "falso" => {
                 self.bump();
                 lit(ExprKind::Bool(w == "verdadeiro"))
+            }
+            // O infinitivo de um verbo do programa é o próprio verbo, como valor.
+            TokenKind::Word(w) if self.vocab.by_infinitive.contains_key(w) && t.contraction.is_none() => {
+                self.bump();
+                Ok(Expr { span: t.span, kind: ExprKind::VerbRef { word: w.clone() } })
             }
             TokenKind::Word(_) => {
                 let place = self.place()?;

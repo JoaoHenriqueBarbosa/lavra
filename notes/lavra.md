@@ -219,6 +219,34 @@ Para escolher entre o esquerdo e o direito, sendo ambos elementos quaisquer orde
 - A função genérica é conferida uma vez, como foi escrita; o programa compilado leva uma
   cópia dela para cada combinação de tipos que usa.
 
+## Verbos guardados
+
+```
+Para transformar a lista com a ação,
+        sendo a lista uma lista de inteiros emprestada e a ação um verbo de inteiro para inteiro,
+        devolvendo uma lista de inteiros:
+    As novas, uma lista de inteiros, começam vazias.
+    Para cada número da lista: as novas ganham o resultado de invocar a ação com o número.
+    Devolvo as novas.
+
+Escrevo o resultado de transformar as notas com dobrar.
+A escolhida, um verbo de inteiro para inteiro, começa em dobrar.
+Invoco a fala com "pronto".
+```
+
+- **O tipo**: `um verbo de TIPOS para TIPO`. Depois de "de", o que o verbo recebe, cada tipo no
+  singular e sem artigo, ligados por "e", com "emprestado" no que vem emprestado ("um verbo
+  de texto emprestado para texto"); depois de "para", o que devolve. Sem "de" não recebe
+  nada, sem "para" não devolve ("um verbo" é uma ação sem valores).
+- **O valor** é o infinitivo de uma função do programa: `dobrar`. Ele tem de ter exatamente
+  a forma do tipo (L0376). Não servem a função genérica, a que pode falhar e a que recebe
+  algo confiado. Com o verbo definido para vários tipos, o tipo esperado escolhe.
+- **A chamada** é com "invocar": `Invoco a ação com o item.`, `o resultado de invocar a
+  junção com o total e o número`. Os valores vêm depois de "com", ligados por "e" (L0377).
+- O verbo guardado se copia como um número: guarda-se em nome, lista, registro ou mapa (como
+  valor), passa-se e devolve-se. Não se escreve nem se compara (L0378).
+- O tipo de um verbo pode citar um tipo qualquer: "um verbo de coisa emprestada para texto".
+
 ## Posse e empréstimo
 
 O particípio do cabeçalho declara a relação, concordando com o tipo:

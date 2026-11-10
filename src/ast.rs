@@ -65,6 +65,9 @@ pub enum TypeExpr {
     Set(Box<TypeExpr>),
     /// "um mapa de textos para inteiros": a chave e o valor.
     Map(Box<TypeExpr>, Box<TypeExpr>),
+    /// "um verbo de inteiro e texto emprestado para lógico": o que recebe (com o modo de
+    /// cada um) e o que devolve.
+    Verb(Vec<(TypeExpr, ParamMode)>, Option<Box<TypeExpr>>),
     Slice(Box<TypeExpr>),
     Named(String),
     /// "uma coisa qualquer": um tipo que a função recebe de quem chama, pelo nome.
@@ -415,6 +418,11 @@ pub enum ClauseKind {
     Desist(Expr),
     Break,
     Continue,
+    /// "Invoco a ação com o item.": a chamada de um verbo guardado, como oração.
+    Invoke {
+        verb: Expr,
+        args: Vec<Expr>,
+    },
     Take {
         place: Place,
         which: Which,
@@ -556,17 +564,48 @@ pub enum ExprKind {
     Bool(bool),
     Nothing,
     Place(Place),
-    Binary { op: BinOp, lhs: Box<Expr>, rhs: Box<Expr> },
-    Unary { op: UnOp, operand: Box<Expr> },
+    Binary {
+        op: BinOp,
+        lhs: Box<Expr>,
+        rhs: Box<Expr>,
+    },
+    Unary {
+        op: UnOp,
+        operand: Box<Expr>,
+    },
     Call(Call),
     Anaphora,
     Fact(Box<Cond>),
     Copy(Box<Expr>),
-    Convert { value: Box<Expr>, ty: TypeAnn },
-    Construct { word: String, gender: Gender, word_span: Span, fields: Vec<(String, Span, Expr)> },
+    Convert {
+        value: Box<Expr>,
+        ty: TypeAnn,
+    },
+    Construct {
+        word: String,
+        gender: Gender,
+        word_span: Span,
+        fields: Vec<(String, Span, Expr)>,
+    },
     Concat(Vec<Expr>),
-    OrElse { value: Box<Expr>, fallback: Fallback },
-    Slice { base: Box<Expr>, from: Box<Expr>, to: Box<Expr> },
+    OrElse {
+        value: Box<Expr>,
+        fallback: Fallback,
+    },
+    /// Um verbo do programa como valor, pelo infinitivo: "transformar as notas com dobrar".
+    VerbRef {
+        word: String,
+    },
+    /// "o resultado de invocar a ação com 2 e 3": chama o verbo guardado num valor.
+    Invoke {
+        verb: Box<Expr>,
+        args: Vec<Expr>,
+    },
+    Slice {
+        base: Box<Expr>,
+        from: Box<Expr>,
+        to: Box<Expr>,
+    },
 }
 
 #[derive(Clone, Debug)]

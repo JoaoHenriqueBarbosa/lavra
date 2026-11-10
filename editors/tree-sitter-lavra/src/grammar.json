@@ -1503,6 +1503,16 @@
         },
         {
           "type": "PATTERN",
+          "value": "invocar",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "invoco",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
           "value": "leio",
           "flags": "i"
         },
@@ -2659,6 +2669,16 @@
         {
           "type": "PATTERN",
           "value": "textos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "verbo",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "verbos",
           "flags": "i"
         }
       ]

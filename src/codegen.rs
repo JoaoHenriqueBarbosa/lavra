@@ -168,7 +168,7 @@ fn clif(t: &Ty) -> Option<types::Type> {
         Ty::Real(_) => types::F64,
         Ty::Bool => types::I8,
         Ty::Char => types::I32,
-        Ty::Text | Ty::List(_) | Ty::Set(_) | Ty::Map(..) | Ty::Record(_) | Ty::Maybe(_) | Ty::Enum(_) => PTR,
+        Ty::Text | Ty::List(_) | Ty::Set(_) | Ty::Map(..) | Ty::Record(_) | Ty::Maybe(_) | Ty::Enum(_) | Ty::Verb(..) => PTR,
         Ty::Unit => return None,
         Ty::Infer(_) | Ty::Error | Ty::Param(_) => panic!("tipo não resolvido no gerador de código: {t:?}"),
     })
@@ -191,6 +191,8 @@ fn type_key(t: &Ty) -> String {
         Ty::Char => "c".into(),
         Ty::Text => "t".into(),
         Ty::List(e) => format!("l({})", type_key(e)),
+        // O verbo guardado é um endereço: copia-se como um inteiro.
+        Ty::Verb(..) => "i64u".into(),
         Ty::Set(e) => format!("s({})", type_key(e)),
         Ty::Map(k, v) => format!("map({},{})", type_key(k), type_key(v)),
         Ty::Record(r) => format!("rec{}", r.id),
@@ -257,6 +259,7 @@ impl Codegen {
         self.descs.insert(key, id);
         let (kind, bits, signed, feminine) = match t {
             Ty::Int(i) => (0u32, i.bits as u32, i.signed as u32, 0u32),
+            Ty::Verb(..) => (0, 64, 0, 0),
             Ty::Real(b) => (1, *b as u32, 0, 0),
             Ty::Bool => (2, 0, 0, 0),
             Ty::Char => (3, 0, 0, 0),
@@ -1458,6 +1461,30 @@ impl<'a, 'b> Fx<'a, 'b> {
                 r.and_then(|v| fresh(self, v))
             }
             ExprKind::Fact(c) => Some(self.cond(c)),
+            ExprKind::FuncRef(f) => {
+                let id = self.cg.funcs[*f];
+                let r = *self.refs.entry(id).or_insert_with(|| self.cg.module.declare_func_in_func(id, self.b.func));
+                Some(self.b.ins().func_addr(PTR, r))
+            }
+            // A chamada pelo endereço, com a assinatura que o tipo do verbo dá.
+            ExprKind::Invoke { verb, args } => {
+                let target = self.expr(verb, false).unwrap();
+                let Ty::Verb(_, ret) = &verb.ty else { unreachable!("só se invoca um verbo") };
+                let mut sig = self.cg.module.make_signature();
+                let mut vals = Vec::new();
+                for a in args {
+                    sig.params.push(AbiParam::new(clif(&a.value.ty).expect("argumento com valor")));
+                    vals.push(self.expr(&a.value, a.mode == ParamMode::Owned).unwrap());
+                }
+                sig.returns.extend(clif(ret).map(AbiParam::new));
+                let sigref = self.b.import_signature(sig);
+                let (lo, hi) = self.span_vals(e.span);
+                self.rt("rt_enter", &[lo, hi]);
+                let call = self.b.ins().call_indirect(sigref, target, &vals);
+                let out = self.b.inst_results(call).first().copied();
+                self.rt("rt_exit", &[]);
+                out.and_then(|v| fresh(self, v))
+            }
             ExprKind::Set(items) => {
                 let l = self.rt1("rt_list_new", &[]);
                 let Ty::Set(elem) = &e.ty else { unreachable!() };
@@ -2038,6 +2065,10 @@ fn expr_addressed(e: &hir::Expr, out: &mut [bool]) {
         }
         ExprKind::Concat(v) | ExprKind::List(v) | ExprKind::Set(v) | ExprKind::Record(v) | ExprKind::Variant { fields: v, .. } => {
             v.iter().for_each(|x| expr_addressed(x, out))
+        }
+        ExprKind::Invoke { verb, args } => {
+            expr_addressed(verb, out);
+            args.iter().for_each(|a| expr_addressed(&a.value, out));
         }
         ExprKind::Fact(c) => cond_addressed(c, out),
         _ => {}
