@@ -359,8 +359,11 @@ README de instalação.
   `languages/lavra` (configuração, realce, recuo, pares, esboço, objetos de texto) e a regra de
   tokens semânticos que põe o `moved` em itálico sem trocar a cor (o Zed junta as regras que
   casam, e a da extensão só define o estilo da fonte). O Zed deixa os tokens semânticos
-  desligados por padrão, não abre o texto das bibliotecas e, para depurar, pediria um
-  adaptador na extensão, que ela ainda não registra.
+  desligados por padrão e não abre o texto das bibliotecas. Para depurar, a extensão
+  registra o `lavrac dap` como adaptador (`[debug_adapters.lavrac]` no `extension.toml`, o
+  esquema da configuração em `debug_adapter_schemas/`, e `get_dap_binary`,
+  `dap_request_kind` e `dap_config_to_scenario` no código). Conferido só pela compilação da
+  extensão: não havia um Zed à mão para abrir uma sessão.
 - **O `rev` da gramática** no Helix e no Zed é o commit que mudou `editors/tree-sitter-lavra/src`
   pela última vez; o CI confere que a gramática naquele commit é a de agora. Mudança na
   gramática vai no mesmo push que a atualização do `rev`, e o commit precisa sobreviver ao

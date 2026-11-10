@@ -2,6 +2,9 @@
 //! queries (`languages/lavra`); o servidor de linguagem é o próprio `lavrac`, o das
 //! configurações do Zed ou o do PATH do projeto, com as opções que o usuário der a ele.
 //!
+//! O depurador é o mesmo `lavrac`, como adaptador de depuração (`lavrac dap`): a extensão
+//! diz ao Zed como abri-lo e traduz o pedido de "depurar este arquivo" para o que ele entende.
+//!
 //! Nas configurações do Zed, a chave é o nome do servidor:
 //!
 //! ```json
@@ -14,7 +17,13 @@
 //! ```
 
 use zed_extension_api::settings::LspSettings;
-use zed_extension_api::{self as zed, LanguageServerId, Result, serde_json};
+use zed_extension_api::{
+    self as zed, DebugAdapterBinary, DebugConfig, DebugRequest, DebugScenario, DebugTaskDefinition, LanguageServerId, Result,
+    StartDebuggingRequestArguments, StartDebuggingRequestArgumentsRequest, serde_json,
+};
+
+/// O nome do adaptador de depuração, como está no `extension.toml`.
+const ADAPTER: &str = "lavrac";
 
 struct Lavra;
 
@@ -65,6 +74,57 @@ impl zed::Extension for Lavra {
         worktree: &zed::Worktree,
     ) -> Result<Option<serde_json::Value>> {
         Ok(user_settings(id, worktree).settings)
+    }
+
+    /// Como abrir o adaptador de depuração: o `lavrac` que o usuário indicou, ou o do PATH
+    /// do projeto, com o subcomando "dap". A conversa é pela entrada e saída padrão.
+    fn get_dap_binary(
+        &mut self,
+        adapter_name: String,
+        config: DebugTaskDefinition,
+        user_provided_debug_adapter_path: Option<String>,
+        worktree: &zed::Worktree,
+    ) -> Result<DebugAdapterBinary, String> {
+        if adapter_name != ADAPTER {
+            return Err(format!("a extensão da Lavra não conhece o adaptador \"{adapter_name}\""));
+        }
+        let command = match user_provided_debug_adapter_path {
+            Some(path) => path,
+            None => worktree
+                .which("lavrac")
+                .ok_or_else(|| "o Zed não achou o lavrac no PATH: instale-o, ou indique o caminho do adaptador de depuração".to_string())?,
+        };
+        let request = self.dap_request_kind(adapter_name, serde_json::from_str(&config.config).map_err(|e| e.to_string())?)?;
+        Ok(DebugAdapterBinary {
+            command: Some(command),
+            arguments: vec!["dap".into()],
+            envs: worktree.shell_env(),
+            cwd: Some(worktree.root_path()),
+            connection: None,
+            request_args: StartDebuggingRequestArguments { configuration: config.config, request },
+        })
+    }
+
+    /// O `lavrac dap` só inicia programas: não se liga a um que já está rodando.
+    fn dap_request_kind(&mut self, _adapter_name: String, config: serde_json::Value) -> Result<StartDebuggingRequestArgumentsRequest, String> {
+        match config.get("request").and_then(|r| r.as_str()) {
+            Some("launch") | None => Ok(StartDebuggingRequestArgumentsRequest::Launch),
+            Some(other) => Err(format!("o depurador da Lavra inicia o programa (\"launch\"), e o pedido é \"{other}\"")),
+        }
+    }
+
+    /// "Depurar este arquivo", do painel do Zed, vira a configuração do `lavrac dap`: o
+    /// programa, e se para na primeira oração.
+    fn dap_config_to_scenario(&mut self, config: DebugConfig) -> Result<DebugScenario, String> {
+        let DebugRequest::Launch(launch) = config.request else {
+            return Err("o depurador da Lavra inicia o programa, e não se liga a um que já roda".to_string());
+        };
+        let configuration = serde_json::json!({
+            "request": "launch",
+            "program": launch.program,
+            "stopOnEntry": config.stop_on_entry.unwrap_or(false),
+        });
+        Ok(DebugScenario { label: config.label, adapter: config.adapter, build: None, config: configuration.to_string(), tcp_connection: None })
     }
 }
 

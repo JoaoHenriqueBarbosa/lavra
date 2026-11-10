@@ -48,13 +48,33 @@ No `settings.json` do Zed:
   [`languages/lavra/semantic_token_rules.json`](languages/lavra/semantic_token_rules.json). Uma
   regra sua em `global_lsp_settings.semantic_token_rules` vale por cima dela.
 
+## O depurador
+
+A extensão registra o `lavrac` como adaptador de depuração (`lavrac dap`, o mesmo do VS Code
+e do Neovim). No painel de depuração do Zed, escolha o adaptador "lavrac" e o arquivo `.lav`;
+ou escreva a configuração em `.zed/debug.json`:
+
+```json
+[
+  {
+    "label": "Depurar o programa",
+    "adapter": "lavrac",
+    "request": "launch",
+    "program": "$ZED_FILE",
+    "stopOnEntry": false
+  }
+]
+```
+
+`stdin` aponta um arquivo com a entrada do programa, e `console` escolhe entre o console de
+depuração e o terminal. O adaptador só inicia programas: não se liga a um que já roda.
+
 ## O que o Zed não tem
 
 - **O texto das bibliotecas.** A definição de um verbo de biblioteca ("Divido", de
   `Uso a biblioteca de textos.`) fica vazia, porque o Zed só abre arquivos; o hover diz de que
   biblioteca o verbo vem.
-- **O depurador.** No Zed, um adaptador de depuração é código da extensão; esta ainda não
-  registra o `lavrac dap`.
+
 
 ## Conferir
 

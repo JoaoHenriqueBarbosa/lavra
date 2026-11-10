@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Depurar um programa da Lavra",
+  "type": "object",
+  "required": [
+    "request",
+    "program"
+  ],
+  "properties": {
+    "request": {
+      "type": "string",
+      "enum": [
+        "launch"
+      ],
+      "description": "O programa é sempre iniciado pelo depurador."
+    },
+    "program": {
+      "type": "string",
+      "description": "O arquivo .lav a depurar."
+    },
+    "stdin": {
+      "type": "string",
+      "description": "Um arquivo com a entrada do programa (o que ele lê com \"Leio\")."
+    },
+    "stopOnEntry": {
+      "type": "boolean",
+      "description": "Parar na primeira oração de \"Para começar\".",
+      "default": false
+    },
+    "console": {
+      "type": "string",
+      "enum": [
+        "internalConsole",
+        "integratedTerminal"
+      ],
+      "description": "Onde o programa roda: no console de depuração, ou no terminal (para o que lê a entrada)."
+    }
+  }
+}

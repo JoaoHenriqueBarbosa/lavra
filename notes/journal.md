@@ -554,3 +554,8 @@ O rename entre arquivos, que só recusava:
 - A concordância que o rename não escreve (artigos, particípios) é acertada em cada arquivo, e a conferência final analisa o programa com todos os arquivos como ficaram. Testado com um verbo e com um tipo que troca de gênero ("uma conta" vira "um cofre") nos dois arquivos.
 - Limite: o arquivo fora das pastas abertas no editor não é achado.
 
+O depurador no Zed, que tinha ficado de fora na fase 8:
+- A extensão registra o lavrac como adaptador de depuração e traduz o "depurar este arquivo" do Zed para a configuração do lavrac dap. O README da extensão mostra a configuração.
+- Conferido só pela compilação da extensão para wasm (num contêiner): não havia um Zed nesta máquina para abrir uma sessão de verdade. Fica para você testar.
+- Os tokens semânticos no Helix continuam fora: o Helix não os pede ao servidor, e não há o que a configuração possa fazer.
+

@@ -35,6 +35,7 @@ As versões da Lavra, a mais nova primeiro.
 - Funções genéricas: "sendo a lista uma lista de coisas quaisquer" declara um tipo qualquer,
   que cada chamada decide pelos argumentos. "qualquer ordenável" pede um tipo com ordem e
   libera "maior que".
+- A extensão do Zed registra o `lavrac dap` como adaptador de depuração.
 - O rename atravessa os arquivos: muda o nome no documento, nos arquivos que ele traz e nos
   que o trazem.
 - O valor de reserva na chave de um mapa ("o item "Ana" das idades, ou 0"), "folhear o

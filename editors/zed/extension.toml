@@ -14,3 +14,7 @@ path = "editors/tree-sitter-lavra"
 [language_servers.lavrac]
 name = "lavrac"
 languages = ["Lavra"]
+
+# O depurador: o próprio lavrac, como adaptador de depuração ("lavrac dap").
+[debug_adapters.lavrac]
+schema_path = "debug_adapter_schemas/lavrac.json"
