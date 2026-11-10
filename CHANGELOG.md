@@ -2,6 +2,58 @@
 
 As versões da Lavra, a mais nova primeiro.
 
+## [0.2.0](https://github.com/JoaoHenriqueBarbosa/lavra/compare/v0.1.0...v0.2.0) - 2026-11-10
+
+### Correções
+
+- *(lsp)* o clippy aceita o mapa de mudanças do rename
+- *(testes)* a trava dos programas certos vale só para o corpus de testes
+- *(testes)* o programa certo que dá erro deixa de passar, e o playground pula disco e relógio
+- *(lavra)* verbo do programa com a 1ª pessoa igual a um numeral
+- *(nativo)* a linkagem no macOS
+- *(parser)* o erro certo para o tipo no singular com vários nomes e para o tipo definido no plural
+
+### Desempenho
+
+- *(lavra)* o interpretador passa o emprestado e o confiado sem copiar
+
+### Novidades
+
+- *(tempo)* "o segundo de x", e o rename procura pela pasta do documento
+- *(zed)* o lavrac como adaptador de depuração na extensão do Zed
+- *(rename)* o rename atravessa os arquivos
+- *(lavra)* valor de reserva na chave do mapa, e "talvez" quebra o ciclo de registro
+- *(arquivos)* "folhear o arquivo" dá as linhas
+- *(lavra)* verbos guardados
+- *(lavra)* o mesmo verbo para vários tipos, e o tipo qualquer que pede o verbo
+- *(lavra)* funções genéricas
+- *(lavra)* referências guardadas num nome
+- *(lavra)* arquivos trazidos ("Uso o arquivo ...")
+- *(lavra)* conjuntos e mapas
+- *(tempo)* a biblioteca de tempo
+- *(arquivos)* a biblioteca de arquivos, com operações que podem falhar
+- *(matemática)* a biblioteca de matemática, com operações por extenso
+- *(textos)* maiusculizar, minusculizar, inverter, substituir, localizar e recortar
+- *(lavra)* registro e enumeração recursivos por lista
+- *(lavra)* numerais por extenso
+- *(lavra)* "for vazio", "houver ... em" e "Conforme" sobre valores
+- *(lavra)* "como" lê texto como número e converte caractere e código
+- *(lavra)* "talvez" no cabeçalho, no parâmetro e no retorno
+- *(lavra)* tipo implícito no cabeçalho quando o nome é o do tipo
+- *(lavra)* [**breaking**] a função que pode falhar se declara com "salvo engano"
+- *(lavra)* add logic for continuing question registration
+- *(samples)* elabora-prova
+- *(lavra)* Escrevo uma linha em branco e uma quebra de linha
+- *(lavra)* o item de Para cada toma o gênero do tipo do elemento
+- *(lavra)* nome composto com infinitivo
+- *(lavra)* verdadeiro e falso concordam como predicativo
+- *(estufa)* implementa cálculo da área e dimensões da estufa
+- *(tree-sitter)* a gramática da Lavra, gerada do léxico
+- *(lsp)* as configurações que desligam cada tipo de inlay hint
+- *(lsp)* a definição de um verbo de biblioteca abre o texto da biblioteca
+- *(lsp)* a posse no hover e o itálico no nome que entrega o valor
+- *(site)* o site da Lavra e o playground com o compilador no navegador
+
 ## [Unreleased]
 
 ### Novidades
