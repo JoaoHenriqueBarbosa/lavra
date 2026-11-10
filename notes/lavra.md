@@ -298,7 +298,9 @@ língua (`vinte e cinco`, `cento e vinte e três`, `dois mil e trezentos`, `mil 
 trinta`). O composto é um número só, numa linha só; para a lista de 20 e 5, algarismos
 (`20 e 5`). "um" e "uma" sozinhos continuam artigos: 1 se escreve `1` (dentro de um composto
 valem, `vinte e um`). Os que flexionam vão no feminino antes de "vezes" (`duas vezes`,
-`vinte e uma vezes`) e no masculino no resto (L0013). Sinais como `+` e `=` são
+`vinte e uma vezes`) e no masculino no resto (L0013). Um verbo do programa pode ter a
+1ª pessoa igual a um numeral ("zerar" dá "zero"): o verbo abre a oração e o número nunca abre,
+então `Zero o contador.` é a chamada. Sinais como `+` e `=` são
 erro léxico com a palavra certa na dica.
 
 ## Mudanças

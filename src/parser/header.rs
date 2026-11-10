@@ -227,7 +227,8 @@ impl Parser {
                     sig.name_span,
                 ));
             }
-            if lexicon::reserved(&sig.first_person).is_some() {
+            // O numeral não abre oração, então o verbo pode ter a forma dele ("zero").
+            if lexicon::reserved(&sig.first_person).is_some() && lexicon::numeral(&sig.first_person).is_none() {
                 return err(Diagnostic::new(
                     L0152,
                     format!(

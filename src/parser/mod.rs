@@ -41,6 +41,7 @@ pub fn expectations(tokens: Vec<Token>, cursor: usize) -> Vec<Expect> {
     p.cursor = Some(cursor);
     p.prescan_records();
     p.prescan();
+    p.numeral_verbs();
     p.program();
     let mut v = p.expected.into_inner();
     let mut seen = Vec::new();
@@ -61,6 +62,7 @@ pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> Program {
     p.imports();
     p.prescan_records();
     p.prescan();
+    p.numeral_verbs();
     p.program();
     p.prog.vocab = std::mem::take(&mut p.vocab);
     diags.list.extend(p.diags);
@@ -68,6 +70,37 @@ pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> Program {
 }
 
 impl Parser {
+    /// Um verbo do programa pode ter a 1ª pessoa igual a um numeral ("zerar" dá "zero").
+    /// Não há ambiguidade: o verbo abre a oração e vem seguido do que rege, e o número
+    /// nunca abre oração. Aqui o numeral nessa posição volta a ser palavra.
+    fn numeral_verbs(&mut self) {
+        for k in 0..self.toks.len() {
+            let t = &self.toks[k];
+            if !matches!(t.kind, TokenKind::Int(_)) {
+                continue;
+            }
+            let word = t.orig.to_lowercase();
+            if !self.vocab.by_first_person.contains_key(&word) {
+                continue;
+            }
+            let opens = k == 0
+                || matches!(
+                    self.toks[k - 1].kind,
+                    TokenKind::Newline | TokenKind::Indent | TokenKind::Dedent | TokenKind::Punct(':' | '.' | ',')
+                )
+                || self.toks[k - 1].is_word("e");
+            let governs = self.toks.get(k + 1).is_some_and(|n| {
+                n.word().is_some()
+                    || matches!(
+                        n.kind,
+                        TokenKind::Int(_) | TokenKind::Real(_) | TokenKind::Text(_) | TokenKind::Char(_) | TokenKind::Punct('(')
+                    )
+            });
+            if opens && governs {
+                self.toks[k].kind = TokenKind::Word(word);
+            }
+        }
+    }
     fn new(tokens: Vec<Token>) -> Parser {
         Parser {
             toks: tokens,
