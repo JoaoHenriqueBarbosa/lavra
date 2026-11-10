@@ -652,6 +652,22 @@ pub unsafe extern "C" fn rt_cmp(d: *const Desc, a: u64, b: u64) -> i32 {
     }
 }
 
+/// "Se houver 7 nas notas": algum item da lista é igual ao valor?
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_list_contains(elem: *const Desc, l: *const Vec<u64>, slot: u64) -> u8 {
+    unsafe { (*l).iter().any(|x| rt_cmp(elem, *x, slot) == 0) as u8 }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_has(t: *const String, part: *const String) -> u8 {
+    unsafe { (*t).contains((*part).as_str()) as u8 }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_has_char(t: *const String, c: u32) -> u8 {
+    unsafe { char::from_u32(c).is_some_and(|c| (*t).contains(c)) as u8 }
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_len(d: *const Desc, slot: u64) -> i64 {
     unsafe {

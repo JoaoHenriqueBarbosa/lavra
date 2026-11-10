@@ -393,3 +393,13 @@ Item 2, conversões com "como":
 
 Decisão para revisar: texto que não é número interrompe o programa, como a entrada inválida do "Leio". Não há forma de tentar e seguir (um "como inteiro, ou 0"); se fizer falta, cabe como verbo da biblioteca de textos devolvendo "talvez".
 
+
+Item 3, as formas que estavam só na AST (`CondKind::Empty`, `CondKind::Contains`, `Pattern::Literal`):
+- "Se as compras forem vazias", "Se o nome for vazio": vira tamanho igual a zero na sema, sem nada novo nos back-ends. Um predicado "ser vazio" definido pelo programa continua valendo antes (o corpus tem dois).
+- "Se houver 7 nas notas", "Se não houver "ovo" nas compras", "Se houver "avr" no nome": uma condição nova na HIR, com três funções no runtime. A igualdade é a mesma do "for igual a".
+- "Conforme o dia: Sendo 1 ou 7: ... Senão: ...": baixa para um "Se" encadeado, com o valor lido uma vez (num local escondido quando não é um nome). Vale para inteiro, caractere, texto e lógico.
+- Quatro códigos novos (L0363 a L0366); o L0309 mudou de sentido (agora acusa real, lista e registro no "Conforme") e o L0332 continua reservado.
+
+Decisões para revisar:
+- A pertinência se diz com "houver ... em", e não com "conter": "conter" é verbo da biblioteca de textos, e um verbo da língua com o mesmo nome colidiria com ela. O "houver" já existia, e a forma não reserva palavra nova.
+- "Conforme" sobre real é recusado, porque igualdade exata de real quase nunca é o que se quer.

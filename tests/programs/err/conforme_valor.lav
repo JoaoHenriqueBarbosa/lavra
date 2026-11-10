@@ -1,0 +1,23 @@
+Uma forma é uma destas:
+    um círculo;
+    um ponto.
+
+Para começar:
+    O dia é 3.
+    A figura é um ponto.
+    A taxa é 0,5.
+    Conforme o dia:
+        Sendo 1: escrevo "domingo".
+        Sendo 2: escrevo "segunda".
+    Conforme o dia:
+        Sendo 1 ou 2: escrevo "começo".
+        Sendo 2: escrevo "de novo".
+        Sendo um ponto: escrevo "ponto".
+        Sendo "três": escrevo "texto".
+        Senão: escrevo "resto".
+    Conforme a figura:
+        Sendo 1: escrevo "um".
+        Senão: escrevo "resto".
+    Conforme a taxa:
+        Sendo 0,5: escrevo "meia".
+        Senão: escrevo "outra".

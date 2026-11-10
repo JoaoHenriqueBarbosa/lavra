@@ -652,6 +652,18 @@ impl Parser {
     }
 
     /// "Conforme a figura:" seguido de casos "Sendo um círculo:" e, opcional, "Senão:".
+    /// O que vem depois de "Sendo": um caso de enumeração ("um círculo") ou um valor ("7",
+    /// "\"sim\"", "o limite").
+    fn pattern(&mut self) -> Result<Pattern> {
+        let variant_at = |k: usize| self.peek_at(k).word().is_some_and(|w| self.vocab.variants.contains_key(w));
+        // Com qualquer artigo, o nome de um caso é caso ("Sendo o círculo" ganha a correção).
+        let article = self.peek().word().and_then(morphology::article).is_some();
+        if variant_at(0) || (article && variant_at(1)) || !self.starts_value(0) {
+            return self.variant_pattern();
+        }
+        Ok(Pattern::Literal(self.additive()?))
+    }
+
     fn match_stmt(&mut self, start: Span) -> Result<Stmt> {
         let scrutinee = self.expr()?;
         self.expect_punct(':', "os dois-pontos depois de \"Conforme ...\"")?;
@@ -682,9 +694,9 @@ impl Parser {
                     )
                     .hint("Escreva \"Sendo um círculo: ...\", ou \"Senão: ...\" para o resto."));
                 }
-                let mut patterns = vec![self.variant_pattern()?];
+                let mut patterns = vec![self.pattern()?];
                 while self.eat_word("ou") {
-                    patterns.push(self.variant_pattern()?);
+                    patterns.push(self.pattern()?);
                 }
                 self.expect_punct(':', "os dois-pontos depois do caso")?;
                 Ok(patterns)
@@ -789,6 +801,26 @@ impl Parser {
                 self.bump();
             }
             self.bump();
+            // "Se houver 7 nas notas": o que se procura e onde. O nome sem artigo e sem
+            // "em" depois é o "talvez" de "Se houver apelido".
+            let bare = self.peek().word().is_some_and(|w| morphology::article(w).is_none());
+            if self.starts_value(0) && (!bare || self.peek_at(1).is_word("em")) {
+                let first = self.peek().clone();
+                let item = self.expr()?;
+                if !self.eat_word("em") {
+                    return err(Diagnostic::new(
+                        L0111,
+                        "Depois de \"houver\" vem o nome sem artigo (\"Se houver apelido\"), ou o que se procura e onde (\"Se houver 7 nas notas\").",
+                        first.span.to(item.span),
+                    ));
+                }
+                let subject = self.expr()?;
+                return Ok(Cond::Atom {
+                    negated: neg_exists,
+                    kind: Box::new(CondKind::Contains { subject, item }),
+                    span: start.to(self.prev_span()),
+                });
+            }
             let t = self.bump();
             let Some(word) = t.word().map(str::to_string) else {
                 return Err(Box::new(Diagnostic::new(
@@ -912,6 +944,25 @@ impl Parser {
                 }
             }
             let rt = self.peek().clone();
+            // "Se as compras forem vazias": lista ou texto sem nada. Um predicado "ser vazio"
+            // do programa, lido logo acima, vem antes.
+            if let Some((g, n)) = rt.word().and_then(|w| morphology::adjective_form(w, "vazio")) {
+                if (g, n) != (gender, number) {
+                    let right = morphology::inflect_adjective("vazio", Gender::Masculine, gender, number);
+                    return err(Diagnostic::new(
+                        L0115,
+                        format!(
+                            "O adjetivo concorda com o sujeito ({}): \"{right}\", não \"{}\".",
+                            morphology::describe_gn(gender, number),
+                            rt.orig
+                        ),
+                        rt.span,
+                    )
+                    .fix(format!("Escrever \"{right}\""), rt.span, right.clone()));
+                }
+                self.bump();
+                return Ok(Cond::Atom { negated, kind: Box::new(CondKind::Empty { subject }), span: start.to(rt.span) });
+            }
             // Predicativo lógico: "for verdadeira", "forem falsos" — concorda com o sujeito.
             if let Some(bw) = rt.word() {
                 for base in ["verdadeiro", "falso"] {

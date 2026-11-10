@@ -1,0 +1,10 @@
+Erro de tipo [L0363]: Só lista e texto ficam vazios, e este valor é um inteiro.
+ --> tests/programs/err/vazio_tipo.lav:5:8
+  |
+5 |     Se o saldo for vazio: escrevo "sem saldo".
+  |        ^^^^^^^
+Erro de concordância [L0115]: O adjetivo concorda com o sujeito (feminino plural): "vazias", não "vazio".
+ --> tests/programs/err/vazio_tipo.lav:6:25
+  |
+6 |     Se as compras forem vazio: escrevo "sem compras".
+  |                         ^^^^^

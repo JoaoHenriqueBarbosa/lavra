@@ -16,6 +16,10 @@ As versões da Lavra, a mais nova primeiro.
 - "como" lê texto como número ("42" como inteiro, "3,5" como real) e vai do caractere ao
   código dele e de volta (a letra como inteiro, 65 como caractere). O que não se converte é
   falha de execução, com os códigos L0915 e L0916.
+- Condições novas: "Se as compras forem vazias" (lista ou texto sem nada) e "Se houver 7 nas
+  notas" (o item na lista, o trecho ou o caractere no texto).
+- "Conforme" sobre valores: "Sendo 1 ou 7: ...", com inteiro, caractere, texto e lógico, e o
+  "Senão" obrigatório.
 
 ## [0.1.0] - 2026-10-22
 

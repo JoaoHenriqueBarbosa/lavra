@@ -482,6 +482,16 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
             Cond::Test(e) => self.expr(e)? == Value::Bool(true),
             Cond::IsSome(e) => self.expr(e)? != Value::Nothing,
             Cond::IsVariant(e, tag) => matches!(self.expr(e)?, Value::Variant(t, _) if t == *tag),
+            Cond::Contains { collection, item } => {
+                let c = self.expr(collection)?;
+                let i = self.expr(item)?;
+                match (c, i) {
+                    (Value::List(l), i) => l.contains(&i),
+                    (Value::Text(t), Value::Text(part)) => t.contains(part.as_str()),
+                    (Value::Text(t), Value::Char(ch)) => t.contains(ch),
+                    _ => unreachable!(),
+                }
+            }
         })
     }
 

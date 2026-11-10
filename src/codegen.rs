@@ -32,6 +32,9 @@ const RUNTIME: &[(&str, &[types::Type], &[types::Type])] = &[
     ("rt_fault_sqrt", &[types::F64, types::I32, types::I32], &[]),
     ("rt_fault_convert_int", &[types::I64, types::I32, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_fault_convert_real", &[types::F64, types::I32, types::I32, types::I32, types::I32], &[]),
+    ("rt_list_contains", &[PTR, PTR, types::I64], &[types::I8]),
+    ("rt_text_has", &[PTR, PTR], &[types::I8]),
+    ("rt_text_has_char", &[PTR, types::I32], &[types::I8]),
     ("rt_text_to_int", &[PTR, types::I32, types::I32, types::I32, types::I32], &[types::I64]),
     ("rt_text_to_real", &[PTR, types::I32, types::I32], &[types::F64]),
     ("rt_int_to_char", &[types::I64, types::I32, types::I32, types::I32], &[types::I32]),
@@ -1103,6 +1106,22 @@ impl<'a, 'b> Fx<'a, 'b> {
                 let v = self.expr(e, false).unwrap();
                 self.b.ins().icmp_imm_s(IntCC::NotEqual, v, 0)
             }
+            Cond::Contains { collection, item } => {
+                let mark = self.temps.len();
+                let c = self.expr(collection, false).unwrap();
+                let i = self.expr(item, false).unwrap();
+                let r = match (&collection.ty, &item.ty) {
+                    (Ty::List(elem), _) => {
+                        let d = self.desc(elem);
+                        let s = self.slot_of(i, &item.ty);
+                        self.rt1("rt_list_contains", &[d, c, s])
+                    }
+                    (_, Ty::Char) => self.rt1("rt_text_has_char", &[c, i]),
+                    _ => self.rt1("rt_text_has", &[c, i]),
+                };
+                self.flush_temps(mark);
+                self.b.ins().icmp_imm_s(IntCC::NotEqual, r, 0)
+            }
             Cond::IsVariant(e, tag) => {
                 let mark = self.temps.len();
                 let v = self.expr(e, false).unwrap();
@@ -1798,6 +1817,10 @@ fn cond_addressed(c: &Cond, out: &mut [bool]) {
             expr_addressed(rhs, out);
         }
         Cond::Test(e) | Cond::IsSome(e) | Cond::IsVariant(e, _) => expr_addressed(e, out),
+        Cond::Contains { collection, item } => {
+            expr_addressed(collection, out);
+            expr_addressed(item, out);
+        }
     }
 }
 

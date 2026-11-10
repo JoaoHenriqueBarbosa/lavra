@@ -99,6 +99,18 @@ Conforme a figura:
 Se a figura for um ponto: ...
 ```
 
+"Conforme" também escolhe entre valores de um inteiro, um caractere, um texto ou um lógico:
+
+```
+Conforme o dia:
+    Sendo 1 ou 7: escrevo "fim de semana".
+    Sendo 2: escrevo "segunda".
+    Senão: escrevo "dia útil".
+```
+
+O valor é lido uma vez. Como ele pode ser qualquer um, o "Senão" é obrigatório (L0366); só o
+lógico dispensa, com "verdadeiro" e "falso" tratados. Real não entra (L0309).
+
 "uma destas"/"um destes" concorda com o tipo; cada caso tem o seu gênero ("uma círculo" é
 erro). Num braço com um caso só, os campos viram nomes (empréstimos do valor). Sem
 "Senão", faltar caso é erro; com todos tratados, "Senão" sobrando é aviso. Durante o
@@ -208,6 +220,11 @@ terminação ("-ção", "-são", "-dade", "-agem", "-a" femininos; o resto mascu
 "Para cada canção" acerta e um "-ão" ambíguo pede a coleção no plural ou o tipo). Condições no futuro do subjuntivo com
 concordância ("for"/"forem", "maior que"/"maiores que"); "e" antes de "ou"; "não" antes do
 verbo. "é", "está", "há" numa condição são erro de morfologia com a forma certa.
+`Se as compras forem vazias` e `Se o nome for vazio` perguntam se a lista ou o texto não têm
+nada ("vazio" concorda com o sujeito; um predicado "ser vazio" do programa vem antes).
+`Se houver 7 nas notas` procura o item na lista, e `Se houver "avr" no nome`, o trecho ou o
+caractere no texto; com "não", `Se não houver "ovo" nas compras`. O "houver" sem artigo e sem
+"em" continua sendo o do "talvez" (`Se houver apelido`).
 Depois de "for"/"ser", "verdadeiro" e "falso" são predicativos e concordam com o sujeito
 ("a resposta for verdadeira", "as licenças forem falsas"; a discordância é L0137); como
 valor ("vira verdadeiro", "devolvo falso"), são literais e não flexionam.

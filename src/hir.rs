@@ -198,6 +198,11 @@ pub enum Cond {
     IsSome(Expr),
     /// "Se a figura for um círculo".
     IsVariant(Expr, usize),
+    /// "Se houver 7 nas notas": o item está na lista, ou o trecho (ou o caractere) no texto.
+    Contains {
+        collection: Expr,
+        item: Expr,
+    },
 }
 
 #[derive(Debug, Clone)]

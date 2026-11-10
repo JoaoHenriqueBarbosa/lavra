@@ -1,0 +1,21 @@
+Erro de tipo [L0364]: Só se procura em lista ou em texto, e este valor é um inteiro.
+ --> tests/programs/err/houver_em_tipo.lav:5:17
+  |
+5 |     Se houver 1 no saldo: escrevo "tem".
+  |                 ^^^^^^^^
+  = dica: Para um valor que pode faltar, é sem artigo e sem "em": "Se houver apelido".
+Erro de tipo [L0354]: Esperava um inteiro, mas este valor é um texto.
+ --> tests/programs/err/houver_em_tipo.lav:6:15
+  |
+6 |     Se houver "sete" nas notas: escrevo "tem".
+  |               ^^^^^^
+Erro de tipo [L0364]: Num texto se procura um texto ou um caractere, e este valor é um inteiro.
+ --> tests/programs/err/houver_em_tipo.lav:7:15
+  |
+7 |     Se houver 7 no nome: escrevo "tem".
+  |               ^
+Erro de sintaxe [L0111]: Depois de "houver" vem o nome sem artigo ("Se houver apelido"), ou o que se procura e onde ("Se houver 7 nas notas").
+ --> tests/programs/err/houver_em_tipo.lav:8:15
+  |
+8 |     Se houver o nome: escrevo "tem".
+  |               ^^^^^^

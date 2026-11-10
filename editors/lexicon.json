@@ -268,7 +268,7 @@
       "role": "copula"
     },
     {
-      "doc": "\"Se houver apelido:\": o talvez tem valor, que vira um nome dentro do bloco.",
+      "doc": "\"Se houver apelido:\": o talvez tem valor, que vira um nome dentro do bloco. \"Se houver 7 nas notas:\": o item está na lista, ou o trecho no texto.",
       "form": "houver",
       "role": "copula"
     },
@@ -807,7 +807,7 @@
     },
     {
       "base": "vazio",
-      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "doc": "Coleção sem itens: \"As notas começam vazias.\", \"Se as notas forem vazias:\".",
       "forms": [
         "vazio",
         "vazios",
@@ -2014,25 +2014,25 @@
       "role": "ownership"
     },
     {
-      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "doc": "Coleção sem itens: \"As notas começam vazias.\", \"Se as notas forem vazias:\".",
       "form": "vazio",
       "lemma": "vazio",
       "role": "literal"
     },
     {
-      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "doc": "Coleção sem itens: \"As notas começam vazias.\", \"Se as notas forem vazias:\".",
       "form": "vazios",
       "lemma": "vazio",
       "role": "literal"
     },
     {
-      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "doc": "Coleção sem itens: \"As notas começam vazias.\", \"Se as notas forem vazias:\".",
       "form": "vazia",
       "lemma": "vazio",
       "role": "literal"
     },
     {
-      "doc": "Coleção sem itens: \"As notas começam vazias.\"",
+      "doc": "Coleção sem itens: \"As notas começam vazias.\", \"Se as notas forem vazias:\".",
       "form": "vazias",
       "lemma": "vazio",
       "role": "literal"
@@ -2116,7 +2116,7 @@
       "role": "copula"
     },
     {
-      "doc": "\"Se houver apelido:\": o talvez tem valor, que vira um nome dentro do bloco.",
+      "doc": "\"Se houver apelido:\": o talvez tem valor, que vira um nome dentro do bloco. \"Se houver 7 nas notas:\": o item está na lista, ou o trecho no texto.",
       "form": "houver",
       "lemma": "houver",
       "role": "copula"

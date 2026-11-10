@@ -1,0 +1,6 @@
+Para começar:
+    O saldo é 10.
+    As compras começam vazias.
+    As compras ganham "pão".
+    Se o saldo for vazio: escrevo "sem saldo".
+    Se as compras forem vazio: escrevo "sem compras".

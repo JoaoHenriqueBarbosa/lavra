@@ -1,0 +1,35 @@
+Erro de tipo [L0366]: Este valor é um inteiro e pode ser outro além dos casos tratados: falta o "Senão".
+ --> tests/programs/err/conforme_valor.lav:9:14
+  |
+9 |     Conforme o dia:
+  |              ^^^^^
+  = dica: Feche o "Conforme" com "Senão: ...".
+Erro de sintaxe [L0310]: O caso 2 já foi tratado.
+  --> tests/programs/err/conforme_valor.lav:14:15
+   |
+13 |         Sendo 1 ou 2: escrevo "começo".
+   |                    - tratado aqui
+14 |         Sendo 2: escrevo "de novo".
+   |               ^
+Erro de tipo [L0365]: "um ponto" é caso de enumeração, e o valor é um inteiro.
+  --> tests/programs/err/conforme_valor.lav:15:15
+   |
+15 |         Sendo um ponto: escrevo "ponto".
+   |               ^^^^^^^^
+   = dica: Sobre um valor simples, cada caso é um valor: "Sendo 1: ...".
+Erro de tipo [L0354]: Esperava um inteiro, mas este valor é um texto.
+  --> tests/programs/err/conforme_valor.lav:16:15
+   |
+16 |         Sendo "três": escrevo "texto".
+   |               ^^^^^^
+Erro de tipo [L0365]: O valor é uma forma, e os casos dele se dizem pelo nome, não por um valor.
+  --> tests/programs/err/conforme_valor.lav:19:15
+   |
+19 |         Sendo 1: escrevo "um".
+   |               ^
+   = dica: Escreva o caso com artigo: "Sendo um círculo: ...".
+Erro de tipo [L0309]: "Conforme" escolhe entre os casos de uma enumeração, ou entre valores inteiros, caracteres, textos e lógicos, e este valor é um real.
+  --> tests/programs/err/conforme_valor.lav:21:14
+   |
+21 |     Conforme a taxa:
+   |              ^^^^^^

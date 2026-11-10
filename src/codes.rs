@@ -154,7 +154,7 @@ codes! {
     L0306 = Type, "\"Repito\" com contagem que não é inteira";
     L0307 = Type, "Intervalo de \"Para cada\" que não é de inteiros";
     L0308 = Scope, "\"Para cada\" sem a coleção declarada";
-    L0309 = Type, "\"Conforme\" sobre valor que não é enumeração";
+    L0309 = Type, "\"Conforme\" sobre valor que não se escolhe por casos";
     L0310 = Syntax, "Caso tratado duas vezes";
     L0311 = Type, "\"Conforme\" sem todos os casos";
     L0312 = Scope, "Nome declarado duas vezes no bloco";
@@ -208,6 +208,10 @@ codes! {
     L0360 = Type, "Operação de bits com quem não é inteiro";
     L0361 = Type, "Conta entre tipos diferentes";
     L0362 = Syntax, "Ação no nível de fora";
+    L0363 = Type, "\"vazio\" para quem não é lista nem texto";
+    L0364 = Type, "\"houver ... em\" fora de lista e de texto";
+    L0365 = Type, "Caso de \"Conforme\" que não é do tipo do valor";
+    L0366 = Type, "\"Conforme\" sobre valores sem \"Senão\"";
 
     // Posse e empréstimo.
     L0400 = Ownership, "Valor usado depois de entregue";

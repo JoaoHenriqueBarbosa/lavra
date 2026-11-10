@@ -456,7 +456,7 @@ pub const LOCUTIONS: &[(&str, &str)] = &[
 pub const PARTICIPLES: &[(&str, Role, &str)] = &[
     ("emprestado", Role::Ownership, "Parâmetro emprestado: a função lê o valor, não o muda nem fica com ele (como &T)."),
     ("confiado", Role::Ownership, "Parâmetro confiado: a função pode mudar o valor, que volta para quem chamou (como &mut T)."),
-    ("vazio", Role::Literal, "Coleção sem itens: \"As notas começam vazias.\""),
+    ("vazio", Role::Literal, "Coleção sem itens: \"As notas começam vazias.\", \"Se as notas forem vazias:\"."),
 ];
 
 /// As demais palavras da língua: forma (locuções com espaço), papel, documentação.
@@ -503,7 +503,11 @@ pub const KEYWORDS: &[Keyword] = &[
     // Condição.
     Keyword { form: "for", role: Role::Copula, doc: "\"ser\" no futuro do subjuntivo, nas condições: \"Se o saldo for maior que 0\"." },
     Keyword { form: "forem", role: Role::Copula, doc: "\"ser\" no futuro do subjuntivo, no plural: \"Se as notas forem iguais\"." },
-    Keyword { form: "houver", role: Role::Copula, doc: "\"Se houver apelido:\": o talvez tem valor, que vira um nome dentro do bloco." },
+    Keyword {
+        form: "houver",
+        role: Role::Copula,
+        doc: "\"Se houver apelido:\": o talvez tem valor, que vira um nome dentro do bloco. \"Se houver 7 nas notas:\": o item está na lista, ou o trecho no texto.",
+    },
     // Definição.
     Keyword {
         form: "para",

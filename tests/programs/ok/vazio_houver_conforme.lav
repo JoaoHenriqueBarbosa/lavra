@@ -1,0 +1,46 @@
+Nota: "for vazio", "houver ... em" e o "Conforme" sobre valores.
+
+Para nomear o dia, sendo o dia um inteiro, devolvendo um texto:
+    Conforme o dia:
+        Sendo 1 ou 7: devolvo "fim de semana".
+        Sendo 2: devolvo "segunda".
+        Senão: devolvo "dia útil".
+
+Para responder a resposta, sendo a resposta um texto emprestado:
+    Conforme a resposta:
+        Sendo "sim" ou "s": escrevo "afirmativo".
+        Sendo "não": escrevo "negativo".
+        Senão: escrevo "não entendi: " seguido da resposta.
+
+Para começar:
+    As compras começam vazias.
+    Se as compras forem vazias: escrevo "nada a comprar".
+    As compras ganham "pão".
+    As compras ganham "leite".
+    Se as compras não forem vazias: escrevo "há compras".
+    O nome começa em "".
+    Se o nome for vazio: escrevo "sem nome".
+    O nome vira "Lavra".
+    Se o nome não for vazio e houver "avr" no nome: escrevo "tem avr".
+    Se houver "leite" nas compras: escrevo "tem leite".
+    Se não houver "ovo" nas compras: escrevo "falta ovo".
+    As notas são 7, 8 e 9.
+    Se houver 8 nas notas: escrevo "tem um 8".
+    A procurada é 10.
+    Se houver a procurada nas notas: escrevo "tem um 10".
+    Senão: escrevo "não tem 10".
+    A letra é o item 1 do nome.
+    Se houver a letra no nome: escrevo "a primeira letra está no nome".
+    Para cada i de 1 até 3: escrevo o resultado de nomear i.
+    Respondo "sim".
+    Respondo "talvez".
+    Conforme a letra:
+        Sendo 'L': escrevo "começa com L".
+        Senão: escrevo "começa com outra".
+    A porta é verdadeiro.
+    Conforme a porta:
+        Sendo verdadeiro: escrevo "aberta".
+        Sendo falso: escrevo "fechada".
+    Conforme (o tamanho das compras) mais 1:
+        Sendo 3: escrevo "três com o que falta".
+        Senão: escrevo "outra conta".

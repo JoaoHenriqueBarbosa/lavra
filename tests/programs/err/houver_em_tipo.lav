@@ -1,0 +1,8 @@
+Para começar:
+    O saldo é 10.
+    As notas são 7, 8 e 9.
+    O nome é "Lavra".
+    Se houver 1 no saldo: escrevo "tem".
+    Se houver "sete" nas notas: escrevo "tem".
+    Se houver 7 no nome: escrevo "tem".
+    Se houver o nome: escrevo "tem".

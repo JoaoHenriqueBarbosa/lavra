@@ -421,6 +421,10 @@ impl<'a> Checker<'a> {
             }
             Cond::Test(e) => self.expr(e, Use::Move, &How::Other)?,
             Cond::IsSome(e) | Cond::IsVariant(e, _) => self.expr(e, Use::Read, &How::Other)?,
+            Cond::Contains { collection, item } => {
+                self.expr(collection, Use::Read, &How::Other)?;
+                self.expr(item, Use::Read, &How::Other)?;
+            }
         }
         Ok(())
     }

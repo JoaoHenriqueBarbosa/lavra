@@ -1072,10 +1072,15 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         self.tainted = true;
                         return Ok(());
                     }
+                    // Sobre um valor simples, cada caso é um valor: vira uma cadeia de "Se".
+                    Ty::Int(_) | Ty::Char | Ty::Text | Ty::Bool => return self.match_values(v, scrutinee, arms, otherwise, span, out),
                     other => {
                         return err(Diagnostic::new(
                             L0309,
-                            format!("\"Conforme\" escolhe entre os casos de uma enumeração, e este valor é {}.", other.describe()),
+                            format!(
+                                "\"Conforme\" escolhe entre os casos de uma enumeração, ou entre valores inteiros, caracteres, textos e lógicos, e este valor é {}.",
+                                other.describe()
+                            ),
                             scrutinee.span,
                         ));
                     }
@@ -1086,7 +1091,24 @@ impl<'e, 'a> FnCx<'e, 'a> {
                     let mut tags = Vec::new();
                     let mut ok = true;
                     for pat in &arm.patterns {
-                        let ast::Pattern::Variant { word, span, .. } = pat else { unreachable!() };
+                        let (word, span) = match pat {
+                            ast::Pattern::Variant { word, span, .. } => (word, span),
+                            ast::Pattern::Literal(lit) => {
+                                self.report(Box::new(
+                                    Diagnostic::new(
+                                        L0365,
+                                        format!(
+                                            "O valor é {}, e os casos dele se dizem pelo nome, não por um valor.",
+                                            Ty::Enum(e.clone()).describe()
+                                        ),
+                                        lit.span,
+                                    )
+                                    .hint("Escreva o caso com artigo: \"Sendo um círculo: ...\"."),
+                                ));
+                                ok = false;
+                                continue;
+                            }
+                        };
                         match self.variant_of(&e, word, *span) {
                             Ok(tag) => {
                                 let vd = self.env.variant_defs.get(&(e.id, tag)).copied().unwrap_or(usize::MAX);
@@ -1158,6 +1180,118 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 out.push_at(span, hir::StmtKind::Match { scrutinee: v, arms: harms, otherwise });
             }
         }
+        Ok(())
+    }
+
+    /// "Conforme o dia: Sendo 1 ou 7: ... Senão: ...": cada caso compara o valor, lido uma
+    /// vez só, com os valores do caso. Baixa para um "Se" encadeado.
+    fn match_values(
+        &mut self,
+        v: hir::Expr,
+        scrutinee: &ast::Expr,
+        arms: &[ast::MatchArm],
+        otherwise: &Option<ast::Block>,
+        span: Span,
+        out: &mut Vec<hir::Stmt>,
+    ) -> Result<()> {
+        let ty = self.resolve_ty(&v.ty);
+        let subject = if matches!(v.kind, hir::ExprKind::Read(_)) {
+            v
+        } else {
+            let id = self.locals.len();
+            self.add_local(LocalInfo {
+                local: hir::Local {
+                    name: "valor".into(),
+                    display: "o valor".into(),
+                    ty: ty.clone(),
+                    mutable: false,
+                    borrowed: false,
+                    span: v.span,
+                    hidden: true,
+                    gender: Gender::Masculine,
+                    number: Number::Singular,
+                },
+                gender: Gender::Masculine,
+                number: Number::Singular,
+                mutated: true,
+                decl_span: v.span,
+                hidden: true,
+            });
+            let at = v.span;
+            out.push_at(at, hir::StmtKind::Let { var: Var::Local(id), value: v });
+            hir::Expr { kind: hir::ExprKind::Read(hir::Place::var(Var::Local(id), ty.clone(), at)), ty: ty.clone(), span: at }
+        };
+        // Os valores já tratados, como se escrevem, para acusar a repetição.
+        let mut seen: Vec<(String, Span)> = Vec::new();
+        let mut harms = Vec::new();
+        for arm in arms {
+            let mut tests = Vec::new();
+            for pat in &arm.patterns {
+                let lit = match pat {
+                    ast::Pattern::Literal(lit) => lit,
+                    ast::Pattern::Variant { word, span, gender } => {
+                        let art = morphology::indefinite_article(*gender, Number::Singular);
+                        self.report(Box::new(
+                            Diagnostic::new(L0365, format!("\"{art} {word}\" é caso de enumeração, e o valor é {}.", ty.describe()), *span)
+                                .hint("Sobre um valor simples, cada caso é um valor: \"Sendo 1: ...\"."),
+                        ));
+                        continue;
+                    }
+                };
+                let rhs = match self.expr(lit, Some(&ty)) {
+                    Ok(rhs) => rhs,
+                    Err(d) => {
+                        self.report(d);
+                        continue;
+                    }
+                };
+                let found = self.resolve_ty(&rhs.ty);
+                if !found.is_error() && !self.unify(&ty, &found) {
+                    self.report(Box::new(Diagnostic::new(
+                        L0365,
+                        format!("O valor é {}, e este caso é {}.", ty.describe(), found.describe()),
+                        lit.span,
+                    )));
+                    continue;
+                }
+                let key = match &rhs.kind {
+                    hir::ExprKind::Int(n) => Some(n.to_string()),
+                    hir::ExprKind::Text(t) => Some(format!("\"{t}\"")),
+                    hir::ExprKind::Char(c) => Some(format!("'{c}'")),
+                    hir::ExprKind::Bool(b) => Some(crate::textfmt::format_bool(*b).to_string()),
+                    _ => None,
+                };
+                if let Some(key) = key {
+                    if let Some((_, prev)) = seen.iter().find(|(k, _)| *k == key) {
+                        self.report(Box::new(
+                            Diagnostic::new(L0310, format!("O caso {key} já foi tratado."), lit.span).label(*prev, "tratado aqui"),
+                        ));
+                    }
+                    seen.push((key, lit.span));
+                }
+                tests.push(hir::Cond::Cmp { rel: Rel::Equal, lhs: subject.clone(), rhs });
+            }
+            let body = self.block(&arm.body);
+            let cond = if tests.len() == 1 { tests.pop().unwrap() } else { hir::Cond::Or(tests) };
+            harms.push((cond, body));
+        }
+        // Só o lógico tem uma lista fechada de valores.
+        let complete = ty == Ty::Bool && ["verdadeiro", "falso"].iter().all(|b| seen.iter().any(|(k, _)| k == b));
+        if otherwise.is_none() && !complete {
+            self.report(Box::new(
+                Diagnostic::new(
+                    L0366,
+                    format!("Este valor é {} e pode ser outro além dos casos tratados: falta o \"Senão\".", ty.describe()),
+                    scrutinee.span,
+                )
+                .hint("Feche o \"Conforme\" com \"Senão: ...\"."),
+            ));
+        }
+        if otherwise.is_some() && complete {
+            self.warnings.push(Diagnostic::new(L0501, "Este \"Senão\" nunca acontece: todos os casos já foram tratados.", scrutinee.span));
+        }
+        let otherwise = otherwise.as_ref().map(|b| self.block(b));
+        out.push_at(span, hir::StmtKind::If { arms: harms, otherwise });
         Ok(())
     }
 
@@ -1601,7 +1735,63 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let e = self.maybe_named(word, *word_span)?;
                         hir::Cond::IsSome(e)
                     }
-                    _ => return err(Diagnostic::new(L0332, "Condição ainda não suportada.", *span)),
+                    ast::CondKind::Empty { subject } => {
+                        let v = self.expr(subject, None)?;
+                        let vt = self.resolve_ty(&v.ty);
+                        if !matches!(vt, Ty::List(_) | Ty::Text | Ty::Error) {
+                            return err(Diagnostic::new(
+                                L0363,
+                                format!("Só lista e texto ficam vazios, e este valor é {}.", vt.describe()),
+                                subject.span,
+                            ));
+                        }
+                        // Vazio é tamanho zero.
+                        let int = Ty::Int(IntTy::I64);
+                        let lhs = hir::Expr { kind: hir::ExprKind::Unary(UnOp::Len, Box::new(v)), ty: int.clone(), span: subject.span };
+                        let rhs = hir::Expr { kind: hir::ExprKind::Int(0), ty: int, span: subject.span };
+                        hir::Cond::Cmp { rel: Rel::Equal, lhs, rhs }
+                    }
+                    ast::CondKind::Contains { subject, item } => {
+                        let collection = self.expr(subject, None)?;
+                        let ct = self.resolve_ty(&collection.ty);
+                        let item = match &ct {
+                            Ty::List(elem) => {
+                                let elem = self.resolve_ty(elem);
+                                let it = self.expr(item, Some(&elem))?;
+                                let found = self.resolve_ty(&it.ty);
+                                if !self.unify(&elem, &found) && !found.is_error() && !elem.is_error() {
+                                    return err(Diagnostic::new(
+                                        L0364,
+                                        format!("A coleção é {}, e o que se procura nela é {}.", ct.describe(), found.describe()),
+                                        item.span,
+                                    ));
+                                }
+                                it
+                            }
+                            Ty::Text => {
+                                let it = self.expr(item, None)?;
+                                let found = self.resolve_ty(&it.ty);
+                                if !matches!(found, Ty::Text | Ty::Char | Ty::Error) {
+                                    return err(Diagnostic::new(
+                                        L0364,
+                                        format!("Num texto se procura um texto ou um caractere, e este valor é {}.", found.describe()),
+                                        item.span,
+                                    ));
+                                }
+                                it
+                            }
+                            Ty::Error => return Ok(error_cond()),
+                            other => {
+                                return err(Diagnostic::new(
+                                    L0364,
+                                    format!("Só se procura em lista ou em texto, e este valor é {}.", other.describe()),
+                                    subject.span,
+                                )
+                                .hint("Para um valor que pode faltar, é sem artigo e sem \"em\": \"Se houver apelido\"."));
+                            }
+                        };
+                        hir::Cond::Contains { collection, item }
+                    }
                 };
                 if *negated { hir::Cond::Not(Box::new(inner)) } else { inner }
             }
@@ -2435,6 +2625,10 @@ fn resolve_cond(c: &mut hir::Cond, s: &[(Option<Ty>, Span)]) {
             resolve_expr(rhs, s);
         }
         hir::Cond::Test(e) | hir::Cond::IsSome(e) | hir::Cond::IsVariant(e, _) => resolve_expr(e, s),
+        hir::Cond::Contains { collection, item } => {
+            resolve_expr(collection, s);
+            resolve_expr(item, s);
+        }
     }
 }
 
