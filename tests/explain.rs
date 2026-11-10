@@ -7,9 +7,10 @@ use lavra::diagnostics::Category;
 use lavra::explain::{self, Example};
 
 /// Códigos de construções que o parser ainda não produz: têm texto, sem exemplo.
+/// O L0303 ficou reservado quando o registro recursivo por lista passou a valer.
 /// L0010 e L0322 ficaram sem caminho: o léxico só monta real com algarismos dos dois lados (o
 /// grande demais é L0007), e a chamada sem valor é acusada antes, pelo L0346.
-const WITHOUT_EXAMPLE: &[&str] = &["L0010", "L0304", "L0322", "L0332", "L0353"];
+const WITHOUT_EXAMPLE: &[&str] = &["L0010", "L0303", "L0304", "L0322", "L0332", "L0353"];
 
 /// Roda o programa no interpretador, numa pilha grande (a recursão da Lavra vai fundo).
 /// Devolve o código do erro de execução, se houver.

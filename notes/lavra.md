@@ -81,7 +81,10 @@ A carteira começa em uma conta com o titular "Ana", o saldo 100,0 e as moviment
 
 Campo pode ser símbolo (`x, um real;`), lido como `o x de p`. Construção exige todos
 os campos. Campo no plural com um valor só vira coleção de um item.
-Registro que contém a si mesmo é erro (tamanho infinito). A escrita de um registro sai
+Registro que contém a si mesmo é erro (tamanho infinito), a não ser dentro de uma lista, que
+guarda os itens por fora: `as subpastas, uma lista de pastas` é campo de uma pasta, e é assim
+que se fazem árvores. O mesmo vale para a enumeração (`uma adição, com as parcelas, uma lista
+de expressões`) e para os ciclos entre dois tipos. "talvez" não quebra o ciclo. A escrita de um registro sai
 por extenso: `uma conta com o titular Ana, o saldo 150 e as movimentações [100; 50]`.
 
 ## Enumerações e "Conforme"

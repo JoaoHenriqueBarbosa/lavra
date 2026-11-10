@@ -538,7 +538,7 @@ fn parts(value: &Value, ty: &Ty) -> Vec<(String, Value, Ty)> {
         }
         (Value::Record(fields), Ty::Record(r)) => fields
             .iter()
-            .zip(&r.fields)
+            .zip(r.fields.iter())
             .map(|(v, (name, t))| (format!("{} {name}", field_article(name, r)), v.clone(), t.clone()))
             .collect(),
         (Value::Variant(tag, fields), Ty::Enum(e)) => {

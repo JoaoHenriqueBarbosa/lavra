@@ -1,0 +1,53 @@
+Nota: um registro (ou uma enumeração) pode guardar uma lista de si mesmo.
+
+Uma pasta é um registro de:
+    o nome, um texto;
+    o peso, um inteiro;
+    as subpastas, uma lista de pastas.
+
+Uma expressão é uma destas:
+    um número, com o valor, um inteiro;
+    uma adição, com as parcelas, uma lista de expressões;
+    um produto, com os fatores, uma lista de expressões.
+
+Para pesar a pasta, sendo a pasta emprestada, devolvendo um inteiro:
+    O total começa no peso da pasta.
+    Para cada subpasta das subpastas da pasta: o total cresce o resultado de pesar a subpasta.
+    Devolvo o total.
+
+Para calcular a expressão, sendo a expressão emprestada, devolvendo um inteiro:
+    Conforme a expressão:
+        Sendo um número: devolvo o valor.
+        Sendo uma adição:
+            O total começa em 0.
+            Para cada parcela das parcelas: o total cresce o resultado de calcular a parcela.
+            Devolvo o total.
+        Sendo um produto:
+            O total começa em 1.
+            Para cada fator dos fatores: o total vira o total vezes o resultado de calcular o fator.
+            Devolvo o total.
+
+Para começar:
+    As vazias, uma lista de pastas, são vazias.
+    A foto é uma pasta com o nome "fotos", o peso 30 e as subpastas uma cópia das vazias.
+    A música é uma pasta com o nome "músicas", o peso 12 e as subpastas uma cópia das vazias.
+    As iniciais, uma lista de pastas, começam vazias.
+    As iniciais ganham a foto.
+    A raiz começa em uma pasta com o nome "raiz", o peso 1 e as subpastas as iniciais.
+    As subpastas da raiz ganham a música.
+    Escrevo o resultado de pesar a raiz.
+    Escrevo a raiz.
+    A cópia é uma cópia da raiz.
+    Se a cópia for igual à raiz: escrevo "cópia igual".
+    A dupla é um número com o valor 2.
+    A trinca é um número com o valor 3.
+    Os termos, uma lista de expressões, começam vazios.
+    Os termos ganham uma cópia da dupla.
+    Os termos ganham a trinca.
+    A junção é uma adição com as parcelas os termos.
+    As partes, uma lista de expressões, começam vazias.
+    As partes ganham a junção.
+    As partes ganham a dupla.
+    A conta é um produto com os fatores as partes.
+    Escrevo o resultado de calcular a conta.
+    Escrevo a conta.

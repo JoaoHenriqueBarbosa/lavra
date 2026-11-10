@@ -1,6 +1,36 @@
 //! Tipos da Lavra depois da análise, e como se dizem em português.
 
-use std::sync::Arc;
+use std::ops::Deref;
+use std::sync::{Arc, OnceLock};
+
+/// Um valor posto uma vez, depois de criado o dono. Os campos de um registro e os casos de
+/// uma enumeração entram assim: o tipo já existe (e pode ser citado) enquanto os campos
+/// dele se montam, que é o que deixa um registro guardar uma lista de si mesmo.
+pub struct Late<T>(OnceLock<T>);
+
+impl<T> Late<T> {
+    pub fn empty() -> Self {
+        Late(OnceLock::new())
+    }
+
+    pub fn of(value: T) -> Self {
+        let cell = OnceLock::new();
+        let _ = cell.set(value);
+        Late(cell)
+    }
+
+    pub fn set(&self, value: T) {
+        let _ = self.0.set(value);
+    }
+}
+
+impl<T> Deref for Late<T> {
+    type Target = T;
+
+    fn deref(&self) -> &T {
+        self.0.get().expect("os campos do tipo são postos antes de alguém os ler")
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct IntTy {
@@ -39,13 +69,12 @@ impl IntTy {
 }
 
 /// Um tipo registro definido pelo usuário ("Uma conta é um registro de: ...").
-#[derive(Debug, PartialEq)]
 pub struct RecordTy {
     pub id: usize,
     pub name: String,
     pub plural: String,
     pub feminine: bool,
-    pub fields: Vec<(String, Ty)>,
+    pub fields: Late<Vec<(String, Ty)>>,
     /// Artigo de cada campo ("o saldo", "a origem"), para escrever o registro.
     pub field_articles: Vec<(String, &'static str)>,
 }
@@ -60,13 +89,38 @@ pub struct VariantTy {
 }
 
 /// Uma enumeração ("Uma forma é uma destas: ...").
-#[derive(Debug, PartialEq)]
 pub struct EnumTy {
     pub id: usize,
     pub name: String,
     pub plural: String,
     pub feminine: bool,
-    pub variants: Vec<VariantTy>,
+    pub variants: Late<Vec<VariantTy>>,
+}
+
+// Um tipo do programa é o nome dele: comparar e mostrar pelos campos não terminaria num
+// tipo que cita a si mesmo.
+impl PartialEq for RecordTy {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.name == other.name
+    }
+}
+
+impl PartialEq for EnumTy {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.name == other.name
+    }
+}
+
+impl std::fmt::Debug for RecordTy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "RecordTy({})", self.name)
+    }
+}
+
+impl std::fmt::Debug for EnumTy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "EnumTy({})", self.name)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]

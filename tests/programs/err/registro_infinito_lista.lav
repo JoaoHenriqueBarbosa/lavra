@@ -1,0 +1,11 @@
+Uma pessoa é um registro de:
+    o nome, um texto;
+    o par, uma pessoa;
+    os filhos, uma lista de pessoas.
+
+Uma árvore é uma destas:
+    uma folha;
+    um galho, com o resto, uma árvore.
+
+Para começar:
+    Escrevo "fim".

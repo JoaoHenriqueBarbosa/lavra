@@ -1,0 +1,12 @@
+Erro de tipo [L0302]: "pessoa" contém a si mesma e teria tamanho infinito.
+ --> tests/programs/err/registro_infinito_lista.lav:1:1
+  |
+1 | Uma pessoa é um registro de:
+  | ^^^^^^^^^^
+  = dica: Uma lista guarda os itens por fora: "uma lista de pessoas" cabe. Ou guarde o que identifica o outro, como o nome.
+Erro de tipo [L0302]: "árvore" contém a si mesma e teria tamanho infinito.
+ --> tests/programs/err/registro_infinito_lista.lav:6:1
+  |
+6 | Uma árvore é uma destas:
+  | ^^^^^^^^^^
+  = dica: Uma lista guarda os itens por fora: "uma lista de árvores" cabe. Ou guarde o que identifica o outro, como o nome.

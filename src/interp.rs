@@ -931,7 +931,7 @@ pub fn format_value(v: &Value, ty: &Ty) -> String {
         (Value::Record(fields), Ty::Record(r)) => {
             let parts: Vec<String> = fields
                 .iter()
-                .zip(&r.fields)
+                .zip(r.fields.iter())
                 .map(|(v, (name, t))| format!("{} {name} {}", field_article(name, r), format_value(v, t)))
                 .collect();
             let joined = textfmt::join_e(&parts);

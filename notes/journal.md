@@ -422,3 +422,12 @@ Item 5, interpretador sem cópia nas chamadas:
 - O depurador mostra o parâmetro pelo valor que está no quadro de quem chamou.
 - Ainda copia: o emprestado que é um temporário, e o "Para cada", que lê a coleção uma vez por laço.
 
+Item 6, registro recursivo por lista:
+- "as subpastas, uma lista de pastas" dentro de uma pasta, "uma adição, com as parcelas, uma lista de expressões" dentro de uma expressão, e os ciclos entre dois tipos. Árvores e expressões aninhadas já se escrevem.
+- O tipo passa a existir antes dos campos, e o campo guarda o próprio tipo. Os back-ends não mudaram: o descritor do nativo já se registrava antes de descer, e o interpretador anda pelo valor.
+- Conter a si mesmo sem lista continua sendo o L0302, agora com a dica da lista. O L0303 ficou reservado.
+
+Decisões para revisar:
+- "talvez" continua não quebrando o ciclo (a explicação do L0302 já dizia isso). No nativo ele é um ponteiro e caberia; se você quiser lista encadeada com "o próximo, talvez um nó", é uma mudança pequena.
+- O tipo recursivo é um ciclo de Arc, que não é liberado: alguns bytes por análise. No servidor de linguagem isso se acumula numa sessão longa com tipo recursivo aberto. Está anotado em notes/compiler.md.
+

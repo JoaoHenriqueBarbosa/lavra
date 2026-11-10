@@ -279,6 +279,13 @@ chegar começar do lugar certo.
   Uma referência guardada num nome entra como `LoanKind::Binding`, do mesmo jeito: vale da
   declaração até o fim do bloco em que o nome vive, e enquanto isso o dono não muda nem se
   entrega. É o modelo lexical, não o NLL do Rust (o empréstimo não acaba no último uso).
+- **Tipos recursivos.** Um registro ou uma enumeração pode citar a si mesmo dentro de uma
+  lista. O `RecordTy` e o `EnumTy` passam a existir antes dos campos (`types::Late`, posto
+  uma vez), e o campo guarda o próprio `Arc` do tipo: é um ciclo de `Arc`, que não se desfaz
+  (alguns bytes por análise de um programa com tipo recursivo; no servidor de linguagem,
+  isso se acumula devagar ao longo da sessão). Por causa do ciclo, comparar e mostrar um
+  tipo do programa é pelo nome, nunca pelos campos, e quem anda pela estrutura de um tipo
+  tem de parar no registro (o `desc` do codegen guarda o descritor antes de descer).
 - **Tipos novos no runtime.** O nativo descreve cada tipo por um `Desc` estático
   (`runtime/lib.rs`), que o codegen escreve num lugar só (`desc` em `src/codegen.rs`, com o
   mesmo número de `KIND_*`). Um tipo novo (mapa, conjunto) ganha um `KIND_*` e o braço dele

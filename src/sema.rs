@@ -8,9 +8,13 @@ use crate::hir::{self, PushStmt, Var};
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
 use crate::tables::{Def, DefKind, Form, Ref, Scope, Tables, Use};
-use crate::types::{EnumTy, IntTy, RecordTy, Ty, VariantTy};
+use crate::types::{EnumTy, IntTy, Late, RecordTy, Ty, VariantTy};
+
 use std::collections::HashMap;
 use std::sync::Arc;
+
+/// Marca, na pilha dos tipos em montagem, que dali em diante se está dentro de uma lista.
+const LIST: usize = usize::MAX;
 
 /// Confere o programa e baixa para a HIR. Erros e avisos vão para `diags`; a análise
 /// segue depois de cada erro (o nome que a oração quebrada declararia existe com tipo
@@ -26,6 +30,8 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
         enums: HashMap::new(),
         tables: Tables::default(),
         cycles: std::collections::HashSet::new(),
+        building_records: HashMap::new(),
+        building_enums: HashMap::new(),
         sig_defs: Vec::new(),
         global_defs: Vec::new(),
         record_defs: Vec::new(),
@@ -170,6 +176,9 @@ struct Env<'a> {
     tables: Tables,
     /// Tipos cujo laço infinito já foi relatado.
     cycles: std::collections::HashSet<usize>,
+    /// Os tipos que já existem mas ainda estão recebendo os campos.
+    building_records: HashMap<usize, Arc<RecordTy>>,
+    building_enums: HashMap<usize, Arc<EnumTy>>,
     /// O `Def` de cada assinatura, constante, campo de registro e caso.
     sig_defs: Vec<usize>,
     global_defs: Vec<usize>,
@@ -327,38 +336,61 @@ impl Env<'_> {
         }
     }
 
-    /// Monta o tipo do registro `i` depois dos registros de que ele depende. Um
-    /// registro que contém a si mesmo teria tamanho infinito: o erro é relatado e o
-    /// campo fica com tipo de erro.
+    /// O tipo `key` (registro, ou enumeração somada ao número de registros) contém a si
+    /// mesmo sem uma lista no caminho: teria tamanho infinito.
+    fn infinite(&mut self, key: usize, word: &str, gender: Gender, span: Span) {
+        if self.cycles.insert(key) {
+            self.diags.push(
+                Diagnostic::new(
+                    L0302,
+                    format!(
+                        "\"{word}\" contém a si {} e teria tamanho infinito.",
+                        if gender == Gender::Feminine { "mesma" } else { "mesmo" }
+                    ),
+                    span,
+                )
+                .hint(format!(
+                    "Uma lista guarda os itens por fora: \"uma lista de {}\" cabe. Ou guarde o que identifica o outro, como o nome.",
+                    morphology::pluralize(word)
+                )),
+            );
+        }
+    }
+
+    /// Monta o tipo do registro `i` depois dos registros de que ele depende. O tipo passa a
+    /// existir antes dos campos, para um campo poder citá-lo dentro de uma lista (a lista
+    /// guarda os itens por fora). Sem lista no caminho o registro conteria a si mesmo e
+    /// teria tamanho infinito: o erro é relatado e o campo fica com tipo de erro.
     fn build_record(&mut self, i: usize, stack: &mut Vec<usize>) -> Arc<RecordTy> {
         let def = &self.prog.records[i];
         if let Some(r) = self.records.get(&def.word) {
             return r.clone();
         }
-        if stack.contains(&i) {
-            if self.cycles.insert(i) {
-                self.diags.push(
-                    Diagnostic::new(
-                        L0302,
-                        format!(
-                            "\"{}\" contém a si {} e teria tamanho infinito.",
-                            def.word,
-                            if def.gender == Gender::Feminine { "mesma" } else { "mesmo" }
-                        ),
-                        def.span,
-                    )
-                    .hint("Guarde o que identifica o outro (o nome, a posição numa lista do programa), e não ele inteiro."),
-                );
+        let field_articles: Vec<(String, &'static str)> =
+            def.fields.iter().map(|f| (f.name.word.clone(), morphology::definite_article(f.name.gender(), f.name.number()))).collect();
+        if let Some(at) = stack.iter().rposition(|k| *k == i) {
+            if stack[at..].contains(&LIST) {
+                return self.building_records[&i].clone();
             }
+            self.infinite(i, &def.word, def.gender, def.span);
             return Arc::new(RecordTy {
                 id: i,
                 name: def.word.clone(),
                 plural: def.plural.clone(),
                 feminine: def.gender == Gender::Feminine,
-                fields: def.fields.iter().map(|f| (f.name.word.clone(), Ty::Error)).collect(),
+                fields: Late::of(def.fields.iter().map(|f| (f.name.word.clone(), Ty::Error)).collect()),
                 field_articles: Vec::new(),
             });
         }
+        let r = Arc::new(RecordTy {
+            id: i,
+            name: def.word.clone(),
+            plural: def.plural.clone(),
+            feminine: def.gender == Gender::Feminine,
+            fields: Late::empty(),
+            field_articles,
+        });
+        self.building_records.insert(i, r.clone());
         stack.push(i);
         let mut fields = Vec::new();
         for f in &def.fields {
@@ -366,16 +398,7 @@ impl Env<'_> {
             fields.push((f.name.word.clone(), ty));
         }
         stack.pop();
-        let field_articles =
-            def.fields.iter().map(|f| (f.name.word.clone(), morphology::definite_article(f.name.gender(), f.name.number()))).collect();
-        let r = Arc::new(RecordTy {
-            id: i,
-            name: def.word.clone(),
-            plural: def.plural.clone(),
-            feminine: def.gender == Gender::Feminine,
-            fields,
-            field_articles,
-        });
+        r.fields.set(fields);
         self.records.insert(def.word.clone(), r.clone());
         r
     }
@@ -388,44 +411,51 @@ impl Env<'_> {
             return e.clone();
         }
         let key = self.prog.records.len() + i;
-        let cyclic = stack.contains(&key);
-        if cyclic && self.cycles.insert(key) {
-            self.diags.push(
-                Diagnostic::new(
-                    L0302,
-                    format!(
-                        "\"{}\" contém a si {} e teria tamanho infinito.",
-                        def.word,
-                        if def.gender == Gender::Feminine { "mesma" } else { "mesmo" }
-                    ),
-                    def.span,
-                )
-                .hint("Guarde o que identifica o outro (o nome, a posição numa lista do programa), e não ele inteiro."),
-            );
+        if let Some(at) = stack.iter().rposition(|k| *k == key) {
+            if stack[at..].contains(&LIST) {
+                return self.building_enums[&i].clone();
+            }
+            self.infinite(key, &def.word, def.gender, def.span);
+            let variants = def
+                .variants
+                .iter()
+                .map(|v| VariantTy {
+                    name: v.word.clone(),
+                    feminine: v.gender == Gender::Feminine,
+                    fields: v.fields.iter().map(|f| (f.name.word.clone(), Ty::Error)).collect(),
+                    field_articles: Vec::new(),
+                })
+                .collect();
+            return Arc::new(EnumTy {
+                id: i,
+                name: def.word.clone(),
+                plural: def.plural.clone(),
+                feminine: def.gender == Gender::Feminine,
+                variants: Late::of(variants),
+            });
         }
+        let e = Arc::new(EnumTy {
+            id: i,
+            name: def.word.clone(),
+            plural: def.plural.clone(),
+            feminine: def.gender == Gender::Feminine,
+            variants: Late::empty(),
+        });
+        self.building_enums.insert(i, e.clone());
         stack.push(key);
         let mut variants = Vec::new();
         for v in &def.variants {
             let mut fields = Vec::new();
             for f in &v.fields {
-                let ty = if cyclic { Ty::Error } else { self.type_in_record(&f.ty.ty, f.ty.span, stack) };
-                fields.push((f.name.word.clone(), ty));
+                fields.push((f.name.word.clone(), self.type_in_record(&f.ty.ty, f.ty.span, stack)));
             }
             let field_articles =
                 v.fields.iter().map(|f| (f.name.word.clone(), morphology::definite_article(f.name.gender(), f.name.number()))).collect();
             variants.push(VariantTy { name: v.word.clone(), feminine: v.gender == Gender::Feminine, fields, field_articles });
         }
         stack.pop();
-        let e = Arc::new(EnumTy {
-            id: i,
-            name: def.word.clone(),
-            plural: def.plural.clone(),
-            feminine: def.gender == Gender::Feminine,
-            variants,
-        });
-        if !cyclic {
-            self.enums.insert(def.word.clone(), e.clone());
-        }
+        e.variants.set(variants);
+        self.enums.insert(def.word.clone(), e.clone());
         e
     }
 
@@ -440,16 +470,12 @@ impl Env<'_> {
                     None => Ty::Error,
                 }
             }
-            // Dentro de uma lista o registro pode citar a si mesmo: a lista guarda por fora.
+            // Dentro de uma lista o tipo pode citar a si mesmo: a lista guarda por fora.
             ast::TypeExpr::List(inner) => {
-                if let ast::TypeExpr::Named(name) = inner.as_ref()
-                    && let Some(i) = self.prog.records.iter().position(|r| &r.word == name)
-                    && stack.contains(&i)
-                {
-                    self.diags.push(Diagnostic::new(L0303, "Registro recursivo ainda não é suportado.", span));
-                    return Ty::Error;
-                }
-                Ty::List(Box::new(self.type_in_record(inner, span, stack)))
+                stack.push(LIST);
+                let item = self.type_in_record(inner, span, stack);
+                stack.pop();
+                Ty::List(Box::new(item))
             }
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_in_record(inner, span, stack))),
             ast::TypeExpr::Error => Ty::Error,
