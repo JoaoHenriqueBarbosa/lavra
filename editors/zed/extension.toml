@@ -8,7 +8,7 @@ repository = "https://github.com/JoaoHenriqueBarbosa/lavra"
 
 [grammars.lavra]
 repository = "https://github.com/JoaoHenriqueBarbosa/lavra"
-rev = "e2ab810ee4b6a76df070dbbfb0537ad4adc77b65"
+rev = "28a64f53237c9b9a9a9475530ac3bd2812b4e047"
 path = "editors/tree-sitter-lavra"
 
 [language_servers.lavrac]
