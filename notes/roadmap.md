@@ -349,7 +349,7 @@ Cada ponto é **provado** com um uso real e pequeno, ou fica **documentado como 
 | `Pattern::Literal`, `CondKind::Empty/Contains` (já na AST) **(feito)** | sema, back-ends | aditiva |
 | Mapas e conjuntos **(feito)** | `KIND_*`, builtins | aditiva |
 | Registro recursivo via lista (`sema.rs:195`) **(feito)** | descritores | aditiva |
-| Módulos | F4, F7 | aditiva |
+| Módulos **(feito)** | F4, F7 | aditiva |
 | Referências guardadas | loans lexicais | aditiva; regras novas |
 | Genéricos, traits | monomorfização | aditiva |
 | Verbos de primeira classe | HIR, ponteiro de função | aditiva |

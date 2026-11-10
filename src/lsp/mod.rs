@@ -42,7 +42,9 @@ struct Doc {
 impl Doc {
     fn new(uri: lsp::Uri, text: String) -> Doc {
         let lines = LineIndex::new(&text);
-        let analysis = analyze(&text);
+        // Os arquivos que o documento pede contam a partir da pasta dele, e vêm do disco.
+        let path = uri_to_path(uri.as_str());
+        let analysis = crate::analyze_in(&text, path.as_deref(), &|p| std::fs::read_to_string(p));
         Doc { uri, text, lines, analysis }
     }
 }
@@ -340,7 +342,19 @@ impl Server {
     fn publish(&self, key: &str) -> Vec<Message> {
         let Some(doc) = self.docs.get(key) else { return Vec::new() };
         let text = self.text(doc);
-        let diagnostics = doc.analysis.diagnostics.iter().map(|d| convert::diagnostic(d, &text, &doc.uri)).collect();
+        // O erro de um arquivo trazido aparece no pedido que o trouxe.
+        let diagnostics = doc
+            .analysis
+            .diagnostics
+            .iter()
+            .filter_map(|d| {
+                if crate::modules::is_module(d.span.start) {
+                    doc.analysis.sources.at_request(d).map(|d| convert::diagnostic(&d, &text, &doc.uri))
+                } else {
+                    Some(convert::diagnostic(d, &text, &doc.uri))
+                }
+            })
+            .collect();
         let params = lsp::PublishDiagnosticsParams { uri: doc.uri.clone(), diagnostics, version: None };
         vec![Message::Notification(Notification::new("textDocument/publishDiagnostics".into(), params))]
     }

@@ -1,0 +1,12 @@
+Nota: Trazido por contas.lav e, de novo, pelo programa: entra uma vez só.
+
+Uso o arquivo "contas.lav".
+
+Uma forma é uma destas:
+    um quadrado, com o lado, um real;
+    um ponto.
+
+Para medir a forma, sendo a forma emprestada, devolvendo um real:
+    Conforme a forma:
+        Sendo um quadrado: devolvo o lado vezes o lado.
+        Sendo um ponto: devolvo 0,0.

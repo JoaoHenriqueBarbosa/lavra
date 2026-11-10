@@ -20,8 +20,8 @@ use std::collections::HashSet;
 
 /// Confere posse e empréstimo em cada função sem erro (numa função com erro, a HIR está
 /// incompleta e acusaria o que não é). Cada erro é relatado uma vez e a análise segue.
-pub fn check(prog: &hir::Program, src: &str, diags: &mut Diagnostics, tables: &mut Tables) {
-    let lines = Lines { index: LineIndex::new(src), text: src };
+pub fn check(prog: &hir::Program, src: &str, sources: &crate::modules::Sources, diags: &mut Diagnostics, tables: &mut Tables) {
+    let lines = Lines { index: LineIndex::new(src), text: src, sources };
     for f in std::iter::once(&prog.init).chain(&prog.funcs) {
         if !f.has_errors {
             let (found, notes) = Checker::new(prog, f, &lines).run();
@@ -38,11 +38,16 @@ pub fn check(prog: &hir::Program, src: &str, diags: &mut Diagnostics, tables: &m
 struct Lines<'t> {
     index: LineIndex,
     text: &'t str,
+    sources: &'t crate::modules::Sources,
 }
 
 impl Lines<'_> {
-    fn line(&self, span: Span) -> usize {
-        self.index.line_col(self.text, span.start as usize).0
+    /// A linha como a mensagem a diz: "6", ou "6 de contas.lav" num arquivo trazido.
+    fn line(&self, span: Span) -> String {
+        match self.sources.line(self.text, &self.index, span.start) {
+            (line, Some(file)) => format!("{line} de {file}"),
+            (line, None) => line.to_string(),
+        }
     }
 }
 

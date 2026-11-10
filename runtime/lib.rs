@@ -109,6 +109,8 @@ unsafe extern "C" {
     static lavra_src_len: u64;
     static lavra_path: u8;
     static lavra_path_len: u64;
+    static lavra_modules: u8;
+    static lavra_modules_len: u64;
     fn lavra_init();
     fn lavra_main() -> *mut Failure;
 }
@@ -132,6 +134,31 @@ unsafe fn str_of<'a>(ptr: *const u8, len: u64) -> &'a str {
     unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(ptr, len as usize)) }
 }
 
+/// O arquivo trazido que contém a posição: a base, o caminho e o texto. O executável leva os
+/// arquivos num bloco só: de cada um, a base, o tamanho do caminho e o do texto (três
+/// inteiros de 32 bits), e os dois.
+unsafe fn module_of<'a>(pos: u32) -> Option<(u32, &'a str, &'a str)> {
+    unsafe {
+        let blob = std::slice::from_raw_parts(&lavra_modules as *const u8, lavra_modules_len as usize);
+        let mut at = 0;
+        while at + 12 <= blob.len() {
+            let int = |i: usize| u32::from_le_bytes([blob[i], blob[i + 1], blob[i + 2], blob[i + 3]]);
+            let (base, path_len, text_len) = (int(at), int(at + 4) as usize, int(at + 8) as usize);
+            let path = at + 12;
+            let text = path + path_len;
+            if pos >= base && ((pos - base) as usize) <= text_len {
+                return Some((
+                    base,
+                    std::str::from_utf8_unchecked(&blob[path..text]),
+                    std::str::from_utf8_unchecked(&blob[text..text + text_len]),
+                ));
+            }
+            at = text + text_len;
+        }
+        None
+    }
+}
+
 /// Mostra um erro de execução no mesmo formato do compilador e encerra com 101.
 unsafe fn report(code: Code, message: String, lo: u32, hi: u32) -> ! {
     unsafe { show(Diagnostic::new(code, message, Span { start: lo, end: hi }), 101) }
@@ -140,8 +167,15 @@ unsafe fn report(code: Code, message: String, lo: u32, hi: u32) -> ! {
 unsafe fn show(d: Diagnostic, exit: i32) -> ! {
     unsafe {
         flush();
-        let text = str_of(&lavra_src, lavra_src_len);
-        let path = str_of(&lavra_path, lavra_path_len);
+        let mut d = d;
+        let (path, text) = match module_of(d.span.start) {
+            // A falha num arquivo trazido se mostra nele, com as posições contadas nele.
+            Some((base, path, text)) => {
+                d.span = Span { start: d.span.start - base, end: d.span.end - base };
+                (path, text)
+            }
+            None => (str_of(&lavra_path, lavra_path_len), str_of(&lavra_src, lavra_src_len)),
+        };
         let src = SourceFile::new(path, text);
         let style = Style { color: std::io::stderr().is_terminal() && std::env::var_os("NO_COLOR").is_none() };
         eprint!("{}", diagnostics::render(&d, &src, style));

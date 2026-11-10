@@ -19,6 +19,7 @@ pub mod lexer;
 pub mod lexicon;
 #[cfg(feature = "lsp")]
 pub mod lsp;
+pub mod modules;
 pub mod morphology;
 pub mod ownership;
 pub mod parser;
@@ -40,37 +41,66 @@ pub struct Analysis {
     pub hir: hir::Program,
     /// Cada nome declarado e usado, os escopos e o tipo de cada expressão.
     pub tables: tables::Tables,
+    /// Os arquivos que o programa trouxe com "Uso o arquivo ...".
+    pub sources: modules::Sources,
 }
 
 impl Analysis {
     pub fn has_errors(&self) -> bool {
         self.diagnostics.iter().any(Diagnostic::is_error)
     }
+
+    /// O erro de quem tenta rodar um arquivo sem "Para começar": ele define funções e tipos
+    /// para outro trazer, e a análise dele não acusa nada.
+    pub fn not_a_program(&self) -> Option<Diagnostic> {
+        if self.hir.main.is_some() || self.has_errors() {
+            return None;
+        }
+        Some(Diagnostic::new(codes::L0300, "Este arquivo não tem \"Para começar:\", então não roda sozinho.", span::Span::new(0, 0)).hint(
+            "Ele define funções e tipos para outro arquivo trazer (\"Uso o arquivo ...\"). Para rodá-lo, acrescente \"Para começar:\".",
+        ))
+    }
 }
 
-/// Analisa o texto inteiro sem parar no primeiro erro: cada etapa relata e segue.
+/// Analisa o texto inteiro sem parar no primeiro erro: cada etapa relata e segue. Os
+/// arquivos que o programa pede ("Uso o arquivo ...") são lidos do disco, a partir da pasta
+/// em que o processo roda.
 pub fn analyze(text: &str) -> Analysis {
+    analyze_in(text, None, &|path| std::fs::read_to_string(path))
+}
+
+/// Como `analyze`, para o programa do arquivo `path`: os arquivos que ele pede contam a
+/// partir da pasta dele, e `read` é quem os lê.
+pub fn analyze_in(text: &str, path: Option<&std::path::Path>, read: modules::Reader) -> Analysis {
     let mut diags = Diagnostics::default();
     let tokens = lexer::tokenize(text, &mut diags);
-    let ast = parser::parse(tokens.clone(), &mut diags);
+    let (all, sources) = modules::load(tokens.clone(), path, read, &mut diags);
+    let ast = parser::parse(all, &mut diags);
     let (hir, mut tables) = sema::check(&ast, &mut diags);
-    ownership::check(&hir, text, &mut diags, &mut tables);
+    ownership::check(&hir, text, &sources, &mut diags, &mut tables);
     if !diags.has_errors() {
         diags.list.extend(sema::unused_warnings(&tables));
     }
+    // Sem "Para começar", o arquivo existe para ser trazido por outro: as funções dele não
+    // são chamadas aqui, e o aviso de função nunca chamada não diz nada.
+    if hir.main.is_none() {
+        diags.list.retain(|d| d.code != Some(codes::L0502.id));
+    }
+    // De um arquivo trazido só interessam os erros: os avisos são de quem o escreve.
+    diags.list.retain(|d| d.is_error() || !modules::is_module(d.span.start));
     let mut diagnostics = diags.sorted();
     for d in &mut diagnostics {
         keep_case(d, text);
         outside_libraries(d);
     }
-    Analysis { diagnostics, tokens, ast, hir, tables }
+    Analysis { diagnostics, tokens, ast, hir, tables, sources }
 }
 
 /// O diagnóstico do programa não aponta para dentro de uma biblioteca (as posições dela
 /// ficam fora do arquivo): o rótulo e a correção que cairiam lá saem; a mensagem já diz
 /// de que verbo se trata.
 fn outside_libraries(d: &mut Diagnostic) {
-    let inside = |s: span::Span| s.start >= builtins::LIBRARY_BASE;
+    let inside = |s: span::Span| s.start >= builtins::LIBRARY_BASE && !modules::is_module(s.start);
     d.labels.retain(|l| !inside(l.span));
     d.fixes.retain(|f| !f.edits.iter().any(|e| inside(e.span)));
     if inside(d.span) {
@@ -98,6 +128,9 @@ pub fn compile(text: &str) -> Result<(hir::Program, Vec<Diagnostic>), Vec<Diagno
     let a = analyze(text);
     if a.has_errors() {
         return Err(a.diagnostics);
+    }
+    if let Some(d) = a.not_a_program() {
+        return Err(vec![d]);
     }
     Ok((a.hir, a.diagnostics))
 }

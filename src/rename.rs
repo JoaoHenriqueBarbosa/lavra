@@ -73,6 +73,9 @@ fn target_def(a: &Analysis, offset: u32) -> Result<usize, String> {
     if d.kind == DefKind::Result {
         return Err("\"O resultado\" é da língua e não se renomeia.".into());
     }
+    if crate::modules::is_module(d.span.start) {
+        return Err(format!("\"{}\" vem de outro arquivo: renomeie lá, e depois acerte os usos daqui.", d.name));
+    }
     if let Some(lib) = crate::builtins::library_at(d.span.start) {
         return Err(format!("\"{}\" vem da biblioteca de {} e não se renomeia.", d.name, lib.name));
     }

@@ -113,6 +113,13 @@ pub fn definition(a: &Analysis, text: &Text, uri: &lsp::Uri, offset: u32, librar
     let span = a.tables.defs[def].span;
     if here(span) {
         Some(lsp::Location { uri: uri.clone(), range: text.range(span) })
+    } else if let Some((base, file)) = a.sources.module_at(span.start) {
+        // A definição num arquivo trazido: o editor abre o arquivo.
+        let path = std::path::absolute(&file.path).ok()?;
+        let lines = crate::span::LineIndex::new(&file.text);
+        let there = Text { text: &file.text, lines: &lines, encoding: text.encoding };
+        let local = crate::span::Span { start: span.start - base, end: span.end - base };
+        Some(lsp::Location { uri: super::path_to_uri(&path)?, range: there.range(local) })
     } else if library_documents {
         library_location(span, text.encoding)
     } else {

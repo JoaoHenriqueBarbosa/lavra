@@ -479,3 +479,17 @@ Decisões para revisar:
 - "Para cada" num mapa dá as chaves, e o valor se lê pelo item. Não há laço que dê os dois.
 - O valgrind sobre a suíte inteira (num contêiner) passou nos conjuntos e mapas e achou um vazamento antigo, que o teste da biblioteca de arquivos tocou pela primeira vez: no nativo, o valor de reserva lido de um nome (", ou as linhas") era copiado e, além disso, tirado do nome, que ficava sem quem o liberasse. Corrigido no mesmo envio.
 
+Item 9, módulos:
+- A sintaxe ficou `Uso o arquivo "contas.lav".`, no nível de fora, com o caminho a partir da pasta do arquivo que pede. O programa passa a ter tudo o que o arquivo define, sem prefixo.
+- O "Para começar" do arquivo trazido não entra, então cada arquivo pode ter o seu e rodar sozinho. O arquivo que só define passa no check e é recusado no run, com uma mensagem própria.
+- Um arquivo trazido traz outros e as bibliotecas de que precisa; cada um entra uma vez, e o ciclo se fecha sozinho.
+- O erro de um arquivo trazido aparece no arquivo dele (no terminal), ou no pedido que o trouxe (no editor e no JSON). A falha de execução se mostra no arquivo certo também no nativo, que leva os arquivos junto.
+- No editor, a definição de um nome de outro arquivo abre o arquivo.
+- Testes em tests/modules (fora do corpus de um arquivo só), com a paridade entre o interpretador e o nativo.
+
+Decisões para revisar:
+- "Uso o arquivo" e o caminho entre aspas, em vez de um nome de módulo ("Uso o módulo de contas"): diz exatamente o que acontece, e não reserva palavra ("arquivo" continua livre: "Arquivo a carta." é verbo do corpus).
+- Vem tudo, sem prefixo e sem "privado". Dois arquivos com o mesmo verbo e a mesma regência não se trazem juntos.
+- O rename não atravessa arquivos: ele recusa o nome que vem de fora.
+- O editor lê os arquivos trazidos do disco; o que está aberto sem salvar não entra na análise de quem o traz.
+

@@ -123,7 +123,10 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
         }
         funcs.push(cx.into_func(sig.infinitive.clone(), params, body, sig.span));
     }
-    if prog.main.is_none() {
+    // Um arquivo que só define (funções, tipos) existe para outro trazer, e não precisa de
+    // "Para começar"; quem tenta rodá-lo é avisado (`Analysis::not_a_program`).
+    let defines = prog.sigs.iter().any(|s| s.builtin.is_none()) || !prog.records.is_empty() || !prog.enums.is_empty();
+    if prog.main.is_none() && !defines {
         env.diags.push(
             Diagnostic::new(L0300, "O programa não tem \"Para começar:\".", Span::new(0, 0))
                 .hint("Todo programa começa por \"Para começar:\", seguido do bloco recuado."),

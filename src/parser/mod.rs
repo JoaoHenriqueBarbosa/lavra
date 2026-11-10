@@ -315,6 +315,13 @@ impl Parser {
                 } else {
                     self.bump();
                 }
+                // O "Para começar" de um arquivo trazido não entra no programa: é o que deixa cada
+                // arquivo rodar sozinho. O corpo é lido (os erros dele aparecem) e descartado.
+                if crate::modules::is_module(start.start) {
+                    let _ = self.block();
+                    self.skip_newlines();
+                    continue;
+                }
                 if self.prog.main.is_some() {
                     self.report(Box::new(Diagnostic::new(L0102, "O programa já tem um \"Para começar\".", start.to(name_span))));
                     // O corpo repetido é lido para os erros de dentro aparecerem, e descartado.
@@ -1721,7 +1728,7 @@ impl Parser {
     fn nominal_ahead(&self) -> bool {
         self.definite_article_at(0).is_some()
             && self.peek_at(1).word().is_some_and(|w| {
-                !self.vocab.field_names.contains(w)
+                !self.field_hides_nominal(w)
                     && match self.vocab.nominals.get(w) {
                         // A operação de biblioteca sem termo ("o pi") é o nome sozinho.
                         Some(&sig) => self.prog.sigs[sig].params.is_empty() || self.peek_at(2).is_word("de"),

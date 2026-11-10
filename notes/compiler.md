@@ -272,7 +272,21 @@ interpretador e no nativo.
 Os pontos de extensão que ainda não têm uso real ficam descritos aqui, para a feature que
 chegar começar do lugar certo.
 
-- **Módulos do usuário.** As posições já comportam vários arquivos: o `SourceMap`
+- **Arquivos trazidos (feito).** `Uso o arquivo "contas.lav".` é tratado em `src/modules.rs`,
+  antes do parser: o arquivo é lido (por um leitor que quem chama passa a
+  `lavra::analyze_in`, junto com o caminho do programa), vira tokens com as posições numa
+  faixa própria (a partir de `MODULE_BASE`, acima das bibliotecas, 4 MiB por arquivo), e os
+  tokens entram na frente dos do programa, cada arquivo depois dos que ele mesmo pede. A
+  frase do pedido sai dos tokens, e daí em diante parser, sema, posse e back-ends veem um
+  programa só. O que muda neles: o parser descarta o "Para começar" de um arquivo trazido;
+  a análise guarda os arquivos em `Analysis::sources`, que sabe mostrar um diagnóstico no
+  arquivo dele (`Sources::render`) ou no pedido que o trouxe (`at_request`, para o editor e
+  o JSON); o executável nativo leva os arquivos num bloco (`Sources::blob`), e o runtime
+  acha por ele onde mostrar a falha. Como a faixa fica acima de `LIBRARY_BASE`, tudo o que
+  já tratava "fora do arquivo do programa" (o rename, os avisos de não uso, o editor) vale
+  também para os arquivos trazidos. O arquivo sem "Para começar" que define alguma coisa
+  não é erro na análise; rodar ou compilar um é (`Analysis::not_a_program`).
+- **Módulos do usuário (o roteiro de antes).** As posições já comportam vários arquivos: o `SourceMap`
   (`src/span.rs`) dá a cada arquivo uma faixa própria, e um `Span` acha o arquivo sem
   levá-lo junto. O caminho é o das bibliotecas: o pedido do módulo é lido antes da
   pré-varredura (como `Parser::imports`), os tokens do arquivo entram com a base dele, os

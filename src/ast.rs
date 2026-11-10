@@ -596,6 +596,10 @@ pub struct Vocabulary {
     /// Nomes de campo de todos os registros: "a soma de" é operação por extenso só se
     /// nenhum registro tiver o campo "soma".
     pub field_names: HashSet<String>,
+    /// Em que arquivo cada nome de campo foi definido (0 é o do programa; daí em diante, os
+    /// trazidos). O campo "soma" de um arquivo trazido não muda a leitura de "a soma de" em
+    /// quem o traz.
+    pub field_files: HashMap<String, Vec<u32>>,
     /// As operações por extenso que uma biblioteca traz: "seno" → a assinatura.
     pub nominals: HashMap<String, usize>,
 }

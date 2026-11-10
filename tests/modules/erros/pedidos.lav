@@ -1,0 +1,10 @@
+Uso o arquivo "nao-existe.lav".
+Uso o arquivo contas.
+Uso o arquivo "quebrado.lav".
+Uso o arquivo "../lib/formas.lav".
+
+Para dobrar o valor, sendo o valor um inteiro, devolvendo um inteiro:
+    Devolvo o valor vezes 2.
+
+Para começar:
+    Escrevo o resultado de dobrar 2.

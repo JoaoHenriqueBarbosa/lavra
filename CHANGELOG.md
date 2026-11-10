@@ -32,6 +32,9 @@ As versões da Lavra, a mais nova primeiro.
 - A biblioteca de arquivos ("Uso a biblioteca de arquivos."): carregar, gravar, acrescentar,
   apagar, listar e "Se o caminho existir". O que depende do disco pode falhar, e a chamada
   trata com ", ou desisto" ou ", ou VALOR".
+- Arquivos trazidos: `Uso o arquivo "contas.lav".` traz as funções, os tipos e as constantes
+  de outro arquivo Lavra. Cada arquivo pode ter o seu "Para começar" e rodar sozinho, e o
+  erro de um arquivo trazido aparece nele.
 - Conjuntos e mapas: "um conjunto de textos" (sem repetição, em ordem; ganha e perde o
   próprio valor; união, interseção e diferença) e "um mapa de textos para inteiros" ("O item
   "Ana" das idades vira 30."), com "Se houver ... em", "Para cada" e "o tamanho de".

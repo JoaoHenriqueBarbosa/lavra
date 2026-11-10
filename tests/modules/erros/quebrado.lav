@@ -1,0 +1,5 @@
+Para dobrar o valor, sendo o valor um inteiro, devolvendo um inteiro:
+    Devolvo o valor vezes "dois".
+
+Para medir a forma, sendo a forma um texto emprestado, devolvendo um inteiro:
+    Devolvo o tamanho da forma.

@@ -132,6 +132,11 @@ fn install_panic_hook() {
     }));
 }
 
+/// Analisa o programa do arquivo: os arquivos que ele pede contam a partir da pasta dele.
+fn analyze_file(src: &SourceFile) -> lavra::Analysis {
+    lavra::analyze_in(&src.text, Some(&src.path), &|path| std::fs::read_to_string(path))
+}
+
 fn read_source(path: &str) -> Result<SourceFile, ExitCode> {
     match std::fs::read_to_string(path) {
         Ok(t) => Ok(SourceFile::new(path, t)),
@@ -204,8 +209,14 @@ fn main() -> ExitCode {
                 Ok(s) => s,
                 Err(code) => return code,
             };
-            let analysis = lavra::analyze(&src.text);
-            println!("{}", json_report(&analysis.diagnostics, &src));
+            let analysis = analyze_file(&src);
+            // O relatório é do arquivo pedido: o erro de um arquivo trazido vai no pedido dele.
+            let shown: Vec<Diagnostic> = analysis
+                .diagnostics
+                .iter()
+                .filter_map(|d| if lavra::modules::is_module(d.span.start) { analysis.sources.at_request(d) } else { Some(d.clone()) })
+                .collect();
+            println!("{}", json_report(&shown, &src));
             return if analysis.has_errors() { ExitCode::from(1) } else { ExitCode::SUCCESS };
         }
         Command::Check { path, json: false } => (path, Action::Check),
@@ -220,22 +231,27 @@ fn main() -> ExitCode {
         Err(code) => return code,
     };
     let style = Style { color: std::io::stderr().is_terminal() && std::env::var_os("NO_COLOR").is_none() };
-    let report = |d: &Diagnostic| eprint!("{}", render(d, &src, style));
-    let (prog, warnings) = match lavra::compile(&src.text) {
-        Ok(r) => r,
-        Err(diags) => {
-            for d in &diags {
-                report(d);
-            }
-            return ExitCode::from(1);
-        }
-    };
-    for w in &warnings {
-        report(w);
+    let analysis = analyze_file(&src);
+    // Cada diagnóstico sai no arquivo em que está: o do programa, ou um dos que ele trouxe.
+    let sources = &analysis.sources;
+    let report = |d: &Diagnostic| eprint!("{}", sources.render(&src, d, style));
+    for d in &analysis.diagnostics {
+        report(d);
     }
+    if analysis.has_errors() {
+        return ExitCode::from(1);
+    }
+    // Conferir um arquivo sem "Para começar" é legítimo; rodar e compilar, não.
+    if !matches!(action, Action::Check)
+        && let Some(d) = analysis.not_a_program()
+    {
+        report(&d);
+        return ExitCode::from(1);
+    }
+    let prog = analysis.hir;
     match action {
         Action::Check => ExitCode::SUCCESS,
-        Action::Build(out) => match build(&prog, &src, &out) {
+        Action::Build(out) => match build(&prog, &src, sources, &out) {
             Ok(()) => ExitCode::SUCCESS,
             Err(e) => {
                 eprintln!("lavrac: {e}");
@@ -284,8 +300,9 @@ const SYSTEM_LIBS: &[&str] = &[];
 const SYSTEM_LIBS: &[&str] = &["-lgcc_s", "-lutil", "-lrt", "-lpthread", "-lm", "-ldl", "-lc"];
 
 /// Gera o objeto, junta com o runtime e linka com o `cc` do sistema.
-fn build(prog: &lavra::hir::Program, src: &SourceFile, out: &str) -> Result<(), String> {
-    let object = lavra::codegen::compile(prog, &src.text, &src.name()).map_err(|e| format!("erro no gerador de código: {e}"))?;
+fn build(prog: &lavra::hir::Program, src: &SourceFile, sources: &lavra::modules::Sources, out: &str) -> Result<(), String> {
+    let object =
+        lavra::codegen::compile(prog, &src.text, &src.name(), &sources.blob()).map_err(|e| format!("erro no gerador de código: {e}"))?;
     let dir = std::env::temp_dir().join(format!("lavrac-{}", std::process::id()));
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let obj = dir.join("programa.o");

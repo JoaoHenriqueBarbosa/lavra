@@ -133,6 +133,11 @@ impl Parser {
             });
         };
         if let Some((_, first)) = used.iter().find(|(n, _)| *n == lib.name) {
+            // Dois arquivos podem pedir a mesma biblioteca: o aviso é para o pedido repetido
+            // no mesmo arquivo.
+            if super::data::file_of(first.start) != super::data::file_of(span.start) {
+                return Ok(());
+            }
             self.report(Box::new(
                 Diagnostic::new(L0504, format!("A biblioteca de {} já foi trazida.", lib.name), span).label(*first, "trazida aqui"),
             ));

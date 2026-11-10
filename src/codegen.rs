@@ -83,7 +83,10 @@ const RUNTIME: &[(&str, &[types::Type], &[types::Type])] = &[
 
 /// Compila o programa para um objeto (ELF) com `lavra_init`, `lavra_main` e o fonte
 /// embutido para as mensagens de erro.
-pub fn compile(prog: &hir::Program, src: &str, path: &str) -> Result<Vec<u8>, String> {
+///
+/// `modules` são os arquivos que o programa trouxe, no bloco de `modules::Sources::blob`: o
+/// executável os leva para mostrar uma falha no arquivo em que ela aconteceu.
+pub fn compile(prog: &hir::Program, src: &str, path: &str, modules: &[u8]) -> Result<Vec<u8>, String> {
     let isa = isa()?;
     let builder = ObjectBuilder::new(isa, "lavra", cranelift_module::default_libcall_names()).map_err(|e| e.to_string())?;
     let mut cg = Codegen {
@@ -121,6 +124,8 @@ pub fn compile(prog: &hir::Program, src: &str, path: &str) -> Result<Vec<u8>, St
     cg.export_bytes("lavra_path", path.as_bytes())?;
     cg.export_u64("lavra_src_len", src.len() as u64)?;
     cg.export_u64("lavra_path_len", path.len() as u64)?;
+    cg.export_bytes("lavra_modules", modules)?;
+    cg.export_u64("lavra_modules_len", modules.len() as u64)?;
 
     let mut fctx = FunctionBuilderContext::new();
     let init_id = {

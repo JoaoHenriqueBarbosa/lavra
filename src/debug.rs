@@ -476,14 +476,14 @@ pub fn run(
         send(&sink, Event::Exited { code: 0 });
         return 0;
     }
-    let prog = analysis.hir;
+    let (prog, sources) = (analysis.hir, analysis.sources);
     let mut m = crate::interp::Machine::new(&prog, out, input);
     m.trace(Box::new(debugger));
     let result = m.run();
     let code = match result {
         Err(f) if !m.stopped() => {
             let src = crate::span::SourceFile::new(path, text.to_string());
-            let shown = crate::diagnostics::render(&f.diagnostic(), &src, crate::diagnostics::Style { color: false });
+            let shown = sources.render(&src, &f.diagnostic(), crate::diagnostics::Style { color: false });
             send(&sink, Event::Output { text: shown, category: "stderr".into() });
             f.exit_code()
         }

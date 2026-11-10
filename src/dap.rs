@@ -10,7 +10,7 @@
 
 use crate::Analysis;
 use crate::debug::{self, Command, Event, Sink};
-use crate::diagnostics::{Style, render};
+use crate::diagnostics::Style;
 use crate::span::SourceFile;
 use serde_json::{Value, json};
 use std::collections::{BTreeSet, HashMap};
@@ -131,9 +131,14 @@ struct Program {
     lines: BTreeSet<u32>,
 }
 
+/// Analisa o programa do arquivo: os arquivos que ele pede contam a partir da pasta dele.
+fn analyze_file(path: &str, text: &str) -> Analysis {
+    crate::analyze_in(text, Some(std::path::Path::new(path)), &|p| std::fs::read_to_string(p))
+}
+
 fn load(path: &str) -> Result<Program, String> {
     let text = std::fs::read_to_string(path).map_err(|e| format!("Não consegui ler {path}: {e}"))?;
-    let analysis = crate::analyze(&text);
+    let analysis = analyze_file(path, &text);
     let lines = debug::statement_lines(&analysis.hir, &text);
     Ok(Program { path: path.to_string(), text, analysis, lines })
 }
@@ -214,7 +219,7 @@ impl Adapter {
                 None => Ok(Box::new(std::io::Cursor::new(Vec::new()))),
             };
             input.and_then(|input| {
-                debug::spawn(crate::analyze(&text), path, text, sink, input)
+                debug::spawn(analyze_file(&path, &text), path, text, sink, input)
                     .map(|(tx, _)| tx)
                     .map_err(|e| format!("Não consegui começar o programa: {e}"))
             })
@@ -317,10 +322,16 @@ impl Adapter {
                         return true;
                     }
                 };
+                if let Some(d) = program.analysis.not_a_program() {
+                    let src = SourceFile::new(path, program.text.clone());
+                    self.out.output("stderr", &crate::diagnostics::render(&d, &src, Style { color: false }));
+                    respond(Err("O programa não tem \"Para começar\".".into()));
+                    return true;
+                }
                 if program.analysis.has_errors() {
                     let src = SourceFile::new(path, program.text.clone());
                     for d in program.analysis.diagnostics.iter().filter(|d| d.is_error()) {
-                        self.out.output("stderr", &render(d, &src, Style { color: false }));
+                        self.out.output("stderr", &program.analysis.sources.render(&src, d, Style { color: false }));
                     }
                     respond(Err("O programa tem erros: veja o console de depuração.".into()));
                     return true;
@@ -473,7 +484,7 @@ pub fn debuggee(port: u16, path: &str) -> u8 {
             return 2;
         }
     };
-    let analysis = crate::analyze(&text);
+    let analysis = analyze_file(path, &text);
     let stream = match TcpStream::connect(("127.0.0.1", port)) {
         Ok(s) => s,
         Err(e) => {

@@ -345,6 +345,27 @@ Para começar:
 - As bibliotecas são escritas em Lavra (`src/libraries/`): cada operação é um cabeçalho
   comum que termina em ponto, sem corpo, e a própria língua a faz.
 
+## Arquivos trazidos
+
+```
+Uso o arquivo "contas.lav".            no nível de fora; o caminho conta da pasta deste arquivo
+Uso o arquivo "../comum/formas.lav".
+```
+
+- O programa passa a ter as funções, os tipos e as constantes do arquivo trazido, como se
+  estivessem escritos nele. Não há prefixo nem escolha do que trazer: vem tudo.
+- O "Para começar" do arquivo trazido não entra. Assim cada arquivo pode ter o seu e rodar
+  sozinho (para se testar), e o arquivo que só define nem precisa de um: `lavrac check` o
+  aceita, e `lavrac run` avisa que ele não roda sozinho.
+- Um arquivo trazido pode trazer outros e as bibliotecas de que precisa. Cada arquivo entra
+  uma vez, por mais que seja pedido, e dois arquivos podem se trazer um ao outro.
+- Definir nos dois lados o mesmo verbo com a mesma regência, ou o mesmo tipo, é erro, com o
+  lugar da outra definição.
+- O erro de dentro de um arquivo trazido aparece no arquivo dele, com a linha de lá; os
+  avisos de lá ficam para quem roda aquele arquivo. A falha de execução também se mostra no
+  arquivo em que aconteceu, no interpretador e no nativo.
+- O pedido fora da forma é o L0177, e o arquivo que não se consegue ler, o L0178.
+
 ## Léxico
 
 Períodos com ponto; blocos com dois-pontos e recuo; linha sem `.`, `:` ou `;` continua na

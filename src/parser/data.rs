@@ -11,6 +11,11 @@ use crate::lexicon::{self, NominalOp};
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
 
+/// O arquivo de uma posição: 0 é o do programa, e daí em diante os trazidos.
+pub(super) fn file_of(pos: u32) -> u32 {
+    if crate::modules::is_module(pos) { 1 + (pos - crate::modules::MODULE_BASE) / crate::modules::MODULE_SIZE } else { 0 }
+}
+
 pub(super) fn is_nominal_word(w: &str) -> bool {
     lexicon::nominal(w).is_some()
 }
@@ -167,6 +172,7 @@ impl Parser {
             self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
             let ann = self.aposto()?;
             self.vocab.field_names.insert(name.word.clone());
+            self.vocab.field_files.entry(name.word.clone()).or_default().push(file_of(name.span.start));
             self.prog.records[id].fields.push(FieldDef { name, ty: ann });
             if self.eat_punct(';') {
                 self.skip_newlines();
@@ -249,6 +255,7 @@ impl Parser {
                     self.expect_punct(',', "a vírgula entre o campo e o tipo")?;
                     let ann = self.aposto()?;
                     self.vocab.field_names.insert(name.word.clone());
+                    self.vocab.field_files.entry(name.word.clone()).or_default().push(file_of(name.span.start));
                     self.prog.enums[id].variants[position].fields.push(FieldDef { name, ty: ann });
                     if self.at_punct(',') && self.peek_at(1).is_word("e") {
                         self.bump();
@@ -457,12 +464,19 @@ impl Parser {
     // ----------------------------------------------------- operações nominais
 
     /// "a soma de x e y", "o tamanho das notas", "o deslocamento de x por 2 à esquerda".
+    /// Um campo com nome de operação ("a soma de") vale como campo só no arquivo que definiu
+    /// o registro: trazer um arquivo não muda a leitura do que já estava escrito.
+    pub(super) fn field_hides_nominal(&self, w: &str) -> bool {
+        let here = file_of(self.peek().span.start);
+        self.vocab.field_names.contains(w) && self.vocab.field_files.get(w).is_none_or(|files| files.contains(&here))
+    }
+
     pub(super) fn nominal(&mut self) -> Result<Option<Expr>> {
         let Some(art) = self.definite_article_at(0) else { return Ok(None) };
         let at = self.peek().clone();
         let wt = self.peek_at(1).clone();
         let Some(w) = wt.word() else { return Ok(None) };
-        if self.vocab.field_names.contains(w) {
+        if self.field_hides_nominal(w) {
             return Ok(None);
         }
         // A operação por extenso de uma biblioteca: "o seno de x", "o pi".

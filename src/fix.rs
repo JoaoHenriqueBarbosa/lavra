@@ -159,7 +159,9 @@ pub fn fix_with(edited: &mut Edited, pick: impl Fn(&Diagnostic, &Edited) -> bool
     for _ in 0..ROUNDS {
         let text = edited.text();
         let a = crate::analyze(&text);
-        let edits = non_overlapping(a.diagnostics.iter().filter(|d| pick(d, edited)).filter_map(safe_edits));
+        // A correção de um arquivo trazido é de quem corrige aquele arquivo.
+        let here = |d: &&Diagnostic| !crate::modules::is_module(d.span.start);
+        let edits = non_overlapping(a.diagnostics.iter().filter(here).filter(|d| pick(d, edited)).filter_map(safe_edits));
         if edits.is_empty() {
             break;
         }

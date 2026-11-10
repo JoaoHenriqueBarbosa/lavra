@@ -283,6 +283,16 @@ Aqui o wasm se compila no contêiner `rust:1` (o alvo wasm32 e o `wasm-bindgen-c
 versão do crate, instalado em `target/tools`), chamado de dentro de `playground/` para valer a
 configuração dele, e com `--locked` para o contêiner não reescrever o `Cargo.lock`.
 
+## Arquivos trazidos no editor
+
+O servidor analisa o documento aberto com o caminho dele, e os arquivos que ele pede ("Uso o
+arquivo ...") vêm do disco (o que está aberto e ainda não foi salvo não conta). A definição
+de um nome que vem de outro arquivo abre aquele arquivo, na linha certa. O erro de dentro de
+um arquivo trazido aparece no documento aberto, sublinhando o pedido que o trouxe, com o
+arquivo e a linha na mensagem. O rename recusa o nome que vem de outro arquivo, e as
+correções automáticas não mexem em arquivo trazido. Ainda não há: completar o caminho, nem
+reanalisar quem traz um arquivo quando ele muda (a análise se refaz na próxima edição).
+
 ## tree-sitter e outros editores
 
 A gramática tree-sitter em `editors/tree-sitter-lavra` e as configurações do Helix

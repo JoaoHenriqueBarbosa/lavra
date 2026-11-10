@@ -1,0 +1,14 @@
+Nota: O programa traz dois arquivos; um deles traz o outro, e os dois se trazem.
+
+Uso o arquivo "lib/contas.lav".
+Uso o arquivo "./lib/formas.lav".
+
+Para começar:
+    A poupança começa no resultado de abrir "Ana".
+    Deposito 100,0 na poupança.
+    Rendo a poupança.
+    Apresento a poupança.
+    Escrevo a taxa.
+    Escrevo o resultado de medir um quadrado com o lado 3,0.
+    Escrevo a poupança.
+    Saco 500,0 da poupança, ou desisto.

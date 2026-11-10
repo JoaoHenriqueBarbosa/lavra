@@ -1,0 +1,34 @@
+Nota: Um arquivo que outros trazem: tipos, funções e constantes. O "Para começar" daqui
+Nota: só roda quando este arquivo é o programa.
+
+Uso o arquivo "formas.lav".
+Uso a biblioteca de textos.
+
+A taxa é 0,05.
+
+Uma conta é um registro de:
+    o titular, um texto;
+    o saldo, um real.
+
+Para abrir o titular, sendo o titular um texto, devolvendo uma conta:
+    Devolvo uma conta com o titular o titular e o saldo 0,0.
+
+Para depositar a quantia na conta, sendo a quantia um real e a conta confiada:
+    O saldo da conta cresce a quantia.
+
+Para render a conta, sendo a conta confiada:
+    O saldo da conta cresce o saldo da conta vezes a taxa.
+
+Para apresentar a conta, sendo a conta emprestada:
+    Escrevo o resultado de maiusculizar o titular da conta seguido de ": " seguido do saldo da conta.
+
+Para sacar a quantia da conta, sendo a quantia um real e a conta confiada, salvo engano:
+    Se a quantia for maior que o saldo da conta: desisto com "saldo insuficiente".
+    O saldo da conta diminui a quantia.
+
+Para começar:
+    Escrevo "contas.lav rodando sozinho".
+    A conta começa no resultado de abrir "Teste".
+    Deposito 10,0 na conta.
+    Apresento a conta.
+    Escrevo o resultado de medir um quadrado com o lado 2,0.
