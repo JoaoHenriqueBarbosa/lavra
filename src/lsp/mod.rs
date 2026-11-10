@@ -340,6 +340,7 @@ impl Server {
 
     /// O rename no documento e em cada arquivo em que o nome aparece: os que o documento
     /// traz e, das pastas abertas, os que trazem o arquivo que define o nome.
+    #[allow(clippy::mutable_key_type)] // O tipo do protocolo usa o endereço como chave.
     fn rename(&self, doc: &Doc, offset: u32, new: &str) -> Result<lsp::WorkspaceEdit, String> {
         let read = |p: &Path| std::fs::read_to_string(p);
         let path = uri_to_path(doc.uri.as_str());
