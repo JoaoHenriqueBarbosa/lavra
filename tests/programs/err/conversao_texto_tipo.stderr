@@ -1,0 +1,12 @@
+Erro de tipo [L0347]: Não se converte um texto em um lógico.
+ --> tests/programs/err/conversao_texto_tipo.lav:3:13
+  |
+3 |     Escrevo "sim" como lógico.
+  |             ^^^^^^^^^^^^^^^^^
+  = dica: "como" converte entre números, de qualquer valor simples para texto, de texto para número, e entre caractere e o código dele.
+Erro de tipo [L0347]: Não se converte uma lista de inteiros em um inteiro.
+ --> tests/programs/err/conversao_texto_tipo.lav:4:13
+  |
+4 |     Escrevo as notas como inteiro.
+  |             ^^^^^^^^^^^^^^^^^^^^^
+  = dica: "como" converte entre números, de qualquer valor simples para texto, de texto para número, e entre caractere e o código dele.

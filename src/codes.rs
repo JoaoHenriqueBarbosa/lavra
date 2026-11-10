@@ -241,6 +241,8 @@ codes! {
     L0912 = Runtime, "A entrada acabou";
     L0913 = Runtime, "Entrada que não é do tipo pedido";
     L0914 = Runtime, "Chamadas demais, uma dentro da outra";
+    L0915 = Runtime, "Texto que não é número";
+    L0916 = Runtime, "Número que não é código de caractere";
 }
 
 /// O código pelo identificador ("L0334") ou pelo número (334).

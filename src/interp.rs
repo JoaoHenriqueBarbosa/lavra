@@ -693,6 +693,25 @@ fn unary(op: UnOp, v: Value, ty: &Ty, span: Span) -> Exec<Value> {
 fn convert(v: Value, from: &Ty, to: &Ty, span: Span) -> Exec<Value> {
     Ok(match (v, to) {
         (v, Ty::Text) => Value::Text(format_value(&v, from)),
+        (Value::Text(s), Ty::Int(it)) => match textfmt::parse_int(&s, it.bits, it.signed) {
+            Some(x) => Value::Int(x),
+            None => return fault(L0915, textfmt::not_a_number(&s, &textfmt::int_noun(it.bits, it.signed)), span),
+        },
+        (Value::Text(s), Ty::Real(b)) => match textfmt::parse_real(&s) {
+            Some(x) => Value::Real(if *b == 32 { x as f32 as f64 } else { x }),
+            None => return fault(L0915, textfmt::not_a_number(&s, "real"), span),
+        },
+        (Value::Char(c), Ty::Int(it)) => {
+            let x = c as u32 as i128;
+            if !it.contains(x) {
+                return fault(L0908, textfmt::convert_error(&x.to_string(), it.bits, it.signed), span);
+            }
+            Value::Int(x)
+        }
+        (Value::Int(x), Ty::Char) => match textfmt::char_of(x) {
+            Some(c) => Value::Char(c),
+            None => return fault(L0916, textfmt::not_a_char(&x.to_string()), span),
+        },
         (Value::Int(x), Ty::Int(it)) => {
             if !it.contains(x) {
                 return fault(L0908, textfmt::convert_error(&x.to_string(), it.bits, it.signed), span);

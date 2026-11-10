@@ -203,6 +203,37 @@ pub unsafe extern "C" fn rt_fault_convert_real(x: f64, bits: u32, signed: u32, l
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_to_int(t: *const String, bits: u32, signed: u32, lo: u32, hi: u32) -> i64 {
+    unsafe {
+        match textfmt::parse_int(&*t, bits as u8, signed != 0) {
+            Some(v) => v as i64,
+            None => report(L0915, textfmt::not_a_number(&*t, &textfmt::int_noun(bits as u8, signed != 0)), lo, hi),
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_text_to_real(t: *const String, lo: u32, hi: u32) -> f64 {
+    unsafe {
+        match textfmt::parse_real(&*t) {
+            Some(v) => v,
+            None => report(L0915, textfmt::not_a_number(&*t, "real"), lo, hi),
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_int_to_char(x: i64, src_signed: u32, lo: u32, hi: u32) -> u32 {
+    unsafe {
+        let wide = if src_signed != 0 { x as i128 } else { x as u64 as i128 };
+        match textfmt::char_of(wide) {
+            Some(c) => c as u32,
+            None => report(L0916, textfmt::not_a_char(&wide.to_string()), lo, hi),
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_failure_new(text: *mut String, lo: u32, hi: u32) -> *mut Failure {
     unsafe {
         let message = *Box::from_raw(text);

@@ -1,0 +1,5 @@
+Erro de execução [L0916]: Conversão impossível: 55296 não é o código de um caractere.
+ --> tests/programs/err/conversao_codigo_caractere.lav:4:13
+  |
+4 |     Escrevo o código como caractere.
+  |             ^^^^^^^^^^^^^^^^^^^^^^^

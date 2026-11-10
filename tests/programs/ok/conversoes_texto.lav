@@ -1,0 +1,20 @@
+Nota: "como" lê texto como número e vai do caractere ao código dele, e volta.
+
+Para começar:
+    A resposta é " 42 ".
+    Escrevo (a resposta como inteiro) mais 1.
+    Escrevo ("3,5" como real) vezes 2,0.
+    Escrevo "255" como byte.
+    Escrevo "-7" como inteiro de 8 bits.
+    Escrevo "1,5" como real de 32 bits.
+    A palavra é "Ação".
+    A letra é o item 1 da palavra.
+    Escrevo a letra como inteiro.
+    Escrevo (o item 2 da palavra) como natural.
+    O código é (a letra como inteiro) mais 1.
+    Escrevo o código como caractere.
+    Escrevo 231 como caractere.
+    O pequeno, um byte, é 97.
+    Escrevo o pequeno como caractere.
+    Para cada letra de "abc": escrevo (a letra como inteiro) sem quebrar a linha.
+    Escrevo uma quebra de linha.

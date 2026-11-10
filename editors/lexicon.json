@@ -378,7 +378,7 @@
       "role": "operator"
     },
     {
-      "doc": "Converte: \"x como real\", \"o saldo como texto\". Falha se o valor não cabe no tipo.",
+      "doc": "Converte: \"x como real\", \"o saldo como texto\", \"a resposta como inteiro\". Falha se o valor não cabe no tipo.",
       "form": "como",
       "role": "operator"
     },
@@ -2248,7 +2248,7 @@
       "role": "operator"
     },
     {
-      "doc": "Converte: \"x como real\", \"o saldo como texto\". Falha se o valor não cabe no tipo.",
+      "doc": "Converte: \"x como real\", \"o saldo como texto\", \"a resposta como inteiro\". Falha se o valor não cabe no tipo.",
       "form": "como",
       "lemma": "como",
       "role": "operator"

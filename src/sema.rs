@@ -1955,12 +1955,15 @@ impl<'e, 'a> FnCx<'e, 'a> {
                 let ok = match (&from, &target) {
                     (Ty::Int(_) | Ty::Real(_), Ty::Int(_) | Ty::Real(_)) => true,
                     (Ty::Int(_) | Ty::Real(_) | Ty::Bool | Ty::Char | Ty::Text, Ty::Text) => true,
+                    // O texto lido como número, e o caractere pelo código dele.
+                    (Ty::Text, Ty::Int(_) | Ty::Real(_)) => true,
+                    (Ty::Char, Ty::Int(_)) | (Ty::Int(_), Ty::Char) => true,
                     (Ty::Error, _) | (_, Ty::Error) => true,
                     (a, b) => a == b,
                 };
                 if !ok {
                     return err(Diagnostic::new(L0347, format!("Não se converte {} em {}.", from.describe(), target.describe()), e.span)
-                        .hint("\"como\" converte entre números, e de qualquer valor simples para texto."));
+                        .hint("\"como\" converte entre números, de qualquer valor simples para texto, de texto para número, e entre caractere e o código dele."));
                 }
                 (hir::ExprKind::Convert(Box::new(v)), target)
             }

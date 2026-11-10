@@ -386,3 +386,10 @@ Item 1, "talvez" no cabeçalho:
 - Quem chama passa o valor, "nada" ou um nome que já é "talvez". "talvez talvez" dá o L0126 de sempre, e o plural ("sendo a e b talvez inteiros") é recusado: cada parâmetro que pode faltar tem a sua tipagem.
 - Um programa certo (com a paridade) e dois errados.
 
+Item 2, conversões com "como":
+- Texto para número: "42" como inteiro, "3,5" como real, em qualquer largura. Usa o mesmo leitor do "Leio um inteiro", então a vírgula decimal e os espaços das pontas valem igual.
+- Caractere para inteiro (o código do caractere) e inteiro para caractere, que não estava no catálogo mas é a volta natural.
+- Dois códigos de execução novos: L0915 (o texto não é número) e L0916 (o número não é código de caractere). O caractere que não cabe no inteiro pedido ("€" como byte) usa o L0908 de sempre.
+
+Decisão para revisar: texto que não é número interrompe o programa, como a entrada inválida do "Leio". Não há forma de tentar e seguir (um "como inteiro, ou 0"); se fizer falta, cabe como verbo da biblioteca de textos devolvendo "talvez".
+

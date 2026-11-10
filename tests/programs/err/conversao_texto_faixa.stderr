@@ -1,0 +1,5 @@
+Erro de execução [L0915]: Conversão impossível: "300" não é um byte.
+ --> tests/programs/err/conversao_texto_faixa.lav:3:13
+  |
+3 |     Escrevo o brilho como byte.
+  |             ^^^^^^^^^^^^^^^^^^

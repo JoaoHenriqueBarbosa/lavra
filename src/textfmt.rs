@@ -80,6 +80,21 @@ pub fn convert_error(shown: &str, bits: u8, signed: bool) -> String {
     format!("Conversão impossível: {shown} não cabe num {}.", int_noun(bits, signed))
 }
 
+/// "abc" como inteiro: o texto não é um número do tipo pedido.
+pub fn not_a_number(text: &str, noun: &str) -> String {
+    format!("Conversão impossível: \"{text}\" não é um {noun}.")
+}
+
+/// 1114112 como caractere: o número não é código de caractere nenhum.
+pub fn not_a_char(shown: &str) -> String {
+    format!("Conversão impossível: {shown} não é o código de um caractere.")
+}
+
+/// O caractere de código `x`, se existe.
+pub fn char_of(x: i128) -> Option<char> {
+    u32::try_from(x).ok().and_then(char::from_u32)
+}
+
 /// O real `x`, sem a parte fracionária, cabe no inteiro? (NaN e infinito não cabem.)
 pub fn real_fits(x: f64, bits: u8, signed: bool) -> bool {
     let t = x.trunc();

@@ -32,6 +32,9 @@ const RUNTIME: &[(&str, &[types::Type], &[types::Type])] = &[
     ("rt_fault_sqrt", &[types::F64, types::I32, types::I32], &[]),
     ("rt_fault_convert_int", &[types::I64, types::I32, types::I32, types::I32, types::I32, types::I32], &[]),
     ("rt_fault_convert_real", &[types::F64, types::I32, types::I32, types::I32, types::I32], &[]),
+    ("rt_text_to_int", &[PTR, types::I32, types::I32, types::I32, types::I32], &[types::I64]),
+    ("rt_text_to_real", &[PTR, types::I32, types::I32], &[types::F64]),
+    ("rt_int_to_char", &[types::I64, types::I32, types::I32, types::I32], &[types::I32]),
     ("rt_failure_new", &[PTR, types::I32, types::I32], &[PTR]),
     ("rt_failure_drop", &[PTR], &[]),
     ("rt_enter", &[types::I32, types::I32], &[]),
@@ -1470,6 +1473,33 @@ impl<'a, 'b> Fx<'a, 'b> {
                 let s = self.slot_of(v, from);
                 self.rt("rt_text_append", &[t, d, s]);
                 t
+            }
+            (Ty::Text, Ty::Int(dst)) => {
+                let bits = self.b.ins().iconst(types::I32, dst.bits as i64);
+                let signed = self.b.ins().iconst(types::I32, dst.signed as i64);
+                let (lo, hi) = self.span_vals(span);
+                let x = self.rt1("rt_text_to_int", &[v, bits, signed, lo, hi]);
+                if dst.bits < 64 { self.b.ins().ireduce(int_type(*dst), x) } else { x }
+            }
+            (Ty::Text, Ty::Real(b)) => {
+                let (lo, hi) = self.span_vals(span);
+                let x = self.rt1("rt_text_to_real", &[v, lo, hi]);
+                if *b == 32 { self.b.ins().fdemote(types::F32, x) } else { x }
+            }
+            (Ty::Char, Ty::Int(_)) => {
+                // O código do caractere é um natural, e daí em diante é conversão de inteiro.
+                let x = self.b.ins().uextend(types::I64, v);
+                self.convert(x, &Ty::Int(IntTy { bits: 64, signed: false }), to, span)
+            }
+            (Ty::Int(src), Ty::Char) => {
+                let x = if src.bits < 64 {
+                    if src.signed { self.b.ins().sextend(types::I64, v) } else { self.b.ins().uextend(types::I64, v) }
+                } else {
+                    v
+                };
+                let signed = self.b.ins().iconst(types::I32, src.signed as i64);
+                let (lo, hi) = self.span_vals(span);
+                self.rt1("rt_int_to_char", &[x, signed, lo, hi])
             }
             (Ty::Int(src), Ty::Int(dst)) => {
                 let x = if src.bits < 64 {

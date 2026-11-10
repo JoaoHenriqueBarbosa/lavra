@@ -561,7 +561,7 @@ pub const KEYWORDS: &[Keyword] = &[
     Keyword {
         form: "como",
         role: Role::Operator,
-        doc: "Converte: \"x como real\", \"o saldo como texto\". Falha se o valor não cabe no tipo.",
+        doc: "Converte: \"x como real\", \"o saldo como texto\", \"a resposta como inteiro\". Falha se o valor não cabe no tipo.",
     },
     Keyword { form: "não", role: Role::Operator, doc: "Nega a condição: \"Se o saldo não for positivo\", \"Se não houver apelido\"." },
     Keyword { form: "esquerda", role: Role::Operator, doc: "\"à esquerda\": a direção do deslocamento de bits." },

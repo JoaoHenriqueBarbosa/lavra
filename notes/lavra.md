@@ -225,6 +225,10 @@ exige parênteses**: `(a diferença de 10 e 3) mais 1`. Texto se junta com `segu
 Conversão com `como`, sem artigo: `o total como real`, `9,99 como inteiro` (descarta a
 parte fracionária), `x como byte`, `42 como texto`. Valor que não cabe é falha de
 execução ("Conversão impossível: 300 não cabe num byte."), nunca truncamento silencioso.
+Texto se lê como número (`"42" como inteiro`, `"3,5" como real`, com os espaços das pontas
+ignorados); texto que não é número do tipo pedido é falha de execução (L0915). Caractere e
+inteiro vão um ao outro pelo código (`a letra como inteiro` dá 65 para "A", `65 como
+caractere` dá "A"); número que não é código de caractere é falha (L0916).
 Os dois lados de uma conta têm o mesmo tipo; número escrito toma o tipo do outro lado
 (`2 vezes a taxa`), nome não (`o total vezes a taxa` pede `o total como real`). `o resultado` retoma o valor da oração anterior do
 mesmo período.
