@@ -548,3 +548,9 @@ Três das "decisões para revisar" eram coisas que faltavam, e foram feitas:
 - "folhear o arquivo", na biblioteca de arquivos, dá as linhas, uma por item.
 - "talvez" passa a quebrar o ciclo de um registro, como a lista: "o próximo, talvez um elo" é a corrente que acaba em "nada". A explicação do L0302 dizia o contrário, e foi reescrita.
 
+O rename entre arquivos, que só recusava:
+- Renomear um nome muda o documento, os arquivos que ele traz e, das pastas abertas no editor, os que trazem o arquivo que define o nome. Vale dos dois lados: a partir de um uso, ou a partir da definição.
+- O "Para começar" de um arquivo trazido, que não entra no programa, também usa os nomes: cada arquivo trazido é visto como programa, para esses usos mudarem junto.
+- A concordância que o rename não escreve (artigos, particípios) é acertada em cada arquivo, e a conferência final analisa o programa com todos os arquivos como ficaram. Testado com um verbo e com um tipo que troca de gênero ("uma conta" vira "um cofre") nos dois arquivos.
+- Limite: o arquivo fora das pastas abertas no editor não é achado.
+

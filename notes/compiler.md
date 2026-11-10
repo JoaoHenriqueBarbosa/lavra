@@ -283,7 +283,7 @@ chegar começar do lugar certo.
   arquivo dele (`Sources::render`) ou no pedido que o trouxe (`at_request`, para o editor e
   o JSON); o executável nativo leva os arquivos num bloco (`Sources::blob`), e o runtime
   acha por ele onde mostrar a falha. Como a faixa fica acima de `LIBRARY_BASE`, tudo o que
-  já tratava "fora do arquivo do programa" (o rename, os avisos de não uso, o editor) vale
+  já tratava "fora do arquivo do programa" (os avisos de não uso, o editor) vale
   também para os arquivos trazidos. O arquivo sem "Para começar" que define alguma coisa
   não é erro na análise; rodar ou compilar um é (`Analysis::not_a_program`).
 - **Módulos do usuário (o roteiro de antes).** As posições já comportam vários arquivos: o `SourceMap`

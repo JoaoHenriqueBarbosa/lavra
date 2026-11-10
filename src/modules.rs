@@ -164,7 +164,7 @@ fn requests(tokens: &[Token]) -> Vec<Request> {
 }
 
 /// O caminho sem "." e sem "pasta/..", para reconhecer o mesmo arquivo pedido de dois jeitos.
-fn normalize(path: &Path) -> PathBuf {
+pub fn normalize(path: &Path) -> PathBuf {
     let mut out = PathBuf::new();
     for c in path.components() {
         match c {

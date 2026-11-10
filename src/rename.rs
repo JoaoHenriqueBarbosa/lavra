@@ -26,10 +26,12 @@ use crate::ast::{FuncSig, SigKind, VerbForm};
 use crate::diagnostics::{Category, Edit};
 use crate::fix::{self, Edited};
 use crate::lexer::{Token, TokenKind};
+use crate::modules::Reader;
 use crate::morphology::{self, Gender, Number};
 use crate::span::Span;
 use crate::tables::{DefKind, Form, Use};
 use std::collections::{BTreeMap, HashMap};
+use std::path::{Path, PathBuf};
 
 /// O que se renomeia numa posição: a palavra sob o cursor e o nome como o editor o
 /// propõe ("o saldo", "render", "uma conta").
@@ -72,9 +74,6 @@ fn target_def(a: &Analysis, offset: u32) -> Result<usize, String> {
     let d = &a.tables.defs[def];
     if d.kind == DefKind::Result {
         return Err("\"O resultado\" é da língua e não se renomeia.".into());
-    }
-    if crate::modules::is_module(d.span.start) {
-        return Err(format!("\"{}\" vem de outro arquivo: renomeie lá, e depois acerte os usos daqui.", d.name));
     }
     if let Some(lib) = crate::builtins::library_at(d.span.start) {
         return Err(format!("\"{}\" vem da biblioteca de {} e não se renomeia.", d.name, lib.name));
@@ -196,8 +195,12 @@ struct Plan<'a> {
 }
 
 impl Plan<'_> {
+    /// O texto escrito num trecho, no arquivo do programa ou num arquivo trazido.
     fn written(&self, span: Span) -> &str {
-        &self.src[span.start as usize..span.end as usize]
+        match self.a.sources.module_at(span.start) {
+            Some((base, file)) => &file.text[(span.start - base) as usize..(span.end - base) as usize],
+            None => &self.src[span.start as usize..span.end as usize],
+        }
     }
 
     fn put(&mut self, span: Span, text: &str) {
@@ -564,9 +567,25 @@ impl Plan<'_> {
     }
 }
 
+/// A análise do programa do arquivo `path`, com os tokens dos arquivos trazidos junto: o
+/// rename procura cada ocorrência pelos tokens, e uma ocorrência pode estar em outro arquivo.
+fn analyze_all(src: &str, path: Option<&Path>, read: Reader) -> Analysis {
+    let mut a = crate::analyze_in(src, path, read);
+    for (base, file) in &a.sources.modules {
+        let mut scratch = crate::diagnostics::Diagnostics::default();
+        a.tokens.extend(crate::lexer::tokenize_at(&file.text, *base as usize, &mut scratch));
+    }
+    a
+}
+
 /// O nome na posição, e como o editor o propõe.
 pub fn prepare(src: &str, offset: u32) -> Result<Target, String> {
-    let a = crate::analyze(src);
+    prepare_in(src, None, &|p| std::fs::read_to_string(p), offset)
+}
+
+/// Como `prepare`, para o programa do arquivo `path`.
+pub fn prepare_in(src: &str, path: Option<&Path>, read: Reader, offset: u32) -> Result<Target, String> {
+    let a = analyze_all(src, path, read);
     let def = target_def(&a, offset)?;
     let d = &a.tables.defs[def];
     let placeholder = match (d.kind, sig_of(&a, def)) {
@@ -589,43 +608,169 @@ pub fn prepare(src: &str, offset: u32) -> Result<Target, String> {
     Ok(Target { span, placeholder })
 }
 
-/// As edições que renomeiam o nome na posição para `new`, sobre o texto `src`.
-pub fn rename(src: &str, offset: u32, new: &str) -> Result<Vec<Edit>, String> {
-    let a = crate::analyze(src);
-    let def = target_def(&a, offset)?;
-    let mut plan = Plan { a: &a, src, edits: BTreeMap::new() };
+/// As edições que renomeiam a definição `def` da análise `a` (do texto `src`), pelos trechos
+/// dela: os do arquivo do programa e os dos arquivos trazidos, nas posições de cada um.
+fn plan_edits(a: &Analysis, src: &str, def: usize, new: &str) -> Result<BTreeMap<(u32, u32), String>, String> {
+    let mut plan = Plan { a, src, edits: BTreeMap::new() };
     match a.tables.defs[def].kind {
         DefKind::Function => plan.function(def, new)?,
         DefKind::Record | DefKind::Enum | DefKind::Variant => plan.name(def, new, true)?,
         _ => plan.name(def, new, false)?,
     }
-    let ours: Vec<Edit> = plan.edits.into_iter().map(|((s, e), text)| Edit { span: Span::new(s as usize, e as usize), text }).collect();
-    if ours.is_empty() {
-        return Ok(Vec::new());
+    Ok(plan.edits)
+}
+
+/// O rename de um programa de vários arquivos: as edições do arquivo do programa e as de
+/// cada arquivo trazido em que o nome aparece, cada uma sobre o texto do próprio arquivo.
+#[derive(Debug, Default)]
+pub struct Renamed {
+    pub main: Vec<Edit>,
+    pub others: Vec<(PathBuf, Vec<Edit>)>,
+}
+
+/// As edições que renomeiam o nome na posição para `new`, sobre o texto `src`.
+pub fn rename(src: &str, offset: u32, new: &str) -> Result<Vec<Edit>, String> {
+    let renamed = rename_in(src, None, &|p| std::fs::read_to_string(p), offset, new)?;
+    if !renamed.others.is_empty() {
+        return Err("O nome aparece em outros arquivos: o rename precisa do editor para mudar todos de uma vez.".into());
     }
-    let mut edited = Edited::new(src);
-    edited.apply(&ours);
+    Ok(renamed.main)
+}
+
+/// Como `rename`, para o programa do arquivo `path`: o nome muda nele e em cada arquivo
+/// trazido em que aparece (o que ele define e os outros usam, ou o contrário).
+pub fn rename_in(src: &str, path: Option<&Path>, read: Reader, offset: u32, new: &str) -> Result<Renamed, String> {
+    let a = analyze_all(src, path, read);
+    let def = target_def(&a, offset)?;
+    // As edições, cada uma no arquivo dela e contada nele.
+    let mut ours: Vec<Edit> = Vec::new();
+    let mut theirs: Vec<Vec<Edit>> = vec![Vec::new(); a.sources.modules.len()];
+    for ((s, e), text) in plan_edits(&a, src, def, new)? {
+        match a.sources.modules.iter().position(|(base, f)| s >= *base && (s - base) as usize <= f.text.len()) {
+            Some(i) if crate::modules::is_module(s) => {
+                let base = a.sources.modules[i].0;
+                theirs[i].push(Edit { span: Span::new((s - base) as usize, (e - base) as usize), text });
+            }
+            _ => ours.push(Edit { span: Span::new(s as usize, e as usize), text }),
+        }
+    }
+    // O "Para começar" de um arquivo trazido não entra no programa, mas usa os nomes: cada
+    // arquivo trazido é visto também como programa, para os usos de lá mudarem junto.
+    let home = {
+        let span = a.tables.defs[def].span;
+        match a.sources.module_at(span.start) {
+            Some((base, file)) => Some((file.path.clone(), span.start - base)),
+            None => path.map(|p| (crate::modules::normalize(p), span.start)),
+        }
+    };
+    if let Some((home, local)) = home {
+        for (i, (_, file)) in a.sources.modules.iter().enumerate() {
+            let alone = analyze_all(&file.text, Some(&file.path), read);
+            let at = if file.path == home {
+                Some(local)
+            } else {
+                alone.sources.modules.iter().find(|(_, f)| f.path == home).map(|(base, _)| base + local)
+            };
+            let Some(there) = at.and_then(|at| alone.tables.def_at(at)) else { continue };
+            let Ok(edits) = plan_edits(&alone, &file.text, there, new) else { continue };
+            for ((s, e), text) in edits {
+                let edit = Edit { span: Span::new(s as usize, e as usize), text };
+                if !crate::modules::is_module(s) && !theirs[i].iter().any(|x| x.span == edit.span) {
+                    theirs[i].push(edit);
+                }
+            }
+            theirs[i].sort_by_key(|e| e.span.start);
+        }
+    }
+    if ours.is_empty() && theirs.iter().all(Vec::is_empty) {
+        return Ok(Renamed::default());
+    }
+    // Cada arquivo com o que o rename escreveu nele, para os outros se conferirem contra ele.
+    let planned: Vec<(PathBuf, String)> = a
+        .sources
+        .modules
+        .iter()
+        .zip(&theirs)
+        .map(|((_, f), edits)| {
+            let mut ed = Edited::new(&f.text);
+            ed.apply(edits);
+            (f.path.clone(), ed.text())
+        })
+        .collect();
+    let mut main_planned = Edited::new(src);
+    main_planned.apply(&ours);
+    let main_text = main_planned.text();
     // O que concorda com o nome e o rename não escreveu: as correções seguras dos erros de
-    // concordância que não havia antes.
-    let before: Vec<(&str, u32)> = a.diagnostics.iter().filter(|d| d.is_error()).filter_map(|d| Some((d.code?, d.span.start))).collect();
-    fix::fix_with(&mut edited, |d, ed| {
-        let ours_now: Vec<(u32, u32)> = ours.iter().map(|o| (ed.map(o.span.start), ed.map(o.span.start) + o.text.len() as u32)).collect();
-        let touches_ours = d
-            .fixes
+    // concordância que não havia antes, em cada arquivo.
+    let overlay = |skip: Option<usize>, main: Option<&str>| {
+        let planned = planned.clone();
+        let main = main.map(str::to_string);
+        let own = path.map(Path::to_path_buf);
+        move |p: &Path| -> std::io::Result<String> {
+            if let (Some(m), Some(own)) = (&main, &own)
+                && p == own
+            {
+                return Ok(m.clone());
+            }
+            match planned.iter().enumerate().find(|(i, (q, _))| q == p && Some(*i) != skip) {
+                Some((_, (_, text))) => Ok(text.clone()),
+                None => read(p),
+            }
+        }
+    };
+    let settle = |original: &str,
+                  at: Option<&Path>,
+                  edits: &[Edit],
+                  before: &Analysis,
+                  reader: &dyn Fn(&Path) -> std::io::Result<String>| {
+        let mut edited = Edited::new(original);
+        edited.apply(edits);
+        let known: Vec<(&str, u32)> = before
+            .diagnostics
             .iter()
-            .flat_map(|f| &f.edits)
-            .any(|e| ours_now.iter().any(|&(s, t)| e.span.start < t && s < e.span.end.max(e.span.start + 1)));
-        d.category == Category::Agreement && !touches_ours && !before.iter().any(|(c, p)| d.code == Some(*c) && ed.map(*p) == d.span.start)
-    });
-    verify(&a, &edited, new)?;
-    Ok(edited.edits().to_vec())
+            .filter(|d| d.is_error() && !crate::modules::is_module(d.span.start))
+            .filter_map(|d| Some((d.code?, d.span.start)))
+            .collect();
+        fix::fix_with_in(&mut edited, at, reader, |d, ed| {
+            let now: Vec<(u32, u32)> = edits.iter().map(|o| (ed.map(o.span.start), ed.map(o.span.start) + o.text.len() as u32)).collect();
+            let touches = d
+                .fixes
+                .iter()
+                .flat_map(|f| &f.edits)
+                .any(|e| now.iter().any(|&(s, t)| e.span.start < t && s < e.span.end.max(e.span.start + 1)));
+            d.category == Category::Agreement && !touches && !known.iter().any(|(c, p)| d.code == Some(*c) && ed.map(*p) == d.span.start)
+        });
+        edited
+    };
+    let main_reader = overlay(None, None);
+    let edited = settle(src, path, &ours, &a, &main_reader);
+    let mut others = Vec::new();
+    for (i, ((_, f), edits)) in a.sources.modules.iter().zip(&theirs).enumerate() {
+        if edits.is_empty() {
+            continue;
+        }
+        let reader = overlay(Some(i), Some(&main_text));
+        let before = crate::analyze_in(&f.text, Some(&f.path), read);
+        let done = settle(&f.text, Some(&f.path), edits, &before, &reader);
+        others.push((f.path.clone(), done));
+    }
+    // A conferência final: o programa inteiro, com todos os arquivos como ficaram.
+    let finals: Vec<(PathBuf, String)> = others.iter().map(|(p, ed)| (p.clone(), ed.text())).collect();
+    let final_reader = |p: &Path| -> std::io::Result<String> {
+        match finals.iter().find(|(q, _)| q == p) {
+            Some((_, text)) => Ok(text.clone()),
+            None => read(p),
+        }
+    };
+    verify(&a, &edited, path, &final_reader, new)?;
+    Ok(Renamed { main: edited.edits().to_vec(), others: others.into_iter().map(|(p, ed)| (p, ed.edits().to_vec())).collect() })
 }
 
 /// O texto renomeado não pode ter erro novo, e cada uso tem de apontar para o mesmo nome
 /// de antes.
-fn verify(before: &Analysis, edited: &Edited, new: &str) -> Result<(), String> {
+fn verify(before: &Analysis, edited: &Edited, path: Option<&Path>, read: Reader, new: &str) -> Result<(), String> {
     let text = edited.text();
-    let after = crate::analyze(&text);
+    let after = crate::analyze_in(&text, path, read);
     let mut count: HashMap<&str, i64> = HashMap::new();
     for d in before.diagnostics.iter().filter(|d| d.is_error()) {
         *count.entry(d.code.unwrap_or("")).or_default() += 1;
@@ -642,7 +787,10 @@ fn verify(before: &Analysis, edited: &Edited, new: &str) -> Result<(), String> {
     let identity = |a: &Analysis, def: usize| a.tables.defs[def].span.start;
     // O que vem de uma biblioteca fica fora do texto e não se move com as edições.
     let moved = |pos: u32| if pos >= crate::builtins::LIBRARY_BASE { pos } else { edited.map(pos) };
-    for r in before.tables.refs.iter().filter(|r| r.use_ != Use::Mention) {
+    // O uso e a definição no arquivo do programa: os de outro arquivo se movem com as edições
+    // dele, que este texto não tem como seguir (os erros novos, acima, valem para todos).
+    let here = |pos: u32| pos < crate::builtins::LIBRARY_BASE;
+    for r in before.tables.refs.iter().filter(|r| r.use_ != Use::Mention && here(r.span.start) && here(identity(before, r.def))) {
         let at = edited.map(r.span.start);
         let expected = moved(identity(before, r.def));
         let now: Vec<_> = after.tables.refs.iter().filter(|x| x.span.start == at).collect();

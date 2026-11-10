@@ -155,10 +155,21 @@ fn non_overlapping<'a>(fixes: impl Iterator<Item = &'a [Edit]>) -> Vec<Edit> {
 /// Aplica, volta após volta, as correções seguras dos diagnósticos que `pick` escolhe,
 /// até não sobrar nenhuma. `pick` recebe o diagnóstico e o texto em que ele foi achado.
 pub fn fix_with(edited: &mut Edited, pick: impl Fn(&Diagnostic, &Edited) -> bool) -> usize {
+    fix_with_in(edited, None, &|path| std::fs::read_to_string(path), pick)
+}
+
+/// Como `fix_with`, para o texto do arquivo `path`: os arquivos que ele traz contam a partir
+/// da pasta dele, e `read` é quem os lê.
+pub fn fix_with_in(
+    edited: &mut Edited,
+    path: Option<&std::path::Path>,
+    read: crate::modules::Reader,
+    pick: impl Fn(&Diagnostic, &Edited) -> bool,
+) -> usize {
     let mut applied = 0;
     for _ in 0..ROUNDS {
         let text = edited.text();
-        let a = crate::analyze(&text);
+        let a = crate::analyze_in(&text, path, read);
         // A correção de um arquivo trazido é de quem corrige aquele arquivo.
         let here = |d: &&Diagnostic| !crate::modules::is_module(d.span.start);
         let edits = non_overlapping(a.diagnostics.iter().filter(here).filter(|d| pick(d, edited)).filter_map(safe_edits));

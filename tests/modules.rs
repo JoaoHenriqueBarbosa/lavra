@@ -81,3 +81,77 @@ fn the_editor_sees_the_error_at_the_request() {
     let a = lavra::analyze_in(&text, None, &|_| Err(std::io::Error::from(std::io::ErrorKind::Unsupported)));
     assert!(a.diagnostics.iter().any(|d| d.code == Some("L0178")));
 }
+
+/// Uma cópia de `tests/modules` numa pasta temporária, para o rename mexer nos arquivos.
+fn scratch(name: &str) -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!("lavra-rename-{name}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("lib")).unwrap();
+    let from = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/modules");
+    for f in ["programa.lav", "lib/contas.lav", "lib/formas.lav"] {
+        std::fs::copy(from.join(f), dir.join(f)).unwrap();
+    }
+    dir
+}
+
+fn apply(text: &str, edits: &[lavra::diagnostics::Edit]) -> String {
+    let mut out = text.to_string();
+    let mut sorted = edits.to_vec();
+    sorted.sort_by_key(|e| std::cmp::Reverse(e.span.start));
+    for e in sorted {
+        out.replace_range(e.span.start as usize..e.span.end as usize, &e.text);
+    }
+    out
+}
+
+/// Renomeia, a partir do programa, o nome escrito em `at`, grava todos os arquivos que
+/// mudaram e devolve os que mudaram além do programa.
+fn rename_from_program(dir: &Path, at: &str, new: &str) -> Vec<std::path::PathBuf> {
+    let main = dir.join("programa.lav");
+    let text = std::fs::read_to_string(&main).unwrap();
+    let offset = text.find(at).unwrap_or_else(|| panic!("{at:?} não está no programa")) as u32;
+    let done = lavra::rename::rename_in(&text, Some(&main), &|p| std::fs::read_to_string(p), offset, new).expect("o rename");
+    assert!(!done.main.is_empty(), "o programa não mudou");
+    std::fs::write(&main, apply(&text, &done.main)).unwrap();
+    let mut changed = Vec::new();
+    for (path, edits) in &done.others {
+        let original = std::fs::read_to_string(path).unwrap();
+        std::fs::write(path, apply(&original, edits)).unwrap();
+        changed.push(path.clone());
+    }
+    changed
+}
+
+#[test]
+fn renaming_reaches_the_files_that_define_and_use_the_name() {
+    // Um verbo definido num arquivo trazido, renomeado a partir de um uso no programa.
+    let dir = scratch("verbo");
+    let changed = rename_from_program(&dir, "abrir \"Ana\"", "inaugurar");
+    assert_eq!(changed, vec![dir.join("lib/contas.lav")]);
+    let program = std::fs::read_to_string(dir.join("programa.lav")).unwrap();
+    let contas = std::fs::read_to_string(dir.join("lib/contas.lav")).unwrap();
+    assert!(program.contains("o resultado de inaugurar \"Ana\""), "{program}");
+    assert!(contas.contains("Para inaugurar o titular,") && contas.contains("o resultado de inaugurar \"Teste\""), "{contas}");
+    let (out, _, _) = lavrac(&["run", dir.join("programa.lav").to_str().unwrap()]);
+    assert_eq!(out, PROGRAM_OUT);
+
+    // Um tipo, com a mudança de gênero: os artigos e os particípios dos dois arquivos.
+    let dir = scratch("tipo");
+    let changed = rename_from_program(&dir, "poupança.\n    Saco", "o cofre");
+    assert!(changed.is_empty(), "a variável é só do programa: {changed:?}");
+    let dir = scratch("registro");
+    let main = dir.join("programa.lav");
+    let with_type = std::fs::read_to_string(&main).unwrap().replace(
+        "    Escrevo a poupança.\n",
+        "    Escrevo a poupança.\n    A reserva, uma conta, é o resultado de abrir \"Bia\".\n    Apresento a reserva.\n",
+    );
+    std::fs::write(&main, with_type).unwrap();
+    let changed = rename_from_program(&dir, "conta, é o resultado", "um cofre");
+    assert_eq!(changed, vec![dir.join("lib/contas.lav")]);
+    let program = std::fs::read_to_string(&main).unwrap();
+    let contas = std::fs::read_to_string(dir.join("lib/contas.lav")).unwrap();
+    assert!(program.contains("A reserva, um cofre, é o resultado"), "{program}");
+    assert!(contas.contains("Um cofre é um registro de:") && contas.contains("devolvendo um cofre:"), "{contas}");
+    let (out, err, _) = lavrac(&["run", main.to_str().unwrap()]);
+    assert!(out.contains("um cofre com o titular Ana e o saldo 105") && out.contains("BIA: 0"), "{out}\n{err}");
+}

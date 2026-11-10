@@ -550,3 +550,47 @@ fn compound_name_in_tokens_and_hover() {
     }
     c.stop(handle);
 }
+
+/// O rename de um nome que outros arquivos da pasta aberta usam: muda no arquivo que o
+/// define (o documento aberto) e em quem o traz.
+#[test]
+fn rename_reaches_the_files_that_bring_the_document() {
+    let dir = std::env::temp_dir().join(format!("lavra-lsp-rename-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("lib")).unwrap();
+    let from = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/modules");
+    for f in ["programa.lav", "lib/contas.lav", "lib/formas.lav"] {
+        std::fs::copy(from.join(f), dir.join(f)).unwrap();
+    }
+    let uri = |f: &str| format!("file://{}", dir.join(f).display());
+    let (server, client) = Connection::memory();
+    let handle = std::thread::spawn(move || lavra::lsp::run(&server).expect("servidor"));
+    let mut c = Client { conn: client, next: 1, notes: Vec::new(), asked: Vec::new() };
+    c.request("initialize", json!({ "capabilities": {}, "processId": null, "rootUri": format!("file://{}", dir.display()) }));
+    c.notify("initialized", json!({}));
+    let contas = std::fs::read_to_string(dir.join("lib/contas.lav")).unwrap();
+    c.notify(
+        "textDocument/didOpen",
+        json!({ "textDocument": { "uri": uri("lib/contas.lav"), "languageId": "lavra", "version": 1, "text": contas } }),
+    );
+    let line = contas.lines().position(|l| l.starts_with("Para abrir")).unwrap();
+    let edit = c.request(
+        "textDocument/rename",
+        json!({ "textDocument": { "uri": uri("lib/contas.lav") }, "position": { "line": line, "character": 6 }, "newName": "inaugurar" }),
+    );
+    let changes = edit["changes"].as_object().expect("as mudanças por arquivo");
+    let texts = |f: &str| -> Vec<String> {
+        changes
+            .get(&uri(f))
+            .and_then(Value::as_array)
+            .map(|v| v.iter().map(|e| e["newText"].as_str().unwrap().to_string()).collect())
+            .unwrap_or_default()
+    };
+    assert!(texts("lib/contas.lav").iter().filter(|t| *t == "inaugurar").count() >= 2, "{edit}");
+    assert_eq!(texts("programa.lav"), vec!["inaugurar".to_string()], "{edit}");
+    assert!(texts("lib/formas.lav").is_empty(), "{edit}");
+    c.request("shutdown", Value::Null);
+    c.notify("exit", Value::Null);
+    handle.join().unwrap();
+    let _ = std::fs::remove_dir_all(&dir);
+}

@@ -264,16 +264,15 @@ impl Server {
             "textDocument/prepareRename" => {
                 let p: lsp::TextDocumentPositionParams = params(&req)?;
                 let (doc, offset) = self.at(&p)?;
-                let t = crate::rename::prepare(&doc.text, offset).map_err(|e| (ErrorCode::RequestFailed, e))?;
+                let path = uri_to_path(doc.uri.as_str());
+                let t = crate::rename::prepare_in(&doc.text, path.as_deref(), &|p| std::fs::read_to_string(p), offset)
+                    .map_err(|e| (ErrorCode::RequestFailed, e))?;
                 json!(lsp::PrepareRenameResponse::RangeWithPlaceholder { range: self.text(doc).range(t.span), placeholder: t.placeholder })
             }
             "textDocument/rename" => {
                 let p: lsp::RenameParams = params(&req)?;
                 let (doc, offset) = self.at(&p.text_document_position)?;
-                let edits = crate::rename::rename(&doc.text, offset, &p.new_name).map_err(|e| (ErrorCode::RequestFailed, e))?;
-                let text = self.text(doc);
-                let edits = edits.iter().map(|e| lsp::TextEdit { range: text.range(e.span), new_text: e.text.clone() }).collect();
-                json!(convert::workspace_edit(&doc.uri, edits))
+                json!(self.rename(doc, offset, &p.new_name).map_err(|e| (ErrorCode::RequestFailed, e))?)
             }
             "textDocument/foldingRange" => {
                 let p: lsp::FoldingRangeParams = params(&req)?;
@@ -337,6 +336,60 @@ impl Server {
             }
             _ => Vec::new(),
         }
+    }
+
+    /// O rename no documento e em cada arquivo em que o nome aparece: os que o documento
+    /// traz e, das pastas abertas, os que trazem o arquivo que define o nome.
+    fn rename(&self, doc: &Doc, offset: u32, new: &str) -> Result<lsp::WorkspaceEdit, String> {
+        let read = |p: &Path| std::fs::read_to_string(p);
+        let path = uri_to_path(doc.uri.as_str());
+        let done = crate::rename::rename_in(&doc.text, path.as_deref(), &read, offset, new)?;
+        let text_edits = |text: &str, edits: &[crate::diagnostics::Edit]| -> Vec<lsp::TextEdit> {
+            let lines = LineIndex::new(text);
+            let t = Text { text, lines: &lines, encoding: self.encoding };
+            edits.iter().map(|e| lsp::TextEdit { range: t.range(e.span), new_text: e.text.clone() }).collect()
+        };
+        let mut changes: HashMap<lsp::Uri, Vec<lsp::TextEdit>> = HashMap::new();
+        changes.insert(doc.uri.clone(), text_edits(&doc.text, &done.main));
+        let mut touched: Vec<PathBuf> = path.iter().map(|p| crate::modules::normalize(p)).collect();
+        for (file, edits) in &done.others {
+            let original = read(file).map_err(|e| format!("Não consegui ler {}: {e}", file.display()))?;
+            let uri = path_to_uri(file).ok_or_else(|| format!("Não sei o endereço de {}.", file.display()))?;
+            changes.insert(uri, text_edits(&original, edits));
+            touched.push(crate::modules::normalize(file));
+        }
+        // O arquivo que define o nome, e onde: os outros arquivos das pastas abertas que o
+        // trazem também usam o nome.
+        let def = doc.analysis.tables.def_at(offset).map(|d| doc.analysis.tables.defs[d].span);
+        let home = def.and_then(|span| match doc.analysis.sources.module_at(span.start) {
+            Some((base, file)) => Some((crate::modules::normalize(&file.path), span.start - base)),
+            None => path.as_ref().map(|p| (crate::modules::normalize(p), span.start)),
+        });
+        if let Some((home, local)) = home {
+            for root in &self.roots {
+                for other in lav_files(root, 4) {
+                    let other = crate::modules::normalize(&other);
+                    if touched.contains(&other) {
+                        continue;
+                    }
+                    let Ok(text) = read(&other) else { continue };
+                    let a = crate::analyze_in(&text, Some(&other), &read);
+                    let Some((base, _)) = a.sources.modules.iter().find(|(_, f)| crate::modules::normalize(&f.path) == home) else {
+                        continue;
+                    };
+                    let there = crate::rename::rename_in(&text, Some(&other), &read, base + local, new)
+                        .map_err(|e| format!("Em {}: {e}", other.display()))?;
+                    if !there.main.is_empty()
+                        && let Some(uri) = path_to_uri(&other)
+                    {
+                        changes.insert(uri, text_edits(&text, &there.main));
+                    }
+                    touched.push(other);
+                }
+            }
+        }
+        changes.retain(|_, edits| !edits.is_empty());
+        Ok(lsp::WorkspaceEdit { changes: Some(changes), ..Default::default() })
     }
 
     fn publish(&self, key: &str) -> Vec<Message> {

@@ -289,8 +289,15 @@ O servidor analisa o documento aberto com o caminho dele, e os arquivos que ele 
 arquivo ...") vêm do disco (o que está aberto e ainda não foi salvo não conta). A definição
 de um nome que vem de outro arquivo abre aquele arquivo, na linha certa. O erro de dentro de
 um arquivo trazido aparece no documento aberto, sublinhando o pedido que o trouxe, com o
-arquivo e a linha na mensagem. O rename recusa o nome que vem de outro arquivo, e as
-correções automáticas não mexem em arquivo trazido. Ainda não há: completar o caminho, nem
+arquivo e a linha na mensagem. As correções automáticas não mexem em arquivo trazido.
+
+O rename atravessa os arquivos (`rename::rename_in`, que devolve as edições de cada um): o
+nome muda no documento, nos arquivos que ele traz e, das pastas abertas no editor, nos que
+trazem o arquivo que o define. Cada arquivo trazido é visto também como programa, para os
+usos do "Para começar" dele mudarem junto; as correções de concordância rodam em cada
+arquivo, e a conferência final analisa o programa com todos os arquivos como ficaram. O
+arquivo fora das pastas abertas que traga o nome não é achado, e fica por conta de quem o
+abre. Ainda não há: completar o caminho, nem
 reanalisar quem traz um arquivo quando ele muda (a análise se refaz na próxima edição).
 
 ## tree-sitter e outros editores
