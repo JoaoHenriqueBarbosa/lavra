@@ -46,8 +46,8 @@ não dá nada (os de execução rodam no interpretador).
    exaustividade do "Conforme". Baixa para `hir.rs`.
 4. `ownership.rs`: posse e empréstimo, por fluxo sobre a HIR (Se, laços com duas
    passadas, Paro/Pulo).
-5. `interp.rs`: interpretador da HIR, referência de semântica. Parâmetro confiado por
-   cópia na ida e na volta (equivale à referência, porque o empréstimo é exclusivo). A
+5. `interp.rs`: interpretador da HIR, referência de semântica. Parâmetro confiado e
+   emprestado por endereço na pilha, sem cópia (ver "Custo de cópia", abaixo). A
    máquina é dona da pilha (`Frame`: a função, onde foi chamada, os valores) e aceita um
    acompanhante (`Tracer`), avisado antes de cada oração e na falha com a pilha à vista
    (`View`); é por ele que o depurador (`debug.rs`) para, anda e mostra. A oração que a
@@ -180,11 +180,14 @@ nativo e 28,7 s no interpretador.
 
 Custo de cópia no interpretador: ler um lugar inteiro como valor clona o valor. Por isso
 `o tamanho de` mede no próprio lugar (`len_at` sobre o caminho), sem ler a coleção; antes
-disso, o crivo até 100 000 levava minutos e crescia de forma quadrática. Continua
-proporcional ao tamanho, no interpretador, passar coleção, texto ou registro para uma
-função: o argumento é copiado na ida e, se confiado, na volta. O nativo passa ponteiro e
-não tem esse custo. Com a pilha na máquina, o empréstimo pode virar referência ao quadro
-do chamador; é o próximo passo dessa conta.
+disso, o crivo até 100 000 levava minutos e crescia de forma quadrática. Passar para uma
+função não copia: o parâmetro confiado, e o emprestado com dono (texto, lista, registro)
+quando o argumento é um lugar, chegam como endereço na pilha (`Value::Ref`, com o quadro, o
+nome e o caminho), e a função lê e muda no lugar de quem chamou. O endereço se resolve no
+acesso (`target`), e um parâmetro repassado a outra função leva o endereço original. Medido
+em 2026-11-10: 3 000 chamadas com uma lista de 200 000 itens, uma emprestada e uma confiada
+por volta, caíram de 12,4 s para 0,01 s. O que ainda copia: o valor emprestado que não é um
+lugar (um temporário) e o "Para cada", que lê a coleção inteira uma vez por laço.
 
 ## Releases
 

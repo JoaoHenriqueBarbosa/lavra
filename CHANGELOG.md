@@ -23,6 +23,17 @@ As versões da Lavra, a mais nova primeiro.
 - Numerais por extenso, de "zero" a 999 999, simples e compostos: "Repito três vezes",
   "vinte e cinco", "dois mil e trezentos". Concordam antes de "vezes" ("duas vezes").
 
+### Desempenho
+
+- O interpretador não copia mais o valor emprestado ou confiado a uma função: ele chega como
+  endereço na pilha. Uma chamada com uma lista de 200 000 itens ficou mais de mil vezes mais
+  rápida.
+
+### Correções
+
+- Um verbo do programa pode ter a 1ª pessoa igual a um numeral ("zerar" dá "zero"): o verbo
+  abre a oração, e o número nunca abre.
+
 ## [0.1.0] - 2026-10-22
 
 ### Novidades

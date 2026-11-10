@@ -23,10 +23,22 @@ pub enum Value {
     Nothing,
     /// Caso de enumeração com os campos.
     Variant(usize, Vec<Value>),
+    /// O parâmetro emprestado ou confiado: o valor mora no quadro de quem chamou, e a
+    /// função o lê e muda lá, sem cópia.
+    Ref(Box<Target>),
     Unit,
 }
 
+/// Onde mora um valor na pilha: o quadro, o nome e o caminho dentro dele.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Target {
+    frame: usize,
+    root: Var,
+    steps: Vec<Step>,
+}
+
 /// Um passo do caminho até um lugar, já com as posições calculadas.
+#[derive(Clone, Debug, PartialEq)]
 enum Step {
     Field(usize),
     /// Posição a partir de 0.
@@ -86,6 +98,22 @@ pub struct View<'a> {
     pub prog: &'a hir::Program,
     pub frames: &'a [Frame],
     pub globals: &'a [Value],
+}
+
+impl<'a> View<'a> {
+    /// O valor de um nome: o do parâmetro emprestado ou confiado é o de quem chamou.
+    pub fn value(&self, v: &'a Value) -> &'a Value {
+        match v {
+            Value::Ref(t) => {
+                let base = match t.root {
+                    Var::Local(id) => &self.frames[t.frame].values[id],
+                    Var::Global(id) => &self.globals[id],
+                };
+                walk(base, &t.steps)
+            }
+            other => other,
+        }
+    }
 }
 
 /// Quem acompanha a execução, como o depurador: a máquina avisa antes de cada oração e
@@ -155,7 +183,7 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         });
         let _ = self.out.flush();
         match r {
-            Ok((Err(f), _)) => Err(f),
+            Ok(Err(f)) => Err(f),
             Ok(_) => Ok(()),
             Err(f) => Err(f),
         }
@@ -169,9 +197,8 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         &mut self.frames.last_mut().expect("a pilha tem quadro").values
     }
 
-    /// Chama a função. O resultado de dentro é o valor devolvido ou a falha declarada;
-    /// o quadro volta junto para os parâmetros confiados.
-    fn call(&mut self, func: hir::FuncId, args: Vec<Value>, span: Span) -> Exec<(Result<Value, Fault>, Vec<Value>)> {
+    /// Chama a função. O resultado de dentro é o valor devolvido ou a falha declarada.
+    fn call(&mut self, func: hir::FuncId, args: Vec<Value>, span: Span) -> Exec<Result<Value, Fault>> {
         let f = &self.prog.funcs[func];
         if self.frames.len() >= self.max_depth {
             return fault(L0914, textfmt::stack_overflow(self.max_depth as u64), span);
@@ -182,28 +209,58 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
         }
         self.frames.push(Frame { func: Some(func), call_span: span, values });
         let r = self.block(&f.body);
-        let frame = self.frames.pop().expect("o quadro da chamada").values;
-        let ret = match r {
+        self.frames.pop();
+        Ok(match r {
             Ok(Flow::Return(v)) => Ok(v),
             Ok(_) => Ok(Value::Unit),
             Err(f) if f.desist => Err(f),
             Err(f) => return Err(f),
-        };
-        Ok((ret, frame))
+        })
     }
 
-    /// Parâmetro confiado: o valor final volta para o lugar do chamador. Como o
-    /// empréstimo é exclusivo, copiar na ida e na volta equivale a passar a referência.
-    fn copy_back(&mut self, func: hir::FuncId, args: &[hir::Arg], callee: &[Value]) -> Exec<()> {
-        let f = &self.prog.funcs[func];
-        for (a, (id, mode)) in args.iter().zip(&f.params) {
-            if *mode == ParamMode::Lent
-                && let Some(p) = &a.place
-            {
-                self.write_place(p, callee[*id].clone())?;
-            }
+    /// O lugar `root` + `steps` do quadro de cima, como endereço na pilha. Se o nome já é
+    /// um parâmetro emprestado ou confiado, o endereço é o de quem o emprestou.
+    fn target(&self, root: Var, steps: Vec<Step>) -> Target {
+        if let Var::Local(id) = root
+            && let Value::Ref(t) = &self.frame()[id]
+        {
+            let mut all = t.steps.clone();
+            all.extend(steps);
+            return Target { frame: t.frame, root: t.root, steps: all };
         }
-        Ok(())
+        Target { frame: self.frames.len() - 1, root, steps }
+    }
+
+    fn base(&self, t: &Target) -> &Value {
+        match t.root {
+            Var::Local(id) => &self.frames[t.frame].values[id],
+            Var::Global(id) => &self.globals[id],
+        }
+    }
+
+    fn base_mut(&mut self, t: &Target) -> &mut Value {
+        match t.root {
+            Var::Local(id) => &mut self.frames[t.frame].values[id],
+            Var::Global(id) => &mut self.globals[id],
+        }
+    }
+
+    /// O argumento de uma chamada. O confiado vai como endereço do lugar de quem chama, e o
+    /// emprestado com dono (texto, lista, registro) também, quando é um lugar: a função lê
+    /// e muda lá, sem copiar na ida nem na volta. O resto vai por valor.
+    fn argument(&mut self, a: &hir::Arg) -> Exec<Value> {
+        let place = match (a.mode, &a.place, &a.value.kind) {
+            (ParamMode::Lent, Some(p), _) => Some(p),
+            (ParamMode::Borrowed, _, ExprKind::Read(p)) if !a.value.ty.is_copy() => Some(p),
+            _ => None,
+        };
+        match place {
+            Some(p) => {
+                let steps = self.path(p)?;
+                Ok(Value::Ref(Box::new(self.target(p.root, steps))))
+            }
+            None => self.expr(&a.value),
+        }
     }
 
     fn block(&mut self, b: &hir::Block) -> Exec<Flow> {
@@ -245,14 +302,24 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
 
     fn get(&self, v: Var) -> Value {
         match v {
-            Var::Local(id) => self.frame()[id].clone(),
+            Var::Local(id) => match &self.frame()[id] {
+                Value::Ref(t) => walk(self.base(t), &t.steps).clone(),
+                other => other.clone(),
+            },
             Var::Global(id) => self.globals[id].clone(),
         }
     }
 
     fn set(&mut self, v: Var, value: Value) {
         match v {
-            Var::Local(id) => self.frame_mut()[id] = value,
+            Var::Local(id) => match &self.frame()[id] {
+                // O parâmetro confiado muda no lugar de quem chamou.
+                Value::Ref(t) => {
+                    let t = (**t).clone();
+                    *walk_mut(self.base_mut(&t), &t.steps) = value;
+                }
+                _ => self.frame_mut()[id] = value,
+            },
             Var::Global(id) => self.globals[id] = value,
         }
     }
@@ -284,11 +351,8 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
     }
 
     fn len_at(&self, root: Var, steps: &[Step]) -> usize {
-        let base = match root {
-            Var::Local(id) => &self.frame()[id],
-            Var::Global(id) => &self.globals[id],
-        };
-        match walk(base, steps) {
+        let t = self.target(root, steps.to_vec());
+        match walk(self.base(&t), &t.steps) {
             Value::List(v) => v.len(),
             Value::Text(t) => t.chars().count(),
             _ => 0,
@@ -297,23 +361,18 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
 
     fn read_place(&mut self, p: &hir::Place) -> Exec<Value> {
         let steps = self.path(p)?;
-        let base = match p.root {
-            Var::Local(id) => &self.frame()[id],
-            Var::Global(id) => &self.globals[id],
-        };
+        let t = self.target(p.root, steps);
+        let (base, steps) = (self.base(&t), &t.steps);
         // A posição num texto é a de um caractere.
         if let (Some(Step::Index(i)), Value::Text(t)) = (steps.last(), walk(base, &steps[..steps.len().saturating_sub(1)])) {
             return Ok(Value::Char(t.chars().nth(*i).unwrap()));
         }
-        Ok(walk(base, &steps).clone())
+        Ok(walk(base, steps).clone())
     }
 
     fn place_mut(&mut self, root: Var, steps: &[Step]) -> &mut Value {
-        let base = match root {
-            Var::Local(id) => &mut self.frames.last_mut().expect("a pilha tem quadro").values[id],
-            Var::Global(id) => &mut self.globals[id],
-        };
-        walk_mut(base, steps)
+        let t = self.target(root, steps.to_vec());
+        walk_mut(self.base_mut(&t), &t.steps)
     }
 
     fn write_place(&mut self, p: &hir::Place, v: Value) -> Exec<()> {
@@ -547,26 +606,23 @@ impl<'p, W: Write, R: BufRead> Machine<'p, W, R> {
                 Value::Text(s)
             }
             ExprKind::Call { callee, args } => {
-                let mut vals = Vec::with_capacity(args.len());
-                for a in args {
-                    vals.push(self.expr(&a.value)?);
-                }
                 let func = match callee {
                     hir::Callee::User(f) => *f,
                     // A operação da própria língua recebe emprestado e devolve um valor novo.
-                    hir::Callee::Builtin(b) => return crate::builtins::interpret(*b, &vals, e.span),
-                };
-                let (ret, callee) = self.call(func, vals, e.span)?;
-                let ret = match ret {
-                    Ok(v) => v,
-                    // A falha só chega aqui dentro de um "Try", que a trata.
-                    Err(f) => {
-                        self.copy_back(func, args, &callee)?;
-                        return Err(f);
+                    hir::Callee::Builtin(b) => {
+                        let mut vals = Vec::with_capacity(args.len());
+                        for a in args {
+                            vals.push(self.expr(&a.value)?);
+                        }
+                        return crate::builtins::interpret(*b, &vals, e.span);
                     }
                 };
-                self.copy_back(func, args, &callee)?;
-                ret
+                let mut vals = Vec::with_capacity(args.len());
+                for a in args {
+                    vals.push(self.argument(a)?);
+                }
+                // A falha declarada só chega aqui dentro de um "Try", que a trata.
+                self.call(func, vals, e.span)??
             }
             ExprKind::Fact(c) => Value::Bool(self.cond(c)?),
             ExprKind::Unary(op, a) => match (op, &a.kind) {

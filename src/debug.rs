@@ -382,9 +382,11 @@ impl Debugger {
         let func = f.func.map(|id| &view.prog.funcs[id]);
         let at = self.frame_at(view, frame).start;
         match (kind, func) {
-            (ScopeKind::Params, Some(func)) => {
-                func.params.iter().map(|(id, _)| (func.locals[*id].display.clone(), &f.values[*id], &func.locals[*id].ty)).collect()
-            }
+            (ScopeKind::Params, Some(func)) => func
+                .params
+                .iter()
+                .map(|(id, _)| (func.locals[*id].display.clone(), view.value(&f.values[*id]), &func.locals[*id].ty))
+                .collect(),
             (ScopeKind::Locals, Some(func)) => func
                 .locals
                 .iter()

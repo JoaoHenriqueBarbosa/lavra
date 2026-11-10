@@ -414,3 +414,11 @@ Decisões para revisar:
 - "um" e "uma" sozinhos continuam artigos, então 1 não se escreve por extenso fora de um composto ("Para cada i de 1 até três").
 - As palavras dos numerais ficam reservadas (mudança incompatível, registrada em "Mudanças" de notes/lavra.md). Sem milhões.
 
+Um conserto no meio do caminho: os numerais reservaram "zero", e "zerar" deixou de poder ser verbo do programa (a 1ª pessoa é "zero"). Como o número nunca abre oração e o verbo sempre abre, não há ambiguidade: o verbo com forma de numeral voltou a valer ("Zero o contador."). O CI também estava vermelho desde o "salvo engano", por uma regra só: o rev da gramática no Helix e no Zed tem de apontar para o commit que mudou a gramática gerada. Cada envio que mexe no léxico agora leva um segundo commit com o rev.
+
+Item 5, interpretador sem cópia nas chamadas:
+- O parâmetro confiado, e o emprestado com dono quando o argumento é um lugar, chegam como endereço na pilha (o quadro, o nome e o caminho). A função lê e muda no lugar de quem chamou, e o que ela repassa a outra função leva o endereço original. A cópia na ida e na volta saiu.
+- Medido: 3 000 chamadas com uma lista de 200 000 itens (uma emprestada e uma confiada por volta) caíram de 12,4 s para 0,01 s. A saída é a mesma, e a paridade com o nativo confere o corpus inteiro.
+- O depurador mostra o parâmetro pelo valor que está no quadro de quem chamou.
+- Ainda copia: o emprestado que é um temporário, e o "Para cada", que lê a coleção uma vez por laço.
+

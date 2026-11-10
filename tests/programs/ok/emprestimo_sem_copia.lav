@@ -1,0 +1,59 @@
+Nota: o emprestado e o confiado chegam à função no lugar de quem chamou, em qualquer profundidade.
+
+Uma conta é um registro de:
+    o titular, um texto;
+    o saldo, um inteiro;
+    as movimentações, uma lista de inteiros.
+
+Para depositar a quantia na conta, sendo a quantia um inteiro e a conta confiada:
+    O saldo da conta cresce a quantia.
+    As movimentações da conta ganham a quantia.
+
+Para redepositar a quantia na conta, sendo a quantia um inteiro e a conta confiada:
+    Deposito a quantia na conta.
+    Deposito a quantia na conta.
+
+Para somar a lista, sendo a lista uma lista de inteiros emprestada, devolvendo um inteiro:
+    O total começa em 0.
+    Para cada parcela da lista: o total cresce a parcela.
+    Devolvo o total.
+
+Para conferir a conta, sendo a conta emprestada, devolvendo um lógico:
+    Devolvo o fato de o resultado de somar as movimentações da conta ser igual ao saldo da conta.
+
+Para zerar o número, sendo o número um inteiro confiado:
+    O número vira 0.
+
+Para encher a lista até o tamanho, sendo a lista uma lista de inteiros confiada e o tamanho um inteiro:
+    Se o tamanho da lista for menor que o tamanho:
+        A lista ganha o tamanho da lista.
+        Encho a lista até o tamanho.
+
+Para trocar a conta, sendo a conta confiada:
+    A conta vira uma conta com o titular "Novo", o saldo 0 e as movimentações 0.
+
+Para sacar a quantia da conta, sendo a quantia um inteiro e a conta confiada, salvo engano:
+    Se a quantia for maior que o saldo da conta: desisto com "saldo insuficiente".
+    O saldo da conta diminui a quantia.
+    As movimentações da conta ganham 0 menos a quantia.
+
+Para começar:
+    As contas começam com uma conta com o titular "Ana", o saldo 0 e as movimentações 0.
+    As contas ganham uma conta com o titular "Bia", o saldo 0 e as movimentações 0.
+    Deposito 10 na primeira das contas.
+    Redeposito 7 no item 2 das contas.
+    Escrevo as contas.
+    Se o resultado de conferir o item 2 das contas for verdadeiro: escrevo "confere".
+    Escrevo o resultado de somar as movimentações do item 2 das contas.
+    Zero o saldo da primeira das contas.
+    Escrevo o saldo da primeira das contas.
+    Os números começam vazios.
+    Encho os números até 5.
+    Escrevo os números.
+    Zero o item 3 dos números.
+    Escrevo os números.
+    Troco a última das contas.
+    Escrevo a última das contas.
+    Deposito 50 na última das contas.
+    Saco 20 da última das contas, ou desisto.
+    Escrevo a última das contas.

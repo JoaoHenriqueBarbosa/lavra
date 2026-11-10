@@ -1,0 +1,8 @@
+[uma conta com o titular Ana, o saldo 10 e as movimentações [0; 10]; uma conta com o titular Bia, o saldo 14 e as movimentações [0; 7; 7]]
+confere
+14
+0
+[0; 1; 2; 3; 4]
+[0; 1; 0; 3; 4]
+uma conta com o titular Novo, o saldo 0 e as movimentações [0]
+uma conta com o titular Novo, o saldo 30 e as movimentações [0; 50; -20]
