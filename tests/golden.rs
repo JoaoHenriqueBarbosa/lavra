@@ -59,6 +59,12 @@ fn ok_programs() {
             failures.push(format!("{} falhou:\n{err}", p.display()));
             continue;
         }
+        // Um programa certo pode avisar e pode desistir, mas não ter erro: sem esta trava,
+        // regravar as expectativas guardaria o erro como se fosse a saída esperada.
+        if err.lines().any(|l| l.starts_with("Erro ")) {
+            failures.push(format!("{} é um programa certo e deu erro:\n{err}", p.display()));
+            continue;
+        }
         compare(&p, "stdout", &out, &mut failures);
         if p.with_extension("stderr").exists() || !err.is_empty() {
             compare(&p, "stderr", &err, &mut failures);

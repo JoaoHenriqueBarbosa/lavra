@@ -27,7 +27,10 @@ for (const dir of ["samples", "tests/programs/ok"]) {
     const base = path.join(root, dir, f.slice(0, -4));
     if (!fs.existsSync(`${base}.stdout`)) continue;
     const input = fs.existsSync(`${base}.stdin`) ? fs.readFileSync(`${base}.stdin`, "utf8") : "";
-    const r = execute(fs.readFileSync(`${base}.lav`, "utf8"), input);
+    const source = fs.readFileSync(`${base}.lav`, "utf8");
+    // No navegador não há disco nem relógio do sistema: o que depende deles roda só no lavrac.
+    if (/^Uso a biblioteca de (arquivos|tempo)\./m.test(source)) continue;
+    const r = execute(source, input);
     if (r.stdout !== fs.readFileSync(`${base}.stdout`, "utf8")) fail(`${dir}/${f}: a saída difere`);
     checked++;
   }

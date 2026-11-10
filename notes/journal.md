@@ -537,3 +537,7 @@ Decisões para revisar:
 
 Com isso o catálogo de features do roteiro (seção 2.4) está feito, menos o nativo em macOS e Windows, que ficou fora por pedido. As pendências que dependem de você continuam as do fim do roteiro: os tokens de publicação e o merge do PR de release.
 
+Um conserto depois do catálogo, achado pelo workflow do site, que vinha falhando:
+- O teste da biblioteca de tempo estava quebrado desde que tirei "o segundo de x": eu tinha trocado a conta por um nome "O segundo", que é ordinal, e o programa passou a dar erro de sintaxe. A regravação das expectativas guardou o erro como saída esperada, e nada acusou. O programa foi corrigido, e o teste dos programas certos agora recusa qualquer um que dê erro, com ou sem regravação.
+- O teste do playground roda o corpus no navegador, onde não há disco nem relógio do sistema: os programas das bibliotecas de arquivos e de tempo ficam de fora dele.
+

@@ -59,6 +59,8 @@ As versões da Lavra, a mais nova primeiro.
 
 ### Correções
 
+- O teste dos programas certos recusa o programa que dá erro, mesmo ao regravar as
+  expectativas, e o teste do playground deixa de fora o que depende de disco e de relógio.
 - O nativo não perde mais memória quando o valor de reserva de uma chamada é um nome
   (", ou as linhas"): o nome continua dono do valor dele, e o resultado fica com uma cópia.
 - Um verbo do programa pode ter a 1ª pessoa igual a um numeral ("zerar" dá "zero"): o verbo
