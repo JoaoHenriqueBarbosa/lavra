@@ -20,6 +20,8 @@ As versões da Lavra, a mais nova primeiro.
   notas" (o item na lista, o trecho ou o caractere no texto).
 - "Conforme" sobre valores: "Sendo 1 ou 7: ...", com inteiro, caractere, texto e lógico, e o
   "Senão" obrigatório.
+- Numerais por extenso, de "zero" a 999 999, simples e compostos: "Repito três vezes",
+  "vinte e cinco", "dois mil e trezentos". Concordam antes de "vezes" ("duas vezes").
 
 ## [0.1.0] - 2026-10-22
 

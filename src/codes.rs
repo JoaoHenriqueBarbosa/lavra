@@ -52,6 +52,7 @@ codes! {
     L0010 = Lexical, "Número real malformado";
     L0011 = Lexical, "Número colado numa palavra";
     L0012 = Lexical, "Recuo inconsistente";
+    L0013 = Agreement, "Numeral que não concorda";
 
     // Parser: períodos, orações e condições.
     L0100 = Syntax, "Faltou o ponto final";

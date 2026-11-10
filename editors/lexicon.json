@@ -736,6 +736,248 @@
       "word": "deslocamento"
     }
   ],
+  "numerals": [
+    {
+      "form": "zero",
+      "gender": null,
+      "value": 0
+    },
+    {
+      "form": "dois",
+      "gender": "masculine",
+      "value": 2
+    },
+    {
+      "form": "duas",
+      "gender": "feminine",
+      "value": 2
+    },
+    {
+      "form": "três",
+      "gender": null,
+      "value": 3
+    },
+    {
+      "form": "quatro",
+      "gender": null,
+      "value": 4
+    },
+    {
+      "form": "cinco",
+      "gender": null,
+      "value": 5
+    },
+    {
+      "form": "seis",
+      "gender": null,
+      "value": 6
+    },
+    {
+      "form": "sete",
+      "gender": null,
+      "value": 7
+    },
+    {
+      "form": "oito",
+      "gender": null,
+      "value": 8
+    },
+    {
+      "form": "nove",
+      "gender": null,
+      "value": 9
+    },
+    {
+      "form": "dez",
+      "gender": null,
+      "value": 10
+    },
+    {
+      "form": "onze",
+      "gender": null,
+      "value": 11
+    },
+    {
+      "form": "doze",
+      "gender": null,
+      "value": 12
+    },
+    {
+      "form": "treze",
+      "gender": null,
+      "value": 13
+    },
+    {
+      "form": "catorze",
+      "gender": null,
+      "value": 14
+    },
+    {
+      "form": "quatorze",
+      "gender": null,
+      "value": 14
+    },
+    {
+      "form": "quinze",
+      "gender": null,
+      "value": 15
+    },
+    {
+      "form": "dezesseis",
+      "gender": null,
+      "value": 16
+    },
+    {
+      "form": "dezessete",
+      "gender": null,
+      "value": 17
+    },
+    {
+      "form": "dezoito",
+      "gender": null,
+      "value": 18
+    },
+    {
+      "form": "dezenove",
+      "gender": null,
+      "value": 19
+    },
+    {
+      "form": "vinte",
+      "gender": null,
+      "value": 20
+    },
+    {
+      "form": "trinta",
+      "gender": null,
+      "value": 30
+    },
+    {
+      "form": "quarenta",
+      "gender": null,
+      "value": 40
+    },
+    {
+      "form": "cinquenta",
+      "gender": null,
+      "value": 50
+    },
+    {
+      "form": "sessenta",
+      "gender": null,
+      "value": 60
+    },
+    {
+      "form": "setenta",
+      "gender": null,
+      "value": 70
+    },
+    {
+      "form": "oitenta",
+      "gender": null,
+      "value": 80
+    },
+    {
+      "form": "noventa",
+      "gender": null,
+      "value": 90
+    },
+    {
+      "form": "cem",
+      "gender": null,
+      "value": 100
+    },
+    {
+      "form": "cento",
+      "gender": null,
+      "value": 100
+    },
+    {
+      "form": "duzentos",
+      "gender": "masculine",
+      "value": 200
+    },
+    {
+      "form": "duzentas",
+      "gender": "feminine",
+      "value": 200
+    },
+    {
+      "form": "trezentos",
+      "gender": "masculine",
+      "value": 300
+    },
+    {
+      "form": "trezentas",
+      "gender": "feminine",
+      "value": 300
+    },
+    {
+      "form": "quatrocentos",
+      "gender": "masculine",
+      "value": 400
+    },
+    {
+      "form": "quatrocentas",
+      "gender": "feminine",
+      "value": 400
+    },
+    {
+      "form": "quinhentos",
+      "gender": "masculine",
+      "value": 500
+    },
+    {
+      "form": "quinhentas",
+      "gender": "feminine",
+      "value": 500
+    },
+    {
+      "form": "seiscentos",
+      "gender": "masculine",
+      "value": 600
+    },
+    {
+      "form": "seiscentas",
+      "gender": "feminine",
+      "value": 600
+    },
+    {
+      "form": "setecentos",
+      "gender": "masculine",
+      "value": 700
+    },
+    {
+      "form": "setecentas",
+      "gender": "feminine",
+      "value": 700
+    },
+    {
+      "form": "oitocentos",
+      "gender": "masculine",
+      "value": 800
+    },
+    {
+      "form": "oitocentas",
+      "gender": "feminine",
+      "value": 800
+    },
+    {
+      "form": "novecentos",
+      "gender": "masculine",
+      "value": 900
+    },
+    {
+      "form": "novecentas",
+      "gender": "feminine",
+      "value": 900
+    },
+    {
+      "form": "mil",
+      "gender": null,
+      "value": 1000
+    }
+  ],
   "ordinals": [
     {
       "position": 1,
@@ -2468,6 +2710,294 @@
       "form": "caso",
       "lemma": "caso",
       "role": "reserved"
+    },
+    {
+      "doc": "Numeral por extenso: 0. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "zero",
+      "lemma": "zero",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 2. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "dois",
+      "lemma": "dois",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 2. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "duas",
+      "lemma": "dois",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 3. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "três",
+      "lemma": "três",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 4. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "quatro",
+      "lemma": "quatro",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 5. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "cinco",
+      "lemma": "cinco",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 6. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "seis",
+      "lemma": "seis",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 7. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "sete",
+      "lemma": "sete",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 8. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "oito",
+      "lemma": "oito",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 9. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "nove",
+      "lemma": "nove",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 10. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "dez",
+      "lemma": "dez",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 11. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "onze",
+      "lemma": "onze",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 12. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "doze",
+      "lemma": "doze",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 13. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "treze",
+      "lemma": "treze",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 14. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "catorze",
+      "lemma": "catorze",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 14. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "quatorze",
+      "lemma": "catorze",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 15. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "quinze",
+      "lemma": "quinze",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 16. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "dezesseis",
+      "lemma": "dezesseis",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 17. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "dezessete",
+      "lemma": "dezessete",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 18. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "dezoito",
+      "lemma": "dezoito",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 19. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "dezenove",
+      "lemma": "dezenove",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 20. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "vinte",
+      "lemma": "vinte",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 30. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "trinta",
+      "lemma": "trinta",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 40. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "quarenta",
+      "lemma": "quarenta",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 50. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "cinquenta",
+      "lemma": "cinquenta",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 60. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "sessenta",
+      "lemma": "sessenta",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 70. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "setenta",
+      "lemma": "setenta",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 80. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "oitenta",
+      "lemma": "oitenta",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 90. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "noventa",
+      "lemma": "noventa",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 100. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "cem",
+      "lemma": "cem",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 100 num composto (\"cento e vinte\"); sozinho, é \"cem\".",
+      "form": "cento",
+      "lemma": "cem",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 200. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "duzentos",
+      "lemma": "duzentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 200. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "duzentas",
+      "lemma": "duzentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 300. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "trezentos",
+      "lemma": "trezentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 300. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "trezentas",
+      "lemma": "trezentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 400. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "quatrocentos",
+      "lemma": "quatrocentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 400. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "quatrocentas",
+      "lemma": "quatrocentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 500. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "quinhentos",
+      "lemma": "quinhentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 500. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "quinhentas",
+      "lemma": "quinhentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 600. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "seiscentos",
+      "lemma": "seiscentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 600. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "seiscentas",
+      "lemma": "seiscentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 700. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "setecentos",
+      "lemma": "setecentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 700. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "setecentas",
+      "lemma": "setecentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 800. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "oitocentos",
+      "lemma": "oitocentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 800. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "oitocentas",
+      "lemma": "oitocentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 900. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "novecentos",
+      "lemma": "novecentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 900. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "novecentas",
+      "lemma": "novecentos",
+      "role": "literal"
+    },
+    {
+      "doc": "Numeral por extenso: 1000. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\".",
+      "form": "mil",
+      "lemma": "mil",
+      "role": "literal"
     },
     {
       "doc": "\"verdadeiro\" como predicativo, concordando com o sujeito: \"Se a resposta for verdadeira\". Como valor, não flexiona (\"vira verdadeiro\").",

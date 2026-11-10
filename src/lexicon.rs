@@ -434,6 +434,64 @@ pub const ORDINALS: &[(&str, u32)] = &[
     ("últim", 0),
 ];
 
+/// Os numerais por extenso: a forma, o valor e o gênero dos que flexionam. "um" e "uma"
+/// ficam de fora, porque são artigos; só valem como unidade de um composto ("vinte e um").
+pub const NUMERALS: &[(&str, u32, Option<Gender>)] = &[
+    ("zero", 0, None),
+    ("dois", 2, Some(Gender::Masculine)),
+    ("duas", 2, Some(Gender::Feminine)),
+    ("três", 3, None),
+    ("quatro", 4, None),
+    ("cinco", 5, None),
+    ("seis", 6, None),
+    ("sete", 7, None),
+    ("oito", 8, None),
+    ("nove", 9, None),
+    ("dez", 10, None),
+    ("onze", 11, None),
+    ("doze", 12, None),
+    ("treze", 13, None),
+    ("catorze", 14, None),
+    ("quatorze", 14, None),
+    ("quinze", 15, None),
+    ("dezesseis", 16, None),
+    ("dezessete", 17, None),
+    ("dezoito", 18, None),
+    ("dezenove", 19, None),
+    ("vinte", 20, None),
+    ("trinta", 30, None),
+    ("quarenta", 40, None),
+    ("cinquenta", 50, None),
+    ("sessenta", 60, None),
+    ("setenta", 70, None),
+    ("oitenta", 80, None),
+    ("noventa", 90, None),
+    ("cem", 100, None),
+    ("cento", 100, None),
+    ("duzentos", 200, Some(Gender::Masculine)),
+    ("duzentas", 200, Some(Gender::Feminine)),
+    ("trezentos", 300, Some(Gender::Masculine)),
+    ("trezentas", 300, Some(Gender::Feminine)),
+    ("quatrocentos", 400, Some(Gender::Masculine)),
+    ("quatrocentas", 400, Some(Gender::Feminine)),
+    ("quinhentos", 500, Some(Gender::Masculine)),
+    ("quinhentas", 500, Some(Gender::Feminine)),
+    ("seiscentos", 600, Some(Gender::Masculine)),
+    ("seiscentas", 600, Some(Gender::Feminine)),
+    ("setecentos", 700, Some(Gender::Masculine)),
+    ("setecentas", 700, Some(Gender::Feminine)),
+    ("oitocentos", 800, Some(Gender::Masculine)),
+    ("oitocentas", 800, Some(Gender::Feminine)),
+    ("novecentos", 900, Some(Gender::Masculine)),
+    ("novecentas", 900, Some(Gender::Feminine)),
+    ("mil", 1000, None),
+];
+
+/// O numeral de uma palavra: o valor e o gênero, se ela flexiona.
+pub fn numeral(word: &str) -> Option<(u32, Option<Gender>)> {
+    NUMERALS.iter().find(|(f, _, _)| *f == word).map(|&(_, v, g)| (v, g))
+}
+
 /// Locuções juntadas antes de desfazer as contrações: "pelo menos" não é "por o menos".
 pub const PROTECTED_LOCUTIONS: &[(&str, &str)] = &[("pelo", "menos"), ("no", "máximo"), ("à", "esquerda"), ("à", "direita")];
 
@@ -771,6 +829,14 @@ fn build_entries() -> Vec<Entry> {
     for k in KEYWORDS {
         push(k.form, k.form, k.role, k.doc.into());
     }
+    for &(form, value, _) in NUMERALS {
+        let lemma = NUMERALS.iter().find(|(_, v, _)| *v == value).map_or(form, |(f, _, _)| f);
+        let doc = match form {
+            "cento" => "Numeral por extenso: 100 num composto (\"cento e vinte\"); sozinho, é \"cem\".".to_string(),
+            _ => format!("Numeral por extenso: {value}. Compõe-se como na língua: \"vinte e cinco\", \"dois mil e trezentos\"."),
+        };
+        push(form, lemma, Role::Literal, doc);
+    }
     // Como predicativo, o lógico concorda com o sujeito ("Se a resposta for verdadeira").
     for base in ["verdadeiro", "falso"] {
         for (g, n, subject, verb) in [
@@ -891,6 +957,11 @@ pub fn to_json() -> String {
             "doc": n.doc,
         })).collect::<Vec<_>>(),
         "ordinals": ORDINALS.iter().map(|&(stem, position)| json!({ "stem": stem, "position": position })).collect::<Vec<_>>(),
+        "numerals": NUMERALS.iter().map(|&(form, value, gender)| json!({
+            "form": form,
+            "value": value,
+            "gender": gender.map(|g| if g == Gender::Feminine { "feminine" } else { "masculine" }),
+        })).collect::<Vec<_>>(),
         "participles": participles,
         "locutions": {
             "protected": PROTECTED_LOCUTIONS.iter().map(|&(a, b)| [a, b]).collect::<Vec<_>>(),

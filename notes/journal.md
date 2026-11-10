@@ -403,3 +403,14 @@ Item 3, as formas que estavam só na AST (`CondKind::Empty`, `CondKind::Contains
 Decisões para revisar:
 - A pertinência se diz com "houver ... em", e não com "conter": "conter" é verbo da biblioteca de textos, e um verbo da língua com o mesmo nome colidiria com ela. O "houver" já existia, e a forma não reserva palavra nova.
 - "Conforme" sobre real é recusado, porque igualdade exata de real quase nunca é o que se quer.
+
+Item 4, numerais por extenso:
+- De "zero" a 999 999, no léxico: os simples e os compostos como a língua os escreve ("vinte e cinco", "cento e vinte e três", "dois mil e trezentos", "mil duzentos e trinta"). O lexer junta o composto num número só, na mesma linha.
+- Os que flexionam concordam: feminino antes de "vezes" ("duas vezes", "vinte e uma vezes", "duzentas vezes"), masculino no resto. A discordância é o L0013, com correção.
+- As gramáticas dos editores pintam as palavras como número.
+
+Decisões para revisar:
+- "vinte e cinco" é sempre 25, nunca a lista de 20 e 5 (para a lista, algarismos). O mesmo vale dentro de "a soma de vinte e cinco": ali é um número só, e a soma fica sem o segundo termo.
+- "um" e "uma" sozinhos continuam artigos, então 1 não se escreve por extenso fora de um composto ("Para cada i de 1 até três").
+- As palavras dos numerais ficam reservadas (mudança incompatível, registrada em "Mudanças" de notes/lavra.md). Sem milhões.
+

@@ -292,7 +292,13 @@ Para começar:
 
 Períodos com ponto; blocos com dois-pontos e recuo; linha sem `.`, `:` ou `;` continua na
 de baixo (enjambement). Comentários: linha com `Nota:` ou `--`. Números com vírgula
-decimal e milhar com espaço (`1 000 000`), hexadecimal `0xFF`. Sinais como `+` e `=` são
+decimal e milhar com espaço (`1 000 000`), hexadecimal `0xFF`. Os inteiros também se escrevem
+por extenso, de "zero" a 999 999: simples (`três`, `quinze`, `cem`, `mil`) e compostos como na
+língua (`vinte e cinco`, `cento e vinte e três`, `dois mil e trezentos`, `mil duzentos e
+trinta`). O composto é um número só, numa linha só; para a lista de 20 e 5, algarismos
+(`20 e 5`). "um" e "uma" sozinhos continuam artigos: 1 se escreve `1` (dentro de um composto
+valem, `vinte e um`). Os que flexionam vão no feminino antes de "vezes" (`duas vezes`,
+`vinte e uma vezes`) e no masculino no resto (L0013). Sinais como `+` e `=` são
 erro léxico com a palavra certa na dica.
 
 ## Mudanças
@@ -300,6 +306,12 @@ erro léxico com a palavra certa na dica.
 A Lavra ainda não tem versão estável; mudança incompatível entra quando o corpus inteiro
 (`tests/programs` e `samples/`) muda no mesmo commit. Cada uma fica registrada aqui.
 
+- **2026-11-10, numerais por extenso.** "zero", "dois" a "dezenove", as dezenas, as centenas
+  e "mil" passam a ser palavras da língua, e não servem mais de nome ("o sete", "a dezena"
+  continua livre) nem de 1ª pessoa de verbo. "vinte e cinco" passa a ser o número 25, e não a
+  lista de 20 e 5. Nenhum programa do corpus usava essas palavras como nome.
+- **2026-11-10, "salvo engano".** A função que pode falhar se declara com "salvo engano", e a
+  locução anterior deixa de existir; "engano" passa a ser palavra da língua.
 - **2026-10-22, palavras reservadas vindas do léxico.** A 1ª pessoa de um verbo do
   usuário não pode ser palavra da língua; a lista dessas palavras era mantida à mão e
   agora sai do léxico (`src/lexicon.rs`): toda palavra da língua e cada palavra das

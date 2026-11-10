@@ -48,6 +48,7 @@ FLOW_VERBS = [v["firstPerson"] for v in LEXICON["coreVerbs"] if v["role"] == "fl
 COMPARISONS = [tuple(k["form"].split(" ")) for k in LEXICON["keywords"] if k["role"] == "comparison"]
 LITERALS = [k["form"] for k in LEXICON["keywords"] if k["role"] == "literal"]
 # "verdadeiro" e "falso" com as formas do predicativo ("Se a resposta for verdadeira").
+NUMERALS = [n["form"] for n in LEXICON["numerals"]]
 BOOLEANS = [w["form"] for w in LEXICON["words"] if w["role"] == "literal" and w["lemma"] in ("verdadeiro", "falso")]
 ART = "(?i:" + "|".join(ARTICLES) + ")"
 # Palavras que podem seguir "for" sem ser adjetivo de predicado.
@@ -98,6 +99,8 @@ repository = {
                 "match": r"(?<![\p{L}\p{N}_,])-?\d{1,3}(?: \d{3})+(?:,\d+)?(?![\p{L}\p{N}_])",
             },
             {"name": "constant.numeric.decimal.lavra", "match": r"(?<![\p{L}\p{N}_])-?\d+(?:,\d+)?(?![\p{L}\p{N}_])"},
+            # Numerais por extenso ("vinte e cinco": o "e" fica como conjunção).
+            {"name": "constant.numeric.word.lavra", "match": words(*NUMERALS)},
         ]
     },
     "definitions": {

@@ -1663,6 +1663,81 @@
       "members": [
         {
           "type": "PATTERN",
+          "value": "catorze",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "cem",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "cento",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "cinco",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "cinquenta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dez",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dezenove",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dezesseis",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dezessete",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dezoito",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "dois",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "doze",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "duas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "duzentas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "duzentos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
           "value": "falsa",
           "flags": "i"
         },
@@ -1683,7 +1758,162 @@
         },
         {
           "type": "PATTERN",
+          "value": "mil",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
           "value": "nada",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "nove",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "novecentas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "novecentos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "noventa",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "oitenta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "oito",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "oitocentas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "oitocentos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "onze",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quarenta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quatorze",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quatro",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quatrocentas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quatrocentos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quinhentas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quinhentos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quinze",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "seis",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "seiscentas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "seiscentos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sessenta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "sete",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "setecentas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "setecentos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "setenta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "treze",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "trezentas",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "trezentos",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "trinta",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "três",
           "flags": "i"
         },
         {
@@ -1724,6 +1954,16 @@
         {
           "type": "PATTERN",
           "value": "verdadeiros",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "vinte",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "zero",
           "flags": "i"
         }
       ]

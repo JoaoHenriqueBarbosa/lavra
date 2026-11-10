@@ -1,0 +1,25 @@
+Erro de concordância [L0013]: O numeral não concorda: "dois", não "duas".
+ --> tests/programs/err/numeral_genero.lav:2:23
+  |
+2 |     O saldo começa em duas.
+  |                       ^^^^ sem um nome feminino depois, o numeral fica no masculino
+Erro de concordância [L0013]: O numeral não concorda: "duas", não "dois".
+ --> tests/programs/err/numeral_genero.lav:3:12
+  |
+3 |     Repito dois vezes: o saldo cresce duzentas e uma.
+  |            ^^^^ "vezes" é feminino, e o numeral concorda com ela
+Erro de concordância [L0013]: O numeral não concorda: "duzentos e um", não "duzentas e uma".
+ --> tests/programs/err/numeral_genero.lav:3:39
+  |
+3 |     Repito dois vezes: o saldo cresce duzentas e uma.
+  |                                       ^^^^^^^^^^^^^^ sem um nome feminino depois, o numeral fica no masculino
+Erro de concordância [L0013]: O numeral não concorda: "vinte e uma", não "vinte e um".
+ --> tests/programs/err/numeral_genero.lav:4:12
+  |
+4 |     Repito vinte e um vezes: escrevo o saldo.
+  |            ^^^^^^^^^^ "vezes" é feminino, e o numeral concorda com ela
+Erro de concordância [L0013]: O numeral não concorda: "trinta e dois", não "trinta e duas".
+ --> tests/programs/err/numeral_genero.lav:5:13
+  |
+5 |     Escrevo trinta e duas mais dois.
+  |             ^^^^^^^^^^^^^ sem um nome feminino depois, o numeral fica no masculino

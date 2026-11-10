@@ -42,8 +42,10 @@ pub fn format(src: &str) -> Result<String, Vec<Diagnostic>> {
             _ => None,
         };
         // Locução ("maior que", "seguido de"): os espaços de dentro também se normalizam.
-        let locution = matches!(&t.kind, TokenKind::Word(w) if w.contains(' '));
-        let number = matches!(t.kind, TokenKind::Int(_) | TokenKind::Real(_));
+        // O numeral por extenso composto ("vinte e cinco") é um token só, como a locução.
+        let spelled = matches!(t.kind, TokenKind::Int(_)) && t.orig.chars().next().is_some_and(char::is_alphabetic);
+        let locution = matches!(&t.kind, TokenKind::Word(w) if w.contains(' ')) || spelled;
+        let number = matches!(t.kind, TokenKind::Int(_) | TokenKind::Real(_)) && !spelled;
         spans.push((a, b, punct, locution, number));
     }
     let mut out = String::with_capacity(src.len());

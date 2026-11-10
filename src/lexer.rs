@@ -7,7 +7,7 @@
 
 use crate::codes::*;
 use crate::diagnostics::{Diagnostic, Diagnostics};
-use crate::morphology::split_contraction;
+use crate::morphology::{Gender, split_contraction};
 use crate::span::Span;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -120,7 +120,165 @@ pub fn tokenize_at(src: &str, base: usize, diags: &mut Diagnostics) -> Vec<Token
     let raw = scan(src, base, diags);
     let protected = fuse(raw, crate::lexicon::PROTECTED_LOCUTIONS, false);
     let split = split_contractions(protected);
-    fuse(split, crate::lexicon::LOCUTIONS, true)
+    let fused = fuse(split, crate::lexicon::LOCUTIONS, true);
+    numerals(fused, src, base, diags)
+}
+
+/// O numeral por extenso na posição `i`, se a palavra é um (sem contração).
+fn numeral_word(tokens: &[Token], i: usize) -> Option<(u32, Option<Gender>)> {
+    let t = tokens.get(i)?;
+    if t.contraction.is_some() {
+        return None;
+    }
+    crate::lexicon::numeral(t.word()?)
+}
+
+/// A palavra `w` na posição `i`, na mesma linha do numeral que ela continua.
+fn same_line_word(tokens: &[Token], i: usize, w: &str) -> bool {
+    tokens.get(i).is_some_and(|t| t.is_word(w) && t.contraction.is_none() && !t.line_start)
+}
+
+/// "um" ou "uma" depois do "e" de um composto ("cento e um"): só aí o artigo é numeral.
+fn numeral_one(tokens: &[Token], i: usize) -> Option<(u32, Vec<Gender>, usize)> {
+    let t = tokens.get(i)?;
+    if t.contraction.is_some() {
+        return None;
+    }
+    match t.word()? {
+        "um" => Some((1, vec![Gender::Masculine], i + 1)),
+        "uma" => Some((1, vec![Gender::Feminine], i + 1)),
+        _ => None,
+    }
+}
+
+/// De 0 a 99: "sete", "quinze", "vinte e cinco", "trinta e uma". Devolve o valor, os
+/// gêneros das palavras que flexionam e a posição depois do numeral.
+fn numeral_below_100(tokens: &[Token], i: usize) -> Option<(u32, Vec<Gender>, usize)> {
+    let (v, g) = numeral_word(tokens, i)?;
+    if v >= 100 {
+        return None;
+    }
+    let mut genders: Vec<Gender> = g.into_iter().collect();
+    if v >= 20 && same_line_word(tokens, i + 1, "e") && tokens.get(i + 2).is_some_and(|t| !t.line_start) {
+        // A unidade: de "dois" a "nove", ou "um"/"uma", que só aqui é numeral.
+        let unit = match numeral_word(tokens, i + 2) {
+            Some((u, ug)) if (1..=9).contains(&u) => Some((u, ug.into_iter().collect::<Vec<_>>())),
+            _ => numeral_one(tokens, i + 2).map(|(u, gs, _)| (u, gs)),
+        };
+        if let Some((u, ug)) = unit {
+            genders.extend(ug);
+            return Some((v + u, genders, i + 3));
+        }
+    }
+    Some((v, genders, i + 1))
+}
+
+/// De 0 a 999: o que cabe antes e depois de "mil".
+fn numeral_below_1000(tokens: &[Token], i: usize) -> Option<(u32, Vec<Gender>, usize)> {
+    let (v, g) = numeral_word(tokens, i)?;
+    if v == 1000 {
+        return None;
+    }
+    if v < 100 {
+        return numeral_below_100(tokens, i);
+    }
+    let mut genders: Vec<Gender> = g.into_iter().collect();
+    // "cem" é redondo; "cento" e as outras centenas continuam com "e".
+    if !tokens[i].is_word("cem")
+        && same_line_word(tokens, i + 1, "e")
+        && tokens.get(i + 2).is_some_and(|t| !t.line_start)
+        && let Some((rest, gs, end)) = numeral_below_100(tokens, i + 2).or_else(|| numeral_one(tokens, i + 2))
+    {
+        genders.extend(gs);
+        return Some((v + rest, genders, end));
+    }
+    Some((v, genders, i + 1))
+}
+
+/// O numeral inteiro a partir de `i`, até 999 999: "mil", "dois mil e trezentos",
+/// "mil duzentos e trinta".
+fn numeral_at(tokens: &[Token], i: usize) -> Option<(u32, Vec<Gender>, usize)> {
+    let (thousands, mut genders, after) = if tokens[i].is_word("mil") && tokens[i].contraction.is_none() {
+        (1, Vec::new(), i + 1)
+    } else {
+        let (v, gs, end) = numeral_below_1000(tokens, i)?;
+        if !(v >= 2 && same_line_word(tokens, end, "mil")) {
+            return Some((v, gs, end));
+        }
+        (v, gs, end + 1)
+    };
+    let total = thousands * 1000;
+    // Depois de "mil": com "e", qualquer resto ("mil e dois"); sem "e", só centena
+    // ("mil duzentos e trinta").
+    let with_e = same_line_word(tokens, after, "e");
+    let at = if with_e { after + 1 } else { after };
+    if tokens.get(at).is_some_and(|t| !t.line_start)
+        && let Some((rest, gs, end)) = numeral_below_1000(tokens, at).or_else(|| numeral_one(tokens, at).filter(|_| with_e))
+        && (with_e || rest >= 100)
+    {
+        genders.extend(gs);
+        return Some((total + rest, genders, end));
+    }
+    Some((total, genders, after))
+}
+
+/// Troca o gênero das palavras de um numeral: "dois" e "duas", "um" e "uma", "duzentos" e
+/// "duzentas".
+fn regender_numeral(orig: &str, to: Gender) -> String {
+    orig.split(' ')
+        .map(|w| {
+            let lower = w.to_lowercase();
+            let swapped = match (lower.as_str(), to) {
+                ("dois", Gender::Feminine) => "duas".to_string(),
+                ("duas", Gender::Masculine) => "dois".to_string(),
+                ("um", Gender::Feminine) => "uma".to_string(),
+                ("uma", Gender::Masculine) => "um".to_string(),
+                (l, Gender::Feminine) if l.ends_with("entos") => format!("{}entas", &l[..l.len() - 5]),
+                (l, Gender::Masculine) if l.ends_with("entas") => format!("{}entos", &l[..l.len() - 5]),
+                _ => return w.to_string(),
+            };
+            if w.chars().next().is_some_and(char::is_uppercase) {
+                let mut c = swapped.chars();
+                c.next().map(|f| f.to_uppercase().collect::<String>() + c.as_str()).unwrap_or_default()
+            } else {
+                swapped
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// Junta cada numeral por extenso num número só ("vinte e cinco" vale 25) e confere o
+/// gênero dos que flexionam: feminino antes de "vezes" ("duas vezes"), masculino no resto.
+fn numerals(tokens: Vec<Token>, src: &str, base: usize, diags: &mut Diagnostics) -> Vec<Token> {
+    let mut out: Vec<Token> = Vec::with_capacity(tokens.len());
+    let mut i = 0;
+    while i < tokens.len() {
+        let Some((value, genders, end)) = numeral_at(&tokens, i) else {
+            out.push(tokens[i].clone());
+            i += 1;
+            continue;
+        };
+        let span = tokens[i].span.to(tokens[end - 1].span);
+        let orig = src.get(span.start as usize - base..span.end as usize - base).unwrap_or(&tokens[i].orig).to_string();
+        let want = if tokens.get(end).is_some_and(|t| t.is_word("vezes")) { Gender::Feminine } else { Gender::Masculine };
+        if genders.iter().any(|g| *g != want) && !orig.contains('\n') {
+            let right = regender_numeral(&orig, want);
+            let why = if want == Gender::Feminine {
+                "\"vezes\" é feminino, e o numeral concorda com ela"
+            } else {
+                "sem um nome feminino depois, o numeral fica no masculino"
+            };
+            diags.push(Diagnostic::new(L0013, format!("O numeral não concorda: \"{right}\", não \"{orig}\"."), span).primary(why).fix(
+                format!("Escrever \"{right}\""),
+                span,
+                right.clone(),
+            ));
+        }
+        out.push(Token { kind: TokenKind::Int(value as i128), span, orig, contraction: None, line_start: tokens[i].line_start });
+        i = end;
+    }
+    out
 }
 
 fn lex_error(code: Code, msg: impl Into<String>, start: usize, end: usize) -> Diagnostic {
