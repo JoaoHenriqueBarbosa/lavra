@@ -341,14 +341,14 @@ Cada ponto é **provado** com um uso real e pequeno, ou fica **documentado como 
 
 | Feature | Depende de | Impacto |
 |---|---|---|
-| "talvez" no cabeçalho, no parâmetro e no retorno (`notes/lavra.md`, "Ainda falta") | `type_word` do cabeçalho, sema | aditiva |
-| Interpretador sem cópia ao passar coleção emprestada ou confiada (`notes/compiler.md`, custo de cópia) | quadros donos do depurador (fase 5) | interna, sem mudança de saída |
-| Texto→número, caractere→inteiro | `como` | aditiva |
-| Texto, matemática, arquivos, tempo | builtins e bibliotecas | aditiva |
-| Numerais por extenso | léxico | aditiva; reserva palavras |
-| `Pattern::Literal`, `CondKind::Empty/Contains` (já na AST) | sema, back-ends | aditiva |
+| "talvez" no cabeçalho, no parâmetro e no retorno (`notes/lavra.md`, "Ainda falta") **(feito)** | `type_word` do cabeçalho, sema | aditiva |
+| Interpretador sem cópia ao passar coleção emprestada ou confiada (`notes/compiler.md`, custo de cópia) **(feito)** | quadros donos do depurador (fase 5) | interna, sem mudança de saída |
+| Texto→número, caractere→inteiro **(feito)** | `como` | aditiva |
+| Texto, matemática, arquivos, tempo **(feito)** | builtins e bibliotecas | aditiva |
+| Numerais por extenso **(feito)** | léxico | aditiva; reserva palavras |
+| `Pattern::Literal`, `CondKind::Empty/Contains` (já na AST) **(feito)** | sema, back-ends | aditiva |
 | Mapas e conjuntos | `KIND_*`, builtins | aditiva |
-| Registro recursivo via lista (`sema.rs:195`) | descritores | aditiva |
+| Registro recursivo via lista (`sema.rs:195`) **(feito)** | descritores | aditiva |
 | Módulos | F4, F7 | aditiva |
 | Referências guardadas | loans lexicais | aditiva; regras novas |
 | Genéricos, traits | monomorfização | aditiva |

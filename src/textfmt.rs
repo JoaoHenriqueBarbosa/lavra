@@ -207,6 +207,77 @@ pub fn dir_list(path: &str) -> Result<Vec<String>, String> {
     Ok(names)
 }
 
+/// O instante de agora: os milissegundos desde o começo de 1970.
+pub fn now_millis() -> i64 {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_millis() as i64)
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        0
+    }
+}
+
+/// Quantos segundos o horário do lugar está à frente do universal, no instante dado.
+#[cfg(all(unix, not(target_arch = "wasm32")))]
+fn local_offset(epoch_seconds: i64) -> i64 {
+    // O `struct tm` do Linux (glibc e musl): nove inteiros, o deslocamento e o nome do fuso.
+    #[repr(C)]
+    struct Tm {
+        fields: [i32; 9],
+        gmtoff: std::ffi::c_long,
+        zone: *const std::ffi::c_char,
+    }
+    unsafe extern "C" {
+        fn localtime_r(time: *const i64, out: *mut Tm) -> *mut Tm;
+    }
+    let mut tm = Tm { fields: [0; 9], gmtoff: 0, zone: std::ptr::null() };
+    // SAFETY: os dois ponteiros apontam para valores vivos, e a função só os lê e preenche.
+    let filled = unsafe { localtime_r(&epoch_seconds, &mut tm) };
+    if filled.is_null() { 0 } else { tm.gmtoff as i64 }
+}
+
+#[cfg(not(all(unix, not(target_arch = "wasm32"))))]
+fn local_offset(_epoch_seconds: i64) -> i64 {
+    0
+}
+
+/// As partes de um instante no horário do lugar: ano, mês, dia, hora, minuto e segundo.
+pub fn civil(millis: i64) -> [i64; 6] {
+    let utc = millis.div_euclid(1000);
+    let local = utc.saturating_add(local_offset(utc));
+    let days = local.div_euclid(86_400);
+    let rest = local.rem_euclid(86_400);
+    // Dos dias desde 1970 ao calendário (o algoritmo de Howard Hinnant).
+    let z = days + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z.rem_euclid(146_097);
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = yoe + era * 400 + if month <= 2 { 1 } else { 0 };
+    [year, month, day, rest / 3_600, rest % 3_600 / 60, rest % 60]
+}
+
+/// "datar": o instante por extenso, "10/11/2026 14:57:03".
+pub fn date_text(millis: i64) -> String {
+    let [y, mo, d, h, mi, s] = civil(millis);
+    format!("{d:02}/{mo:02}/{y} {h:02}:{mi:02}:{s:02}")
+}
+
+/// "aguardar": para pelo tempo dado, em milissegundos.
+pub fn sleep_millis(millis: i64) {
+    #[cfg(not(target_arch = "wasm32"))]
+    if millis > 0 {
+        std::thread::sleep(std::time::Duration::from_millis(millis as u64));
+    }
+    #[cfg(target_arch = "wasm32")]
+    let _ = millis;
+}
+
 /// O real `x`, sem a parte fracionária, cabe no inteiro? (NaN e infinito não cabem.)
 pub fn real_fits(x: f64, bits: u8, signed: bool) -> bool {
     let t = x.trunc();

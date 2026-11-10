@@ -304,6 +304,13 @@ Para começar:
   `O conteúdo é o resultado de carregar "notas.txt", ou desisto.`,
   `Gravo o relatório em "saída.txt", ou desisto.` A falha diz o que não deu certo:
   `Falha: Não consegui carregar "notas.txt": não existe.`
+- A biblioteca de tempo ("Uso a biblioteca de tempo.") trata o instante como um inteiro, os
+  milissegundos desde o começo de 1970: `o agora` é o instante em que a oração roda;
+  `o ano de x`, `o mês de x`, `o dia de x`, `a hora de x` e `o minuto de x` são as partes de um
+  instante, no horário do lugar em que o programa roda (o segundo sai da conta, porque "o
+  segundo de" já é a posição 2 de uma coleção: `o resto de (x dividido por 1 000) e 60`); "datar o
+  instante" dá o texto "10/11/2026 14:57:03"; "aguardar o tempo" para o programa pelos
+  milissegundos dados. Duração é conta de inteiros: `(o agora) menos o começo`.
 - Operação por extenso de biblioteca só existe no programa que traz a biblioteca: sem ela,
   "o seno" é um nome qualquer. Com ela, "o pi" passa a ser a constante.
 - Verbo de biblioteca não reserva palavra em programa que não a traz. No programa que a

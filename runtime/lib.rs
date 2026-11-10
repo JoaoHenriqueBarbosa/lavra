@@ -536,6 +536,49 @@ pub unsafe extern "C" fn rt_dir_list(path: *const String, out: *mut *mut Failure
     }
 }
 
+// ------------------------------------------------------------------ tempo
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_time_now(_lo: u32, _hi: u32) -> i64 {
+    textfmt::now_millis()
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_time_year(millis: i64, _lo: u32, _hi: u32) -> i64 {
+    textfmt::civil(millis)[0]
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_time_month(millis: i64, _lo: u32, _hi: u32) -> i64 {
+    textfmt::civil(millis)[1]
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_time_day(millis: i64, _lo: u32, _hi: u32) -> i64 {
+    textfmt::civil(millis)[2]
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_time_hour(millis: i64, _lo: u32, _hi: u32) -> i64 {
+    textfmt::civil(millis)[3]
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_time_minute(millis: i64, _lo: u32, _hi: u32) -> i64 {
+    textfmt::civil(millis)[4]
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_time_text(millis: i64, _lo: u32, _hi: u32) -> *mut String {
+    Box::into_raw(Box::new(textfmt::date_text(millis)))
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_time_sleep(millis: i64, _lo: u32, _hi: u32) {
+    unsafe { flush() };
+    textfmt::sleep_millis(millis);
+}
+
 // ------------------------------------------------------------- matemática
 
 #[unsafe(no_mangle)]

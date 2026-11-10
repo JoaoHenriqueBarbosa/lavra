@@ -455,3 +455,13 @@ Item 7, terceira parte (arquivos):
 
 Decisão para revisar: o arquivo inteiro é lido e gravado de uma vez, como texto. Não há leitura linha a linha nem arquivo aberto: para as linhas, "dividir" o conteúdo por "\n", da biblioteca de textos.
 
+Item 7, quarta parte (tempo), que fecha as bibliotecas:
+- "Uso a biblioteca de tempo." traz "o agora" (o instante, em milissegundos desde 1970), as partes de um instante ("o ano de x", "o mês de x", "o dia de x", "a hora de x", "o minuto de x"), "datar o instante" (o texto "10/11/2026 14:57:03") e "aguardar o tempo".
+- As partes saem no horário do lugar, pedido ao sistema; no navegador (o playground), saem no horário universal, e "o agora" vale zero.
+- Os testes só conferem relações (o ano é pelo menos 2026, a espera durou o que pediu), porque a saída tem de ser igual em qualquer máquina e em qualquer fuso.
+
+Decisões para revisar:
+- O instante é um inteiro, e não um registro "data": uma biblioteca ainda não define tipos, só operações. Um tipo "data" com os campos caberia quando houver módulos.
+- Não há "o segundo de x": "o segundo de" já é a posição 2 de uma coleção, e as duas leituras brigariam no programa que traz a biblioteca. O segundo sai da conta, "o resto de (x dividido por 1 000) e 60".
+- "o agora" é um nome, como "o pi". No programa que traz a biblioteca de tempo, não serve de nome de variável.
+

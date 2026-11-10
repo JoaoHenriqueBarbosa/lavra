@@ -1,0 +1,17 @@
+Uso a biblioteca de tempo.
+
+Para começar:
+    O começo é o agora.
+    Se o ano do começo for pelo menos 2026: escrevo "o ano confere".
+    O mês é o mês do começo.
+    Se o mês for pelo menos 1 e o mês for no máximo 12: escrevo "o mês confere".
+    O segundo é o resto de (o começo dividido por 1 000) e 60.
+    O relógio é ((a hora do começo) vezes 3 600) mais ((o minuto do começo) vezes 60) mais o segundo.
+    Se o relógio for menor que 86 400: escrevo "o relógio confere".
+    Se o dia do começo for pelo menos 1: escrevo "o dia confere".
+    Escrevo o tamanho do resultado de datar o começo.
+    Aguardo 30.
+    O fim é o agora.
+    Se o fim menos o começo for pelo menos 30: escrevo "esperou".
+    O amanhã é o começo mais 86 400 000.
+    Se o amanhã for maior que o fim: escrevo "amanhã vem depois".

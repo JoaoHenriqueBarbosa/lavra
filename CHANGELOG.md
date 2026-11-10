@@ -32,6 +32,8 @@ As versões da Lavra, a mais nova primeiro.
 - A biblioteca de arquivos ("Uso a biblioteca de arquivos."): carregar, gravar, acrescentar,
   apagar, listar e "Se o caminho existir". O que depende do disco pode falhar, e a chamada
   trata com ", ou desisto" ou ", ou VALOR".
+- A biblioteca de tempo ("Uso a biblioteca de tempo."): "o agora", as partes de um instante
+  ("o ano de x", "a hora de x"...), "datar o instante" e "aguardar o tempo".
 
 ### Desempenho
 

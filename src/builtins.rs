@@ -30,6 +30,7 @@ pub const LIBRARIES: &[Library] = &[
     Library { name: "textos", file: "textos", source: include_str!("libraries/textos.lav") },
     Library { name: "matemática", file: "matematica", source: include_str!("libraries/matematica.lav") },
     Library { name: "arquivos", file: "arquivos", source: include_str!("libraries/arquivos.lav") },
+    Library { name: "tempo", file: "tempo", source: include_str!("libraries/tempo.lav") },
 ];
 
 /// O estado dos sorteios do interpretador; sem semente, começa pelo relógio.
@@ -75,6 +76,11 @@ pub enum Builtin {
     FileRemove,
     FileExists,
     DirList,
+    Now,
+    /// Uma parte do instante: 0 é o ano, e daí mês, dia, hora e minuto.
+    TimePart(u8),
+    DateText,
+    Sleep,
 }
 
 impl Builtin {
@@ -106,6 +112,14 @@ impl Builtin {
         Builtin::FileRemove,
         Builtin::FileExists,
         Builtin::DirList,
+        Builtin::Now,
+        Builtin::TimePart(0),
+        Builtin::TimePart(1),
+        Builtin::TimePart(2),
+        Builtin::TimePart(3),
+        Builtin::TimePart(4),
+        Builtin::DateText,
+        Builtin::Sleep,
     ];
 
     /// A operação pode falhar ("salvo engano"): quem chama trata, e o nativo recebe onde
@@ -145,6 +159,14 @@ impl Builtin {
             Builtin::FileRemove => ("arquivos", "apagar"),
             Builtin::FileExists => ("arquivos", "existir"),
             Builtin::DirList => ("arquivos", "listar"),
+            Builtin::Now => ("tempo", "calcular o agora"),
+            Builtin::TimePart(0) => ("tempo", "calcular o ano"),
+            Builtin::TimePart(1) => ("tempo", "calcular o mês"),
+            Builtin::TimePart(2) => ("tempo", "calcular o dia"),
+            Builtin::TimePart(3) => ("tempo", "calcular a hora"),
+            Builtin::TimePart(_) => ("tempo", "calcular o minuto"),
+            Builtin::DateText => ("tempo", "datar"),
+            Builtin::Sleep => ("tempo", "aguardar"),
         }
     }
 
@@ -199,6 +221,14 @@ impl Builtin {
             Builtin::FileRemove => "rt_file_remove",
             Builtin::FileExists => "rt_file_exists",
             Builtin::DirList => "rt_dir_list",
+            Builtin::Now => "rt_time_now",
+            Builtin::TimePart(0) => "rt_time_year",
+            Builtin::TimePart(1) => "rt_time_month",
+            Builtin::TimePart(2) => "rt_time_day",
+            Builtin::TimePart(3) => "rt_time_hour",
+            Builtin::TimePart(_) => "rt_time_minute",
+            Builtin::DateText => "rt_time_text",
+            Builtin::Sleep => "rt_time_sleep",
         }
     }
 }
@@ -239,6 +269,13 @@ pub fn interpret(b: Builtin, args: &[Value], span: Span) -> Result<Value, Fault>
     // A falha declarada da operação, que sobe até quem a trata.
     let failed = |message: String| Fault { code: None, message, span, desist: true };
     Ok(match b {
+        Builtin::Now => Value::Int(textfmt::now_millis() as i128),
+        Builtin::TimePart(part) => Value::Int(textfmt::civil(int(&args[0]) as i64)[part as usize % 6] as i128),
+        Builtin::DateText => Value::Text(textfmt::date_text(int(&args[0]) as i64)),
+        Builtin::Sleep => {
+            textfmt::sleep_millis(int(&args[0]) as i64);
+            Value::Unit
+        }
         Builtin::FileLoad => Value::Text(textfmt::file_load(&text(&args[0])).map_err(failed)?),
         Builtin::FileSave => textfmt::file_save(&text(&args[0]), &text(&args[1]), false).map(|_| Value::Unit).map_err(failed)?,
         Builtin::FileAppend => textfmt::file_save(&text(&args[0]), &text(&args[1]), true).map(|_| Value::Unit).map_err(failed)?,

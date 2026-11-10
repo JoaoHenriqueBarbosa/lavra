@@ -1,0 +1,31 @@
+Nota: A biblioteca de tempo. O programa a traz com "Uso a biblioteca de tempo.".
+Nota: Cada operação é feita pela própria língua: o cabeçalho termina em ponto, sem corpo.
+Nota: Um instante é um inteiro: os milissegundos desde o começo de 1970. As partes de
+Nota: um instante saem no horário do lugar em que o programa roda.
+
+Nota: O instante em que a oração roda.
+Para calcular o agora, devolvendo um inteiro.
+
+Nota: O ano do instante: 2026.
+Para calcular o ano de x, sendo x um inteiro, devolvendo um inteiro.
+
+Nota: O mês do instante, de 1 a 12.
+Para calcular o mês de x, sendo x um inteiro, devolvendo um inteiro.
+
+Nota: O dia do mês do instante, de 1 a 31.
+Para calcular o dia de x, sendo x um inteiro, devolvendo um inteiro.
+
+Nota: A hora do instante, de 0 a 23.
+Para calcular a hora de x, sendo x um inteiro, devolvendo um inteiro.
+
+Nota: O minuto do instante, de 0 a 59.
+Para calcular o minuto de x, sendo x um inteiro, devolvendo um inteiro.
+
+Nota: O segundo não tem operação: "o segundo" já é a posição 2 de uma coleção. Ele sai da
+Nota: conta, e não depende do lugar: o resto de (x dividido por 1 000) e 60.
+
+Nota: O instante por extenso: "10/11/2026 14:57:03".
+Para datar o instante, sendo o instante um inteiro, devolvendo um texto.
+
+Nota: Para o programa pelo tempo dado, em milissegundos.
+Para aguardar o tempo, sendo o tempo um inteiro.
