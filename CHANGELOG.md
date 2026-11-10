@@ -2,6 +2,18 @@
 
 As versões da Lavra, a mais nova primeiro.
 
+## [Unreleased]
+
+### Novidades
+
+- A função que pode falhar se declara com "salvo engano", o dizer corrente da língua. É a
+  única forma: "engano" passa a ser palavra da língua, e "falha" deixa de ser.
+- Tipo implícito no cabeçalho: quando o nome do parâmetro é o nome do tipo, o particípio vem
+  direto ("sendo a prova emprestada" vale por "sendo a prova uma prova emprestada"). O rename
+  escreve o tipo por extenso quando o nome ou o tipo muda.
+- "talvez" no cabeçalho, no parâmetro e no retorno ("sendo o apelido talvez um texto
+  emprestado", "devolvendo talvez um inteiro"): uma função já pode devolver "nada".
+
 ## [0.1.0] - 2026-10-22
 
 ### Novidades

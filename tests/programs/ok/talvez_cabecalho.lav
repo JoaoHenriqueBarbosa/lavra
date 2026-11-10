@@ -1,0 +1,32 @@
+Nota: "talvez" no cabeçalho, no parâmetro e no retorno.
+
+Para procurar o nome na lista, sendo o nome um texto emprestado e a lista uma lista de textos emprestada,
+        devolvendo talvez um inteiro:
+    A posição começa em 0.
+    Para cada candidato da lista:
+        A posição cresce 1.
+        Se o candidato for igual ao nome: devolvo a posição.
+    Devolvo nada.
+
+Para saudar o apelido, sendo o apelido talvez um texto emprestado:
+    Se houver apelido: escrevo "oi, " seguido do apelido.
+    Senão: escrevo "oi, anônimo".
+
+Para guardar o troco, sendo o troco talvez um inteiro, devolvendo um inteiro:
+    Se houver troco: devolvo o troco.
+    Devolvo 0.
+
+Para começar:
+    Os nomes são "Ana", "Bia" e "Caio".
+    O achado é o resultado de procurar "Bia" nos nomes.
+    Se houver achado: escrevo "na posição " seguido do achado.
+    O perdido é o resultado de procurar "Zeca" nos nomes.
+    Se não houver perdido: escrevo "não achei".
+    O apelido, talvez um texto, começa em nada.
+    Saúdo o apelido.
+    O apelido vira "Bibi".
+    Saúdo o apelido.
+    Saúdo "Caco".
+    Escrevo o resultado de guardar 7.
+    Escrevo o resultado de guardar nada.
+    Escrevo o resultado de procurar "Caio" nos nomes.

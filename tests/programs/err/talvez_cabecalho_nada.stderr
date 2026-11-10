@@ -1,0 +1,11 @@
+Erro de tipo [L0348]: "nada" só cabe onde se espera "talvez", e aqui se espera um inteiro.
+ --> tests/programs/err/talvez_cabecalho_nada.lav:2:13
+  |
+2 |     Devolvo nada.
+  |             ^^^^
+  = dica: Para um valor que pode faltar, declare com "talvez": "O apelido, talvez um texto, começa em nada."
+Erro de sintaxe [L0126]: "talvez talvez" não existe: a ausência já é uma só.
+ --> tests/programs/err/talvez_cabecalho_nada.lav:4:66
+  |
+4 | Para dobrar o valor, sendo o valor um inteiro, devolvendo talvez talvez um inteiro:
+  |                                                                  ^^^^^^

@@ -405,6 +405,8 @@ impl Parser {
                     break;
                 }
             } else if self.eat_word("devolvendo") {
+                let ret_start = self.peek().span;
+                let maybe = self.maybe_word()?;
                 let at = self.bump();
                 let Some(art) = at.word().and_then(morphology::article).filter(|a| !a.definite && a.number == Number::Singular) else {
                     return err(Diagnostic::new(
@@ -413,9 +415,9 @@ impl Parser {
                         at.span,
                     ));
                 };
-                let s0 = at.span;
                 let ty = self.type_noun(art, at.span)?;
-                ret = Some(TypeAnn { ty, span: s0.to(self.prev_span()) });
+                let ty = if maybe { TypeExpr::Maybe(Box::new(ty)) } else { ty };
+                ret = Some(TypeAnn { ty, span: ret_start.to(self.prev_span()) });
             } else if self.eat_word("salvo") {
                 let a = self.bump();
                 if !a.is_word("engano") {
@@ -572,6 +574,8 @@ impl Parser {
             return Ok(vec![Typed { word: n.word.clone(), ann, mode, span: n.span, named: true }]);
         }
         let start = self.peek().span;
+        // "sendo o apelido talvez um texto": o valor pode faltar.
+        let maybe = self.maybe_word()?;
         let (ty, ty_gender, plural) = if let Some(art) = self.peek().word().and_then(morphology::article).filter(|a| !a.definite) {
             let at = self.bump();
             if names.len() > 1 {
@@ -600,13 +604,28 @@ impl Parser {
                 }
                 return Err(self.expected("o tipo com artigo indefinido (\"um real\")"));
             }
+            if maybe {
+                return Err(self.expected("o tipo com artigo indefinido depois de \"talvez\" (\"talvez um texto\")"));
+            }
             let (ty, g) = self.type_word(Number::Plural)?;
             (ty, g, true)
         };
+        let ty = if maybe { TypeExpr::Maybe(Box::new(ty)) } else { ty };
         let number = if plural { Number::Plural } else { Number::Singular };
         let mode = self.participle(ty_gender, number)?;
         let ann = TypeAnn { ty, span: start.to(self.prev_span()) };
         Ok(names.into_iter().map(|(word, span, named)| Typed { word, ann: ann.clone(), mode, span, named }).collect())
+    }
+
+    /// O "talvez" antes do tipo, no cabeçalho; dois seguidos não existem.
+    fn maybe_word(&mut self) -> Result<bool> {
+        if !self.eat_word("talvez") {
+            return Ok(false);
+        }
+        if self.at_word("talvez") {
+            return err(Diagnostic::new(L0126, "\"talvez talvez\" não existe: a ausência já é uma só.", self.peek().span));
+        }
+        Ok(true)
     }
 
     /// O particípio de modo que vem agora, em qualquer flexão: "emprestado" ou "confiado".
@@ -686,7 +705,7 @@ impl Parser {
 
     /// Um artigo indefinido ("um", "uma") a `k` tokens daqui.
     fn indefinite_at(&self, k: usize) -> bool {
-        self.peek_at(k).word().and_then(morphology::article).is_some_and(|a| !a.definite)
+        self.peek_at(k).word().is_some_and(|w| w == "talvez" || morphology::article(w).is_some_and(|a| !a.definite))
     }
 
     /// Lê um substantivo de tipo no número pedido. Devolve o tipo e o gênero.

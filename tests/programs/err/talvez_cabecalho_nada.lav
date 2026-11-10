@@ -1,0 +1,10 @@
+Para procurar o nome, sendo o nome um texto emprestado, devolvendo um inteiro:
+    Devolvo nada.
+
+Para dobrar o valor, sendo o valor um inteiro, devolvendo talvez talvez um inteiro:
+    Devolvo o valor.
+
+Para começar:
+    Escrevo o resultado de procurar "Ana".
+    A metade é o resultado de dobrar 2.
+    Escrevo a metade mais 1.

@@ -372,3 +372,17 @@ Decisões para revisar:
 Com isso o roteiro inteiro está feito: as fases 0 a 9, as partes adiadas e as lacunas da auditoria. Ficam só coisas que dependem de você:
 - os tokens de publicação: o do crates.io, para o primeiro cargo publish da última tag, e os do Marketplace e do Open VSX, para a extensão. Só quem tem a conta gera, e a pipeline já os usa quando chegarem;
 - o merge do PR de release que o release-plz abriu (v0.2.0), que é seu.
+
+Dia 10/11/2026, começo do catálogo de features do roadmap (seção 2.4), registro do Claude:
+
+O pedido é implementar o catálogo inteiro, menos os tokens de publicação e o nativo em macOS e Windows. Cada item sai num commit e num envio só, na main, com a entrada aqui e no CHANGELOG, que ganhou a seção "Unreleased" (o release-plz a reconhece e põe a versão nova abaixo dela).
+
+Antes do catálogo, duas mudanças pedidas na conversa, já enviadas:
+- "salvo engano" no lugar da locução antiga do cabeçalho (c4a3bda). É incompatível: "engano" virou palavra da língua.
+- o tipo implícito, "sendo a prova emprestada" (25391b0), com o L0176 e o rename que escreve o tipo por extenso.
+
+Item 1, "talvez" no cabeçalho:
+- "sendo o apelido talvez um texto emprestado" e "devolvendo talvez um inteiro". A sema e os dois back-ends já tratavam o "talvez" como tipo qualquer; faltava só o parser do cabeçalho aceitar.
+- Quem chama passa o valor, "nada" ou um nome que já é "talvez". "talvez talvez" dá o L0126 de sempre, e o plural ("sendo a e b talvez inteiros") é recusado: cada parâmetro que pode faltar tem a sua tipagem.
+- Um programa certo (com a paridade) e dois errados.
+

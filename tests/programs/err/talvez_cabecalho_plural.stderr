@@ -1,0 +1,6 @@
+Erro de concordância [L0165]: Vários parâmetros pedem o tipo no plural, sem artigo: "sendo p e q inteiros".
+ --> tests/programs/err/talvez_cabecalho_plural.lav:1:59
+  |
+1 | Para somar a parcela e a sobra, sendo a parcela e a sobra talvez inteiros, devolvendo um inteiro:
+  |                                                           ^^^^^^
+  = dica: Ou dê a cada parâmetro o seu: "sendo p um inteiro e q um inteiro".
