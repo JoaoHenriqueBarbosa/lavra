@@ -61,7 +61,8 @@ fn ok_programs() {
         }
         // Um programa certo pode avisar e pode desistir, mas não ter erro: sem esta trava,
         // regravar as expectativas guardaria o erro como se fosse a saída esperada.
-        if err.lines().any(|l| l.starts_with("Erro ")) {
+        // (Os samples ficam de fora: há poema que tropeça de propósito.)
+        if p.parent().is_some_and(|d| d.ends_with("tests/programs/ok")) && err.lines().any(|l| l.starts_with("Erro ")) {
             failures.push(format!("{} é um programa certo e deu erro:\n{err}", p.display()));
             continue;
         }
