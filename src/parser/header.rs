@@ -509,6 +509,8 @@ impl Parser {
     fn typing(&mut self, params: &[(NameRef, Slot)]) -> Result<Vec<Typed>> {
         // (palavra, trecho do nome ou do "ambos", o nome se repetiu)
         let mut names: Vec<(String, Span, bool)> = Vec::new();
+        // O nome escrito por último, para o tipo implícito ("sendo a prova emprestada").
+        let mut last: Option<NameRef> = None;
         let t = self.peek().clone();
         if t.is_word("ambos") || t.is_word("ambas") {
             self.bump();
@@ -547,6 +549,7 @@ impl Parser {
                     .fix(format!("Escrever \"{}\"", decl.display()), n.span, decl.display()));
                 }
                 names.push((n.word.clone(), n.span, true));
+                last = Some(n);
                 // Mais nomes antes do tipo: "p e q inteiros".
                 let more = (self.at_word("e") || self.at_punct(',')) && self.continues_group();
                 if more {
@@ -556,6 +559,17 @@ impl Parser {
                 }
                 break;
             }
+        }
+        // Tipo implícito: o nome do parâmetro é o nome do tipo, e o particípio vem direto
+        // ("sendo a prova emprestada" é "sendo a prova uma prova emprestada").
+        if names.len() == 1
+            && let Some(n) = last.filter(|n| !n.is_symbol() && n.number() == Number::Singular)
+            && self.participle_at().is_some()
+        {
+            let (ty, ty_gender) = self.implicit_type(&n)?;
+            let mode = self.participle(ty_gender, Number::Singular)?;
+            let ann = TypeAnn { ty, span: n.word_span };
+            return Ok(vec![Typed { word: n.word.clone(), ann, mode, span: n.span, named: true }]);
         }
         let start = self.peek().span;
         let (ty, ty_gender, plural) = if let Some(art) = self.peek().word().and_then(morphology::article).filter(|a| !a.definite) {
@@ -590,26 +604,61 @@ impl Parser {
             (ty, g, true)
         };
         let number = if plural { Number::Plural } else { Number::Singular };
-        let mut mode = ParamMode::Owned;
-        if let Some(w) = self.peek().word().map(str::to_string) {
-            for (base, m) in [("emprestado", ParamMode::Borrowed), ("confiado", ParamMode::Lent)] {
-                if let Some((g, n)) = morphology::adjective_form(&w, base) {
-                    let pt = self.bump();
-                    if g != ty_gender || n != number {
-                        let right = morphology::inflect_adjective(base, Gender::Masculine, ty_gender, number);
-                        return err(Diagnostic::new(
-                            L0167,
-                            format!("O particípio concorda com o tipo: \"{right}\", não \"{}\".", pt.orig),
-                            pt.span,
-                        )
-                        .fix(format!("Escrever \"{right}\""), pt.span, right.clone()));
-                    }
-                    mode = m;
-                }
-            }
-        }
+        let mode = self.participle(ty_gender, number)?;
         let ann = TypeAnn { ty, span: start.to(self.prev_span()) };
         Ok(names.into_iter().map(|(word, span, named)| Typed { word, ann: ann.clone(), mode, span, named }).collect())
+    }
+
+    /// O particípio de modo que vem agora, em qualquer flexão: "emprestado" ou "confiado".
+    fn participle_at(&self) -> Option<(&'static str, ParamMode, Gender, Number)> {
+        let w = self.peek().word()?;
+        [("emprestado", ParamMode::Borrowed), ("confiado", ParamMode::Lent)]
+            .into_iter()
+            .find_map(|(base, m)| morphology::adjective_form(w, base).map(|(g, n)| (base, m, g, n)))
+    }
+
+    /// Lê o particípio de modo, se houver, e confere a concordância com o tipo.
+    fn participle(&mut self, ty_gender: Gender, number: Number) -> Result<ParamMode> {
+        let Some((base, mode, g, n)) = self.participle_at() else { return Ok(ParamMode::Owned) };
+        let pt = self.bump();
+        if g != ty_gender || n != number {
+            let right = morphology::inflect_adjective(base, Gender::Masculine, ty_gender, number);
+            return err(Diagnostic::new(L0167, format!("O particípio concorda com o tipo: \"{right}\", não \"{}\".", pt.orig), pt.span)
+                .fix(format!("Escrever \"{right}\""), pt.span, right.clone()));
+        }
+        Ok(mode)
+    }
+
+    /// O tipo que o nome do parâmetro nomeia, no tipo implícito: um registro, uma enumeração
+    /// ou um tipo da língua ("o texto", "o inteiro").
+    fn implicit_type(&mut self, n: &NameRef) -> Result<(TypeExpr, Gender)> {
+        let (ty, g) = if let Some((name, g)) = self.record_type_word(&n.word, Number::Singular) {
+            (TypeExpr::Named(name), g)
+        } else {
+            let ty = match n.word.as_str() {
+                "inteiro" | "natural" => TypeExpr::Int { bits: 64, signed: n.word == "inteiro" },
+                "real" => TypeExpr::Real { bits: 64 },
+                "byte" => TypeExpr::Byte,
+                "lógico" => TypeExpr::Bool,
+                "caractere" => TypeExpr::Char,
+                "texto" => TypeExpr::Text,
+                _ => {
+                    return err(Diagnostic::new(
+                        L0176,
+                        format!("\"{}\" não é nome de tipo: falta o tipo de \"{}\".", n.word, n.display()),
+                        n.span,
+                    )
+                    .primary("o particípio sozinho só cabe quando o nome é o do tipo")
+                    .hint(format!("Diga o tipo antes do particípio: \"sendo {} um texto emprestado\".", n.display())));
+                }
+            };
+            (ty, Gender::Masculine)
+        };
+        if n.gender() != g {
+            let right = format!("{} {}", morphology::definite_article(g, Number::Singular), n.word);
+            return err(Diagnostic::new(L0128, format!("\"{}\" é {}: \"{right}\".", n.word, g.describe()), n.span));
+        }
+        Ok((ty, g))
     }
 
     /// Depois de "e"/"," na tipagem: o nome seguinte é do mesmo grupo plural

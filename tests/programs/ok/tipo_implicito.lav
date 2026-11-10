@@ -1,0 +1,33 @@
+Nota: o nome do parâmetro é o nome do tipo, e o particípio vem direto.
+
+Uma prova é um registro de:
+    o título, um texto;
+    o valor, um real.
+
+Para apresentar a prova, sendo a prova emprestada:
+    Escrevo o título da prova seguido de ": " seguido do valor da prova.
+
+Para corrigir a prova, sendo a prova confiada:
+    O valor da prova cresce 1,5.
+
+Para medir o texto, sendo o texto emprestado, devolvendo um inteiro:
+    Devolvo o tamanho do texto.
+
+Para dobrar o inteiro, sendo o inteiro confiado:
+    O inteiro cresce o inteiro.
+
+Para comparar a prova com a rival, sendo a prova emprestada e a rival uma prova emprestada,
+        devolvendo um lógico:
+    Devolvo o fato de o valor da prova ser maior que o valor da rival.
+
+Para começar:
+    A álgebra começa em uma prova com o título "Álgebra" e o valor 7,0.
+    A geometria é uma prova com o título "Geometria" e o valor 8,0.
+    Apresento a álgebra.
+    Corrijo a álgebra.
+    Apresento a álgebra.
+    Escrevo o resultado de medir "lavra".
+    O total começa em 21.
+    Dobro o total.
+    Escrevo o total.
+    Se o resultado de comparar a álgebra com a geometria for verdadeiro: escrevo "a álgebra vence".

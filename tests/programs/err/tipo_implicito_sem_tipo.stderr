@@ -1,0 +1,6 @@
+Erro de tipo [L0176]: "carta" não é nome de tipo: falta o tipo de "a carta".
+ --> tests/programs/err/tipo_implicito_sem_tipo.lav:1:27
+  |
+1 | Para medir a carta, sendo a carta emprestada, devolvendo um inteiro:
+  |                           ^^^^^^^ o particípio sozinho só cabe quando o nome é o do tipo
+  = dica: Diga o tipo antes do particípio: "sendo a carta um texto emprestado".

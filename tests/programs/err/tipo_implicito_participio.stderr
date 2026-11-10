@@ -1,0 +1,5 @@
+Erro de concordância [L0167]: O particípio concorda com o tipo: "emprestada", não "emprestado".
+ --> tests/programs/err/tipo_implicito_participio.lav:4:40
+  |
+4 | Para apresentar a prova, sendo a prova emprestado:
+  |                                        ^^^^^^^^^^

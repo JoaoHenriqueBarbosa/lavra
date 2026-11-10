@@ -247,6 +247,21 @@ impl Plan<'_> {
         }
     }
 
+    /// A ocorrência é a tipagem de um parâmetro com o tipo implícito: num cabeçalho, o nome
+    /// com artigo definido seguido direto do particípio ("sendo a prova emprestada").
+    fn implicit_typing(&self, o: &Occurrence) -> bool {
+        let at = self.token(o.word).span;
+        let participle = self
+            .a
+            .tokens
+            .get(o.last + 1)
+            .and_then(|t| t.word())
+            .is_some_and(|w| ["emprestado", "confiado"].iter().any(|base| morphology::adjective_form(w, base).is_some()));
+        participle
+            && o.article.is_some_and(|k| self.token(k).word().and_then(morphology::article).is_some_and(|a| a.definite))
+            && self.a.ast.sigs.iter().any(|s| s.span.start <= at.start && at.end <= s.span.end)
+    }
+
     /// Os nomes que são um só com `def`: declarados no mesmo trecho (os campos de um caso
     /// e os nomes que cada braço de "Conforme" expõe), ou ligados pelo "Se houver".
     fn family(&self, def: usize) -> Vec<usize> {
@@ -330,6 +345,18 @@ impl Plan<'_> {
             for o in occurrences(self.a, member) {
                 let word_span = self.token(o.word).span.to(self.token(o.last).span);
                 match o.form {
+                    Form::Name if self.implicit_typing(&o) => {
+                        // "sendo a prova emprestada": o nome e o tipo deixam de coincidir, e
+                        // o tipo passa a ser dito. O particípio se acerta pela correção de
+                        // concordância.
+                        if is_type {
+                            let article = morphology::indefinite_article(gender, Number::Singular);
+                            self.put(word_span, &format!("{} {article} {}", m.name, new.word));
+                            continue;
+                        }
+                        let article = morphology::indefinite_article(old_gender, Number::Singular);
+                        self.put(word_span, &format!("{} {article} {}", new.word, m.name));
+                    }
                     Form::Name => {
                         // O item de um "Para cada nota" que só este nome tem: a coleção
                         // continua com o nome dela e passa a ser dita.

@@ -111,6 +111,7 @@ Para elevar x a n, sendo x um real e n um natural, devolvendo um real:
 Para transferir a quantia da origem para o destino,
         sendo a quantia um inteiro e a origem e o destino inteiros confiados:
 Para contar os dias até a data, sendo a data uma data emprestada, devolvendo um inteiro:
+Para apresentar a prova, sendo a prova emprestada:      o nome é o do tipo: tipo implícito
 Para o valor exceder o limite, sendo ambos inteiros, devolvendo um lógico:
 Para o número ser par, sendo o número um inteiro, devolvendo um lógico:
 Para trovejar (trovejo) ...:          forma da 1ª pessoa declarada (defectivos)
@@ -122,6 +123,11 @@ Para trovejar (trovejo) ...:          forma da 1ª pessoa declarada (defectivos)
 - Objeto com artigo e sem tipo é **complemento fixo**: faz parte do verbo
   (`contar os dias até`). Com complemento fixo no cabeçalho, `ambos`/`ambas` são os dois
   regidos (`Para medir o tempo desde a origem até a data, sendo ambas datas emprestadas`).
+- **Tipo implícito**: quando o nome do parâmetro é o nome do tipo (registro, enumeração ou
+  tipo da língua, como "o texto"), o particípio vem direto: `sendo a prova emprestada` vale
+  por `sendo a prova uma prova emprestada`, e o mesmo com "confiada". Só no singular, um nome
+  por vez, e só com particípio: o parâmetro de que a função toma posse continua
+  `sendo a prova uma prova`. Nome que não é de tipo dá L0176.
 - Predicado (sujeito antes do verbo) vira condição no futuro do subjuntivo
   (`Se o saldo exceder o teto`); predicado adjetivo flexiona (`Se o pino for aceso`).
 - `o fato de X ser ...` dá um lógico (infinitivo pessoal: "serem"); antes do sujeito de

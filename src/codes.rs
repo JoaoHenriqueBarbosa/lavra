@@ -119,6 +119,7 @@ codes! {
     L0173 = Syntax, "Biblioteca pedida fora da forma";
     L0174 = Scope, "Biblioteca que não existe";
     L0175 = Scope, "Verbo que já vem de uma biblioteca";
+    L0176 = Type, "Particípio sem tipo, com nome que não é de tipo";
 
     // Parser: registros, enumerações, lugares e operações por extenso.
     L0200 = Syntax, "Faltou o nome do tipo";

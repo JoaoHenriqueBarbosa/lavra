@@ -240,6 +240,26 @@ Para começar:
 }
 
 #[test]
+fn implicit_type_becomes_explicit() {
+    const SRC: &str = include_str!("programs/ok/tipo_implicito.lav");
+    // O parâmetro muda de nome: o tipo, que era o próprio nome, passa a ser dito.
+    let r = renamed(SRC, "prova, sendo a prova emprestada", "o exame").unwrap();
+    assert!(r.contains("Para apresentar o exame, sendo o exame uma prova emprestada:"), "{r}");
+    assert!(r.contains("Escrevo o título do exame seguido"), "{r}");
+    assert_eq!(output(&r, b""), output(SRC, b""));
+    // O mesmo com um tipo da língua.
+    let r = renamed(SRC, "texto, sendo o texto emprestado", "a frase").unwrap();
+    assert!(r.contains("Para medir a frase, sendo a frase um texto emprestado, devolvendo um inteiro:"), "{r}");
+    assert_eq!(output(&r, b""), output(SRC, b""));
+    // O tipo muda de nome: os parâmetros guardam o deles, e o particípio segue o tipo novo.
+    let r = renamed(SRC, "prova é um registro", "um exame").unwrap();
+    assert!(r.contains("Um exame é um registro de:"), "{r}");
+    assert!(r.contains("Para apresentar a prova, sendo a prova um exame emprestado:"), "{r}");
+    assert!(r.contains("Para corrigir a prova, sendo a prova um exame confiado:"), "{r}");
+    assert!(r.contains("sendo a prova um exame emprestado e a rival um exame emprestado,"), "{r}");
+}
+
+#[test]
 fn refusals_say_why() {
     // O número fica.
     let e = renamed(NOMES, "As notas", "a nota").unwrap_err();

@@ -181,6 +181,10 @@ erro; cada requisição roda isolada (`catch_unwind`), e um defeito vira erro s�
   aparecer e nunca ao que ele escreveu. O ordinal que tinha o gênero da coleção ("a primeira
   das notas") vai junto, porque a língua não o confere. O adjetivo do cabeçalho de um
   predicado acompanha o sujeito ("Para a peça ser quadrada").
+- **Tipo implícito no cabeçalho** ("sendo a prova emprestada"): o nome ali é o parâmetro e
+  também cita o tipo (duas menções no mesmo trecho). Renomear um dos dois desfaz a
+  coincidência, e o rename escreve o tipo por extenso: "sendo o exame uma prova emprestada"
+  ou "sendo a prova um exame emprestado".
 - **Verificação**: o texto renomeado é analisado de novo. O rename é recusado, com a
   mensagem do compilador, se aparecer erro que não havia, e é recusado se algum uso passar a
   apontar para outro nome (o nome novo esconderia um que o programa usa depois).

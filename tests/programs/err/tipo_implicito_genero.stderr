@@ -1,0 +1,5 @@
+Erro de concordância [L0128]: "prova" é feminino: "a prova".
+ --> tests/programs/err/tipo_implicito_genero.lav:4:32
+  |
+4 | Para apresentar o prova, sendo o prova emprestado:
+  |                                ^^^^^^^

@@ -7,7 +7,7 @@ Uma questão é um registro de:
     o valor, um inteiro;
     a resposta, um texto.
 
-Para cadastrar a questão na lista, sendo a lista uma lista de questões confiada e a questão uma questão confiada:
+Para cadastrar a questão na lista, sendo a lista uma lista de questões confiada e a questão confiada:
     Escrevo "Digite o enunciado da pergunta: " e leio um texto, e o enunciado da questão vira o resultado.
     Escrevo "Quanto ela vale: " e leio um inteiro, e o valor da questão vira o resultado.
     Escrevo "Qual é a resposta: " e leio um texto, e a resposta da questão vira o resultado.
@@ -19,7 +19,7 @@ Para somar os valores da lista, sendo a lista uma lista de questões confiada, d
         O total vira o total mais o valor da questão.
     Devolvo o total.
 
-Para apresentar a prova, sendo a prova uma prova emprestada:
+Para apresentar a prova, sendo a prova emprestada:
     Escrevo "A prova vale " seguido do valor da prova seguido de " pontos.".
     Escrevo "Ela contém as seguintes questões:".
     Para cada questão das questões da prova:

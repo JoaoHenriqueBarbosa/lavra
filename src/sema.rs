@@ -84,6 +84,20 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
                     def.owner = Some(owner);
                     if let Some(t) = p.typing {
                         cx.env.use_def_as(d, t, Use::Mention, Form::Name);
+                        // Tipo implícito ("sendo a prova emprestada"): o tipo é o próprio
+                        // nome, que então cita também o registro ou a enumeração.
+                        if t.end == p.ty.span.end
+                            && let ast::TypeExpr::Named(w) = &p.ty.ty
+                        {
+                            let ty_def = match (prog.vocab.records.get(w), prog.vocab.enums.get(w)) {
+                                (Some(&r), _) => cx.env.record_defs.get(r).copied(),
+                                (None, Some(&e)) => cx.env.enum_defs.get(e).copied(),
+                                (None, None) => None,
+                            };
+                            if let Some(ty_def) = ty_def {
+                                cx.env.use_def_as(ty_def, p.ty.span, Use::Mention, Form::Name);
+                            }
+                        }
                     }
                     params.push((id, p.mode));
                 }
