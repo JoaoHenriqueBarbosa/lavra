@@ -1,0 +1,5 @@
+Erro de execução [L0918]: Logaritmo de número que não é positivo: 0.
+ --> tests/programs/err/logaritmo_de_zero.lav:5:13
+  |
+5 |     Escrevo o logaritmo de 0,0.
+  |             ^^^^^^^^^^^^^^^^^^

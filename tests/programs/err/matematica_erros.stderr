@@ -1,0 +1,10 @@
+Erro de concordância [L0215]: "seno" é masculino: "o seno".
+ --> tests/programs/err/matematica_erros.lav:4:13
+  |
+4 |     Escrevo a seno de 1,0.
+  |             ^^^^^^
+Erro de tipo [L0354]: Esperava um real, mas este valor é um texto.
+ --> tests/programs/err/matematica_erros.lav:6:23
+  |
+6 |     Escrevo o piso de "dois".
+  |                       ^^^^^^

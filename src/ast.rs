@@ -145,11 +145,24 @@ pub struct FuncSig {
 
 impl FuncSig {
     /// Forma de uso para mensagens: "transfiro QUANTIA de ORIGEM para DESTINO".
+    /// O verbo com que uma biblioteca declara uma operação por extenso.
+    pub const NOMINAL_VERB: &'static str = "calcular";
+
+    /// A operação por extenso que uma biblioteca declara com "Para calcular o seno de x":
+    /// o artigo e o nome ("o", "seno"). Ela se usa pelo nome, e não pelo verbo.
+    pub fn nominal(&self) -> Option<(&str, &str)> {
+        match self.slots.first() {
+            Some(Slot::Fixed { article, word }) if self.builtin.is_some() && self.infinitive == Self::NOMINAL_VERB => Some((article, word)),
+            _ => None,
+        }
+    }
+
     pub fn usage(&self) -> String {
         let mut parts = Vec::new();
         let mut p = self.params.iter();
         let upper = |n: &NameRef| n.word.to_uppercase();
         match &self.kind {
+            SigKind::Action if self.nominal().is_some() => {}
             SigKind::Action => parts.push(self.first_person.clone()),
             SigKind::Predicate => {
                 if let Some(s) = p.next() {
@@ -574,4 +587,6 @@ pub struct Vocabulary {
     /// Nomes de campo de todos os registros: "a soma de" é operação por extenso só se
     /// nenhum registro tiver o campo "soma".
     pub field_names: HashSet<String>,
+    /// As operações por extenso que uma biblioteca traz: "seno" → a assinatura.
+    pub nominals: HashMap<String, usize>,
 }

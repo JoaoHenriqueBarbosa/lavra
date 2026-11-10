@@ -451,7 +451,36 @@ impl Parser {
         let at = self.peek().clone();
         let wt = self.peek_at(1).clone();
         let Some(w) = wt.word() else { return Ok(None) };
-        if self.vocab.field_names.contains(w) || !is_nominal_word(w) {
+        if self.vocab.field_names.contains(w) {
+            return Ok(None);
+        }
+        // A operação por extenso de uma biblioteca: "o seno de x", "o pi".
+        if let Some(&sig) = self.vocab.nominals.get(w) {
+            let (article, word) = self.prog.sigs[sig].nominal().map(|(a, w)| (a.to_string(), w.to_string())).expect("operação por extenso");
+            let takes = !self.prog.sigs[sig].params.is_empty();
+            if takes && !self.peek_at(2).is_word("de") {
+                return Ok(None);
+            }
+            if !at.is_word(&article) {
+                let g = if article == "a" { Gender::Feminine } else { Gender::Masculine };
+                return err(Diagnostic::new(L0215, format!("\"{word}\" é {}: \"{article} {word}\".", g.describe()), at.span.to(wt.span))
+                    .fix(format!("Escrever \"{article} {word}\""), at.span.to(wt.span), format!("{article} {word}")));
+            }
+            self.check_contraction()?;
+            self.bump();
+            self.bump();
+            let mut args = Vec::new();
+            if takes {
+                self.expect_word("de")?;
+                args.push(self.nominal_operand()?);
+            }
+            let span = at.span.to(self.prev_span());
+            // Sem termo ("o pi") não há o que a conta seguinte disputar.
+            self.last_nominal = takes;
+            let call = Call { sig, args, span, verb_span: wt.span, form: VerbForm::Infinitive };
+            return Ok(Some(Expr { kind: ExprKind::Call(call), span }));
+        }
+        if !is_nominal_word(w) {
             return Ok(None);
         }
         let next = self.peek_at(2);

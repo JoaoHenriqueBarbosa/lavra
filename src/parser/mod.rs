@@ -1124,6 +1124,14 @@ impl Parser {
             {
                 let t = &self.toks[self.pos - 1];
                 let mut d = Diagnostic::new(L0118, format!("Nenhum registro tem o campo \"{prev}\"."), t.span);
+                // Operação por extenso de uma biblioteca que o programa não trouxe.
+                if let Some(b) = crate::builtins::Builtin::nominal(prev) {
+                    let (lib, _) = b.declared_as();
+                    let article = &self.toks[self.pos - 2].orig.to_lowercase();
+                    return err(d.hint(format!(
+                        "\"{article} {prev} de\" vem da biblioteca de {lib}: escreva \"Uso a biblioteca de {lib}.\" no começo do programa."
+                    )));
+                }
                 if !self.vocab.field_names.is_empty() {
                     let mut names: Vec<&String> = self.vocab.field_names.iter().collect();
                     names.sort();
@@ -1354,7 +1362,9 @@ impl Parser {
             );
         }
         // Verbo de uma biblioteca que o programa não trouxe.
-        if let Some(b) = crate::builtins::Builtin::ALL.iter().find(|b| morphology::first_person(b.infinitive()).as_deref() == Some(w)) {
+        if let Some(b) =
+            crate::builtins::Builtin::ALL.iter().find(|b| !b.is_nominal() && morphology::first_person(b.infinitive()).as_deref() == Some(w))
+        {
             let (lib, _) = b.declared_as();
             return Box::new(Diagnostic::new(L0122, format!("\"{}\" não é um verbo conhecido.", t.orig), t.span).hint(format!(
                 "\"{}\" vem da biblioteca de {lib}: escreva \"Uso a biblioteca de {lib}.\" no começo do programa.",
@@ -1710,8 +1720,14 @@ impl Parser {
 
     fn nominal_ahead(&self) -> bool {
         self.definite_article_at(0).is_some()
-            && self.peek_at(1).word().is_some_and(|w| data::is_nominal_word(w) && !self.vocab.field_names.contains(w))
-            && (self.peek_at(2).is_word("de") || self.peek_at(2).is_word("entre"))
+            && self.peek_at(1).word().is_some_and(|w| {
+                !self.vocab.field_names.contains(w)
+                    && match self.vocab.nominals.get(w) {
+                        // A operação de biblioteca sem termo ("o pi") é o nome sozinho.
+                        Some(&sig) => self.prog.sigs[sig].params.is_empty() || self.peek_at(2).is_word("de"),
+                        None => data::is_nominal_word(w) && (self.peek_at(2).is_word("de") || self.peek_at(2).is_word("entre")),
+                    }
+            })
     }
 
     fn mixing_error(&self) -> Box<Diagnostic> {
@@ -1771,7 +1787,7 @@ impl Parser {
                 if self.at_word("de")
                     && let Some(inf) = self.peek_at(1).word()
                     && !self.vocab.by_infinitive.contains_key(inf)
-                    && let Some(b) = crate::builtins::Builtin::ALL.iter().find(|b| b.infinitive() == inf)
+                    && let Some(b) = crate::builtins::Builtin::ALL.iter().find(|b| !b.is_nominal() && b.infinitive() == inf)
                 {
                     let (lib, _) = b.declared_as();
                     let vt = self.peek_at(1).clone();

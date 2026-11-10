@@ -288,6 +288,16 @@ Para começar:
   texto", "localizar o trecho no texto" (a posição a partir de 1, ou nada: devolve "talvez um
   inteiro") e "recortar o texto desde o início até o fim" (posições a partir de 1, as duas
   incluídas; fora do texto é falha, L0917). Todas recebem emprestado e devolvem um valor novo.
+- A biblioteca de matemática ("Uso a biblioteca de matemática.") traz operações por extenso,
+  usadas pelo nome como as da língua: `o seno de x`, `o cosseno de x`, `a tangente de x` (em
+  radianos), `o logaritmo de x` (natural; de zero ou negativo é falha, L0918), `a exponencial
+  de x`, `o piso de x` e `o teto de x` (dão inteiro) e `o pi`. E três verbos: "arredondar x"
+  (o inteiro mais próximo, o meio para longe do zero), "sortear desde o mínimo até o máximo"
+  (um inteiro ao acaso, limites incluídos) e "semear a semente" (a mesma semente dá sempre os
+  mesmos sorteios, no interpretador e no nativo). Como nas operações da língua, a conta infixa
+  encostada pede parênteses: `(o seno de x) mais 1`; `o pi` não pede.
+- Operação por extenso de biblioteca só existe no programa que traz a biblioteca: sem ela,
+  "o seno" é um nome qualquer. Com ela, "o pi" passa a ser a constante.
 - Verbo de biblioteca não reserva palavra em programa que não a traz. No programa que a
   traz, definir um verbo com o mesmo nome (ou a mesma 1ª pessoa) é erro (L0175). Usar o verbo
   sem trazer a biblioteca dá a dica de como trazer.

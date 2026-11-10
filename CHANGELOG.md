@@ -26,6 +26,9 @@ As versões da Lavra, a mais nova primeiro.
   uma pasta, e "uma adição, com as parcelas, uma lista de expressões" é caso de uma expressão.
 - A biblioteca de textos ganhou maiusculizar, minusculizar, inverter, substituir, localizar
   (que devolve "talvez um inteiro") e recortar.
+- A biblioteca de matemática ("Uso a biblioteca de matemática."): "o seno de x", "o cosseno",
+  "a tangente", "o logaritmo", "a exponencial", "o piso", "o teto" e "o pi", como operações por
+  extenso, e os verbos arredondar, sortear e semear.
 
 ### Desempenho
 

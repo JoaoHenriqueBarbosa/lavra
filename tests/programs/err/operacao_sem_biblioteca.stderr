@@ -1,0 +1,12 @@
+Erro de escopo [L0118]: Nenhum registro tem o campo "seno".
+ --> tests/programs/err/operacao_sem_biblioteca.lav:2:15
+  |
+2 |     Escrevo o seno de 1,0.
+  |               ^^^^
+  = dica: "o seno de" vem da biblioteca de matemática: escreva "Uso a biblioteca de matemática." no começo do programa.
+Erro de sintaxe [L0122]: "arredondar" não é um verbo conhecido.
+ --> tests/programs/err/operacao_sem_biblioteca.lav:3:28
+  |
+3 |     Escrevo o resultado de arredondar 2,5.
+  |                            ^^^^^^^^^^
+  = dica: "arredondar" vem da biblioteca de matemática: escreva "Uso a biblioteca de matemática." no começo do programa.

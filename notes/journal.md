@@ -438,3 +438,13 @@ Item 7, bibliotecas, primeira parte (textos):
 
 Decisão para revisar: os verbos "maiusculizar" e "minusculizar" existem no dicionário, mas são pouco usados. Preferi um verbo próprio a uma locução como "pôr as maiúsculas no texto".
 
+Item 7, segunda parte (matemática):
+- "Uso a biblioteca de matemática." traz seno, cosseno, tangente, logaritmo, exponencial, piso, teto e pi como operações por extenso ("o seno de x", "o pi"), e os verbos "arredondar x", "sortear desde o mínimo até o máximo" e "semear a semente".
+- A operação por extenso de biblioteca é nova: a biblioteca a declara com "Para calcular o seno de x, ...", e ela se usa pelo nome, como "a raiz de x" da língua. Não reserva nada em quem não traz a biblioteca, e o verbo "calcular" continua livre para o programa.
+- O sorteio é o mesmo algoritmo no interpretador e no nativo: com a mesma semente, a mesma sequência (é o que deixa testar pela paridade). Sem semente, começa pelo relógio.
+- Logaritmo de zero ou de negativo é falha de execução (L0918), como a raiz de negativo.
+
+Decisões para revisar:
+- As funções vieram como nomes, e não como verbos: português não tem verbo para "seno", e um verbo genérico como "calcular" tomaria do programa um verbo que todo mundo usa. O custo: no programa que traz a biblioteca, "o pi" é a constante, e não pode ser nome de variável.
+- Ângulos em radianos.
+

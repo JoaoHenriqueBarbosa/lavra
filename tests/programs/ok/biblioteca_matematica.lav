@@ -1,0 +1,24 @@
+Uso a biblioteca de matemática.
+
+Para calcular a área do raio, sendo o raio um real, devolvendo um real:
+    Devolvo o pi vezes o raio vezes o raio.
+
+Para começar:
+    Escrevo o seno de 0,0.
+    Escrevo o cosseno de 0,0.
+    Escrevo a tangente de 0,0.
+    O meio é o pi dividido por 2,0.
+    Escrevo o seno do meio.
+    Escrevo o logaritmo da exponencial de 2,0.
+    Escrevo (a exponencial de 1,0) vezes 2,0.
+    Escrevo o piso de 2,7 seguido de " " seguido do teto de 2,2.
+    Escrevo o piso de (0,0 menos 2,5) seguido de " " seguido do teto de (0,0 menos 2,5).
+    Escrevo o resultado de arredondar 2,5 seguido de " " seguido do resultado de arredondar (0,0 menos 2,5).
+    Escrevo o resultado de calcular a área de 2,0.
+    Semeio 42.
+    Os sorteados começam vazios.
+    Repito 5 vezes: os sorteados ganham o resultado de sortear desde 1 até 6.
+    Escrevo os sorteados.
+    Semeio 42.
+    Escrevo o resultado de sortear desde 6 até 1.
+    Escrevo o resultado de sortear desde 7 até 7.

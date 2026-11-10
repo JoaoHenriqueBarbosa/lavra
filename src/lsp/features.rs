@@ -131,7 +131,7 @@ fn library_location(span: crate::span::Span, encoding: super::convert::Encoding)
     let lines = crate::span::LineIndex::new(lib.source);
     let text = Text { text: lib.source, lines: &lines, encoding };
     let local = crate::span::Span { start: span.start - base, end: span.end - base };
-    let uri: lsp::Uri = format!("{LIBRARY_SCHEME}:/{}.lav", lib.name).parse().ok()?;
+    let uri: lsp::Uri = format!("{LIBRARY_SCHEME}:/{}.lav", lib.file).parse().ok()?;
     Some(lsp::Location { uri, range: text.range(local) })
 }
 
@@ -139,7 +139,7 @@ fn library_location(span: crate::span::Span, encoding: super::convert::Encoding)
 pub fn library_source(uri: &str) -> Option<&'static str> {
     let path = uri.strip_prefix(LIBRARY_SCHEME)?.strip_prefix(':')?;
     let name = path.rsplit('/').next()?.strip_suffix(".lav")?;
-    crate::builtins::library(name).map(|(_, l)| l.source)
+    crate::builtins::LIBRARIES.iter().find(|l| l.file == name).map(|l| l.source)
 }
 
 pub fn references(a: &Analysis, text: &Text, uri: &lsp::Uri, offset: u32, declaration: bool) -> Vec<lsp::Location> {

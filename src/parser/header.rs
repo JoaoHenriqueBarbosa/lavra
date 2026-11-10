@@ -184,10 +184,17 @@ impl Parser {
     }
 
     fn register(&mut self, id: usize, sig: &FuncSig) -> Result<()> {
+        // A operação por extenso de uma biblioteca entra pelo nome ("o seno de x"), e o
+        // verbo que a declara não ocupa lugar no programa.
+        if let Some((_, word)) = sig.nominal() {
+            self.vocab.nominals.insert(word.to_string(), id);
+            return Ok(());
+        }
         // O verbo do programa não pode ser o de uma biblioteca que ele trouxe.
         if sig.builtin.is_none()
             && let Some(o) = self.prog.sigs.iter().find(|o| {
                 o.builtin.is_some()
+                    && o.nominal().is_none()
                     && (o.infinitive == sig.infinitive
                         || (o.kind == SigKind::Action && sig.kind == SigKind::Action && o.first_person == sig.first_person))
             })
@@ -430,16 +437,10 @@ impl Parser {
             }
         }
         // Na biblioteca, o cabeçalho que termina em ponto é uma operação da própria língua.
-        let library = self.library;
-        let builtin = match library {
-            Some(lib) if self.eat_punct('.') => {
-                Some(crate::builtins::Builtin::find(lib, &infinitive).expect("toda operação de biblioteca tem implementação"))
-            }
-            _ => {
-                self.expect_punct(':', "os dois-pontos que fecham o cabeçalho")?;
-                None
-            }
-        };
+        let operation = self.library.filter(|_| self.eat_punct('.'));
+        if operation.is_none() {
+            self.expect_punct(':', "os dois-pontos que fecham o cabeçalho")?;
+        }
         // Objeto sem tipo vira complemento fixo: parte do nome do verbo.
         let mut final_params = Vec::new();
         let mut final_slots = Vec::new();
@@ -490,6 +491,15 @@ impl Parser {
             return err(Diagnostic::new(L0161, "Um predicado (sujeito antes do verbo) devolve um lógico.", name_span)
                 .hint("Acrescente \", devolvendo um lógico\" ao cabeçalho."));
         }
+        // A operação de biblioteca se acha pelo verbo; a por extenso ("calcular o seno de
+        // x"), pelo verbo com o nome.
+        let builtin = operation.map(|lib| {
+            let key = match final_slots.first() {
+                Some(Slot::Fixed { article, word }) if infinitive == FuncSig::NOMINAL_VERB => format!("{infinitive} {article} {word}"),
+                _ => infinitive.clone(),
+            };
+            crate::builtins::Builtin::find(lib, &key).expect("toda operação de biblioteca tem implementação")
+        });
         Ok(FuncSig {
             infinitive,
             first_person,

@@ -249,6 +249,7 @@ codes! {
     L0915 = Runtime, "Texto que não é número";
     L0916 = Runtime, "Número que não é código de caractere";
     L0917 = Runtime, "Recorte fora do texto";
+    L0918 = Runtime, "Logaritmo de número que não é positivo";
 }
 
 /// O código pelo identificador ("L0334") ou pelo número (334).

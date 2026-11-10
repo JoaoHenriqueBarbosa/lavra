@@ -21,10 +21,18 @@ const LIBRARY_SIZE: u32 = 1 << 24;
 /// cabeçalhos das operações, em Lavra.
 pub struct Library {
     pub name: &'static str,
+    /// O nome do arquivo, sem acento: é o que vai no endereço que o editor abre.
+    pub file: &'static str,
     pub source: &'static str,
 }
 
-pub const LIBRARIES: &[Library] = &[Library { name: "textos", source: include_str!("libraries/textos.lav") }];
+pub const LIBRARIES: &[Library] = &[
+    Library { name: "textos", file: "textos", source: include_str!("libraries/textos.lav") },
+    Library { name: "matemática", file: "matematica", source: include_str!("libraries/matematica.lav") },
+];
+
+/// O estado dos sorteios do interpretador; sem semente, começa pelo relógio.
+static RANDOM: std::sync::Mutex<Option<u64>> = std::sync::Mutex::new(None);
 
 /// A biblioteca de nome `name`, com a posição em que as posições dela começam.
 pub fn library(name: &str) -> Option<(u32, &'static Library)> {
@@ -49,6 +57,17 @@ pub enum Builtin {
     Replace,
     Locate,
     Slice,
+    Sin,
+    Cos,
+    Tan,
+    Ln,
+    Exp,
+    Floor,
+    Ceil,
+    Pi,
+    Round,
+    Random,
+    Seed,
 }
 
 impl Builtin {
@@ -63,9 +82,21 @@ impl Builtin {
         Builtin::Replace,
         Builtin::Locate,
         Builtin::Slice,
+        Builtin::Sin,
+        Builtin::Cos,
+        Builtin::Tan,
+        Builtin::Ln,
+        Builtin::Exp,
+        Builtin::Floor,
+        Builtin::Ceil,
+        Builtin::Pi,
+        Builtin::Round,
+        Builtin::Random,
+        Builtin::Seed,
     ];
 
-    /// A biblioteca e o verbo (no infinitivo) que declaram a operação.
+    /// A biblioteca e o verbo (no infinitivo) que declaram a operação. A operação por
+    /// extenso leva o nome junto: "calcular o seno".
     pub fn declared_as(self) -> (&'static str, &'static str) {
         match self {
             Builtin::Split => ("textos", "dividir"),
@@ -78,6 +109,17 @@ impl Builtin {
             Builtin::Replace => ("textos", "substituir"),
             Builtin::Locate => ("textos", "localizar"),
             Builtin::Slice => ("textos", "recortar"),
+            Builtin::Sin => ("matemática", "calcular o seno"),
+            Builtin::Cos => ("matemática", "calcular o cosseno"),
+            Builtin::Tan => ("matemática", "calcular a tangente"),
+            Builtin::Ln => ("matemática", "calcular o logaritmo"),
+            Builtin::Exp => ("matemática", "calcular a exponencial"),
+            Builtin::Floor => ("matemática", "calcular o piso"),
+            Builtin::Ceil => ("matemática", "calcular o teto"),
+            Builtin::Pi => ("matemática", "calcular o pi"),
+            Builtin::Round => ("matemática", "arredondar"),
+            Builtin::Random => ("matemática", "sortear"),
+            Builtin::Seed => ("matemática", "semear"),
         }
     }
 
@@ -86,8 +128,20 @@ impl Builtin {
         Builtin::ALL.iter().find(|b| b.declared_as() == (library, infinitive)).copied()
     }
 
+    /// O verbo da operação; da operação por extenso, o nome ("seno").
     pub fn infinitive(self) -> &'static str {
-        self.declared_as().1
+        let key = self.declared_as().1;
+        key.rsplit(' ').next().unwrap_or(key)
+    }
+
+    /// A operação por extenso ("o seno de x") de nome `word`, de alguma biblioteca.
+    pub fn nominal(word: &str) -> Option<Builtin> {
+        Builtin::ALL.iter().copied().find(|b| b.declared_as().1.contains(' ') && b.infinitive() == word)
+    }
+
+    /// É uma operação por extenso: usa-se pelo nome, e não por um verbo.
+    pub fn is_nominal(self) -> bool {
+        self.declared_as().1.contains(' ')
     }
 
     /// A função do runtime que faz a operação no nativo.
@@ -103,6 +157,17 @@ impl Builtin {
             Builtin::Replace => "rt_text_replace",
             Builtin::Locate => "rt_text_locate",
             Builtin::Slice => "rt_text_slice",
+            Builtin::Sin => "rt_math_sin",
+            Builtin::Cos => "rt_math_cos",
+            Builtin::Tan => "rt_math_tan",
+            Builtin::Ln => "rt_math_ln",
+            Builtin::Exp => "rt_math_exp",
+            Builtin::Floor => "rt_math_floor",
+            Builtin::Ceil => "rt_math_ceil",
+            Builtin::Pi => "rt_math_pi",
+            Builtin::Round => "rt_math_round",
+            Builtin::Random => "rt_math_random",
+            Builtin::Seed => "rt_math_seed",
         }
     }
 }
@@ -123,7 +188,48 @@ pub fn interpret(b: Builtin, args: &[Value], span: Span) -> Result<Value, Fault>
         Value::Text(t) => t.clone(),
         other => unreachable!("{b:?} recebeu {other:?} onde o cabeçalho pede texto"),
     };
+    let real = |v: &Value| match v {
+        Value::Real(x) => *x,
+        other => unreachable!("{b:?} recebeu {other:?} onde o cabeçalho pede real"),
+    };
+    // O real já arredondado vira inteiro, se couber.
+    let whole = |x: f64| {
+        if textfmt::real_fits(x, 64, true) {
+            Ok(Value::Int(x as i128))
+        } else {
+            Err(Fault {
+                code: Some(crate::codes::L0908),
+                message: textfmt::convert_error(&textfmt::format_real(x), 64, true),
+                span,
+                desist: false,
+            })
+        }
+    };
     Ok(match b {
+        Builtin::Sin => Value::Real(real(&args[0]).sin()),
+        Builtin::Cos => Value::Real(real(&args[0]).cos()),
+        Builtin::Tan => Value::Real(real(&args[0]).tan()),
+        Builtin::Ln => {
+            let x = real(&args[0]);
+            if x.is_nan() || x <= 0.0 {
+                return Err(Fault { code: Some(crate::codes::L0918), message: textfmt::log_domain(x), span, desist: false });
+            }
+            Value::Real(x.ln())
+        }
+        Builtin::Exp => Value::Real(real(&args[0]).exp()),
+        Builtin::Floor => whole(real(&args[0]).floor())?,
+        Builtin::Ceil => whole(real(&args[0]).ceil())?,
+        Builtin::Round => whole(real(&args[0]).round())?,
+        Builtin::Pi => Value::Real(std::f64::consts::PI),
+        Builtin::Random => {
+            let mut state = RANDOM.lock().unwrap_or_else(|e| e.into_inner());
+            let s = state.get_or_insert_with(textfmt::clock_seed);
+            Value::Int(textfmt::random_between(s, int(&args[0]) as i64, int(&args[1]) as i64) as i128)
+        }
+        Builtin::Seed => {
+            *RANDOM.lock().unwrap_or_else(|e| e.into_inner()) = Some(int(&args[0]) as u64);
+            Value::Unit
+        }
         Builtin::Split => Value::List(split(&text(&args[0]), &text(&args[1])).into_iter().map(Value::Text).collect()),
         Builtin::Join => {
             let Value::List(items) = &args[0] else { unreachable!("\"juntar\" recebe uma lista") };

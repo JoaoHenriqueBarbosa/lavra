@@ -96,6 +96,13 @@ Uma operação nova toca quatro lugares: o cabeçalho na biblioteca, a variante 
 Regência, tipos, posse, codegen e o editor saem do cabeçalho. Programa certo (com a
 paridade) e errado, como toda mudança.
 
+Uma biblioteca também declara operações por extenso, usadas pelo nome ("o seno de x"), com
+o cabeçalho "Para calcular o seno de x, sendo x um real, devolvendo um real.": o verbo
+"calcular" com um complemento fixo e, no máximo, um termo regido por "de"
+(`FuncSig::nominal`). Essa assinatura não entra nos verbos do programa (o "calcular"
+continua livre): vai para `Vocabulary::nominals`, e `Parser::nominal` monta a chamada. Na
+tabela de `Builtin`, a chave leva o nome junto ("calcular o seno").
+
 Nada do programa aponta para dentro de uma biblioteca: o diagnóstico perde o rótulo e a
 correção que cairiam lá (`outside_libraries` em `analyze`), o aviso de função nunca chamada
 não vale para o que vem de biblioteca, e o rename recusa os verbos dela.

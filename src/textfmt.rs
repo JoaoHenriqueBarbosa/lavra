@@ -116,6 +116,40 @@ pub fn slice(text: &str, from: i128, to: i128) -> Result<String, String> {
     Ok(text.chars().skip(from as usize - 1).take((to - from + 1) as usize).collect())
 }
 
+pub fn log_domain(x: f64) -> String {
+    format!("Logaritmo de número que não é positivo: {}.", format_real(x))
+}
+
+/// O próximo número da sequência dos sorteios (splitmix64): a mesma semente dá a mesma
+/// sequência, no interpretador e no nativo.
+pub fn next_random(state: &mut u64) -> u64 {
+    *state = state.wrapping_add(0x9E37_79B9_7F4A_7C15);
+    let mut z = *state;
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+
+/// Um inteiro ao acaso entre os dois limites, incluídos, em qualquer ordem.
+pub fn random_between(state: &mut u64, a: i64, b: i64) -> i64 {
+    let (lo, hi) = if a <= b { (a, b) } else { (b, a) };
+    let range = (hi as i128 - lo as i128 + 1) as u128;
+    let pick = (next_random(state) as u128 * range) >> 64;
+    (lo as i128 + pick as i128) as i64
+}
+
+/// A semente de quando o programa não semeou: o relógio.
+pub fn clock_seed() -> u64 {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0x1234_5678, |d| d.as_nanos() as u64)
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        0x1234_5678
+    }
+}
+
 /// O real `x`, sem a parte fracionária, cabe no inteiro? (NaN e infinito não cabem.)
 pub fn real_fits(x: f64, bits: u8, signed: bool) -> bool {
     let t = x.trunc();

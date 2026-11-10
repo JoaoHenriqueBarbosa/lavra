@@ -471,6 +471,81 @@ pub unsafe extern "C" fn rt_text_slice(t: *const String, from: i64, to: i64, lo:
     }
 }
 
+// ------------------------------------------------------------- matemática
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_math_sin(x: f64, _lo: u32, _hi: u32) -> f64 {
+    x.sin()
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_math_cos(x: f64, _lo: u32, _hi: u32) -> f64 {
+    x.cos()
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_math_tan(x: f64, _lo: u32, _hi: u32) -> f64 {
+    x.tan()
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_math_ln(x: f64, lo: u32, hi: u32) -> f64 {
+    if x.is_nan() || x <= 0.0 {
+        unsafe { report(L0918, textfmt::log_domain(x), lo, hi) }
+    }
+    x.ln()
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_math_exp(x: f64, _lo: u32, _hi: u32) -> f64 {
+    x.exp()
+}
+
+/// O real já arredondado vira inteiro, se couber.
+unsafe fn whole(x: f64, lo: u32, hi: u32) -> i64 {
+    if !textfmt::real_fits(x, 64, true) {
+        unsafe { report(L0908, textfmt::convert_error(&textfmt::format_real(x), 64, true), lo, hi) }
+    }
+    x as i64
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_math_floor(x: f64, lo: u32, hi: u32) -> i64 {
+    unsafe { whole(x.floor(), lo, hi) }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_math_ceil(x: f64, lo: u32, hi: u32) -> i64 {
+    unsafe { whole(x.ceil(), lo, hi) }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_math_round(x: f64, lo: u32, hi: u32) -> i64 {
+    unsafe { whole(x.round(), lo, hi) }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn rt_math_pi(_lo: u32, _hi: u32) -> f64 {
+    std::f64::consts::PI
+}
+
+/// O estado dos sorteios; sem semente, começa pelo relógio.
+static mut RANDOM: Option<u64> = None;
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_math_random(a: i64, b: i64, _lo: u32, _hi: u32) -> i64 {
+    unsafe {
+        let state = &mut *std::ptr::addr_of_mut!(RANDOM);
+        let s = state.get_or_insert_with(textfmt::clock_seed);
+        textfmt::random_between(s, a, b)
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_math_seed(seed: i64, _lo: u32, _hi: u32) {
+    unsafe { *std::ptr::addr_of_mut!(RANDOM) = Some(seed as u64) }
+}
+
 // ------------------------------------------------------------------ lista
 
 #[unsafe(no_mangle)]

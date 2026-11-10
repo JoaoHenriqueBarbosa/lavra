@@ -3,4 +3,4 @@ Erro de escopo [L0174]: Não há biblioteca de "texto".
   |
 1 | Uso a biblioteca de texto.
   |                     ^^^^^
-  = dica: As bibliotecas são: textos.
+  = dica: As bibliotecas são: textos, matemática.

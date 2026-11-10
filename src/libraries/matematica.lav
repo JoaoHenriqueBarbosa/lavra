@@ -1,0 +1,37 @@
+Nota: A biblioteca de matemática. O programa a traz com "Uso a biblioteca de matemática.".
+Nota: Cada operação é feita pela própria língua: o cabeçalho termina em ponto, sem corpo.
+Nota: "Para calcular o seno de x" declara uma operação por extenso, que se usa pelo nome,
+Nota: como as da língua: "o seno de x". O verbo "calcular" continua livre para o programa.
+
+Nota: O seno do ângulo, em radianos.
+Para calcular o seno de x, sendo x um real, devolvendo um real.
+
+Nota: O cosseno do ângulo, em radianos.
+Para calcular o cosseno de x, sendo x um real, devolvendo um real.
+
+Nota: A tangente do ângulo, em radianos.
+Para calcular a tangente de x, sendo x um real, devolvendo um real.
+
+Nota: O logaritmo natural. De zero ou de negativo é falha de execução.
+Para calcular o logaritmo de x, sendo x um real, devolvendo um real.
+
+Nota: O número de Euler elevado a x.
+Para calcular a exponencial de x, sendo x um real, devolvendo um real.
+
+Nota: O maior inteiro que não passa de x.
+Para calcular o piso de x, sendo x um real, devolvendo um inteiro.
+
+Nota: O menor inteiro que não fica abaixo de x.
+Para calcular o teto de x, sendo x um real, devolvendo um inteiro.
+
+Nota: A razão entre a circunferência e o diâmetro: 3,14159...
+Para calcular o pi, devolvendo um real.
+
+Nota: O inteiro mais próximo; o meio (0,5) vai para longe do zero.
+Para arredondar x, sendo x um real, devolvendo um inteiro.
+
+Nota: Um inteiro ao acaso entre os dois limites, incluídos, em qualquer ordem.
+Para sortear desde o mínimo até o máximo, sendo ambos inteiros, devolvendo um inteiro.
+
+Nota: Fixa a sequência dos sorteios: a mesma semente dá sempre os mesmos números.
+Para semear a semente, sendo a semente um inteiro.
