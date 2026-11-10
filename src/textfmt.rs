@@ -175,6 +175,11 @@ pub fn file_load(path: &str) -> Result<String, String> {
     std::fs::read_to_string(path).map_err(|e| file_failure("carregar", path, e.kind()))
 }
 
+/// "folhear o arquivo": as linhas, sem a quebra do fim.
+pub fn file_lines(path: &str) -> Result<Vec<String>, String> {
+    std::fs::read_to_string(path).map(|t| t.lines().map(String::from).collect()).map_err(|e| file_failure("folhear", path, e.kind()))
+}
+
 /// "gravar o texto no arquivo" e "acrescentar o texto ao arquivo".
 pub fn file_save(text: &str, path: &str, append: bool) -> Result<(), String> {
     use std::io::Write;

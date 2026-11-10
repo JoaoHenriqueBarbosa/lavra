@@ -12,6 +12,8 @@ Para começar:
     As linhas são o resultado de dividir (o resultado de aparar o conteúdo) por "\n".
     Escrevo o tamanho das linhas.
     Para cada linha das linhas: escrevo "> " seguido da linha.
+    As folhas são o resultado de folhear o caminho, ou desisto.
+    Para cada folha das folhas: escrevo "[" seguido da folha seguido de "]".
     Gravo "outra" no caminho, ou desisto.
     Escrevo o resultado de carregar o caminho, ou "nada".
     Apago o caminho, ou desisto.

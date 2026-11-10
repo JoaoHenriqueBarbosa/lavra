@@ -71,6 +71,7 @@ pub enum Builtin {
     Random,
     Seed,
     FileLoad,
+    FileLines,
     FileSave,
     FileAppend,
     FileRemove,
@@ -107,6 +108,7 @@ impl Builtin {
         Builtin::Random,
         Builtin::Seed,
         Builtin::FileLoad,
+        Builtin::FileLines,
         Builtin::FileSave,
         Builtin::FileAppend,
         Builtin::FileRemove,
@@ -125,7 +127,10 @@ impl Builtin {
     /// A operação pode falhar ("salvo engano"): quem chama trata, e o nativo recebe onde
     /// deixar a falha.
     pub fn fallible(self) -> bool {
-        matches!(self, Builtin::FileLoad | Builtin::FileSave | Builtin::FileAppend | Builtin::FileRemove | Builtin::DirList)
+        matches!(
+            self,
+            Builtin::FileLoad | Builtin::FileLines | Builtin::FileSave | Builtin::FileAppend | Builtin::FileRemove | Builtin::DirList
+        )
     }
 
     /// A biblioteca e o verbo (no infinitivo) que declaram a operação. A operação por
@@ -154,6 +159,7 @@ impl Builtin {
             Builtin::Random => ("matemática", "sortear"),
             Builtin::Seed => ("matemática", "semear"),
             Builtin::FileLoad => ("arquivos", "carregar"),
+            Builtin::FileLines => ("arquivos", "folhear"),
             Builtin::FileSave => ("arquivos", "gravar"),
             Builtin::FileAppend => ("arquivos", "acrescentar"),
             Builtin::FileRemove => ("arquivos", "apagar"),
@@ -216,6 +222,7 @@ impl Builtin {
             Builtin::Random => "rt_math_random",
             Builtin::Seed => "rt_math_seed",
             Builtin::FileLoad => "rt_file_load",
+            Builtin::FileLines => "rt_file_lines",
             Builtin::FileSave => "rt_file_save",
             Builtin::FileAppend => "rt_file_append",
             Builtin::FileRemove => "rt_file_remove",
@@ -277,6 +284,7 @@ pub fn interpret(b: Builtin, args: &[Value], span: Span) -> Result<Value, Fault>
             Value::Unit
         }
         Builtin::FileLoad => Value::Text(textfmt::file_load(&text(&args[0])).map_err(failed)?),
+        Builtin::FileLines => Value::List(textfmt::file_lines(&text(&args[0])).map_err(failed)?.into_iter().map(Value::Text).collect()),
         Builtin::FileSave => textfmt::file_save(&text(&args[0]), &text(&args[1]), false).map(|_| Value::Unit).map_err(failed)?,
         Builtin::FileAppend => textfmt::file_save(&text(&args[0]), &text(&args[1]), true).map(|_| Value::Unit).map_err(failed)?,
         Builtin::FileRemove => textfmt::file_remove(&text(&args[0])).map(|_| Value::Unit).map_err(failed)?,

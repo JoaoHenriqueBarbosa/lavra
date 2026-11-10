@@ -6,6 +6,9 @@ Nota: ("salvo engano"), e quem chama diz o que fazer: ", ou desisto", ", ou VALO
 Nota: O conteúdo inteiro do arquivo, como texto.
 Para carregar o arquivo, sendo o arquivo um texto emprestado, devolvendo um texto, salvo engano.
 
+Nota: As linhas do arquivo, uma por item, sem a quebra do fim de cada uma.
+Para folhear o arquivo, sendo o arquivo um texto emprestado, devolvendo uma lista de textos, salvo engano.
+
 Nota: Escreve o texto no arquivo, no lugar do que havia; cria o arquivo se não existe.
 Para gravar o texto no arquivo, sendo ambos textos emprestados, salvo engano.
 

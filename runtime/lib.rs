@@ -555,6 +555,19 @@ pub unsafe extern "C" fn rt_file_load(path: *const String, out: *mut *mut Failur
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn rt_file_lines(path: *const String, out: *mut *mut Failure, lo: u32, hi: u32) -> *mut Vec<u64> {
+    unsafe {
+        match textfmt::file_lines(&*path) {
+            Ok(lines) => Box::into_raw(Box::new(lines.into_iter().map(text_slot).collect::<Vec<u64>>())),
+            Err(m) => {
+                fail_into(out, m, lo, hi);
+                std::ptr::null_mut()
+            }
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn rt_file_save(text: *const String, path: *const String, out: *mut *mut Failure, lo: u32, hi: u32) {
     unsafe {
         if let Err(m) = textfmt::file_save(&*text, &*path, false) {
