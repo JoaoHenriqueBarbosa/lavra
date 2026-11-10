@@ -67,6 +67,8 @@ pub enum TypeExpr {
     Map(Box<TypeExpr>, Box<TypeExpr>),
     Slice(Box<TypeExpr>),
     Named(String),
+    /// "uma coisa qualquer": um tipo que a função recebe de quem chama, pelo nome.
+    Param(String),
     Maybe(Box<TypeExpr>),
     /// Tipo que não se leu (cabeçalho ou definição com erro): não gera mais erros.
     Error,
@@ -125,6 +127,17 @@ pub enum SigKind {
     },
 }
 
+/// Um tipo qualquer do cabeçalho ("sendo o item uma coisa qualquer"): a função vale para
+/// todo tipo que caiba nele.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypeParam {
+    pub name: String,
+    pub gender: Gender,
+    /// "qualquer ordenável": o tipo tem de ter ordem.
+    pub ordered: bool,
+    pub span: Span,
+}
+
 #[derive(Clone, Debug)]
 pub struct FuncSig {
     pub infinitive: String,
@@ -145,6 +158,8 @@ pub struct FuncSig {
     pub broken: bool,
     /// A operação que a própria língua faz, quando o cabeçalho vem de uma biblioteca.
     pub builtin: Option<crate::builtins::Builtin>,
+    /// Os tipos quaisquer do cabeçalho; com algum, a função é genérica.
+    pub type_params: Vec<TypeParam>,
 }
 
 impl FuncSig {

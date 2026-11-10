@@ -30,6 +30,10 @@ pub struct Program {
     /// Os registros e as enumerações, pelo índice da definição.
     pub records: Vec<Arc<RecordTy>>,
     pub enums: Vec<Arc<EnumTy>>,
+    /// As funções genéricas como foram conferidas, com os tipos quaisquer. Servem à posse e
+    /// ao editor; em `funcs`, no lugar de cada uma fica um corpo vazio, e o que roda são
+    /// as instâncias, uma para cada combinação de tipos que o programa usa.
+    pub generics: Vec<Func>,
 }
 
 #[derive(Debug)]
@@ -56,6 +60,9 @@ pub struct Func {
     pub has_errors: bool,
     /// A assinatura da AST (`ast::Program::sigs`); o nível de fora não tem.
     pub sig: Option<usize>,
+    /// Uma função genérica com os tipos de uma chamada: a posse já conferiu a genérica, e
+    /// não confere cada instância de novo.
+    pub instance: bool,
 }
 
 #[derive(Debug, Clone)]

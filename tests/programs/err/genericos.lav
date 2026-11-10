@@ -1,0 +1,25 @@
+Uma conta é um registro de:
+    o saldo, um inteiro.
+
+Para escolher entre o esquerdo e o direito, sendo ambos elementos quaisquer ordenáveis, devolvendo um elemento:
+    Se o esquerdo for maior que o direito: devolvo o esquerdo.
+    Devolvo o direito.
+
+Para somar a coisa, sendo a coisa uma coisa qualquer emprestada, devolvendo um inteiro:
+    Se a coisa for maior que a coisa: devolvo 1.
+    Devolvo a coisa mais 1.
+
+Para criar, devolvendo uma lista de itens quaisquer:
+    Os novos, uma lista de itens, começam vazios.
+    Devolvo os novos.
+
+Para parear o primeiro-item com o segundo-item, sendo ambos coisas qualquer:
+    Escrevo o primeiro-item.
+
+Para começar:
+    A poupança é uma conta com o saldo 1.
+    A outra é uma conta com o saldo 2.
+    Escrevo o resultado de escolher entre a poupança e a outra.
+    Escrevo o resultado de escolher entre 1 e "dois".
+    As coisas são o resultado de criar.
+    O solto, uma coisa qualquer, é 1.

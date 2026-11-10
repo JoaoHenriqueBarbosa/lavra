@@ -620,6 +620,18 @@ pub const KEYWORDS: &[Keyword] = &[
     },
     Keyword { form: "salvo", role: Role::Signature, doc: "\", salvo engano\": a função pode desistir, e quem chama tem de tratar." },
     Keyword { form: "engano", role: Role::Signature, doc: "\", salvo engano\": a função pode desistir, e quem chama tem de tratar." },
+    Keyword {
+        form: "qualquer",
+        role: Role::Signature,
+        doc: "No cabeçalho, um tipo qualquer: \", sendo o item uma coisa qualquer\". A função vale para todo tipo, e \"coisa\" o nomeia no resto dela.",
+    },
+    Keyword { form: "quaisquer", role: Role::Signature, doc: "O plural de \"qualquer\": \"uma lista de coisas quaisquer\"." },
+    Keyword {
+        form: "ordenável",
+        role: Role::Signature,
+        doc: "Depois de \"qualquer\": o tipo tem de ter ordem (número, caractere ou texto), e a função pode comparar com \"maior que\".",
+    },
+    Keyword { form: "ordenáveis", role: Role::Signature, doc: "O plural de \"ordenável\": \"coisas quaisquer ordenáveis\"." },
     Keyword { form: "ambos", role: Role::Signature, doc: "Na tipagem, os dois regidos de uma vez: \", sendo ambos inteiros\"." },
     Keyword { form: "ambas", role: Role::Signature, doc: "Na tipagem, as duas regidas de uma vez: \", sendo ambas listas de reais\"." },
     // Posse.

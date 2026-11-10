@@ -1,0 +1,50 @@
+Erro de tipo [L0330]: "maior que" compara números, caracteres ou textos, e este valor é uma coisa qualquer.
+ --> tests/programs/err/genericos.lav:9:8
+  |
+9 |     Se a coisa for maior que a coisa: devolvo 1.
+  |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = dica: Peça a ordem no cabeçalho: "coisa qualquer ordenável".
+Erro de tipo [L0354]: Esperava um inteiro, mas este valor é uma coisa qualquer.
+  --> tests/programs/err/genericos.lav:10:13
+   |
+10 |     Devolvo a coisa mais 1.
+   |             ^^^^^^^
+Aviso [L0500]: Os novos começam com um valor e nunca mudam.
+  --> tests/programs/err/genericos.lav:13:5
+   |
+13 |     Os novos, uma lista de itens, começam vazios.
+   |     ^^^^^^^^
+   = dica: Se é definição, escreva "Os novos são ...".
+Erro de concordância [L0181]: "qualquer" concorda com "coisas": "quaisquer".
+  --> tests/programs/err/genericos.lav:16:68
+   |
+16 | Para parear o primeiro-item com o segundo-item, sendo ambos coisas qualquer:
+   |                                                                    ^^^^^^^^
+Erro de tipo [L0371]: "escolher" pede um tipo com ordem (número, caractere ou texto), e aqui "elemento" é uma conta.
+  --> tests/programs/err/genericos.lav:22:13
+   |
+ 4 | Para escolher entre o esquerdo e o direito, sendo ambos elementos quaisquer ordenáveis, devolvendo um elemento:
+   |                                                         --------- ordenável aqui
+...
+22 |     Escrevo o resultado de escolher entre a poupança e a outra.
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Erro de tipo [L0354]: Esperava um inteiro, mas este valor é um texto.
+  --> tests/programs/err/genericos.lav:23:47
+   |
+23 |     Escrevo o resultado de escolher entre 1 e "dois".
+   |                                               ^^^^^^
+Erro de tipo [L0370]: Esta chamada não diz o que é "item": nenhum argumento decide o tipo.
+  --> tests/programs/err/genericos.lav:24:19
+   |
+12 | Para criar, devolvendo uma lista de itens quaisquer:
+   |                                     ----- o tipo qualquer
+...
+24 |     As coisas são o resultado de criar.
+   |                   ^^^^^^^^^^^^^^^^^^^^
+   = dica: O tipo qualquer tem de aparecer no tipo de algum parâmetro, e o argumento tem de ter tipo conhecido.
+Erro de sintaxe [L0182]: Um tipo qualquer se declara no cabeçalho da função, e não no corpo.
+  --> tests/programs/err/genericos.lav:25:18
+   |
+25 |     O solto, uma coisa qualquer, é 1.
+   |                  ^^^^^
+   = dica: No cabeçalho: ", sendo o item uma coisa qualquer". No corpo, "uma coisa" já é esse tipo.

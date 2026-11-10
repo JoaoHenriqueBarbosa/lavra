@@ -306,6 +306,15 @@ impl Parser {
     }
 
     pub(super) fn header(&mut self, draft: &mut Draft) -> Result<FuncSig> {
+        self.type_params.clear();
+        self.in_header = true;
+        let sig = self.header_inner(draft);
+        self.in_header = false;
+        let type_params = std::mem::take(&mut self.type_params);
+        sig.map(|s| FuncSig { type_params, ..s })
+    }
+
+    fn header_inner(&mut self, draft: &mut Draft) -> Result<FuncSig> {
         let start = self.expect_word("para")?.span;
         draft.start = Some(start);
         let mut params: Vec<(NameRef, Slot)> = Vec::new();
@@ -519,6 +528,7 @@ impl Parser {
             is_main: false,
             broken: false,
             builtin,
+            type_params: Vec::new(),
         })
     }
 
@@ -734,6 +744,7 @@ impl Parser {
             Number::Plural => match lexicon::type_noun_by_plural(&w) {
                 Some(t) => t.singular.to_string(),
                 None if self.vocab.record_plurals.contains_key(&w) || self.vocab.enum_plurals.contains_key(&w) => w.clone(),
+                None if self.type_param_ahead(&w, number) => return self.type_param(&t, number),
                 None => {
                     let plurals: Vec<&str> =
                         lexicon::TYPE_NOUNS.iter().filter(|t| !lexicon::is_collection_noun(t.singular)).map(|t| t.plural).collect();
@@ -775,6 +786,11 @@ impl Parser {
             self.prog.type_uses.push(TypeUse { word: name.clone(), span: t.span, number });
             return Ok((TypeExpr::Named(name), g));
         }
+        if !matches!(sing.as_str(), "inteiro" | "natural" | "real" | "byte" | "lógico" | "caractere" | "texto")
+            && self.type_param_ahead(&w, number)
+        {
+            return self.type_param(&t, number);
+        }
         let ty = match sing.as_str() {
             "inteiro" | "natural" => TypeExpr::Int { bits: self.bits()?.unwrap_or(64), signed: sing == "inteiro" },
             "real" => {
@@ -802,6 +818,81 @@ impl Parser {
             }
         };
         Ok((ty, Gender::Masculine))
+    }
+
+    /// O nome singular de um tipo qualquer escrito em `w`, no número dado.
+    fn param_name(w: &str, number: Number) -> Option<String> {
+        match number {
+            Number::Singular => Some(w.to_string()),
+            Number::Plural => morphology::singularize(w),
+        }
+    }
+
+    /// A palavra `w`, já lida, é um tipo qualquer: um que o cabeçalho já declarou, ou um novo
+    /// ("coisa qualquer", "coisas quaisquer").
+    fn type_param_ahead(&self, w: &str, number: Number) -> bool {
+        let Some(name) = Self::param_name(w, number) else { return false };
+        self.type_params.iter().any(|p| p.name == name) || self.at_word("qualquer") || self.at_word("quaisquer")
+    }
+
+    /// Lê o resto de um tipo qualquer cuja palavra (`t`) acabou de ser lida: o "qualquer" que
+    /// o declara, concordando em número, e o "ordenável" que o restringe.
+    fn type_param(&mut self, t: &crate::lexer::Token, number: Number) -> Result<(TypeExpr, Gender)> {
+        let w = t.word().unwrap_or_default().to_string();
+        let name = Self::param_name(&w, number).unwrap_or(w);
+        let known = self.type_params.iter().position(|p| p.name == name);
+        let any = self.at_word("qualquer") || self.at_word("quaisquer");
+        if any {
+            let q = self.bump();
+            let right = if number == Number::Plural { "quaisquer" } else { "qualquer" };
+            if !q.is_word(right) {
+                return err(Diagnostic::new(L0181, format!("\"{}\" concorda com \"{}\": \"{right}\".", q.orig, t.orig), q.span).fix(
+                    format!("Escrever \"{right}\""),
+                    q.span,
+                    right,
+                ));
+            }
+        }
+        let ordered = if self.at_word("ordenável") || self.at_word("ordenáveis") {
+            let o = self.bump();
+            let right = if number == Number::Plural { "ordenáveis" } else { "ordenável" };
+            if !o.is_word(right) {
+                return err(Diagnostic::new(L0181, format!("\"{}\" concorda com \"{}\": \"{right}\".", o.orig, t.orig), o.span).fix(
+                    format!("Escrever \"{right}\""),
+                    o.span,
+                    right,
+                ));
+            }
+            true
+        } else {
+            false
+        };
+        let gender = match known {
+            Some(i) => {
+                self.type_params[i].ordered |= ordered;
+                self.type_params[i].gender
+            }
+            None => {
+                if !self.in_header {
+                    return err(Diagnostic::new(L0182, "Um tipo qualquer se declara no cabeçalho da função, e não no corpo.", t.span)
+                        .hint("No cabeçalho: \", sendo o item uma coisa qualquer\". No corpo, \"uma coisa\" já é esse tipo."));
+                }
+                // O gênero vem do artigo de quem lê ("uma coisa"); sem artigo, da terminação.
+                let before = self.toks[..self.pos]
+                    .iter()
+                    .rev()
+                    .find(|x| x.span.end <= t.span.start)
+                    .and_then(|x| x.word())
+                    .and_then(morphology::article);
+                let gender = match before.filter(|a| !a.definite && number == Number::Singular) {
+                    Some(a) => a.gender,
+                    None => morphology::gender_by_ending(&name).unwrap_or(Gender::Masculine),
+                };
+                self.type_params.push(TypeParam { name: name.clone(), gender, ordered, span: t.span });
+                gender
+            }
+        };
+        Ok((TypeExpr::Param(name), gender))
     }
 
     // ------------------------------------------------------------- chamadas
@@ -938,6 +1029,7 @@ impl Draft {
             is_main: false,
             broken: true,
             builtin: None,
+            type_params: Vec::new(),
         })
     }
 }

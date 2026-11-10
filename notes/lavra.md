@@ -178,6 +178,31 @@ Para trovejar (trovejo) ...:          forma da 1ª pessoa declarada (defectivos)
   da língua ("como", "caso", "salvo", ordinais...), defectivo sem a forma declarada, e
   dois verbos com a mesma 1ª pessoa no mesmo programa.
 
+## Funções genéricas
+
+```
+Para inverter a lista, sendo a lista uma lista de coisas quaisquer emprestada,
+        devolvendo uma lista de coisas:
+    As invertidas, uma lista de coisas, começam vazias.
+    ...
+Para escolher entre o esquerdo e o direito, sendo ambos elementos quaisquer ordenáveis,
+        devolvendo um elemento:
+```
+
+- "qualquer" depois de um nome, no cabeçalho, declara um **tipo qualquer**: "uma coisa
+  qualquer", "uma lista de coisas quaisquer" (concorda em número, L0181). Daí em diante, no
+  cabeçalho e no corpo, "coisa" é esse tipo, sem repetir "qualquer". O nome é livre
+  ("coisa", "elemento", "item"), e o gênero vem do artigo.
+- Cada chamada decide o tipo pelos argumentos: `inverter as notas` faz de "coisa" um
+  inteiro, e `inverter os nomes`, um texto. O tipo que nenhum argumento decide é erro (L0370).
+- De um valor de tipo qualquer a função sabe pouco, e só faz o que vale para todo tipo:
+  entregar, emprestar, copiar ("uma cópia de"), comparar com "igual a" e "diferente de",
+  escrever e juntar com "seguido de", guardar em lista. Conta, campo e posição não valem.
+- "qualquer **ordenável**" pede um tipo com ordem (número, caractere ou texto) e libera
+  "maior que" e "menor que"; chamar com outro tipo é erro (L0371).
+- A função genérica é conferida uma vez, como foi escrita; o programa compilado leva uma
+  cópia dela para cada combinação de tipos que usa.
+
 ## Posse e empréstimo
 
 O particípio do cabeçalho declara a relação, concordando com o tipo:

@@ -1,0 +1,68 @@
+Nota: funções genéricas: "uma coisa qualquer" é o tipo de quem chama.
+
+Uma conta é um registro de:
+    o titular, um texto;
+    o saldo, um inteiro.
+
+Para inverter a lista, sendo a lista uma lista de coisas quaisquer emprestada, devolvendo uma lista de coisas:
+    As invertidas, uma lista de coisas, começam vazias.
+    Para cada i de (o tamanho da lista) até 1:
+        As invertidas ganham uma cópia do item i da lista.
+    Devolvo as invertidas.
+
+Para contar o alvo na lista, sendo o alvo uma coisa qualquer emprestada e a lista uma lista de coisas emprestada,
+        devolvendo um inteiro:
+    O total começa em 0.
+    Para cada coisa da lista:
+        Se a coisa for igual ao alvo: o total cresce 1.
+    Devolvo o total.
+
+Para escolher entre o esquerdo e o direito, sendo ambos elementos quaisquer ordenáveis, devolvendo um elemento:
+    Se o esquerdo for maior que o direito: devolvo o esquerdo.
+    Devolvo o direito.
+
+Para achar o maior da lista, sendo a lista uma lista de elementos quaisquer ordenáveis emprestada, devolvendo talvez um elemento:
+    Se a lista for vazia: devolvo nada.
+    O maior começa em uma cópia do item 1 da lista.
+    Para cada elemento da lista:
+        Se o elemento for maior que o maior: o maior vira uma cópia do elemento.
+    Devolvo o maior.
+
+Para replicar a coisa pelas vezes, sendo a coisa uma coisa qualquer emprestada e as vezes um inteiro,
+        devolvendo uma lista de coisas:
+    As cópias, uma lista de coisas, começam vazias.
+    Se as vezes forem maiores que 0:
+        As cópias ganham uma cópia da coisa.
+        As demais são o resultado de replicar a coisa por (as vezes menos 1).
+        Para cada outra das demais: as cópias ganham uma cópia da outra.
+    Devolvo as cópias.
+
+Para mostrar a coisa, sendo a coisa uma coisa qualquer emprestada:
+    Escrevo "<" seguido da coisa seguido de ">".
+
+Para começar:
+    As notas são 7, 9 e 8.
+    Os nomes são "Ana", "Caio" e "Bia".
+    Escrevo o resultado de inverter as notas.
+    Escrevo o resultado de inverter os nomes.
+    Escrevo o resultado de contar 9 nas notas.
+    Escrevo o resultado de contar "Zeca" nos nomes.
+    Escrevo o resultado de escolher entre 3 e 5.
+    Escrevo o resultado de escolher entre "abacate" e "banana".
+    Escrevo o resultado de escolher entre 2,5 e 1,5.
+    O maior é o resultado de achar o maior das notas.
+    Se houver maior: escrevo "a maior nota é " seguido do maior.
+    A derradeira é o resultado de achar o maior dos nomes.
+    Se houver derradeira: escrevo "o último nome é " seguido da derradeira.
+    Os vazios, uma lista de inteiros, começam vazios.
+    Os vazios ganham 1.
+    Os vazios perdem a primeira.
+    O nenhum é o resultado de achar o maior dos vazios.
+    Se não houver nenhum: escrevo "lista vazia não tem maior".
+    Escrevo o resultado de replicar "eco" por 3.
+    A poupança é uma conta com o titular "Ana" e o saldo 10.
+    Escrevo o resultado de replicar a poupança por 2.
+    Mostro 42.
+    Mostro "texto".
+    Mostro a poupança.
+    Mostro as notas.

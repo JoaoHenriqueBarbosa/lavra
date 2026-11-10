@@ -24,6 +24,11 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
         prog,
         globals: Vec::new(),
         sig_types: Vec::new(),
+        sig_params: Vec::new(),
+        current: Vec::new(),
+        instances: HashMap::new(),
+        pending: Vec::new(),
+        next_func: 0,
         sig_func: vec![usize::MAX; prog.sigs.len()],
         diags: Vec::new(),
         records: HashMap::new(),
@@ -50,7 +55,23 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
     for i in 0..prog.enums.len() {
         env.build_enum(i, &mut Vec::new());
     }
-    for sig in &prog.sigs {
+    for (i, sig) in prog.sigs.iter().enumerate() {
+        let own = sig
+            .type_params
+            .iter()
+            .enumerate()
+            .map(|(index, p)| {
+                Arc::new(crate::types::ParamTy {
+                    sig: i,
+                    index,
+                    name: p.name.clone(),
+                    feminine: p.gender == Gender::Feminine,
+                    ordered: p.ordered,
+                })
+            })
+            .collect();
+        env.sig_params.push(own);
+        env.set_current(i, &[]);
         let params = sig.params.iter().map(|p| env.type_or_error(&p.ty)).collect();
         let ret = sig.ret.as_ref().map(|t| env.type_or_error(t)).unwrap_or(Ty::Unit);
         env.sig_types.push(SigTypes { params, ret });
@@ -67,61 +88,47 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
     let init = init.into_func("início".into(), Vec::new(), hir::Block(init_body), Span::default());
 
     let mut funcs = Vec::new();
+    let mut generics = Vec::new();
+    env.next_func = prog.funcs.len();
     for f in &prog.funcs {
-        let sig = &prog.sigs[f.sig];
-        let ret = env.sig_types[f.sig].ret.clone();
-        let mut cx = FnCx::new(&mut env, Some(f.sig), sig.span);
-        let fscope = cx.env.tables.scopes.len();
-        cx.env.tables.scopes.push(Scope { parent: Some(0), span: sig.span.to(f.body.span) });
-        cx.scope_ids = vec![fscope];
-        // Cabeçalho quebrado já foi acusado: o corpo é conferido, mas sem os avisos e sem
-        // a conferência do retorno, que dependem do cabeçalho.
-        cx.tainted = sig.broken;
-        let mut params = Vec::new();
-        for (p, ty) in sig.params.iter().zip(env_param_types(&cx, f.sig)) {
-            match cx.declare(&p.name, ty, p.mode == ParamMode::Lent) {
-                Ok(id) => {
-                    cx.locals[id].mutated = true;
-                    let d = cx.local_defs[id];
-                    let owner = cx.env.sig_defs[f.sig];
-                    let def = &mut cx.env.tables.defs[d];
-                    def.kind = DefKind::Param;
-                    def.mode = Some(p.mode);
-                    def.owner = Some(owner);
-                    if let Some(t) = p.typing {
-                        cx.env.use_def_as(d, t, Use::Mention, Form::Name);
-                        // Tipo implícito ("sendo a prova emprestada"): o tipo é o próprio
-                        // nome, que então cita também o registro ou a enumeração.
-                        if t.end == p.ty.span.end
-                            && let ast::TypeExpr::Named(w) = &p.ty.ty
-                        {
-                            let ty_def = match (prog.vocab.records.get(w), prog.vocab.enums.get(w)) {
-                                (Some(&r), _) => cx.env.record_defs.get(r).copied(),
-                                (None, Some(&e)) => cx.env.enum_defs.get(e).copied(),
-                                (None, None) => None,
-                            };
-                            if let Some(ty_def) = ty_def {
-                                cx.env.use_def_as(ty_def, p.ty.span, Use::Mention, Form::Name);
-                            }
-                        }
-                    }
-                    params.push((id, p.mode));
-                }
-                Err(d) => cx.report(d),
-            }
+        let func = check_function(&mut env, prog, f, &[]);
+        if prog.sigs[f.sig].type_params.is_empty() {
+            funcs.push(func);
+        } else {
+            // A genérica fica para a posse e o editor; o que roda são as instâncias.
+            funcs.push(hir::Func {
+                name: func.name.clone(),
+                params: Vec::new(),
+                locals: Vec::new(),
+                body: hir::Block::default(),
+                ret: Ty::Unit,
+                fallible: false,
+                span: func.span,
+                has_errors: func.has_errors,
+                sig: func.sig,
+                instance: false,
+            });
+            generics.push(func);
         }
-        let body = cx.block(&f.body);
-        if ret != Ty::Unit && !ret.is_error() && !cx.tainted && !always_returns(&body) {
-            cx.report(Box::new(
-                Diagnostic::new(
-                    L0301,
-                    format!("\"{}\" promete devolver {}, mas pode terminar sem devolver.", sig.infinitive, ret.describe()),
-                    sig.name_span,
-                )
-                .hint("Garanta um \"Devolvo ...\" em todo caminho até o fim da função."),
-            ));
+    }
+    // As instâncias que as chamadas pediram, e as que elas mesmas pedem. Cada uma confere
+    // de novo o corpo com os tipos da chamada; as tabelas e os avisos são os da genérica.
+    let mut k = 0;
+    while k < env.pending.len() {
+        let (sig, targs) = env.pending[k].clone();
+        let tables = env.tables.clone();
+        let before = env.diags.len();
+        let def = &prog.funcs[env.sig_func[sig]];
+        let func = check_function(&mut env, prog, def, &targs);
+        env.tables = tables;
+        // A genérica já foi conferida: um erro que só aparece na instância é do compilador.
+        let leaked: Vec<Diagnostic> = env.diags.drain(before..).filter(Diagnostic::is_error).collect();
+        if let Some(d) = leaked.into_iter().next() {
+            let with: Vec<String> = targs.iter().map(Ty::describe).collect();
+            env.diags.push(d.note(format!("Ao usar \"{}\" com {}.", prog.sigs[sig].infinitive, join_e(&with))));
         }
-        funcs.push(cx.into_func(sig.infinitive.clone(), params, body, sig.span));
+        funcs.push(func);
+        k += 1;
     }
     // Um arquivo que só define (funções, tipos) existe para outro trazer, e não precisa de
     // "Para começar"; quem tenta rodá-lo é avisado (`Analysis::not_a_program`).
@@ -148,7 +155,73 @@ pub fn check(prog: &ast::Program, diags: &mut Diagnostics) -> (hir::Program, Tab
     enums.sort_by_key(|e| e.id);
     diags.list.extend(env.diags);
     env.tables.dedupe();
-    (hir::Program { funcs, globals, init, main: prog.main.map(|m| env.sig_func[m]), records, enums }, env.tables)
+    (hir::Program { funcs, globals, init, main: prog.main.map(|m| env.sig_func[m]), records, enums, generics }, env.tables)
+}
+
+/// Confere o corpo de uma função e a baixa para a HIR. `targs` são os tipos de uma chamada
+/// a uma função genérica (a instância); vazio, a função é conferida como foi escrita, com
+/// os tipos quaisquer do cabeçalho.
+fn check_function<'a>(env: &mut Env<'a>, prog: &'a ast::Program, f: &'a ast::FuncDef, targs: &[Ty]) -> hir::Func {
+    let sig = &prog.sigs[f.sig];
+    // Numa instância, cada tipo qualquer do cabeçalho é o tipo de quem chamou.
+    let ret = env.sig_types[f.sig].ret.with_params(f.sig, targs);
+    env.set_current(f.sig, targs);
+    let mut cx = FnCx::new(env, Some(f.sig), sig.span);
+    cx.targs = targs.to_vec();
+    let fscope = cx.env.tables.scopes.len();
+    cx.env.tables.scopes.push(Scope { parent: Some(0), span: sig.span.to(f.body.span) });
+    cx.scope_ids = vec![fscope];
+    // Cabeçalho quebrado já foi acusado: o corpo é conferido, mas sem os avisos e sem
+    // a conferência do retorno, que dependem do cabeçalho.
+    cx.tainted = sig.broken;
+    let mut params = Vec::new();
+    for (p, ty) in sig.params.iter().zip(env_param_types(&cx, f.sig)) {
+        let ty = ty.with_params(f.sig, targs);
+        match cx.declare(&p.name, ty, p.mode == ParamMode::Lent) {
+            Ok(id) => {
+                cx.locals[id].mutated = true;
+                let d = cx.local_defs[id];
+                let owner = cx.env.sig_defs[f.sig];
+                let def = &mut cx.env.tables.defs[d];
+                def.kind = DefKind::Param;
+                def.mode = Some(p.mode);
+                def.owner = Some(owner);
+                if let Some(t) = p.typing {
+                    cx.env.use_def_as(d, t, Use::Mention, Form::Name);
+                    // Tipo implícito ("sendo a prova emprestada"): o tipo é o próprio
+                    // nome, que então cita também o registro ou a enumeração.
+                    if t.end == p.ty.span.end
+                        && let ast::TypeExpr::Named(w) = &p.ty.ty
+                    {
+                        let ty_def = match (prog.vocab.records.get(w), prog.vocab.enums.get(w)) {
+                            (Some(&r), _) => cx.env.record_defs.get(r).copied(),
+                            (None, Some(&e)) => cx.env.enum_defs.get(e).copied(),
+                            (None, None) => None,
+                        };
+                        if let Some(ty_def) = ty_def {
+                            cx.env.use_def_as(ty_def, p.ty.span, Use::Mention, Form::Name);
+                        }
+                    }
+                }
+                params.push((id, p.mode));
+            }
+            Err(d) => cx.report(d),
+        }
+    }
+    let body = cx.block(&f.body);
+    if ret != Ty::Unit && !ret.is_error() && !cx.tainted && !always_returns(&body) {
+        cx.report(Box::new(
+            Diagnostic::new(
+                L0301,
+                format!("\"{}\" promete devolver {}, mas pode terminar sem devolver.", sig.infinitive, ret.describe()),
+                sig.name_span,
+            )
+            .hint("Garanta um \"Devolvo ...\" em todo caminho até o fim da função."),
+        ));
+    }
+    let mut func = cx.into_func(sig.infinitive.clone(), params, body, sig.span);
+    func.instance = !targs.is_empty();
+    func
 }
 
 fn env_param_types(cx: &FnCx, sig: usize) -> Vec<Ty> {
@@ -172,6 +245,17 @@ struct Env<'a> {
     prog: &'a ast::Program,
     globals: Vec<GlobalInfo>,
     sig_types: Vec<SigTypes>,
+    /// Os tipos quaisquer de cada assinatura (vazio na que não é genérica).
+    sig_params: Vec<Vec<Arc<crate::types::ParamTy>>>,
+    /// O que cada tipo qualquer vale no cabeçalho ou no corpo que se confere agora: o
+    /// próprio tipo qualquer, ou o tipo de quem chamou (na instância).
+    current: Vec<(String, Ty)>,
+    /// As instâncias já pedidas: (assinatura, tipos) → a função.
+    instances: HashMap<(usize, String), usize>,
+    /// As instâncias por conferir, na ordem das funções que elas vão ser.
+    pending: Vec<(usize, Vec<Ty>)>,
+    /// O índice da próxima função (as instâncias vêm depois das do programa).
+    next_func: usize,
     sig_func: Vec<hir::FuncId>,
     diags: Vec<Diagnostic>,
     records: HashMap<String, Arc<RecordTy>>,
@@ -525,9 +609,34 @@ impl Env<'_> {
                 Ty::Map(Box::new(key_type(self.type_expr(key, span)?, "A chave de um mapa", span)?), Box::new(self.type_expr(value, span)?))
             }
             ast::TypeExpr::Maybe(inner) => Ty::Maybe(Box::new(self.type_expr(inner, span)?)),
+            // O tipo qualquer do cabeçalho que se confere (ou, numa instância, o de quem chamou).
+            ast::TypeExpr::Param(name) => self.current.iter().find(|(n, _)| n == name).map_or(Ty::Error, |(_, t)| t.clone()),
             ast::TypeExpr::Error => Ty::Error,
             other => simple_type(other).ok_or_else(|| Box::new(Diagnostic::new(L0304, "Tipo ainda não suportado.", span)))?,
         })
+    }
+
+    /// Passa a conferir a assinatura `sig`: os tipos quaisquer dela valem `targs` (numa
+    /// instância) ou eles mesmos.
+    fn set_current(&mut self, sig: usize, targs: &[Ty]) {
+        self.current = self.sig_params[sig]
+            .iter()
+            .enumerate()
+            .map(|(i, p)| (p.name.clone(), targs.get(i).cloned().unwrap_or_else(|| Ty::Param(p.clone()))))
+            .collect();
+    }
+
+    /// A função que é `sig` com os tipos `targs`: a já pedida, ou uma nova, por conferir.
+    fn instance(&mut self, sig: usize, targs: Vec<Ty>) -> usize {
+        let key = (sig, format!("{targs:?}"));
+        if let Some(&id) = self.instances.get(&key) {
+            return id;
+        }
+        let id = self.next_func;
+        self.next_func += 1;
+        self.instances.insert(key, id);
+        self.pending.push((sig, targs));
+        id
     }
 
     /// O registro de nome `name` foi definido com erro (campos faltando não se acusam).
@@ -588,6 +697,8 @@ struct FnCx<'e, 'a> {
     local_defs: Vec<usize>,
     /// (trecho, tipo) das expressões, resolvidos no fim da função.
     expr_types: Vec<(Span, Ty)>,
+    /// Numa instância de função genérica, o tipo de cada tipo qualquer do cabeçalho.
+    targs: Vec<Ty>,
 }
 
 /// O que se sabe de um nome resolvido.
@@ -618,6 +729,7 @@ impl<'e, 'a> FnCx<'e, 'a> {
             scope_ids: vec![0],
             local_defs: Vec::new(),
             expr_types: Vec::new(),
+            targs: Vec::new(),
         }
     }
 
@@ -721,13 +833,24 @@ impl<'e, 'a> FnCx<'e, 'a> {
             self.env.diags.append(&mut self.warnings);
         }
         let ret = match self.sig {
-            Some(s) => self.env.sig_types[s].ret.clone(),
+            Some(s) => self.env.sig_types[s].ret.with_params(s, &self.targs),
             None => Ty::Unit,
         };
         let fallible = self.sig.is_some_and(|s| self.env.prog.sigs[s].fallible);
         let has_errors = self.tainted;
         let sig = self.sig;
-        hir::Func { name, params, fallible, locals: self.locals.into_iter().map(|l| l.local).collect(), body, ret, span, has_errors, sig }
+        hir::Func {
+            name,
+            params,
+            fallible,
+            locals: self.locals.into_iter().map(|l| l.local).collect(),
+            body,
+            ret,
+            span,
+            has_errors,
+            sig,
+            instance: false,
+        }
     }
 
     fn fresh(&mut self, span: Span) -> Ty {
@@ -1728,7 +1851,8 @@ impl<'e, 'a> FnCx<'e, 'a> {
             }
             ClauseKind::Return(value) => {
                 let sig = &self.env.prog.sigs[self.sig.unwrap()];
-                let ret = self.env.sig_types[self.sig.unwrap()].ret.clone();
+                let own = self.sig.unwrap();
+                let ret = self.env.sig_types[own].ret.with_params(own, &self.targs);
                 let v = match (value, &ret) {
                     (None, Ty::Unit) => None,
                     (Some(e), Ty::Unit) => {
@@ -1806,7 +1930,11 @@ impl<'e, 'a> FnCx<'e, 'a> {
             self.env.tables.args.push((a.span, p.mode));
         }
         let types = self.env.sig_types[call.sig].params.clone();
-        let ret = self.env.sig_types[call.sig].ret.clone();
+        let mut ret = self.env.sig_types[call.sig].ret.clone();
+        let mut callee = callee;
+        let generic = !sig.type_params.is_empty();
+        // Na função genérica, os tipos quaisquer se decidem pelos argumentos desta chamada.
+        let mut bound: Vec<Option<Ty>> = vec![None; sig.type_params.len()];
         let mut args = Vec::new();
         for ((a, p), ty) in call.args.iter().zip(&sig.params).zip(&types) {
             let place = if p.mode == ParamMode::Lent {
@@ -1827,8 +1955,68 @@ impl<'e, 'a> FnCx<'e, 'a> {
             } else {
                 None
             };
-            let value = self.expr(a, Some(ty))?;
+            // O parâmetro de tipo qualquer não diz o que esperar: o argumento é quem decide.
+            let value = if generic && ty.has_param() {
+                let known = ty.with_params(call.sig, &bound.iter().map(|b| b.clone().unwrap_or(Ty::Error)).collect::<Vec<_>>());
+                let hint = (!known.has_param() && bound_all(ty, call.sig, &bound)).then_some(&known);
+                let v = self.expr(a, hint)?;
+                let found = self.resolve_ty(&v.ty);
+                if !found.is_error() && !bind(ty, &found, call.sig, &mut bound) {
+                    let shown = ty.with_params(
+                        call.sig,
+                        &bound
+                            .iter()
+                            .enumerate()
+                            .map(|(i, b)| b.clone().unwrap_or_else(|| Ty::Param(self.env.sig_params[call.sig][i].clone())))
+                            .collect::<Vec<_>>(),
+                    );
+                    return err(Diagnostic::new(
+                        L0354,
+                        format!("Esperava {}, mas este valor é {}.", shown.describe(), found.describe()),
+                        a.span,
+                    )
+                    .label(p.name.span, "o parâmetro"));
+                }
+                v
+            } else {
+                self.expr(a, Some(ty))?
+            };
             args.push(hir::Arg { value, param: p.name.display(), mode: p.mode, place });
+        }
+        if generic {
+            let mut targs = Vec::new();
+            for (i, b) in bound.iter().enumerate() {
+                let param = &sig.type_params[i];
+                let Some(t) = b.clone().filter(|t| !contains_infer(t)) else {
+                    return err(Diagnostic::new(
+                        L0370,
+                        format!("Esta chamada não diz o que é \"{}\": nenhum argumento decide o tipo.", param.name),
+                        call.span,
+                    )
+                    .label(param.span, "o tipo qualquer")
+                    .hint("O tipo qualquer tem de aparecer no tipo de algum parâmetro, e o argumento tem de ter tipo conhecido."));
+                };
+                if param.ordered && !t.is_ordered() {
+                    return err(Diagnostic::new(
+                        L0371,
+                        format!(
+                            "\"{}\" pede um tipo com ordem (número, caractere ou texto), e aqui \"{}\" é {}.",
+                            sig.infinitive,
+                            param.name,
+                            t.describe()
+                        ),
+                        call.span,
+                    )
+                    .label(param.span, "ordenável aqui"));
+                }
+                targs.push(t);
+            }
+            ret = ret.with_params(call.sig, &targs);
+            // Com os tipos de quem chama, a função que roda é a instância. Dentro de outra
+            // genérica ainda conferida com tipos quaisquer, a instância fica para as dela.
+            if !targs.iter().any(Ty::has_param) {
+                callee = hir::Callee::User(self.env.instance(call.sig, targs));
+            }
         }
         Ok(hir::Expr { kind: hir::ExprKind::Call { callee, args }, ty: ret, span: call.span })
     }
@@ -1844,12 +2032,17 @@ impl<'e, 'a> FnCx<'e, 'a> {
                         let lt = lhs.ty.clone();
                         let rhs = self.expr(rhs, Some(&lt))?;
                         let ordered = !matches!(rel, Rel::Equal | Rel::Different);
-                        if ordered && !matches!(lhs.ty, Ty::Int(_) | Ty::Real(_) | Ty::Char | Ty::Text | Ty::Error) {
-                            return err(Diagnostic::new(
+                        if ordered && !lhs.ty.is_ordered() {
+                            let d = Diagnostic::new(
                                 L0330,
                                 format!("\"{}\" compara números, caracteres ou textos, e este valor é {}.", rel.words(), lhs.ty.describe()),
                                 *span,
-                            ));
+                            );
+                            // O tipo qualquer só tem ordem se o cabeçalho pedir.
+                            return err(match &lhs.ty {
+                                Ty::Param(p) => d.hint(format!("Peça a ordem no cabeçalho: \"{} qualquer ordenável\".", p.name)),
+                                _ => d,
+                            });
                         }
                         hir::Cond::Cmp { rel: *rel, lhs, rhs }
                     }
@@ -2715,6 +2908,36 @@ fn key_type(t: Ty, what: &str, span: Span) -> Result<Ty> {
     }
     err(Diagnostic::new(L0367, format!("{what} é um inteiro, um caractere, um texto ou um lógico, e aqui é {}.", t.describe()), span)
         .hint("Esses são os tipos que têm ordem, e é por ela que o conjunto e o mapa acham um valor."))
+}
+
+/// Casa o tipo de um parâmetro (com tipos quaisquer da assinatura `sig`) com o tipo de um
+/// argumento, anotando em `out` o que cada tipo qualquer passa a valer.
+fn bind(pattern: &Ty, actual: &Ty, sig: usize, out: &mut [Option<Ty>]) -> bool {
+    match (pattern, actual) {
+        (_, Ty::Error) | (Ty::Error, _) => true,
+        (Ty::Param(p), _) if p.sig == sig => match &out[p.index] {
+            Some(t) => t == actual || matches!(t, Ty::Infer(_)),
+            None => {
+                out[p.index] = Some(actual.clone());
+                true
+            }
+        },
+        (Ty::List(a), Ty::List(b)) | (Ty::Set(a), Ty::Set(b)) | (Ty::Maybe(a), Ty::Maybe(b)) => bind(a, b, sig, out),
+        (Ty::Map(k, v), Ty::Map(k2, v2)) => bind(k, k2, sig, out) && bind(v, v2, sig, out),
+        // O valor posto onde se espera "talvez".
+        (Ty::Maybe(a), b) => bind(a, b, sig, out),
+        (a, b) => a == b,
+    }
+}
+
+/// Todo tipo qualquer de `pattern` já foi decidido.
+fn bound_all(pattern: &Ty, sig: usize, out: &[Option<Ty>]) -> bool {
+    match pattern {
+        Ty::Param(p) if p.sig == sig => out[p.index].is_some(),
+        Ty::List(a) | Ty::Set(a) | Ty::Maybe(a) => bound_all(a, sig, out),
+        Ty::Map(k, v) => bound_all(k, sig, out) && bound_all(v, sig, out),
+        _ => true,
+    }
 }
 
 fn readable(t: &Ty) -> bool {

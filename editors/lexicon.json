@@ -328,6 +328,26 @@
       "role": "signature"
     },
     {
+      "doc": "No cabeçalho, um tipo qualquer: \", sendo o item uma coisa qualquer\". A função vale para todo tipo, e \"coisa\" o nomeia no resto dela.",
+      "form": "qualquer",
+      "role": "signature"
+    },
+    {
+      "doc": "O plural de \"qualquer\": \"uma lista de coisas quaisquer\".",
+      "form": "quaisquer",
+      "role": "signature"
+    },
+    {
+      "doc": "Depois de \"qualquer\": o tipo tem de ter ordem (número, caractere ou texto), e a função pode comparar com \"maior que\".",
+      "form": "ordenável",
+      "role": "signature"
+    },
+    {
+      "doc": "O plural de \"ordenável\": \"coisas quaisquer ordenáveis\".",
+      "form": "ordenáveis",
+      "role": "signature"
+    },
+    {
       "doc": "Na tipagem, os dois regidos de uma vez: \", sendo ambos inteiros\".",
       "form": "ambos",
       "role": "signature"
@@ -2463,6 +2483,30 @@
       "doc": "\", salvo engano\": a função pode desistir, e quem chama tem de tratar.",
       "form": "engano",
       "lemma": "engano",
+      "role": "signature"
+    },
+    {
+      "doc": "No cabeçalho, um tipo qualquer: \", sendo o item uma coisa qualquer\". A função vale para todo tipo, e \"coisa\" o nomeia no resto dela.",
+      "form": "qualquer",
+      "lemma": "qualquer",
+      "role": "signature"
+    },
+    {
+      "doc": "O plural de \"qualquer\": \"uma lista de coisas quaisquer\".",
+      "form": "quaisquer",
+      "lemma": "quaisquer",
+      "role": "signature"
+    },
+    {
+      "doc": "Depois de \"qualquer\": o tipo tem de ter ordem (número, caractere ou texto), e a função pode comparar com \"maior que\".",
+      "form": "ordenável",
+      "lemma": "ordenável",
+      "role": "signature"
+    },
+    {
+      "doc": "O plural de \"ordenável\": \"coisas quaisquer ordenáveis\".",
+      "form": "ordenáveis",
+      "lemma": "ordenáveis",
       "role": "signature"
     },
     {

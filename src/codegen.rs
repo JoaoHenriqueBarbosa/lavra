@@ -170,7 +170,7 @@ fn clif(t: &Ty) -> Option<types::Type> {
         Ty::Char => types::I32,
         Ty::Text | Ty::List(_) | Ty::Set(_) | Ty::Map(..) | Ty::Record(_) | Ty::Maybe(_) | Ty::Enum(_) => PTR,
         Ty::Unit => return None,
-        Ty::Infer(_) | Ty::Error => panic!("tipo não resolvido no gerador de código: {t:?}"),
+        Ty::Infer(_) | Ty::Error | Ty::Param(_) => panic!("tipo não resolvido no gerador de código: {t:?}"),
     })
 }
 

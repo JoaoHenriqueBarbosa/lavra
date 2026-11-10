@@ -503,3 +503,11 @@ Decisões para revisar:
 - A vida da referência é o bloco, e não o último uso (o Rust de hoje usa o último uso). Fica mais simples de explicar, e às vezes obriga a abrir um bloco só para a referência acabar. Não há um jeito de abrir um bloco sem condição; hoje se usa um "Se" que sempre vale.
 - O particípio concorda com o nome declarado ("a favorita ..., confiada"), enquanto no cabeçalho ele concorda com o tipo. É a concordância natural de cada frase, mas são duas regras.
 
+Item 11, genéricos e traits, primeira parte (genéricos):
+- "qualquer" depois de um nome, no cabeçalho, declara um tipo qualquer: "sendo a lista uma lista de coisas quaisquer emprestada, devolvendo uma lista de coisas". O nome do tipo é livre, e no corpo ele se cita sem "qualquer".
+- Cada chamada decide o tipo pelos argumentos. A função é conferida uma vez, como foi escrita, e o programa leva uma instância para cada combinação de tipos; os back-ends não mudaram.
+- Com um valor de tipo qualquer a função faz o que vale para todo tipo: entrega, empresta, copia, compara por igualdade, escreve, guarda em lista. "qualquer ordenável" pede um tipo com ordem e libera "maior que".
+- Quatro códigos: L0181 e L0182 (a forma), L0370 (tipo que a chamada não decide) e L0371 (tipo sem ordem).
+
+Decisão para revisar: o tipo qualquer não tem marca própria além da palavra "qualquer" na primeira vez; depois é um nome como o de um registro. Se um registro tiver o mesmo nome, o registro vence.
+

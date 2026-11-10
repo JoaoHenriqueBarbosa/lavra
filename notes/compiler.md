@@ -295,7 +295,18 @@ chegar começar do lugar certo.
   outro módulo não entra no `field_names` do parse local, porque ele muda o parse de "a soma
   de". No editor, a definição passa a apontar para o arquivo do módulo, e o servidor analisa
   também os arquivos que o documento aberto pede. A sintaxe fica para quando for desenhada.
-- **Genéricos e traits.** Um `Ty::Param` existe só entre a sema e a monomorfização: a sema
+- **Genéricos (feito).** "uma coisa qualquer" no cabeçalho dá `ast::TypeExpr::Param` e uma
+  entrada em `FuncSig::type_params`; na sema, `Ty::Param` (com a assinatura e a posição). A
+  função genérica é conferida uma vez com os tipos quaisquer (`check_function` com `targs`
+  vazio), e essa versão vai para `hir::Program::generics`, que a posse e o editor usam; em
+  `funcs` fica um corpo vazio no lugar dela. Cada chamada casa os tipos dos parâmetros com
+  os dos argumentos (`bind`), confere o "ordenável" e pede a instância (`Env::instance`):
+  uma função nova, depois das do programa, conferida de novo com `targs` (as tabelas e os
+  diagnósticos dessa segunda passada se descartam; um erro só nela é defeito do
+  compilador e sai com a nota dos tipos). Nenhum back-end vê `Ty::Param`. O que a função
+  pode fazer com um valor de tipo qualquer é o que a sema já deixa fazer com um tipo que
+  ela não conhece: igualdade, escrita, cópia, posse.
+- **Genéricos e traits (o roteiro de antes).** Um `Ty::Param` existe só entre a sema e a monomorfização: a sema
   confere a função genérica uma vez e, a cada chamada, deduz os tipos dos parâmetros e pede
   a instância concreta, que vira um `hir::Func` comum. Nenhum back-end vê variável de tipo.
   É a hora de internar os tipos (um id por tipo no lugar de `Box` e `Arc`), porque as

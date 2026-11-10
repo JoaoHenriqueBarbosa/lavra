@@ -22,8 +22,9 @@ use std::collections::HashSet;
 /// incompleta e acusaria o que não é). Cada erro é relatado uma vez e a análise segue.
 pub fn check(prog: &hir::Program, src: &str, sources: &crate::modules::Sources, diags: &mut Diagnostics, tables: &mut Tables) {
     let lines = Lines { index: LineIndex::new(src), text: src, sources };
-    for f in std::iter::once(&prog.init).chain(&prog.funcs) {
-        if !f.has_errors {
+    // A função genérica é conferida uma vez, com os tipos quaisquer; as instâncias não.
+    for f in std::iter::once(&prog.init).chain(&prog.funcs).chain(&prog.generics) {
+        if !f.has_errors && !f.instance {
             let (found, notes) = Checker::new(prog, f, &lines).run();
             diags.list.extend(found);
             tables.ownership.extend(notes);

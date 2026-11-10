@@ -125,6 +125,8 @@ codes! {
     L0178 = Scope, "Arquivo que não se conseguiu trazer";
     L0179 = Agreement, "Particípio da referência que não concorda com o nome";
     L0180 = Syntax, "Referência declarada com \"começa\"";
+    L0181 = Agreement, "\"qualquer\" que não concorda com o tipo";
+    L0182 = Syntax, "Tipo qualquer fora de um cabeçalho";
 
     // Parser: registros, enumerações, lugares e operações por extenso.
     L0200 = Syntax, "Faltou o nome do tipo";
@@ -220,6 +222,8 @@ codes! {
     L0367 = Type, "Chave de mapa ou valor de conjunto de tipo sem ordem";
     L0368 = Type, "Operação que o conjunto ou o mapa não tem";
     L0369 = Type, "Referência a um valor sem lugar";
+    L0370 = Type, "Tipo qualquer que a chamada não decide";
+    L0371 = Type, "Tipo sem ordem onde se pede ordenável";
 
     // Posse e empréstimo.
     L0400 = Ownership, "Valor usado depois de entregue";

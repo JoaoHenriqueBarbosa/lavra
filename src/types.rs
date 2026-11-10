@@ -123,6 +123,26 @@ impl std::fmt::Debug for EnumTy {
     }
 }
 
+/// Um tipo qualquer de uma função genérica ("uma coisa qualquer"). Só existe enquanto a
+/// função é conferida: cada chamada troca o tipo qualquer pelo tipo de quem chama, e os
+/// back-ends nunca o veem.
+#[derive(Debug)]
+pub struct ParamTy {
+    /// A assinatura que o declara e a posição entre os tipos quaisquer dela.
+    pub sig: usize,
+    pub index: usize,
+    pub name: String,
+    pub feminine: bool,
+    /// "qualquer ordenável": compara-se com "maior que".
+    pub ordered: bool,
+}
+
+impl PartialEq for ParamTy {
+    fn eq(&self, other: &Self) -> bool {
+        self.sig == other.sig && self.index == other.index
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Ty {
     Int(IntTy),
@@ -139,6 +159,8 @@ pub enum Ty {
     Enum(Arc<EnumTy>),
     /// "talvez um texto": um valor ou nada.
     Maybe(Box<Ty>),
+    /// Um tipo qualquer de uma função genérica.
+    Param(Arc<ParamTy>),
     Unit,
     /// Ainda por inferir (lista vazia antes do primeiro uso).
     Infer(u32),
@@ -172,9 +194,42 @@ impl Ty {
         matches!(self, Ty::Int(_) | Ty::Char | Ty::Text | Ty::Bool | Ty::Error)
     }
 
+    /// O tipo tem ordem: compara-se com "maior que" e "menor que".
+    pub fn is_ordered(&self) -> bool {
+        match self {
+            Ty::Int(_) | Ty::Real(_) | Ty::Char | Ty::Text | Ty::Error => true,
+            Ty::Param(p) => p.ordered,
+            _ => false,
+        }
+    }
+
+    /// O tipo cita um tipo qualquer: ainda não é o de uma chamada.
+    pub fn has_param(&self) -> bool {
+        match self {
+            Ty::Param(_) => true,
+            Ty::List(t) | Ty::Set(t) | Ty::Maybe(t) => t.has_param(),
+            Ty::Map(k, v) => k.has_param() || v.has_param(),
+            _ => false,
+        }
+    }
+
+    /// O tipo com cada tipo qualquer da assinatura `sig` trocado pelo de `args`.
+    pub fn with_params(&self, sig: usize, args: &[Ty]) -> Ty {
+        match self {
+            // Sem tipos de chamada (a função conferida como foi escrita), o tipo qualquer fica.
+            Ty::Param(p) if p.sig == sig => args.get(p.index).cloned().unwrap_or_else(|| self.clone()),
+            Ty::List(t) => Ty::List(Box::new(t.with_params(sig, args))),
+            Ty::Set(t) => Ty::Set(Box::new(t.with_params(sig, args))),
+            Ty::Maybe(t) => Ty::Maybe(Box::new(t.with_params(sig, args))),
+            Ty::Map(k, v) => Ty::Map(Box::new(k.with_params(sig, args)), Box::new(v.with_params(sig, args))),
+            other => other.clone(),
+        }
+    }
+
     pub fn is_feminine(&self) -> bool {
         match self {
             Ty::List(_) => true,
+            Ty::Param(p) => p.feminine,
             Ty::Record(r) => r.feminine,
             Ty::Enum(e) => e.feminine,
             _ => false,
@@ -197,6 +252,8 @@ impl Ty {
             Ty::Record(r) => pick(&r.name, &r.plural),
             Ty::Enum(e) => pick(&e.name, &e.plural),
             Ty::Maybe(t) => format!("talvez {}", if plural { t.noun(true) } else { t.describe() }),
+            Ty::Param(p) if plural => format!("{} quaisquer", crate::morphology::pluralize(&p.name)),
+            Ty::Param(p) => format!("{} qualquer", p.name),
             Ty::Unit => pick("nada", "nada"),
             Ty::Infer(_) | Ty::Error => pick("valor", "valores"),
         }

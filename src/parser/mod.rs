@@ -115,6 +115,8 @@ impl Parser {
             cursor: None,
             expected: RefCell::new(Vec::new()),
             library: None,
+            type_params: Vec::new(),
+            in_header: false,
         }
     }
 }
@@ -124,6 +126,10 @@ struct Parser {
     pos: usize,
     /// A biblioteca cujos cabeçalhos estão sendo lidos.
     library: Option<&'static str>,
+    /// Os tipos quaisquer do cabeçalho que se está lendo, ou da função cujo corpo se lê.
+    type_params: Vec<TypeParam>,
+    /// Está-se lendo um cabeçalho: só ali um tipo qualquer se declara.
+    in_header: bool,
     prog: Program,
     /// Cabeçalhos lidos na pré-varredura: posição do "Para" → (assinatura, fim do cabeçalho).
     headers: HashMap<usize, (usize, usize)>,
@@ -344,6 +350,7 @@ impl Parser {
                     is_main: true,
                     broken: false,
                     builtin: None,
+                    type_params: Vec::new(),
                 });
                 let body = self.block();
                 self.prog.funcs.push(FuncDef { sig, body });
@@ -352,7 +359,10 @@ impl Parser {
                 self.pos = end;
             } else if let Some(&(sig, end)) = self.headers.get(&self.pos) {
                 self.pos = end;
+                // No corpo, os tipos quaisquer do cabeçalho se citam pelo nome.
+                self.type_params = self.prog.sigs[sig].type_params.clone();
                 let body = self.block();
+                self.type_params.clear();
                 self.prog.funcs.push(FuncDef { sig, body });
             } else if matches!(self.peek().kind, TokenKind::Dedent) {
                 // Bloco que fecha sem ter aberto aqui (recuo de um erro anterior).

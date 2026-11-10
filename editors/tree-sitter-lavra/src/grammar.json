@@ -2688,6 +2688,26 @@
         },
         {
           "type": "PATTERN",
+          "value": "ordenáveis",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "ordenável",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "quaisquer",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
+          "value": "qualquer",
+          "flags": "i"
+        },
+        {
+          "type": "PATTERN",
           "value": "salvo",
           "flags": "i"
         }

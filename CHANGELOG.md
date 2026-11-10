@@ -32,6 +32,9 @@ As versões da Lavra, a mais nova primeiro.
 - A biblioteca de arquivos ("Uso a biblioteca de arquivos."): carregar, gravar, acrescentar,
   apagar, listar e "Se o caminho existir". O que depende do disco pode falhar, e a chamada
   trata com ", ou desisto" ou ", ou VALOR".
+- Funções genéricas: "sendo a lista uma lista de coisas quaisquer" declara um tipo qualquer,
+  que cada chamada decide pelos argumentos. "qualquer ordenável" pede um tipo com ordem e
+  libera "maior que".
 - Referências guardadas num nome: "A favorita é a primeira das contas, confiada." muda a conta
   que está na lista, e ", emprestada" lê sem copiar. Valem até o fim do bloco, e o
   verificador de posse confere o dono enquanto isso.
